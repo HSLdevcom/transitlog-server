@@ -1,4 +1,4 @@
-export const createApp = () => {
+export const createApp = async () => {
   const books = [
     {
       title: 'Harry Potter and the Chamber of Secrets',
