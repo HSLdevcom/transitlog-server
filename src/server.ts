@@ -7,10 +7,13 @@ import { RedisCache } from 'apollo-server-cache-redis'
 const app = createApp()
 const server = new ApolloServer({
   typeDefs: schema,
-  resolvers: resolvers(app),
+  resolvers: resolvers,
   cache: new RedisCache({
     host: '0.0.0.0',
   }),
+  context: () => ({
+    app
+  })
 })
 
 server.listen().then(({ url }) => {
