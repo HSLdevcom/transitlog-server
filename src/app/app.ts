@@ -1,16 +1,11 @@
 export const createApp = async () => {
-  const books = [
-    {
-      title: 'Harry Potter and the Chamber of Secrets',
-      author: 'J.K. Rowling',
-    },
-    {
-      title: 'Jurassic Park',
-      author: 'Michael Crichton',
-    },
-  ]
-
   return {
-    books,
+    equipment: [],
+    stops: [],
+    routes: [],
+    routeGeometry: null,
+    lines: [],
+    departures: [],
+    journey: null,
   }
 }

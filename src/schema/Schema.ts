@@ -2,7 +2,7 @@ import { gql } from 'apollo-server'
 
 export const Schema = gql`
   """
-  A Date string in YYYY-MM-DD format. The timezone is set on the server with environment variables.
+  A Date string in YYYY-MM-DD format. Will be assumed to be in the server timezone.
   """
   scalar Date
 
