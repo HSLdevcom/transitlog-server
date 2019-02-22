@@ -1,4 +1,4 @@
-import { QueryResolvers } from '../types/generated/schema'
+import { QueryResolvers } from '../types/generated/resolver-types'
 
 const queryBooks = app => () => app.books
 
