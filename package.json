@@ -1,0 +1,55 @@
+{
+  "name": "transitlog-server",
+  "version": "1.0.0",
+  "description": "Server component for Transitlog and Bultti.",
+  "main": "src/server.ts",
+  "scripts": {
+    "docker:build": "docker build --cpuset-cpus 2 -t hsldevcom/transitlog-server .",
+    "docker:run": "docker run --name transitlog-server -p 1234:1234 hsldevcom/transitlog-server",
+    "start": "concurrently \"yarn:start:dev\" \"sleep 2 && yarn run codegen --watch\"",
+    "start:dev": "nodemon --signal SIGTERM --watch 'src/**/*' --exec 'ts-node' src/server.ts",
+    "start:production": "forever start -c \"ts-node\" src/server.ts -l server.log -o server-out.log -e server-err.log && forever -f logs 0",
+    "codegen": "gql-gen --config codegen.yml"
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "tslint --fix",
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "author": "HSLdevcom",
+  "license": "MIT",
+  "dependencies": {
+    "@types/graphql": "^14.0.7",
+    "@types/lodash": "^4.14.121",
+    "@types/node": "^11.9.4",
+    "apollo-server": "^2.4.2",
+    "forever": "^0.15.3",
+    "graphql": "^14.1.1",
+    "graphql-code-generator": "^0.17.0",
+    "lodash": "^4.17.11",
+    "ts-node": "^8.0.2",
+    "typescript": "^3.3.3"
+  },
+  "devDependencies": {
+    "concurrently": "^4.1.0",
+    "graphql-codegen-fragment-matcher": "^0.17.0",
+    "graphql-codegen-introspection": "^0.17.0",
+    "graphql-codegen-typescript-common": "0.17.0",
+    "graphql-codegen-typescript-resolvers": "0.17.0",
+    "graphql-codegen-typescript-server": "0.17.0",
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.4",
+    "nodemon": "^1.18.10",
+    "prettier": "^1.16.4",
+    "tslint": "^5.12.1",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.0.1"
+  }
+}
