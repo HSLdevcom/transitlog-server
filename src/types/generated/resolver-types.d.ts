@@ -7,29 +7,6 @@ export enum CacheControlScope {
 
 /** The `Upload` scalar type represents a file upload. */
 export type Upload = any
-
-// ====================================================
-// Scalars
-// ====================================================
-
-// ====================================================
-// Types
-// ====================================================
-
-export interface Query {
-  books?: Maybe<(Maybe<Book>)[]>
-}
-
-export interface Book {
-  title?: Maybe<string>
-
-  author?: Maybe<string>
-}
-
-// ====================================================
-// Arguments
-// ====================================================
-
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql'
 
 export type Resolver<Result, Parent = {}, TContext = {}, Args = {}> = (
