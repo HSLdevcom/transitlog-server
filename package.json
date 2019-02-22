@@ -30,6 +30,7 @@
     "@types/lodash": "^4.14.121",
     "@types/node": "^11.9.4",
     "apollo-server": "^2.4.2",
+    "apollo-server-cache-redis": "^0.3.1",
     "forever": "^0.15.3",
     "graphql": "^14.1.1",
     "graphql-code-generator": "^0.17.0",
