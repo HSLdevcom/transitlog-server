@@ -16,7 +16,7 @@ The server is a Typescript app that runs on a recent version of Node (10+). It u
 
 ## GraphQL API
 
-TBD
+Please see QUERIES.md for a more detailed description of what queries the Transitlog-Server provides. This is a read-only API and it does not provide mutations. To mutate the data you have to be a bus with an HFP transmitter or use the JORE database interface.
 
 ## Run the server
 
