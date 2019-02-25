@@ -1,7 +1,8 @@
 import { Line as JoreLine } from '../../types/generated/jore-types'
 import { get } from 'lodash'
+import { LineFilterInput } from '../../types/generated/schema-types'
 
-export function filterLines(lines, filter) {
+export function filterLines(lines: JoreLine[], filter?: LineFilterInput) {
   const lineIdFilter = get(filter, 'lineId', '')
   const includeEmpty = get(filter, 'includeLinesWithoutRoutes', true)
 
