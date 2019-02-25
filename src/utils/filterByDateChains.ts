@@ -8,13 +8,13 @@ import { Dictionary } from '../types/Dictionary'
 // JORE objects have dateBegin and dateEnd props that express a validity range.
 // We have a problem where there can be multiple objects with overlapping
 // validity ranges
-export function filterByDateChains(
-  groups: Dictionary<ValidityRange[]>,
+export function filterByDateChains<ItemType extends ValidityRange>(
+  groups: Dictionary<ItemType[]>,
   date?: string
-): ValidityRange[] {
+): ItemType[] {
   const validGroups = reduce(
     groups,
-    (filtered: ValidityRange[][], items: ValidityRange[]) => {
+    (filtered: ItemType[][], items: ItemType[]) => {
       // If it's only one item, we're good.
       if (items.length === 1) {
         filtered.push(date ? filterByDate(items, date) : items)
@@ -58,8 +58,8 @@ export function filterByDateChains(
       }
 
       // Create a chain and use the item passed in as "startingPoint" to start it off.
-      function createChain(startingPoint) {
-        const chain: ValidityRange[] = []
+      function createChain(startingPoint: ItemType): ItemType[] {
+        const chain: ItemType[] = []
 
         // Keep track of the iteration so that we can kill the loop if it happens
         // to run off.
@@ -120,7 +120,7 @@ export function filterByDateChains(
       // Declare the winner of the chain competition. Longest chain wins.
       // TODO: We might want to include items from the leftover chains if they don't
       //  overlap with any items in the winning chain. But such cases are very rare.
-      const longestChain = orderBy(chains, 'length', 'desc')[0]
+      const longestChain: ItemType[] = orderBy(chains, 'length', 'desc')[0]
       // Get the item that is active for the selected date from the chain of valid items.
       filtered.push(date ? filterByDate(longestChain, date) : longestChain)
 
