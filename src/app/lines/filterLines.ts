@@ -6,7 +6,7 @@ export function filterLines(lines: JoreLine[], filter?: LineFilterInput) {
   const lineIdFilter = get(filter, 'lineId', '')
   const includeEmpty = get(filter, 'includeLinesWithoutRoutes', true)
 
-  if (!lineIdFilter || includeEmpty) {
+  if (!lineIdFilter && includeEmpty) {
     return lines
   }
 

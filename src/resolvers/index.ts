@@ -6,6 +6,7 @@ import { TimeScalar } from './scalars/Time'
 import { DateTimeScalar } from './scalars/DateTime'
 import { VehicleIdScalar } from './scalars/VehicleId'
 import { BBoxScalar } from './scalars/BBox'
+import { DirectionScalar } from './scalars/Direction'
 
 export const resolvers: StringIndexed<IResolvers> = {
   Query: queryResolvers,
@@ -14,6 +15,7 @@ export const resolvers: StringIndexed<IResolvers> = {
   DateTime: DateTimeScalar,
   VehicleId: VehicleIdScalar,
   BBox: BBoxScalar,
+  Direction: DirectionScalar,
   Position: {
     __resolveType(obj, context, info) {
       if (obj.recordedAt) {

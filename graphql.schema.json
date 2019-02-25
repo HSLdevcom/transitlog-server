@@ -122,7 +122,7 @@
                 "type": {
                   "kind": "NON_NULL",
                   "name": null,
-                  "ofType": { "kind": "ENUM", "name": "Direction", "ofType": null }
+                  "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
                 },
                 "defaultValue": null
               },
@@ -243,7 +243,7 @@
                 "type": {
                   "kind": "NON_NULL",
                   "name": null,
-                  "ofType": { "kind": "ENUM", "name": "Direction", "ofType": null }
+                  "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
                 },
                 "defaultValue": null
               },
@@ -658,7 +658,7 @@
           {
             "name": "direction",
             "description": "",
-            "type": { "kind": "ENUM", "name": "Direction", "ofType": null },
+            "type": { "kind": "SCALAR", "name": "Direction", "ofType": null },
             "defaultValue": null
           }
         ],
@@ -667,26 +667,13 @@
         "possibleTypes": null
       },
       {
-        "kind": "ENUM",
+        "kind": "SCALAR",
         "name": "Direction",
-        "description": "",
+        "description": "The direction of a route. An integer of either 1 or 2.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
-        "enumValues": [
-          {
-            "name": "D1",
-            "description": "",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "D2",
-            "description": "",
-            "isDeprecated": false,
-            "deprecationReason": null
-          }
-        ],
+        "enumValues": null,
         "possibleTypes": null
       },
       {
@@ -737,7 +724,7 @@
             "type": {
               "kind": "NON_NULL",
               "name": null,
-              "ofType": { "kind": "ENUM", "name": "Direction", "ofType": null }
+              "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -869,6 +856,12 @@
             "description": "",
             "type": { "kind": "SCALAR", "name": "String", "ofType": null },
             "defaultValue": null
+          },
+          {
+            "name": "includeLinesWithoutRoutes",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
+            "defaultValue": null
           }
         ],
         "interfaces": null,
@@ -943,7 +936,7 @@
           {
             "name": "direction",
             "description": "",
-            "type": { "kind": "ENUM", "name": "Direction", "ofType": null },
+            "type": { "kind": "SCALAR", "name": "Direction", "ofType": null },
             "defaultValue": null
           }
         ],
@@ -1043,7 +1036,7 @@
             "type": {
               "kind": "NON_NULL",
               "name": null,
-              "ofType": { "kind": "ENUM", "name": "Direction", "ofType": null }
+              "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1506,7 +1499,7 @@
             "type": {
               "kind": "NON_NULL",
               "name": null,
-              "ofType": { "kind": "ENUM", "name": "Direction", "ofType": null }
+              "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
             },
             "isDeprecated": false,
             "deprecationReason": null

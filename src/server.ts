@@ -1,7 +1,6 @@
 import schema from './schema'
 import { ApolloServer } from 'apollo-server'
 import { resolvers } from './resolvers/'
-import { createApp } from './app/app'
 import { JoreDataSource } from './datasources/JoreDataSource'
 
 const server = new ApolloServer({
@@ -9,9 +8,6 @@ const server = new ApolloServer({
   resolvers,
   dataSources: () => ({
     JoreAPI: new JoreDataSource(),
-  }),
-  context: async () => ({
-    app: await createApp(),
   }),
 })
 

@@ -6,11 +6,7 @@ export const Schema = gql`
   scalar DateTime
   scalar VehicleId
   scalar BBox
-
-  enum Direction {
-    D1
-    D2
-  }
+  scalar Direction
 
   """
   Any object that describes something with a position implements this interface.

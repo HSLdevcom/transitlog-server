@@ -22,17 +22,14 @@ export interface RouteFilterInput {
 
 export interface LineFilterInput {
   lineId?: Maybe<string>
+
+  includeLinesWithoutRoutes?: Maybe<boolean>
 }
 
 export interface DepartureFilterInput {
   routeId?: Maybe<string>
 
   direction?: Maybe<Direction>
-}
-
-export enum Direction {
-  D1 = 'D1',
-  D2 = 'D2',
 }
 
 export enum CacheControlScope {
@@ -45,6 +42,9 @@ export type Date = any
 
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. */
 export type BBox = any
+
+/** The direction of a route. An integer of either 1 or 2. */
+export type Direction = any
 
 /** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. */
 export type Time = any
