@@ -9,7 +9,8 @@
     "start": "concurrently \"yarn:start:dev\" \"sleep 2 && yarn run codegen --watch\"",
     "start:dev": "nodemon --signal SIGTERM --watch 'src/**/*' --exec 'ts-node' src/server.ts",
     "start:production": "forever start -c \"ts-node\" src/server.ts -l server.log -o server-out.log -e server-err.log && forever -f logs 0",
-    "codegen": "gql-gen --config codegen.yml"
+    "codegen": "gql-gen --config codegen.yml",
+    "codestyle": "prettier \"src/**/*.{ts,js,json}\" --write"
   },
   "lint-staged": {
     "*.{ts,js}": [

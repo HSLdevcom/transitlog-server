@@ -40,16 +40,16 @@ export enum CacheControlScope {
   Private = 'PRIVATE',
 }
 
-/** A Date string in YYYY-MM-DD format. The timezone is set on the server with environment variables. */
+/** A Date string in YYYY-MM-DD format. */
 export type Date = any
 
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. */
 export type BBox = any
 
-/** A time string in HH:mm:ss format. Since we are dealing with 24h+ times, the time is not a clock time, but a duration of seconds from 00:00:00. Thus the hour component can go beyond 23. */
+/** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. */
 export type Time = any
 
-/** A datetime string in ISO 8601 format YYYY-MM-DDTHH:mm:ssZ. If received with a timezone, the timezone will be converted to the server timezone. In response data the timezone will always be set to the server timezone. */
+/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to the server timezone. */
 export type DateTime = any
 
 /** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */

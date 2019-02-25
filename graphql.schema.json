@@ -320,7 +320,7 @@
       {
         "kind": "SCALAR",
         "name": "Date",
-        "description": "A Date string in YYYY-MM-DD format. The timezone is set on the server with environment variables.",
+        "description": "A Date string in YYYY-MM-DD format.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -1204,7 +1204,7 @@
       {
         "kind": "SCALAR",
         "name": "Time",
-        "description": "A time string in HH:mm:ss format. Since we are dealing with 24h+ times, the time\nis not a clock time, but a duration of seconds from 00:00:00. Thus the hour\ncomponent can go beyond 23.",
+        "description": "Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -1214,7 +1214,7 @@
       {
         "kind": "SCALAR",
         "name": "DateTime",
-        "description": "A datetime string in ISO 8601 format YYYY-MM-DDTHH:mm:ssZ. If received with a\ntimezone, the timezone will be converted to the server timezone. In response\ndata the timezone will always be set to the server timezone.",
+        "description": "A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to the server timezone.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,

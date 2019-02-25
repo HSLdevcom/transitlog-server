@@ -2,8 +2,9 @@ import { GraphQLScalarType, Kind } from 'graphql'
 import { validateDateString } from '../../utils/validateDateString'
 import moment from 'moment-timezone'
 import { DATE_FORMAT, TIME_FORMAT, TIMEZONE } from '../../constants'
+import { StringOrNull } from '../../types/NullOr'
 
-function getValue(value) {
+function getValue(value: moment | string | number): StringOrNull {
   if (moment.isMoment(value)) {
     return value.format(DATE_FORMAT)
   }
@@ -18,14 +19,14 @@ function getValue(value) {
 export const DateScalar = new GraphQLScalarType({
   name: 'Date',
   description: 'A Date string in YYYY-MM-DD format.',
-  parseValue(value) {
+  parseValue(value: unknown): moment {
     const dateString = validateDateString(value)
     return moment.tz(dateString, TIMEZONE)
   },
-  serialize(value) {
+  serialize(value: unknown): StringOrNull {
     return getValue(value)
   },
-  parseLiteral(ast) {
+  parseLiteral(ast): StringOrNull {
     if (ast.kind === Kind.STRING) {
       return validateDateString(ast.value)
     }

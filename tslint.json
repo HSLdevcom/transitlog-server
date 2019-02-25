@@ -1,9 +1,5 @@
 {
-  "extends": [
-    "tslint:latest",
-    "tslint-config-prettier",
-    "tslint-plugin-prettier"
-  ],
+  "extends": ["tslint:latest", "tslint-plugin-prettier", "tslint-config-prettier"],
   "defaultSeverity": "warning",
   "rules": {
     "object-literal-sort-keys": false,
@@ -14,11 +10,8 @@
     "no-any": false,
     "member-access": false,
     "no-arg": true,
-    "interface-name": [
-      true,
-      "never-prefix"
-    ],
-    "variable-name": [ "allow-leading-underscore" ],
+    "interface-name": [true, "never-prefix"],
+    "variable-name": ["allow-leading-underscore"],
     "sort": false,
     "no-bitwise": true,
     "no-console": false,
@@ -34,6 +27,6 @@
     "no-shadowed-variable": true,
     "no-empty": false,
     "prefer-conditional-expression": false,
-    "prettier": true
+    "prettier": [true, ".prettierrc"]
   }
 }

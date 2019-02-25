@@ -1,6 +1,8 @@
 // Validates that the input string is a valid date formatted as "YYYY-MM-DD"
 // Returns the string if valid, null otherwise.
-export function validateDateString(dateString: unknown = ''): string | null {
+import { StringOrNull } from '../types/NullOr'
+
+export function validateDateString(dateString: unknown = ''): StringOrNull {
   if (typeof dateString !== 'string') {
     return null
   }
