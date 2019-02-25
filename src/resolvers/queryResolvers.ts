@@ -4,7 +4,10 @@ const equipment = (root, args, { app }) => app.equipment
 const stops = (root, args, { app }) => app.stops
 const routes = (root, args, { app }) => app.routes
 const routeGeometry = (root, args, { app }) => app.routeGeometry
-const lines = (root, args, { app }) => app.lines
+const lines = async (root, args, { app, dataSources }) => {
+  const lines = await dataSources.JoreAPI.getAllLines()
+  return app.lines
+}
 const departures = (root, args, { app }) => app.departures
 const journey = (root, args, { app }) => app.departures
 

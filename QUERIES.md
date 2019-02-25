@@ -43,6 +43,8 @@ Query.equipment(
 
 The equipment query returns data on the vehicles active in the HSL network. The result can be filtered by the vehicle and operator ID or a search string. If a vehicle or operator ID is provided they will override the search string which will not be used. The search string will match the vehicle ID, operator ID and/or registry number. If a date is provided, the result will be compared against the HFP data from that date to determine the value of the `inService` property of the `Equipment` type that tells us if the vehicle was in service on that date.
 
+API: Jore, HFP
+
 #### stops
 
 ```
@@ -55,6 +57,8 @@ Query.stops(
 ```
 
 The stops query returns a list of stops, optionally filtered by a search term OR a BBox. The search term matches against the stop ID, the short ID or the finnish stop name.
+
+API: Jore
 
 #### routes
 
@@ -70,6 +74,8 @@ Query.routes(
 
 The routes query returns a list of routes, optionally filtered by the routeId and direction. Provide the Date variable if you want to only receive routes that were valid on that date. Routes are filtered with "validity chains", ie a valid route needs to have a validity range that works as a "link" in the chain of route versions all the way from the first version of the route to the latest version. Chain validation is performed regardless of whether the query received the date variable.
 
+API: Jore
+
 #### routeGeometry
 
 ```
@@ -81,6 +87,8 @@ Query.routes(
 ```
 
 The routeGeometry query returns the geometry for a route. All variables are required, and the geometry will be valid for the specified date and route. The route used will be chosen through chain validation.
+
+API: Jore
 
 #### lines
 
@@ -95,6 +103,8 @@ Query.lines(
 ```
 
 The lines query returns a list of lines, optionally filtered by the lineId which acts as a search term (ie all lineIds that start with the potentially partial lineId filter value are returned). Provide the date variable if you only want lines that were active during that date. Lines are also validated with validity chains like routes.
+
+API: Jore
 
 #### departures
 
@@ -111,6 +121,8 @@ Query.departures(
 
 The departures query returns all journey departures for a date. Note that the date variable is required for this query. The result can be filtered by route and direction, and if a stopId is provided the data will include planned and observed departure times from that stop. Otherwise the planned and observed time will be from the origin stop of the route.
 
+API: Jore, HFP
+
 #### journey
 
 ```
@@ -123,3 +135,5 @@ Query.journey(
 ```
 
 They journey query returns one journey for a route and time, complete with observed HFP data and calculated data for each stop of the journey. For parts of the journey that does not have observed data, only planned data is returned.
+
+API: Jore, HFP
