@@ -6,13 +6,9 @@ const stops = (root, args, { app }) => app.stops
 const routes = (root, args, { app }) => app.routes
 const routeGeometry = (root, args, { app }) => app.routeGeometry
 
-const lines = async (
-  root,
-  { filter, date, includeDatesWithoutRoutes },
-  { app, dataSources }
-) => {
+const lines = async (root, { filter, date }, { app, dataSources }) => {
   const lines = await dataSources.JoreAPI.getAllLines()
-  return createLinesResponse(lines, date)
+  return createLinesResponse(lines, date, filter)
 }
 
 const departures = (root, args, { app }) => app.departures

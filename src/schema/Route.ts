@@ -35,5 +35,6 @@ export const Route = gql`
 
   input LineFilterInput {
     lineId: String
+    includeLinesWithoutRoutes: Boolean
   }
 `

@@ -28,6 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/graphql": "^14.0.7",
+    "@types/ioredis": "^4.0.8",
     "@types/lodash": "^4.14.121",
     "@types/node": "^11.9.4",
     "apollo-datasource": "^0.3.1",
@@ -36,7 +37,6 @@
     "apollo-link-error": "^1.1.7",
     "apollo-link-http": "^1.5.11",
     "apollo-server": "^2.4.2",
-    "apollo-server-cache-redis": "^0.3.1",
     "apollo-server-errors": "^2.2.1",
     "await-to-js": "^2.1.1",
     "date-fns": "^1.30.1",
@@ -45,6 +45,7 @@
     "full-icu": "^1.2.1",
     "graphql": "^14.1.1",
     "graphql-code-generator": "^0.17.0",
+    "ioredis": "^4.6.2",
     "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.17.11",
     "moment-timezone": "^0.5.23",
