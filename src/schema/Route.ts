@@ -16,6 +16,7 @@ export const Route = gql`
   type Line {
     id: ID!
     lineId: String!
+    name: String
   }
 
   type RouteGeometryPoint implements Position {

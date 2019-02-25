@@ -78,17 +78,17 @@ export interface Position {
 // ====================================================
 
 export interface Query {
-  equipment: (Maybe<Equipment>)[]
+  equipment: Array<Maybe<Equipment>>
 
-  stops: (Maybe<Stop>)[]
+  stops: Array<Maybe<Stop>>
 
-  routes: (Maybe<Route>)[]
+  routes: Array<Maybe<Route>>
 
   routeGeometry?: Maybe<RouteGeometry>
 
-  lines: (Maybe<Line>)[]
+  lines: Array<Maybe<Line>>
 
-  departures: (Maybe<Departure>)[]
+  departures: Array<Maybe<Departure>>
 
   journey?: Maybe<Journey>
 }
@@ -130,7 +130,7 @@ export interface Stop extends Position {
 
   radius?: Maybe<number>
 
-  modes: (Maybe<string>)[]
+  modes: Array<Maybe<string>>
 }
 
 export interface Route {
@@ -167,6 +167,8 @@ export interface Line {
   id: string
 
   lineId: string
+
+  name?: Maybe<string>
 }
 
 export interface Departure {
@@ -288,9 +290,9 @@ export interface Journey {
 
   equipment: Equipment
 
-  events: (Maybe<JourneyEvent>)[]
+  events: Array<Maybe<JourneyEvent>>
 
-  departures: (Maybe<Departure>)[]
+  departures: Array<Maybe<Departure>>
 }
 
 export interface ObservedArrival {
