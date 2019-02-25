@@ -1,17 +1,23 @@
-import { reduce, orderBy, first, get } from 'lodash'
+import { reduce, orderBy, first, get, last, flatten } from 'lodash'
 import { filterByDate } from './filterByDate'
 import { ValidityRange } from '../types/ValidityRange'
+import diffDays from 'date-fns/difference_in_days'
+import { MAX_JORE_YEAR } from '../constants'
+import { Dictionary } from '../types/Dictionary'
 
 // JORE objects have dateBegin and dateEnd props that express a validity range.
 // We have a problem where there can be multiple objects with overlapping
 // validity ranges
-export function filterByDateChains(groups: ValidityRange[][], date: string) {
+export function filterByDateChains(
+  groups: Dictionary<ValidityRange[]>,
+  date?: string
+): ValidityRange[] {
   const validGroups = reduce(
     groups,
-    (filtered, items: ValidityRange[]) => {
+    (filtered: ValidityRange[][], items: ValidityRange[]) => {
       // If it's only one item, we're good.
       if (items.length === 1) {
-        filtered.push(filterByDate(items, date))
+        filtered.push(date ? filterByDate(items, date) : items)
         return filtered
       }
 
@@ -53,7 +59,7 @@ export function filterByDateChains(groups: ValidityRange[][], date: string) {
 
       // Create a chain and use the item passed in as "startingPoint" to start it off.
       function createChain(startingPoint) {
-        const chain = []
+        const chain: ValidityRange[] = []
 
         // Keep track of the iteration so that we can kill the loop if it happens
         // to run off.
@@ -116,7 +122,7 @@ export function filterByDateChains(groups: ValidityRange[][], date: string) {
       //  overlap with any items in the winning chain. But such cases are very rare.
       const longestChain = orderBy(chains, 'length', 'desc')[0]
       // Get the item that is active for the selected date from the chain of valid items.
-      filtered.push(filterByDate(longestChain, date))
+      filtered.push(date ? filterByDate(longestChain, date) : longestChain)
 
       return filtered
     },

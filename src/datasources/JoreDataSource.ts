@@ -1,8 +1,7 @@
 import { GraphQLDataSource } from '../utils/GraphQLDataSource'
 import { gql } from 'apollo-server'
 import { get } from 'lodash'
-
-const JORE_URL = 'https://dev-kartat.hsldev.com/jore-history/graphql'
+import { JORE_URL } from '../constants'
 
 const LINES = gql`
   query JoreLines {
@@ -24,11 +23,7 @@ export class JoreDataSource extends GraphQLDataSource {
   baseURL = JORE_URL
 
   async getAllLines() {
-    try {
-      const response = await this.query(LINES, {})
-      return get(response, 'data.allLines.nodes', [])
-    } catch (error) {
-      console.error(error)
-    }
+    const response = await this.query(LINES, {})
+    return get(response, 'data.allLines.nodes', [])
   }
 }

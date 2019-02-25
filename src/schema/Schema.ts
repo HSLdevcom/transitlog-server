@@ -1,29 +1,10 @@
 import { gql } from 'apollo-server'
 
 export const Schema = gql`
-  """
-  A Date string in YYYY-MM-DD format. Will be assumed to be in the server timezone.
-  """
   scalar Date
-
-  """
-  A time string in HH:mm:ss format. Since we are dealing with 24h+ times, the time is not a clock time, but a duration of seconds from 00:00:00. Thus the hour component can go beyond 23.
-  """
   scalar Time
-
-  """
-  A datetime string in ISO 8601 format YYYY-MM-DDTHH:mm:ssZ. If received with a timezone, the timezone will be converted to the server timezone. In response data the timezone will always be set to the server timezone.
-  """
   scalar DateTime
-
-  """
-  A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters.
-  """
   scalar VehicleId
-
-  """
-  A string that defines a bounding box. The coordinates should be in the format \`minLng,maxLat,maxLng,minLat\` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns.
-  """
   scalar BBox
 
   enum Direction {
@@ -51,7 +32,7 @@ export const Schema = gql`
     lines(
       filter: LineFilterInput
       date: Date
-      includeLinesWithoutRoutes: Boolean
+      includeLinesWithoutRoutes: Boolean = false
     ): [Line]!
     departures(filter: DepartureFilterInput, stopId: String, date: Date!): [Departure]!
     journey(
