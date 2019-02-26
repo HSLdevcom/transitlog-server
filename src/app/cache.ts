@@ -1,6 +1,4 @@
-import Redis from 'ioredis'
-import { Redis as RedisType } from 'ioredis'
-import set = Reflect.set
+import Redis, { Redis as RedisType } from 'ioredis'
 
 let redisClient: RedisType | null = null
 
@@ -9,11 +7,20 @@ async function getRedis() {
     return redisClient
   }
 
-  redisClient = new Redis({
+  const client = new Redis({
     host: '0.0.0.0',
     port: 6379,
+    lazyConnect: true,
   })
 
+  try {
+    await client.connect()
+  } catch (err) {
+    console.error(err)
+    process.exit(1)
+  }
+
+  redisClient = client
   return redisClient
 }
 
@@ -31,14 +38,22 @@ export async function getItem<T>(key): Promise<T[] | null> {
     return null
   }
 
-  if (Array.isArray(cachedVal)) {
-    return cachedVal.map((val) => JSON.parse(val))
-  }
-
   return JSON.parse(cachedVal)
 }
 
-export async function hasItem(key) {
-  const client = await getRedis()
-  return client.exists(key)
+export async function cacheFetch<DataType = any>(cacheKey, fetchData) {
+  if (!cacheKey) {
+    return fetchData()
+  }
+
+  const cachedData = await getItem<DataType>(cacheKey)
+
+  if (cachedData) {
+    return cachedData
+  }
+
+  const data = await fetchData()
+  await setItem<DataType>(cacheKey, data)
+
+  return data
 }

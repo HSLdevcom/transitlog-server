@@ -1,7 +1,7 @@
 import { reduce, orderBy, first, get, last, flatten } from 'lodash'
 import { filterByDate } from './filterByDate'
 import { ValidityRange } from '../types/ValidityRange'
-import diffDays from 'date-fns/difference_in_days'
+import diffHours from 'date-fns/difference_in_hours'
 import { MAX_JORE_YEAR } from '../constants'
 import { Dictionary } from '../types/Dictionary'
 
@@ -37,17 +37,21 @@ export function filterByDateChains<ItemType extends ValidityRange>(
       // It checks the candidate's dateEnd if it is exactly a day off from item.
       // If it returns false, it did not find a result and item would end the chain.
       function findNextLink(item) {
+        if (!item) {
+          return false
+        }
+
         for (const candidate of dateEndOrdered) {
-          const dayDiff = diffDays(
+          const hoursDiff = diffHours(
             // To get a positive number, put the date we presume to be LATER first.
             get(item, 'dateBegin', MAX_JORE_YEAR + '-12-31'),
             // and put the date we presume to be EARLIER second.
             get(candidate, 'dateEnd', MAX_JORE_YEAR + '-12-31')
           )
 
-          // If the candidate's dateEnd is exactly one day before our item's dateBegin,
-          // it is a valid link for the chain.
-          if (dayDiff === 1) {
+          // If the candidate's dateEnd is roughly one day before our item's dateBegin,
+          // it is a valid link for the chain. Need to use hours because of DST.
+          if (hoursDiff > 22 && hoursDiff < 26) {
             return candidate
           }
         }
@@ -61,33 +65,33 @@ export function filterByDateChains<ItemType extends ValidityRange>(
       function createChain(startingPoint: ItemType): ItemType[] {
         const chain: ItemType[] = []
 
-        // Keep track of the iteration so that we can kill the loop if it happens
-        // to run off.
+        // Keep track of the iteration so that we can
+        // kill the loop if it happens to run off.
         let i = 0
         const maxIterations = 100
 
-        // Until the chain ends with the minDate, run the loop. Extra precautions for runaway loops.
-        while (get(last(chain), 'dateBegin') !== minDate || i > maxIterations) {
-          let item
-
+        // Until the chain ends with the minDate, run the loop.
+        // Extra precautions for runaway loops.
+        while (get(last(chain), 'dateBegin') !== minDate && i < maxIterations) {
           if (chain.length === 0) {
             // Use the starting item to start it off. This would be the "last" item in the chain.
-            item = startingPoint
 
-            // If the chain wouldn't end with this link, or if its' dateBegin equals the minDate,
-            // add it to the chain.
-            if (findNextLink(item) || item.dateBegin === minDate) {
-              chain.push(item)
+            // If the chain wouldn't end with this link, or if its
+            // dateBegin equals the minDate, add it to the chain.
+            if (findNextLink(startingPoint) || startingPoint.dateBegin === minDate) {
+              chain.push(startingPoint)
 
               // If the dateBegin value is a valid minDate, we can end the chain right here.
-              if (item.dateBegin === minDate) {
+              if (startingPoint.dateBegin === minDate) {
                 break
               }
+
+              continue
             }
           }
 
-          // Continue off from the initial item or pick the last added item.
-          item = item || last(chain)
+          // Pick the last added item.
+          const item = last(chain)
           const nextItem = findNextLink(item)
 
           // If there isn't anything to add, I guess we're done...

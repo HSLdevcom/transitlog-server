@@ -2,6 +2,7 @@ import { GraphQLDataSource } from '../utils/GraphQLDataSource'
 import { gql } from 'apollo-server'
 import { get } from 'lodash'
 import { JORE_URL } from '../constants'
+import { Route as JoreRoute, Line as JoreLine } from '../types/generated/jore-types'
 
 const LINES = gql`
   query JoreLines {
@@ -45,12 +46,12 @@ const ROUTES = gql`
 export class JoreDataSource extends GraphQLDataSource {
   baseURL = JORE_URL
 
-  async getLines() {
+  async getLines(): Promise<JoreLine[]> {
     const response = await this.query(LINES, {})
     return get(response, 'data.allLines.nodes', [])
   }
 
-  async getRoutes() {
+  async getRoutes(): Promise<JoreRoute[]> {
     const response = await this.query(ROUTES, {})
     return get(response, 'data.allRoutes.nodes', [])
   }

@@ -6,15 +6,15 @@ const equipment = (root, args, { app }) => []
 const stops = (root, args, { app }) => []
 
 const routes = async (root, { filter, date }, { dataSources }) => {
-  const routes = await dataSources.JoreAPI.getRoutes()
-  return createRoutesResponse(routes, date, filter)
+  const getRoutes = () => dataSources.JoreAPI.getRoutes()
+  return createRoutesResponse(getRoutes, date, filter)
 }
 
 const routeGeometry = (root, args, { app }) => []
 
 const lines = async (root, { filter, date }, { dataSources }) => {
-  const lines = await dataSources.JoreAPI.getLines()
-  return createLinesResponse(lines, date, filter)
+  const getLines = () => dataSources.JoreAPI.getLines()
+  return createLinesResponse(getLines, date, filter)
 }
 
 const departures = (root, args, { app }) => []

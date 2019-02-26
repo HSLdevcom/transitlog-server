@@ -3,29 +3,27 @@ import { filterByDateChains } from '../../utils/filterByDateChains'
 import { createRouteObject } from './createRouteObject'
 import { Route as JoreRoute } from '../../types/generated/jore-types'
 import { Route, RouteFilterInput } from '../../types/generated/schema-types'
-import { getItem, hasItem, setItem } from '../cache'
+import { cacheFetch } from '../cache'
 import { filterRoutes } from './filterRoutes'
 
 export async function createRoutesResponse(
-  routes: JoreRoute[],
+  getRoutes: () => Promise<JoreRoute[]>,
   date?: string,
   filter?: RouteFilterInput
 ): Promise<Route[]> {
-  const cacheKey = `routes_${date}`
-  let validRoutes: JoreRoute[] = []
+  const fetchAndValidate = async () => {
+    const routes = await getRoutes()
 
-  if (date && (await hasItem(cacheKey))) {
-    validRoutes = (await getItem<JoreRoute>(cacheKey)) || []
+    const groupedRoutes = groupBy(
+      routes,
+      ({ routeId, direction }) => `${routeId}.${direction}`
+    )
+
+    return filterByDateChains<JoreRoute>(groupedRoutes, date)
   }
 
-  if (validRoutes.length === 0) {
-    const groupedRoutes = groupBy(routes, 'routeId')
-    validRoutes = filterByDateChains<JoreRoute>(groupedRoutes, date)
-
-    if (date) {
-      await setItem(cacheKey, validRoutes)
-    }
-  }
+  const cacheKey = !date ? false : `routes_${date}`
+  const validRoutes: JoreRoute[] = await cacheFetch<JoreRoute>(cacheKey, fetchAndValidate)
 
   const filteredRoutes = filterRoutes(validRoutes, filter)
   return filteredRoutes.map(createRouteObject)
