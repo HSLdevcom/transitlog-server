@@ -1,8 +1,10 @@
 import { GraphQLScalarType, Kind } from 'graphql'
 import { StringOrNull } from '../../types/NullOr'
 import { UserInputError } from 'apollo-server'
+import { BBox } from '../../types/BBox'
+import { createBBoxString } from '../../utils/createBBoxString'
 
-const validateBbox = (value: unknown): StringOrNull => {
+function validateBbox(value: unknown): BBox | null {
   if (typeof value !== 'string' || !value) {
     return null
   }
@@ -31,14 +33,19 @@ const validateBbox = (value: unknown): StringOrNull => {
     )
   }
 
-  return `${minLng},${maxLat},${maxLng},${minLat}`
+  return {
+    minLng,
+    minLat,
+    maxLng,
+    maxLat,
+  }
 }
 
 export const BBoxScalar = new GraphQLScalarType({
   name: 'BBox',
   description:
     "A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns.",
-  parseValue(value: StringOrNull) {
+  parseValue(value: StringOrNull): BBox | null {
     return validateBbox(value)
   },
   serialize(value): StringOrNull {
@@ -46,7 +53,7 @@ export const BBoxScalar = new GraphQLScalarType({
       return null
     }
 
-    return value
+    return createBBoxString(validateBbox(value))
   },
   parseLiteral(ast): StringOrNull {
     if (ast.kind === Kind.STRING) {

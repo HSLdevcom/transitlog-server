@@ -2,46 +2,14 @@ import { GraphQLDataSource } from '../utils/GraphQLDataSource'
 import { gql } from 'apollo-server'
 import { get } from 'lodash'
 import { JORE_URL } from '../constants'
-import { Route as JoreRoute, Line as JoreLine } from '../types/generated/jore-types'
-
-const LINES = gql`
-  query JoreLines {
-    allLines {
-      nodes {
-        lineId
-        nameFi
-        dateBegin
-        dateEnd
-        routes {
-          totalCount
-        }
-      }
-    }
-  }
-`
-
-const ROUTES = gql`
-  query JoreRoutes {
-    allRoutes {
-      nodes {
-        routeId
-        nameFi
-        dateBegin
-        dateEnd
-        direction
-        destinationFi
-        originFi
-        destinationstopId
-        originstopId
-        line {
-          nodes {
-            lineId
-          }
-        }
-      }
-    }
-  }
-`
+import {
+  Route as JoreRoute,
+  Line as JoreLine,
+  Stop as JoreStop,
+} from '../types/generated/jore-types'
+import { LINES } from '../queries/lineQueries'
+import { STOPS, STOPS_BY_BBOX } from '../queries/stopQueries'
+import { ROUTES } from '../queries/routeQueries'
 
 export class JoreDataSource extends GraphQLDataSource {
   baseURL = JORE_URL
@@ -54,5 +22,17 @@ export class JoreDataSource extends GraphQLDataSource {
   async getRoutes(): Promise<JoreRoute[]> {
     const response = await this.query(ROUTES, {})
     return get(response, 'data.allRoutes.nodes', [])
+  }
+
+  async getStops(): Promise<JoreStop[]> {
+    const response = await this.query(STOPS, {})
+    return get(response, 'data.allStops.nodes', [])
+  }
+
+  async getStopsByBbox(bbox): Promise<JoreStop[]> {
+    const response = await this.query(STOPS_BY_BBOX, {
+      variables: bbox,
+    })
+    return get(response, 'data.stopsByBbox.nodes', [])
   }
 }

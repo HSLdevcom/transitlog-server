@@ -24,10 +24,10 @@ async function getRedis() {
   return redisClient
 }
 
-export async function setItem<T>(key: string, value: T) {
+export async function setItem<T>(key: string, value: T, ttlConfig?: string | any[]) {
   const client = await getRedis()
   const setValue = JSON.stringify(value)
-  return client.set(key, setValue)
+  return client.set(key, setValue, ttlConfig || [])
 }
 
 export async function getItem<T>(key): Promise<T[] | null> {
@@ -41,7 +41,7 @@ export async function getItem<T>(key): Promise<T[] | null> {
   return JSON.parse(cachedVal)
 }
 
-export async function cacheFetch<DataType = any>(cacheKey, fetchData) {
+export async function cacheFetch<DataType = any>(cacheKey, fetchData, ttl = 0) {
   if (!cacheKey) {
     return fetchData()
   }
@@ -53,7 +53,8 @@ export async function cacheFetch<DataType = any>(cacheKey, fetchData) {
   }
 
   const data = await fetchData()
-  await setItem<DataType>(cacheKey, data)
+  const ttlConfig = ttl > 0 ? ['EX', ttl] : []
+  await setItem<DataType>(cacheKey, data, ttlConfig)
 
   return data
 }
