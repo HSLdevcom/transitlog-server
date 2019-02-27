@@ -1,7 +1,7 @@
 import { QueryResolvers } from '../types/generated/resolver-types'
-import { createLinesResponse } from '../app/lines/createLinesResponse'
-import { createRoutesResponse } from '../app/routes/createRoutesResponse'
-import { createStopsResponse } from '../app/stops/createStopsResponse'
+import { createLinesResponse } from '../app/createLinesResponse'
+import { createRoutesResponse } from '../app/createRoutesResponse'
+import { createStopsResponse } from '../app/createStopsResponse'
 
 const equipment = (root, args, { app }) => []
 

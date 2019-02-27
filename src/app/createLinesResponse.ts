@@ -1,10 +1,10 @@
 import { groupBy } from 'lodash'
-import { filterByDateChains } from '../../utils/filterByDateChains'
-import { createLineObject } from './createLineObject'
-import { Line as JoreLine } from '../../types/generated/jore-types'
-import { Line, LineFilterInput } from '../../types/generated/schema-types'
-import { cacheFetch } from '../cache'
-import { filterLines } from './filterLines'
+import { filterByDateChains } from '../utils/filterByDateChains'
+import { createLineObject } from './objects/createLineObject'
+import { Line as JoreLine } from '../types/generated/jore-types'
+import { Line, LineFilterInput } from '../types/generated/schema-types'
+import { cacheFetch } from './cache'
+import { filterLines } from './filters/filterLines'
 
 export async function createLinesResponse(
   getLines: () => Promise<JoreLine[]>,

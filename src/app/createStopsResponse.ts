@@ -1,8 +1,7 @@
-import { StopFilterInput, Stop } from '../../types/generated/schema-types'
-import { Stop as JoreStop } from '../../types/generated/jore-types'
-import { get } from 'lodash'
-import { cacheFetch } from '../cache'
-import { createStopObject } from './createStopObject'
+import { StopFilterInput, Stop } from '../types/generated/schema-types'
+import { Stop as JoreStop } from '../types/generated/jore-types'
+import { cacheFetch } from './cache'
+import { createStopObject } from './objects/createStopObject'
 
 export async function createStopsResponse(
   getStops: () => Promise<JoreStop[]>,
