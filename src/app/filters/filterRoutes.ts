@@ -1,24 +1,30 @@
 import { Route as JoreRoute } from '../../types/generated/jore-types'
 import { get } from 'lodash'
 import { RouteFilterInput } from '../../types/generated/schema-types'
+import { search } from './search'
 
 export function filterRoutes(routes: JoreRoute[], filter?: RouteFilterInput) {
   const routeIdFilter = get(filter, 'routeId', '')
   const directionFilter = get(filter, 'direction', '')
 
-  if (!routeIdFilter && !directionFilter) {
+  let searchFilter =
+    routeIdFilter || directionFilter
+      ? `${routeIdFilter} ${directionFilter}`
+      : get(filter, 'search', '')
+
+  searchFilter = searchFilter.trim()
+
+  if (!searchFilter) {
     return routes
   }
 
-  return routes.filter((routeItem: JoreRoute) => {
-    if (!routeIdFilter) {
-      return true
-    }
+  const getSearchTermsForItem = ({
+    routeId,
+    direction,
+    nameFi,
+    originstopId,
+    destinationstopId,
+  }: JoreRoute) => [routeId, direction, nameFi, originstopId, destinationstopId]
 
-    const dir = routeItem.direction === '1' ? 'D1' : 'D2'
-    const matchesDir = directionFilter ? dir === directionFilter : !routeIdFilter
-    const matchesRouteId = routeItem.routeId.includes(routeIdFilter)
-
-    return matchesRouteId || matchesDir
-  })
+  return search<JoreRoute>(routes, searchFilter, getSearchTermsForItem)
 }

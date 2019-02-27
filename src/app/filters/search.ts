@@ -22,23 +22,24 @@ export function search<ItemType>(
   const queryValue = escapeRegexCharacters(searchQuery.trim().toLowerCase())
   const queryWords = words(queryValue, /[^\s]+/g)
     .filter((w) => !!w)
-    .map((w) => w.toString())
+    .map((w) => w.toString().trim())
 
   if (queryWords.length === 0) {
     return items
   }
 
-  // The result item get a _matchScore property that can be queried for.
+  // The result item gets a _matchScore property that can be queried for.
   type Match = { _matchScore?: number } & ItemType
 
   let filteredItems: Match[] = items
 
-  // This is how valuable each word is in the match score. Each word is worth an equal
-  // share of the base max score of 100. The score can go over 100 with bonuses.
-  const wordValue = 100 / queryWords.length
-
   // Loop through the query words and match them against the items.
   for (const queryWord of queryWords) {
+    // This is how valuable each word is in the match score. Each word is worth a share
+    // of the base score (100) based on its length. The longer the word,
+    // the more valuable it is to match.
+    const wordValue = 100 / (queryWords.join('').length / queryWord.length)
+
     // Since each word reduces the result set further, later words are given a bonus
     // since they are more "valuable" due to being matchable by less items.
     const queryWordIndex = queryWords.indexOf(queryWord)
@@ -70,6 +71,9 @@ export function search<ItemType>(
           continue
         }
 
+        // This score represents how much the current query word matches the current term word.
+        let termWordScore = 0
+
         // Calculate the value of the character should it match bwtween the query and the term.
         const charValue = queryWordValueWithBonus / queryWord.length
 
@@ -96,12 +100,12 @@ export function search<ItemType>(
           if (queryChar === termChar) {
             // Bonus comes from matching the first character of the query word, or if
             // the query and term character indices are equal.
-            const bonus = queryIndex === 0 ? 1.5 : termIndex === queryIndex ? 1.1 : 1
+            const bonus = termIndex === queryIndex ? 1.2 : 1
             // A fourth of the character value is awarded multiplied by the streak.
             const streakBonus = matchStreak * (charValue / 4)
 
             // Apply the value and bonus to the word score.
-            queryWordScore += charValue * bonus + streakBonus
+            termWordScore += charValue * bonus + streakBonus
             // The input index is increased ONLY if there is a match. This is so we don't need to
             // match the first character of the term.
             queryIndex++
@@ -109,9 +113,7 @@ export function search<ItemType>(
           } else {
             // If the first character of the term didn't match the query, give a penalty
             // of one character value.
-            if (termIndex === 0) {
-              queryWordScore -= charValue
-            }
+            termWordScore -= charValue
 
             // Streaks are cut off as soon as the matches stop.
             matchStreak = 0
@@ -120,11 +122,17 @@ export function search<ItemType>(
           // The term character index is always increased.
           termIndex++
         }
+
+        // Apply the term word score to the query word score only if it's positive.
+        // We don't want penalties for naturally mismatching words to apply to the whole score.
+        if (termWordScore > 0) {
+          queryWordScore += termWordScore
+        }
       }
 
       // 30 is the threshold for an item being included in the result array. I found this
       // gives a sufficient amount of results for a search query of even one letter.
-      if (queryWordScore > 30) {
+      if (queryWordScore > 10) {
         // @ts-ignore
         item._matchScore = (item._matchScore || 0) + queryWordScore
         matches.push(item)

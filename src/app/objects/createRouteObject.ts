@@ -13,8 +13,11 @@ export function createRouteObject(route: JoreRoute): Route {
     routeId: route.routeId,
     direction: parseInt(route.direction, 10),
     origin: route.originFi,
+    destination: route.destinationFi,
     name: route.nameFi,
     destinationStopId: route.destinationstopId,
     originStopId: route.originstopId,
+    // @ts-ignore
+    _matchScore: route._matchScore,
   }
 }
