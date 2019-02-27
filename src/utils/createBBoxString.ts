@@ -5,6 +5,7 @@ export function createBBoxString(bbox: BBox | null): StringOrNull {
   if (!bbox) {
     return null
   }
+
   const { minLng, maxLat, maxLng, minLat } = bbox
-  return `${minLng},${maxLat},${maxLng},${minLat}`
+  return `${minLng},${minLat},${maxLng},${maxLat}`
 }

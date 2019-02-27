@@ -11,5 +11,7 @@ export function createStopObject(stop: JoreStop): Stop {
     name: stop.nameFi,
     radius: stop.stopRadius,
     modes: stop.modes.nodes,
+    // @ts-ignore
+    _matchScore: stop._matchScore,
   }
 }

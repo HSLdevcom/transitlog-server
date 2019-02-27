@@ -320,7 +320,7 @@
       {
         "kind": "SCALAR",
         "name": "Date",
-        "description": "A Date string in YYYY-MM-DD format.",
+        "description": "A Date string in YYYY-MM-DD format. The timezone is assumed to be Europe/Helsinki.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -585,6 +585,14 @@
                 "ofType": { "kind": "SCALAR", "name": "String", "ofType": null }
               }
             },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_matchScore",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Float", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           }
@@ -1205,7 +1213,7 @@
       {
         "kind": "SCALAR",
         "name": "Time",
-        "description": "Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23.",
+        "description": "Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more\nthan 23. The timezone is assumed to be Europe/Helsinki",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -1215,7 +1223,7 @@
       {
         "kind": "SCALAR",
         "name": "DateTime",
-        "description": "A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to the server timezone.",
+        "description": "A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,

@@ -37,7 +37,7 @@ export enum CacheControlScope {
   Private = 'PRIVATE',
 }
 
-/** A Date string in YYYY-MM-DD format. */
+/** A Date string in YYYY-MM-DD format. The timezone is assumed to be Europe/Helsinki. */
 export type Date = any
 
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. */
@@ -46,10 +46,10 @@ export type BBox = any
 /** The direction of a route. An integer of either 1 or 2. */
 export type Direction = any
 
-/** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. */
+/** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. The timezone is assumed to be Europe/Helsinki */
 export type Time = any
 
-/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to the server timezone. */
+/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
 export type DateTime = any
 
 /** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */
@@ -131,6 +131,8 @@ export interface Stop extends Position {
   radius?: Maybe<number>
 
   modes: Array<Maybe<string>>
+
+  _matchScore?: Maybe<number>
 }
 
 export interface Route {

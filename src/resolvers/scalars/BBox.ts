@@ -10,8 +10,8 @@ function validateBbox(value: unknown): BBox | null {
   }
 
   const coords = value.split(',')
-  const [minLng, maxLat, maxLng, minLat] = coords.map((c) => {
-    const num = parseInt(c, 10)
+  const [minLng, minLat, maxLng, maxLat] = coords.map((c) => {
+    const num = parseFloat(c)
 
     if (!c || isNaN(num)) {
       return false
@@ -23,13 +23,14 @@ function validateBbox(value: unknown): BBox | null {
   // Validate the bbox parts
   if (!minLng || !maxLng || minLng > maxLng) {
     throw new UserInputError(
-      'Validation failed: The BBox scalar type expects a string formatted like minLng,maxLat,maxLng,minLat. Lng props not found, or they were invalid.'
+      'Validation failed: The BBox scalar type expects a string formatted like minLng,minLat,maxLng,maxLat. Lng props not found, or they were invalid.'
     )
   }
 
   if (!minLat || !maxLat || minLat > maxLat) {
+    console.log(minLat, maxLat)
     throw new UserInputError(
-      'Validation failed: The BBox scalar type expects a string formatted like minLng,maxLat,maxLng,minLat. Lat props not found, or they were invalid.'
+      'Validation failed: The BBox scalar type expects a string formatted like minLng,minLat,maxLng,maxLat. Lat props not found, or they were invalid.'
     )
   }
 
@@ -55,9 +56,9 @@ export const BBoxScalar = new GraphQLScalarType({
 
     return createBBoxString(validateBbox(value))
   },
-  parseLiteral(ast): StringOrNull {
+  parseLiteral(ast): BBox | null {
     if (ast.kind === Kind.STRING) {
-      return ast.value
+      return validateBbox(ast.value)
     }
     return null
   },

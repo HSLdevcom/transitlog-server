@@ -1,5 +1,6 @@
 import { GraphQLScalarType, Kind } from 'graphql'
 import { StringOrNull } from '../../types/NullOr'
+import { TZ } from '../../constants'
 
 const validateTime = (value: unknown): StringOrNull => {
   if (typeof value !== 'string' || !value) {
@@ -11,8 +12,7 @@ const validateTime = (value: unknown): StringOrNull => {
 
 export const TimeScalar = new GraphQLScalarType({
   name: 'Time',
-  description:
-    'Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23.',
+  description: `Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. The timezone is assumed to be ${TZ}`,
   parseValue(value): StringOrNull {
     return validateTime(value)
   },

@@ -3,7 +3,7 @@ import moment from 'moment-timezone'
 import { TZ } from '../../constants'
 import { StringOrNull } from '../../types/NullOr'
 
-function getValue(value) {
+function getStringValue(value) {
   if (['number', 'string'].includes(typeof value)) {
     return moment.tz(value, TZ).toISOString(true)
   }
@@ -15,20 +15,25 @@ function getValue(value) {
   return null
 }
 
+function getMoment(value): moment | null {
+  const momentValue = moment.tz(value, TZ)
+  return momentValue.isValid() ? momentValue : null
+}
+
+// TODO: Review return values
+
 export const DateTimeScalar = new GraphQLScalarType({
   name: 'DateTime',
-  description:
-    'A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to the server timezone.',
+  description: `A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to ${TZ}.`,
   parseValue(value): moment | null {
-    const momentValue = moment.tz(value, TZ)
-    return momentValue.isValid() ? momentValue : null
+    return getMoment(value)
   },
   serialize(value): StringOrNull {
-    return getValue(value)
+    return getStringValue(value)
   },
-  parseLiteral(ast): StringOrNull {
+  parseLiteral(ast): moment | null {
     if (ast.kind === Kind.INT || ast.kind === Kind.STRING) {
-      return moment.tz(ast.value, TZ).toISOString(true)
+      return getMoment(ast.value)
     }
 
     return null

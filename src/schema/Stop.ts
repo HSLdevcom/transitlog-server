@@ -10,6 +10,7 @@ export const Stop = gql`
     name: String
     radius: Float
     modes: [String]!
+    _matchScore: Float
   }
 
   input StopFilterInput {

@@ -33,7 +33,7 @@ export const VehicleIdScalar = new GraphQLScalarType({
   },
   parseLiteral(ast): StringOrNull {
     if (ast.kind === Kind.STRING) {
-      return ast.value
+      return parseAndFormat(ast.value)
     }
     return null
   },
