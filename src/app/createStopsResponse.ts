@@ -24,7 +24,9 @@ export async function createStopsResponse(
 
     if (filter.bbox) {
       filteredStops = filterStopsByBBox(stops, filter.bbox)
-    } else if (filter.search) {
+    }
+
+    if (filter.search) {
       filteredStops = search<JoreStop>(stops, filter.search, getSearchValue)
     }
   }
