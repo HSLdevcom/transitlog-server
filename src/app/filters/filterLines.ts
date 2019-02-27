@@ -1,6 +1,7 @@
 import { Line as JoreLine } from '../../types/generated/jore-types'
 import { get } from 'lodash'
 import { LineFilterInput } from '../../types/generated/schema-types'
+import { search } from './search'
 
 export function filterLines(lines: JoreLine[], filter?: LineFilterInput) {
   const lineIdFilter = get(filter, 'lineId', '')
@@ -10,15 +11,18 @@ export function filterLines(lines: JoreLine[], filter?: LineFilterInput) {
     return lines
   }
 
-  return lines.filter((lineItem: JoreLine) => {
-    if (!includeEmpty && lineItem.routes.totalCount === 0) {
-      return false
-    }
+  let filteredLines = lines
 
-    if (!lineIdFilter) {
-      return true
-    }
+  if (!includeEmpty) {
+    filteredLines = lines.filter(
+      (lineItem: JoreLine) => !(!includeEmpty && lineItem.routes.totalCount === 0)
+    )
+  }
 
-    return lineItem.lineId.includes(lineIdFilter)
-  })
+  if (!lineIdFilter) {
+    return filteredLines
+  }
+
+  const getSearchTermsForItem = ({ lineId, nameFi }: JoreLine) => [lineId, nameFi]
+  return search<JoreLine>(filteredLines, lineIdFilter, getSearchTermsForItem)
 }

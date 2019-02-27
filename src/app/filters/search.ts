@@ -52,8 +52,9 @@ export function search<ItemType>(
       const searchTerms = itemToSearchTerms(item).map((term) =>
         term
           .toString()
-          .replace(/\s|_/g, '')
+          .trim()
           .toLowerCase()
+          .replace(/\s|_/g, '')
       )
       const termsLength = searchTerms.join('').length
 
@@ -68,6 +69,12 @@ export function search<ItemType>(
       for (const termWord of searchTerms) {
         // If the query is longer than the term, just move on (resulting in a score of 0).
         if (queryWord.length > termWord.length) {
+          continue
+        }
+
+        // If it matches exactly, don't bother with the rest.
+        if (termWord === queryWord) {
+          queryWordScore += queryWordValueWithBonus * 2
           continue
         }
 

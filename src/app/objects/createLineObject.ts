@@ -10,5 +10,7 @@ export function createLineObject(line: JoreLine): Line {
     id: createLineId(line),
     lineId: line.lineId,
     name: line.nameFi,
+    // @ts-ignore
+    _matchScore: line._matchScore,
   }
 }
