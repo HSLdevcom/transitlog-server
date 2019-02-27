@@ -41,9 +41,9 @@ export function search<ItemType>(
   for (const queryWord of queryWords) {
     // Since each word reduces the result set further, later words are given a bonus
     // since they are more "valuable" due to being matchable by less items.
-    const queryIndex = queryWords.indexOf(queryWord)
+    const queryWordIndex = queryWords.indexOf(queryWord)
     const queryWordValueWithBonus =
-      queryIndex > 0 ? queryIndex * 1.5 * wordValue : wordValue
+      queryWordIndex > 0 ? queryWordIndex * 1.5 * wordValue : wordValue
 
     // Filter the items and create a score for the current word.
     filteredItems = filteredItems.reduce((matches: Match[], item) => {
