@@ -115,6 +115,8 @@ export interface Equipment {
   emissionClass: string
 
   inService?: Maybe<boolean>
+
+  _matchScore?: Maybe<number>
 }
 
 export interface Stop extends Position {

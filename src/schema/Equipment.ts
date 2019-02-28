@@ -12,6 +12,7 @@ export const Equipment = gql`
     emissionDesc: String!
     emissionClass: String!
     inService: Boolean
+    _matchScore: Float
   }
 
   input EquipmentFilterInput {

@@ -15,5 +15,7 @@ export function createEquipmentObject(item: JoreEquipment): Equipment {
     type: item.type || '',
     // @ts-ignore
     inService: item.inService,
+    // @ts-ignore
+    _matchScore: item._matchScore,
   }
 }

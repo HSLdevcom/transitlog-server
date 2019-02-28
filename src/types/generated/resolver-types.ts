@@ -228,6 +228,8 @@ export namespace EquipmentResolvers {
     emissionClass?: EmissionClassResolver<string, TypeParent, TContext>
 
     inService?: InServiceResolver<Maybe<boolean>, TypeParent, TContext>
+
+    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Equipment, TContext = {}> = Resolver<
@@ -277,6 +279,11 @@ export namespace EquipmentResolvers {
   > = Resolver<R, Parent, TContext>
   export type InServiceResolver<
     R = Maybe<boolean>,
+    Parent = Equipment,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type _MatchScoreResolver<
+    R = Maybe<number>,
     Parent = Equipment,
     TContext = {}
   > = Resolver<R, Parent, TContext>

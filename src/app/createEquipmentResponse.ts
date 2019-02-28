@@ -2,7 +2,7 @@ import { Equipment as JoreEquipment } from '../types/generated/jore-types'
 import { Equipment, EquipmentFilterInput } from '../types/generated/schema-types'
 import { cacheFetch } from './cache'
 import { createEquipmentObject } from './objects/createEquipmentObject'
-import { get } from 'lodash'
+import { get, orderBy } from 'lodash'
 import { search } from './filters/search'
 import { Vehicles } from '../types/generated/hfp-types'
 import isToday from 'date-fns/is_today'
@@ -44,7 +44,11 @@ export async function createEquipmentResponse(
   }
 
   if (!filter && !date) {
-    return equipment.map(createEquipmentObject)
+    return orderBy(
+      equipment.map(createEquipmentObject),
+      ['operatorId', 'vehicleId'],
+      ['asc', 'asc']
+    )
   }
 
   const vehicleIdFilter = get(filter, 'vehicleId', '')
