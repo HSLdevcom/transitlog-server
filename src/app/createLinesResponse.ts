@@ -13,6 +13,11 @@ export async function createLinesResponse(
 ): Promise<Line[]> {
   const fetchAndValidate = async () => {
     const lines = await getLines()
+
+    if (!lines) {
+      return false
+    }
+
     const groupedLines = groupBy(lines, 'lineId')
     return filterByDateChains<JoreLine>(groupedLines, date)
   }

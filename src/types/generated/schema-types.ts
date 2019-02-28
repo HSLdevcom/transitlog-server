@@ -104,17 +104,17 @@ export interface Equipment {
 
   registryNr: string
 
-  age?: Maybe<number>
+  age: number
 
   type: string
 
-  exteriorColor?: Maybe<string>
+  exteriorColor: string
 
-  class?: Maybe<string>
+  emissionDesc: string
 
-  emissionDesc?: Maybe<string>
+  emissionClass: string
 
-  emissionClass?: Maybe<string>
+  inService?: Maybe<boolean>
 }
 
 export interface Stop extends Position {

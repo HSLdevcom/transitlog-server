@@ -217,17 +217,17 @@ export namespace EquipmentResolvers {
 
     registryNr?: RegistryNrResolver<string, TypeParent, TContext>
 
-    age?: AgeResolver<Maybe<number>, TypeParent, TContext>
+    age?: AgeResolver<number, TypeParent, TContext>
 
     type?: TypeResolver<string, TypeParent, TContext>
 
-    exteriorColor?: ExteriorColorResolver<Maybe<string>, TypeParent, TContext>
+    exteriorColor?: ExteriorColorResolver<string, TypeParent, TContext>
 
-    class?: ClassResolver<Maybe<string>, TypeParent, TContext>
+    emissionDesc?: EmissionDescResolver<string, TypeParent, TContext>
 
-    emissionDesc?: EmissionDescResolver<Maybe<string>, TypeParent, TContext>
+    emissionClass?: EmissionClassResolver<string, TypeParent, TContext>
 
-    emissionClass?: EmissionClassResolver<Maybe<string>, TypeParent, TContext>
+    inService?: InServiceResolver<Maybe<boolean>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Equipment, TContext = {}> = Resolver<
@@ -250,33 +250,33 @@ export namespace EquipmentResolvers {
     Parent = Equipment,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type AgeResolver<
-    R = Maybe<number>,
-    Parent = Equipment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
+  export type AgeResolver<R = number, Parent = Equipment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type TypeResolver<R = string, Parent = Equipment, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
   >
   export type ExteriorColorResolver<
-    R = Maybe<string>,
-    Parent = Equipment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ClassResolver<
-    R = Maybe<string>,
+    R = string,
     Parent = Equipment,
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type EmissionDescResolver<
-    R = Maybe<string>,
+    R = string,
     Parent = Equipment,
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type EmissionClassResolver<
-    R = Maybe<string>,
+    R = string,
+    Parent = Equipment,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type InServiceResolver<
+    R = Maybe<boolean>,
     Parent = Equipment,
     TContext = {}
   > = Resolver<R, Parent, TContext>

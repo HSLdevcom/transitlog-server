@@ -1,6 +1,7 @@
 import { GraphQLScalarType, Kind } from 'graphql'
 import { StringOrNull } from '../../types/NullOr'
 import { UserInputError } from 'apollo-server'
+import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 
 const parseAndFormat = (value: unknown): StringOrNull => {
   if (typeof value !== 'string' || !value) {
@@ -15,10 +16,7 @@ const parseAndFormat = (value: unknown): StringOrNull => {
     )
   }
 
-  const operatorId = (operatorPart + '').padStart(4, '0')
-  const vehicleId = vehiclePart + ''
-
-  return `${operatorId}/${vehicleId}`
+  return createUniqueVehicleId(operatorPart, vehiclePart)
 }
 
 export const VehicleIdScalar = new GraphQLScalarType({

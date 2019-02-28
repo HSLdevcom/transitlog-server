@@ -14,6 +14,10 @@ export async function createRoutesResponse(
   const fetchAndValidate = async () => {
     const routes = await getRoutes()
 
+    if (!routes) {
+      return false
+    }
+
     const groupedRoutes = groupBy(
       routes,
       ({ routeId, direction }) => `${routeId}.${direction}`

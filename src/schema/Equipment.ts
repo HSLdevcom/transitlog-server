@@ -6,14 +6,14 @@ export const Equipment = gql`
     vehicleId: String!
     operatorId: String!
     registryNr: String!
-    age: Int
+    age: Int!
     type: String!
-    exteriorColor: String
-    class: String
-    emissionDesc: String
-    emissionClass: String
+    exteriorColor: String!
+    emissionDesc: String!
+    emissionClass: String!
+    inService: Boolean
   }
-  
+
   input EquipmentFilterInput {
     vehicleId: String
     operatorId: String

@@ -3,8 +3,12 @@ import { createLinesResponse } from '../app/createLinesResponse'
 import { createRoutesResponse } from '../app/createRoutesResponse'
 import { createStopsResponse } from '../app/createStopsResponse'
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
+import { createEquipmentResponse } from '../app/createEquipmentResponse'
 
-const equipment = (root, args, { app }) => []
+const equipment = (root, { filter, date }, { dataSources }) => {
+  const getEquipment = () => dataSources.JoreAPI.getEquipment()
+  return createEquipmentResponse(getEquipment, filter, date)
+}
 
 const stops = (root, { filter }, { dataSources }) => {
   const getStops = () => dataSources.JoreAPI.getStops()
