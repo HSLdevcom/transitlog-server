@@ -12,7 +12,7 @@ export function filterRoutes(routes: JoreRoute[], filter?: RouteFilterInput) {
       ? `${routeIdFilter} ${directionFilter}`
       : get(filter, 'search', '')
 
-  searchFilter = searchFilter.trim()
+  searchFilter = (searchFilter || '').trim()
 
   if (!searchFilter) {
     return routes

@@ -4,10 +4,10 @@ import { LineFilterInput } from '../../types/generated/schema-types'
 import { search } from './search'
 
 export function filterLines(lines: JoreLine[], filter?: LineFilterInput) {
-  const lineIdFilter = get(filter, 'lineId', '')
+  const lineSearchFilter = get(filter, 'search', '')
   const includeEmpty = get(filter, 'includeLinesWithoutRoutes', true)
 
-  if (!lineIdFilter && includeEmpty) {
+  if (!lineSearchFilter && includeEmpty) {
     return lines
   }
 
@@ -19,10 +19,10 @@ export function filterLines(lines: JoreLine[], filter?: LineFilterInput) {
     )
   }
 
-  if (!lineIdFilter) {
+  if (!lineSearchFilter) {
     return filteredLines
   }
 
   const getSearchTermsForItem = ({ lineId, nameFi }: JoreLine) => [lineId, nameFi]
-  return search<JoreLine>(filteredLines, lineIdFilter, getSearchTermsForItem)
+  return search<JoreLine>(filteredLines, lineSearchFilter, getSearchTermsForItem)
 }

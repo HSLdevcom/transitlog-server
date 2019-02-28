@@ -18,10 +18,12 @@ export interface RouteFilterInput {
   routeId?: Maybe<string>
 
   direction?: Maybe<Direction>
+
+  search?: Maybe<string>
 }
 
 export interface LineFilterInput {
-  lineId?: Maybe<string>
+  search?: Maybe<string>
 
   includeLinesWithoutRoutes?: Maybe<boolean>
 }
@@ -153,6 +155,8 @@ export interface Route {
   destinationStopId?: Maybe<string>
 
   originStopId?: Maybe<string>
+
+  _matchScore?: Maybe<number>
 }
 
 export interface RouteGeometry {
@@ -171,6 +175,8 @@ export interface Line {
   lineId: string
 
   name?: Maybe<string>
+
+  _matchScore?: Maybe<number>
 }
 
 export interface Departure {

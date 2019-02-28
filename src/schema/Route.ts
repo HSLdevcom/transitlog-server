@@ -14,13 +14,6 @@ export const Route = gql`
     _matchScore: Float
   }
 
-  type Line {
-    id: ID!
-    lineId: String!
-    name: String
-    _matchScore: Float
-  }
-
   type RouteGeometryPoint implements Position {
     lat: Float!
     lng: Float!
@@ -34,10 +27,5 @@ export const Route = gql`
     routeId: String
     direction: Direction
     search: String
-  }
-
-  input LineFilterInput {
-    lineId: String
-    includeLinesWithoutRoutes: Boolean
   }
 `

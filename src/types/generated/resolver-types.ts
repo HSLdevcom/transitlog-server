@@ -18,10 +18,12 @@ export interface RouteFilterInput {
   routeId?: Maybe<string>
 
   direction?: Maybe<Direction>
+
+  search?: Maybe<string>
 }
 
 export interface LineFilterInput {
-  lineId?: Maybe<string>
+  search?: Maybe<string>
 
   includeLinesWithoutRoutes?: Maybe<boolean>
 }
@@ -367,6 +369,8 @@ export namespace RouteResolvers {
     destinationStopId?: DestinationStopIdResolver<Maybe<string>, TypeParent, TContext>
 
     originStopId?: OriginStopIdResolver<Maybe<string>, TypeParent, TContext>
+
+    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Route, TContext = {}> = Resolver<
@@ -414,6 +418,11 @@ export namespace RouteResolvers {
     Parent = Route,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type _MatchScoreResolver<
+    R = Maybe<number>,
+    Parent = Route,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 export namespace RouteGeometryResolvers {
@@ -454,6 +463,8 @@ export namespace LineResolvers {
     lineId?: LineIdResolver<string, TypeParent, TContext>
 
     name?: NameResolver<Maybe<string>, TypeParent, TContext>
+
+    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Line, TContext = {}> = Resolver<
@@ -471,6 +482,11 @@ export namespace LineResolvers {
     Parent,
     TContext
   >
+  export type _MatchScoreResolver<
+    R = Maybe<number>,
+    Parent = Line,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 export namespace DepartureResolvers {

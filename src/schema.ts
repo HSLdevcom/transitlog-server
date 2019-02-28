@@ -4,5 +4,6 @@ import { Stop } from './schema/Stop'
 import { Departure } from './schema/Departure'
 import { Journey } from './schema/Journey'
 import { Equipment } from './schema/Equipment'
+import { Line } from './schema/Line'
 
-export default [Route, Stop, Departure, Journey, Equipment, Schema]
+export default [Route, Line, Stop, Departure, Journey, Equipment, Schema]

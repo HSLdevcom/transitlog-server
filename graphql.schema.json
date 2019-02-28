@@ -668,6 +668,12 @@
             "description": "",
             "type": { "kind": "SCALAR", "name": "Direction", "ofType": null },
             "defaultValue": null
+          },
+          {
+            "name": "search",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "defaultValue": null
           }
         ],
         "interfaces": null,
@@ -776,6 +782,14 @@
             "type": { "kind": "SCALAR", "name": "String", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "_matchScore",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Float", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "inputFields": null,
@@ -860,7 +874,7 @@
         "fields": null,
         "inputFields": [
           {
-            "name": "lineId",
+            "name": "search",
             "description": "",
             "type": { "kind": "SCALAR", "name": "String", "ofType": null },
             "defaultValue": null
@@ -920,6 +934,14 @@
             "description": "",
             "args": [],
             "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_matchScore",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Float", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           }
