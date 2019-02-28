@@ -2,6 +2,7 @@ import { QueryResolvers } from '../types/generated/resolver-types'
 import { createLinesResponse } from '../app/createLinesResponse'
 import { createRoutesResponse } from '../app/createRoutesResponse'
 import { createStopsResponse } from '../app/createStopsResponse'
+import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 
 const equipment = (root, args, { app }) => []
 
@@ -15,7 +16,10 @@ const routes = async (root, { filter, date }, { dataSources }) => {
   return createRoutesResponse(getRoutes, date, filter)
 }
 
-const routeGeometry = (root, args, { app }) => []
+const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
+  const getRouteGeometry = () => dataSources.JoreAPI.getRouteGeometry(routeId, direction)
+  return createRouteGeometryResponse(getRouteGeometry, date, routeId, direction)
+}
 
 const lines = async (root, { filter, date }, { dataSources }) => {
   const getLines = () => dataSources.JoreAPI.getLines()

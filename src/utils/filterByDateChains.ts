@@ -7,7 +7,8 @@ import { Dictionary } from '../types/Dictionary'
 
 // JORE objects have dateBegin and dateEnd props that express a validity range.
 // We have a problem where there can be multiple objects with overlapping
-// validity ranges
+// validity ranges, so to figure out which ones are the valid ones we construct
+// "validity chains". The objects that don't fit in the chain are invalid.
 export function filterByDateChains<ItemType extends ValidityRange>(
   groups: Dictionary<ItemType[]>,
   date?: string
@@ -15,6 +16,10 @@ export function filterByDateChains<ItemType extends ValidityRange>(
   const validGroups = reduce(
     groups,
     (filtered: ItemType[][], items: ItemType[]) => {
+      if (!items || items.length === 0) {
+        return filtered
+      }
+
       // If it's only one item, we're good.
       if (items.length === 1) {
         filtered.push(date ? filterByDate(items, date) : items)

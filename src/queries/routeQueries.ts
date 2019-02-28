@@ -29,3 +29,21 @@ export const ROUTES = gql`
   }
   ${RouteFieldsFragment}
 `
+
+export const ROUTE_GEOMETRY = gql`
+  query JoreRouteGeometry($routeId: String!, $direction: String!) {
+    allRoutes(condition: { routeId: $routeId, direction: $direction }) {
+      nodes {
+        dateBegin
+        dateEnd
+        geometries {
+          nodes {
+            dateBegin
+            dateEnd
+            geometry
+          }
+        }
+      }
+    }
+  }
+`

@@ -18,7 +18,11 @@ export async function createLinesResponse(
   }
 
   const cacheKey = !date ? false : `lines_${date}`
-  const validLines: JoreLine[] = await cacheFetch<JoreLine>(cacheKey, fetchAndValidate)
+  const validLines = await cacheFetch<JoreLine>(cacheKey, fetchAndValidate)
+
+  if (!validLines) {
+    return []
+  }
 
   const filteredLines = filterLines(validLines, filter)
   return filteredLines.map(createLineObject)

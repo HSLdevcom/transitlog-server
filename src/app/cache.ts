@@ -41,7 +41,11 @@ export async function getItem<T>(key): Promise<T[] | null> {
   return JSON.parse(cachedVal)
 }
 
-export async function cacheFetch<DataType = any>(cacheKey, fetchData, ttl = 0) {
+export async function cacheFetch<DataType = any>(
+  cacheKey,
+  fetchData,
+  ttl = 0
+): Promise<DataType[] | null> {
   if (!cacheKey) {
     return fetchData()
   }
@@ -53,6 +57,11 @@ export async function cacheFetch<DataType = any>(cacheKey, fetchData, ttl = 0) {
   }
 
   const data = await fetchData()
+
+  if (!data) {
+    return null
+  }
+
   const ttlConfig = ttl > 0 ? ['EX', ttl] : []
   await setItem<DataType>(cacheKey, data, ttlConfig)
 
