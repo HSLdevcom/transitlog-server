@@ -7,7 +7,7 @@ import { search } from './filters/search'
 
 function getSearchValue(item) {
   const { stopId = '', shortId = '', nameFi = '' } = item
-  return stopId ? [stopId, shortId.replace(/\s/g, ''), nameFi] : []
+  return stopId ? [stopId, shortId, nameFi] : []
 }
 
 export async function createStopsResponse(
