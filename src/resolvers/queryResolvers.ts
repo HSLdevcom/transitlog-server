@@ -7,7 +7,8 @@ import { createEquipmentResponse } from '../app/createEquipmentResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
-  return createEquipmentResponse(getEquipment, filter, date)
+  const getObservedVehicles = () => dataSources.HFPAPI.getAvailableVehicles(date)
+  return createEquipmentResponse(getEquipment, getObservedVehicles, filter, date)
 }
 
 const stops = (root, { filter }, { dataSources }) => {
