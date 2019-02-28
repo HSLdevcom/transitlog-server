@@ -1,10 +1,6 @@
 import { GraphQLScalarType, Kind } from 'graphql'
 import { NumberOrNull } from '../../types/NullOr'
-
-const getDirection = (value) => {
-  const intval = typeof value !== 'number' ? parseInt(value, 10) : value
-  return isNaN(intval) ? null : intval > 2 ? null : intval
-}
+import { getDirection } from '../../utils/getDirection'
 
 export const DirectionScalar = new GraphQLScalarType({
   name: 'Direction',

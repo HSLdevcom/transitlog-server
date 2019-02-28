@@ -4,6 +4,7 @@ import { createRoutesResponse } from '../app/createRoutesResponse'
 import { createStopsResponse } from '../app/createStopsResponse'
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
+import { createJourneyResponse } from '../app/createJourneyResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -32,7 +33,28 @@ const lines = async (root, { filter, date }, { dataSources }) => {
 }
 
 const departures = (root, args, { app }) => []
-const journey = (root, args, { app }) => []
+
+const journey = (
+  root,
+  { routeId, direction, departureTime, departureDate, instance },
+  { dataSources }
+) => {
+  const getJourneyRoute = () =>
+    dataSources.JoreAPI.getJourneyRoute(routeId, direction, departureDate)
+
+  const getJourneyEvents = () =>
+    dataSources.HFPAPI.getJourneyEvents(routeId, direction, departureDate, departureTime)
+
+  return createJourneyResponse(
+    getJourneyRoute,
+    getJourneyEvents,
+    routeId,
+    direction,
+    departureDate,
+    departureTime,
+    instance
+  )
+}
 
 export const queryResolvers: QueryResolvers.Resolvers = {
   equipment,

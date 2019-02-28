@@ -3,7 +3,7 @@ import { gql } from 'apollo-server'
 // These queries are for the HFP datasource.
 
 export const AVAILABLE_VEHICLES_QUERY = gql`
-  query availableVehicleOptionsQuery($date: date) {
+  query AvailableVehicleOptionsQuery($date: date) {
     vehicles(
       distinct_on: [unique_vehicle_id]
       order_by: [{ unique_vehicle_id: asc }]

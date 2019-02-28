@@ -36,6 +36,7 @@ export const Schema = gql`
       direction: Direction!
       departureTime: Time!
       departureDate: Date!
+      instance: Int
     ): Journey
   }
 `

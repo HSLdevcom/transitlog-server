@@ -30,6 +30,7 @@ export const Journey = gql`
     vehicleId: String
     instance: Int
     headsign: String
+    name: String
     equipment: Equipment!
     events: [JourneyEvent]!
     departures: [Departure]!
