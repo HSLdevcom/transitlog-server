@@ -131,29 +131,16 @@ export function search<ItemType>(
    * match the items that end up in the final result array. The result is then ordered
    * by match score so that the best matching item is first in the array.
    */
-  // Process the input query and split it into words.
+  // Clean the input query
   const queryValue = escapeRegexCharacters(searchQuery.trim().toLowerCase())
 
   if (!queryValue) {
     return items
   }
 
-  // First, attempt to match the search query exactly, without splitting it into words.
-  const wholeQueryFiltered = matchQuery<ItemType>(
-    items,
-    queryValue.replace(/\s|_/g, ''),
-    100,
-    itemToSearchTerms
-  )
-
-  // If we got results by searching with the whole query, return that.
-  if (wholeQueryFiltered.some((item) => (item._matchScore || 0) >= 100)) {
-    return orderBy(wholeQueryFiltered, '_matchScore', 'desc')
-  }
-
-  const queryWords = words(queryValue, /[^\s]+/g) // Split the query into words on whitespace characters
+  const queryWords = words(queryValue, /[^,\s?]+/g) // Split the query into words on commas
+    .map((w) => w.toString().replace(/\s|_/g, '')) // Apply whitespace filter
     .filter((w) => !!w) // Only truthy words
-    .map((w) => w.toString())
 
   // No query, no filtering.
   if (queryWords.length === 0) {
@@ -173,7 +160,7 @@ export function search<ItemType>(
     // since they are more "valuable" due to being matchable by less items.
     const queryWordIndex = queryWords.indexOf(queryWord)
     const queryWordValueWithBonus =
-      queryWordIndex > 0 ? queryWordIndex * 1.5 * wordValue : wordValue
+      queryWordIndex > 0 ? queryWordIndex * 1.1 * wordValue : wordValue
 
     // Find matching items from the filtered set.
     filteredItems = matchQuery<ItemType>(
