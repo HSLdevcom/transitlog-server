@@ -11,6 +11,7 @@ const equipmentToSearchTerms = ({
   registryNr,
   exteriorColor,
   emissionClass,
+  emissionDesc,
   type = '',
 }: JoreEquipment): string[] => [
   vehicleId,
@@ -18,6 +19,7 @@ const equipmentToSearchTerms = ({
   registryNr,
   exteriorColor || '',
   emissionClass || '',
+  emissionDesc || '',
   type || '',
 ]
 
