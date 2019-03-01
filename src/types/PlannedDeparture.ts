@@ -1,0 +1,29 @@
+import {
+  Direction,
+  Maybe,
+  PlannedDeparture as PlannedDepartureTime,
+  PlannedArrival,
+} from './generated/schema-types'
+import { StopSegmentCombo } from './StopSegmentCombo'
+
+export interface PlannedDeparture {
+  id: string
+  stopId: string
+  dayType: string
+  equipmentType?: Maybe<string>
+  equipmentIsRequired?: Maybe<boolean>
+  equipmentColor?: Maybe<string>
+  operatorId?: Maybe<string>
+  routeId: string
+  direction: Direction
+  terminalTime?: Maybe<number>
+  recoveryTime?: Maybe<number>
+  departureId?: Maybe<number>
+  extraDeparture?: Maybe<string>
+  isNextDay?: Maybe<boolean>
+  isTimingStop?: Maybe<boolean>
+  index?: Maybe<number>
+  stop: StopSegmentCombo
+  plannedArrivalTime: PlannedArrival
+  plannedDepartureTime: PlannedDepartureTime
+}

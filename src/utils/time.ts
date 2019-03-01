@@ -1,15 +1,27 @@
-import moment from 'moment-timezone'
 import { doubleDigit } from './doubleDigit'
-import { TZ } from '../constants'
+import startOfDay from 'date-fns/start_of_day'
+import addSeconds from 'date-fns/add_seconds'
+import diffHours from 'date-fns/difference_in_hours'
+import parse from 'date-fns/parse'
+import format from 'date-fns/format'
+import { Vehicles } from '../types/generated/hfp-types'
+import { get } from 'lodash'
+import { Journey } from '../types/generated/schema-types'
 
 const num = (val) => parseInt(val, 10)
 
-export function timeToSeconds(timeStr = '') {
+export function timeToSeconds(timeStr = ''): number {
   const [hours = 0, minutes = 0, seconds = 0] = (timeStr || '').split(':')
   return num(seconds) + num(minutes) * 60 + num(hours) * 60 * 60
 }
 
-export function secondsToTimeObject(seconds) {
+type TimeObject = {
+  hours: number
+  minutes: number
+  seconds: number
+}
+
+export function secondsToTimeObject(seconds: number): TimeObject {
   const absSeconds = Math.abs(seconds)
 
   const totalSeconds = Math.floor(absSeconds % 60)
@@ -23,45 +35,50 @@ export function secondsToTimeObject(seconds) {
   }
 }
 
-export function secondsToTime(secondsDuration) {
+export function secondsToTime(secondsDuration: number): string {
   const { hours = 0, minutes = 0, seconds = 0 } = secondsToTimeObject(secondsDuration)
   return getTimeString(hours, minutes, seconds)
 }
 
-export function getNormalTime(time) {
-  let [hours = 0, minutes = 0, seconds = 0] = time.split(':')
+export function getNormalTime(time?: string): string {
+  const [hours = '0', minutes = '0', seconds = '0'] = (time || '').split(':')
+  let intHours = parseInt(hours, 10)
 
-  if (parseInt(hours, 10) > 23) {
-    hours = hours - 24
+  if (intHours > 23) {
+    intHours = intHours - 24
   }
 
-  return getTimeString(hours, minutes, seconds)
+  return getTimeString(intHours, num(minutes), num(seconds))
 }
 
-export function getTimeString(hours = 0, minutes = 0, seconds = 0) {
+export function getTimeString(hours = 0, minutes = 0, seconds = 0): string {
   return `${doubleDigit(hours)}:${doubleDigit(minutes)}:${doubleDigit(seconds)}`
 }
 
-export function getMomentFromDateTime(date, time = '00:00:00', timezone = TZ) {
+export function getDateFromDateTime(date: string, time: string = '00:00:00'): Date {
   // Get the seconds elapsed during the date. The time can be a 24h+ time.
   const seconds = timeToSeconds(time)
   // Create a moment from the date and add the seconds.
-  return moment.tz(date, timezone).add(seconds, 'seconds')
+  return addSeconds(startOfDay(date), seconds)
 }
 
 // Get the (potentially) 24h+ time of the journey.
-// For best results, pass in the observed start time as useMoment, but if that's
+// For best results, pass in the observed start time as useDate, but if that's
 // not available, use the time of the first event from this journey that you have.
-export function journeyStartTime(event, useMoment) {
-  if (!event || !event.journey_start_time) {
-    return ''
-  }
+export function getJourneyStartTime(event: Vehicles | Journey, useDate?: Date): string {
+  const operationDay = get(event, 'oday', get(event, 'departureDate', false))
+  const journeyStartTime = get(
+    event,
+    'journey_start_time',
+    get(event, 'departureTime', false)
+  )
+  const recordedAtTimestamp = get(event, 'tst', get(event, 'events[0].recordedAt', 0))
 
-  const eventMoment = useMoment ? useMoment : moment.tz(event.tst, TZ)
-  const odayMoment = getMomentFromDateTime(event.oday)
-  const diff = eventMoment.diff(odayMoment, 'hours')
+  const eventDate = useDate ? useDate : new Date(recordedAtTimestamp)
+  const odayDate = getDateFromDateTime(operationDay)
+  const diff = diffHours(eventDate, odayDate)
 
-  const [hours, minutes, seconds] = event.journey_start_time.split(':')
+  const [hours, minutes, seconds] = journeyStartTime.split(':')
   let intHours = parseInt(hours, 10)
 
   /*
@@ -84,33 +101,51 @@ export function journeyStartTime(event, useMoment) {
   return getTimeString(intHours, minutes, seconds)
 }
 
-export function journeyEventTime(event) {
-  if (!event || !event.journey_start_time) {
+export function getJourneyEventTime(event: Vehicles) {
+  if (!event.journey_start_time) {
     return ''
   }
 
-  const receivedAtMoment = moment.tz(event.tst, TZ)
+  const timestampDate = parse(event.tst)
 
-  let hours = receivedAtMoment.hours()
-  const minutes = receivedAtMoment.minutes()
-  const seconds = receivedAtMoment.seconds()
+  let hours = timestampDate.getHours()
+  const minutes = timestampDate.getMinutes()
+  const seconds = timestampDate.getSeconds()
 
-  if (event.oday !== receivedAtMoment.format('YYYY-MM-DD')) {
+  if (event.oday !== format(timestampDate, 'YYYY-MM-DD')) {
     hours = hours + 24
   }
 
   return getTimeString(hours, minutes, seconds)
 }
 
+type JoreDepartureTime = {
+  isNextDay: boolean
+  hours: number
+  minutes: number
+  arrivalHours?: number
+  arrivalMinutes?: number
+  [index: string]: any
+}
+
 // Return the departure time as a 24h+ time string
-export function departureTime(departure, useArrival = false) {
+export function getDepartureTime(
+  departure: JoreDepartureTime,
+  useArrival = false
+): string {
   let { isNextDay, hours, minutes } = departure
 
-  if (useArrival) {
+  if (useArrival && departure.arrivalHours && departure.arrivalMinutes) {
     hours = departure.arrivalHours
     minutes = departure.arrivalMinutes
   }
 
   const hour = isNextDay ? hours + 24 : hours
   return getTimeString(hour, minutes)
+}
+
+// Return the real time of the departure as a Date
+export function getRealDepartureDate(departure, date, useArrival): Date {
+  const time = getDepartureTime(departure, useArrival)
+  return getDateFromDateTime(date, time)
 }

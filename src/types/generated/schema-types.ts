@@ -214,15 +214,45 @@ export interface Departure {
 
   index?: Maybe<number>
 
-  stop: Stop
+  stop: DepartureStop
 
-  plannedArrivalTime: PlannedArrival
+  plannedArrivalTime?: Maybe<PlannedArrival>
 
-  observedArrivalTime?: Maybe<PlannedArrival>
+  observedArrivalTime?: Maybe<ObservedArrival>
 
-  plannedDepartureTime: PlannedDeparture
+  plannedDepartureTime?: Maybe<PlannedDeparture>
 
   observedDepartureTime?: Maybe<ObservedDeparture>
+}
+
+export interface DepartureStop {
+  id: string
+
+  destination?: Maybe<string>
+
+  distanceFromPrevious?: Maybe<number>
+
+  distanceFromStart?: Maybe<number>
+
+  duration?: Maybe<number>
+
+  stopIndex?: Maybe<number>
+
+  isTimingStop?: Maybe<boolean>
+
+  stopId: string
+
+  shortId: string
+
+  lat: number
+
+  lng: number
+
+  name?: Maybe<string>
+
+  radius?: Maybe<number>
+
+  modes: Array<Maybe<string>>
 }
 
 export interface PlannedArrival {
@@ -233,24 +263,18 @@ export interface PlannedArrival {
   arrivalDateTime: DateTime
 }
 
-export interface PlannedDeparture {
-  departureDate: Date
+export interface ObservedArrival {
+  arrivalEvent: JourneyEvent
 
-  departureTime: Time
+  arrivalDate: Date
 
-  departureDateTime: DateTime
-}
+  arrivalTime: Time
 
-export interface ObservedDeparture {
-  departureEvent: JourneyEvent
+  arrivalDateTime: DateTime
 
-  departureDate: Date
+  arrivalTimeDifference: number
 
-  departureTime: Time
-
-  departureDateTime: DateTime
-
-  departureTimeDifference: number
+  doorDidOpen: boolean
 }
 
 export interface JourneyEvent extends Position {
@@ -277,8 +301,30 @@ export interface JourneyEvent extends Position {
   heading?: Maybe<number>
 }
 
+export interface PlannedDeparture {
+  departureDate: Date
+
+  departureTime: Time
+
+  departureDateTime: DateTime
+}
+
+export interface ObservedDeparture {
+  departureEvent: JourneyEvent
+
+  departureDate: Date
+
+  departureTime: Time
+
+  departureDateTime: DateTime
+
+  departureTimeDifference: number
+}
+
 export interface Journey {
   id: string
+
+  lineId: string
 
   routeId: string
 
@@ -298,25 +344,13 @@ export interface Journey {
 
   headsign?: Maybe<string>
 
+  name?: Maybe<string>
+
   equipment: Equipment
 
   events: Array<Maybe<JourneyEvent>>
 
   departures: Array<Maybe<Departure>>
-}
-
-export interface ObservedArrival {
-  arrivalEvent?: Maybe<JourneyEvent>
-
-  arrivalDate?: Maybe<Date>
-
-  arrivalTime?: Maybe<Time>
-
-  arrivalDateTime?: Maybe<DateTime>
-
-  arrivalTimeDifference?: Maybe<number>
-
-  doorDidOpen: boolean
 }
 
 // ====================================================
@@ -365,4 +399,6 @@ export interface JourneyQueryArgs {
   departureTime: Time
 
   departureDate: Date
+
+  instance?: Maybe<number>
 }

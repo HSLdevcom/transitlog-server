@@ -22,9 +22,6 @@ export const RouteFieldsFragment = gql`
 
 export const ExtensiveRouteFieldsFragment = gql`
   fragment ExtensiveRouteFieldsFragment on Route {
-    type
-    routeLength
-    mode
     routeSegments {
       nodes {
         stopId

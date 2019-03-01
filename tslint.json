@@ -11,7 +11,7 @@
     "member-access": false,
     "no-arg": true,
     "interface-name": [true, "never-prefix"],
-    "variable-name": ["allow-leading-underscore"],
+    "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
     "sort": false,
     "no-bitwise": true,
     "no-console": false,
@@ -27,6 +27,7 @@
     "no-shadowed-variable": true,
     "no-empty": false,
     "prefer-conditional-expression": false,
+    "prefer-const": [true, { "destructuring": "all" }],
     "prettier": [true, ".prettierrc"]
   }
 }

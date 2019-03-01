@@ -30,7 +30,7 @@ export async function setItem<T>(key: string, value: T, ttlConfig?: string | any
   return client.set(key, setValue, ttlConfig || [])
 }
 
-export async function getItem<T>(key): Promise<T[] | null> {
+export async function getItem<T>(key): Promise<T | null> {
   const client = await getRedis()
   const cachedVal = await client.get(key)
 
@@ -45,7 +45,7 @@ export async function cacheFetch<DataType = any>(
   cacheKey,
   fetchData,
   ttl = 0
-): Promise<DataType[] | null> {
+): Promise<DataType | null> {
   if (!cacheKey) {
     return fetchData()
   }

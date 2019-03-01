@@ -21,6 +21,7 @@ export const Journey = gql`
 
   type Journey {
     id: ID!
+    lineId: String!
     routeId: String!
     direction: Direction!
     departureDate: Date!

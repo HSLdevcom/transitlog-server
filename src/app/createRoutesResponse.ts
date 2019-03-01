@@ -27,7 +27,7 @@ export async function createRoutesResponse(
   }
 
   const cacheKey = !date ? false : `routes_${date}`
-  const validRoutes = await cacheFetch<JoreRoute>(cacheKey, fetchAndValidate)
+  const validRoutes = await cacheFetch<JoreRoute[]>(cacheKey, fetchAndValidate)
 
   if (!validRoutes) {
     return []

@@ -31,7 +31,7 @@ export class JoreDataSource extends GraphQLDataSource {
     const response = await this.query(ROUTE_GEOMETRY, {
       variables: { routeId, direction: direction + '' },
     })
-    return get(response, 'data.allRoutes.nodes', [])
+    return get(response, 'data.allRoutes.nodes', null)
   }
 
   async getStops(): Promise<JoreStop[]> {
@@ -51,7 +51,11 @@ export class JoreDataSource extends GraphQLDataSource {
   ): Promise<JoreRoute> {
     const dayType = getDayTypeFromDate(date)
     const response = await this.query(JOURNEY_ROUTE, {
-      variables: { routeId, direction: direction + '', dayType },
+      variables: {
+        routeId,
+        direction: direction + '',
+        dayType,
+      },
     })
 
     return get(response, 'data.allRoutes.nodes', null)

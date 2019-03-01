@@ -33,7 +33,7 @@ export async function createEquipmentResponse(
   date?: string
 ): Promise<Equipment[]> {
   const equipmentCacheKey = `equipment`
-  const equipment = await cacheFetch<JoreEquipment>(
+  const equipment = await cacheFetch<JoreEquipment[]>(
     equipmentCacheKey,
     getEquipment,
     24 * 60 * 60
@@ -74,7 +74,7 @@ export async function createEquipmentResponse(
     const vehicleHfpCacheKey = `equipment_observed_${date}`
     const ttl = isToday(date) ? 5 * 60 : 24 * 60 * 60
     const vehicles: Vehicles[] =
-      (await cacheFetch<Vehicles>(vehicleHfpCacheKey, getObservedVehicles, ttl)) || []
+      (await cacheFetch<Vehicles[]>(vehicleHfpCacheKey, getObservedVehicles, ttl)) || []
 
     if (vehicles.length !== 0) {
       filteredEquipment = filteredEquipment.map((item: JoreEquipment) => {

@@ -15,7 +15,7 @@ export async function createStopsResponse(
   filter?: StopFilterInput
 ): Promise<Stop[]> {
   const cacheKey = `stops`
-  const stops = await cacheFetch<JoreStop>(cacheKey, getStops, 86400)
+  const stops = await cacheFetch<JoreStop[]>(cacheKey, getStops, 86400)
 
   if (!stops) {
     return []

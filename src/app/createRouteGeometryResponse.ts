@@ -13,7 +13,7 @@ export async function createRouteGeometryResponse(
   const fetchAndValidate = async () => {
     const routes = await getRouteGeometry()
     const validRoutes = filterByDateChains<JoreRoute>({ routes }, date)
-    const selectedRoute = validRoutes[0]
+    const selectedRoute = validRoutes ? validRoutes[0] : null
 
     if (!selectedRoute) {
       return false
@@ -36,7 +36,7 @@ export async function createRouteGeometryResponse(
   }
 
   const cacheKey = `routeGeometry_${routeId}_${direction}_${date}`
-  const validRouteGeometry = await cacheFetch<RouteGeometry>(cacheKey, fetchAndValidate)
+  const validRouteGeometry = await cacheFetch<RouteGeometry[]>(cacheKey, fetchAndValidate)
 
   if (!validRouteGeometry) {
     return null

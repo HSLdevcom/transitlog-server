@@ -204,6 +204,8 @@ export namespace QueryResolvers {
     departureTime: Time
 
     departureDate: Date
+
+    instance?: Maybe<number>
   }
 }
 
@@ -534,18 +536,22 @@ export namespace DepartureResolvers {
 
     index?: IndexResolver<Maybe<number>, TypeParent, TContext>
 
-    stop?: StopResolver<Stop, TypeParent, TContext>
+    stop?: StopResolver<DepartureStop, TypeParent, TContext>
 
-    plannedArrivalTime?: PlannedArrivalTimeResolver<PlannedArrival, TypeParent, TContext>
-
-    observedArrivalTime?: ObservedArrivalTimeResolver<
+    plannedArrivalTime?: PlannedArrivalTimeResolver<
       Maybe<PlannedArrival>,
       TypeParent,
       TContext
     >
 
+    observedArrivalTime?: ObservedArrivalTimeResolver<
+      Maybe<ObservedArrival>,
+      TypeParent,
+      TContext
+    >
+
     plannedDepartureTime?: PlannedDepartureTimeResolver<
-      PlannedDeparture,
+      Maybe<PlannedDeparture>,
       TypeParent,
       TContext
     >
@@ -637,29 +643,136 @@ export namespace DepartureResolvers {
     Parent = Departure,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type StopResolver<R = Stop, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type PlannedArrivalTimeResolver<
-    R = PlannedArrival,
+  export type StopResolver<
+    R = DepartureStop,
     Parent = Departure,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type ObservedArrivalTimeResolver<
+  export type PlannedArrivalTimeResolver<
     R = Maybe<PlannedArrival>,
     Parent = Departure,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type ObservedArrivalTimeResolver<
+    R = Maybe<ObservedArrival>,
+    Parent = Departure,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type PlannedDepartureTimeResolver<
-    R = PlannedDeparture,
+    R = Maybe<PlannedDeparture>,
     Parent = Departure,
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type ObservedDepartureTimeResolver<
     R = Maybe<ObservedDeparture>,
     Parent = Departure,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+}
+
+export namespace DepartureStopResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = DepartureStop> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    destination?: DestinationResolver<Maybe<string>, TypeParent, TContext>
+
+    distanceFromPrevious?: DistanceFromPreviousResolver<
+      Maybe<number>,
+      TypeParent,
+      TContext
+    >
+
+    distanceFromStart?: DistanceFromStartResolver<Maybe<number>, TypeParent, TContext>
+
+    duration?: DurationResolver<Maybe<number>, TypeParent, TContext>
+
+    stopIndex?: StopIndexResolver<Maybe<number>, TypeParent, TContext>
+
+    isTimingStop?: IsTimingStopResolver<Maybe<boolean>, TypeParent, TContext>
+
+    stopId?: StopIdResolver<string, TypeParent, TContext>
+
+    shortId?: ShortIdResolver<string, TypeParent, TContext>
+
+    lat?: LatResolver<number, TypeParent, TContext>
+
+    lng?: LngResolver<number, TypeParent, TContext>
+
+    name?: NameResolver<Maybe<string>, TypeParent, TContext>
+
+    radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
+
+    modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
+  }
+
+  export type IdResolver<R = string, Parent = DepartureStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DestinationResolver<
+    R = Maybe<string>,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DistanceFromPreviousResolver<
+    R = Maybe<number>,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DistanceFromStartResolver<
+    R = Maybe<number>,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DurationResolver<
+    R = Maybe<number>,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type StopIndexResolver<
+    R = Maybe<number>,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsTimingStopResolver<
+    R = Maybe<boolean>,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type StopIdResolver<
+    R = string,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type ShortIdResolver<
+    R = string,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type LatResolver<R = number, Parent = DepartureStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type LngResolver<R = number, Parent = DepartureStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type NameResolver<
+    R = Maybe<string>,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type RadiusResolver<
+    R = Maybe<number>,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type ModesResolver<
+    R = Array<Maybe<string>>,
+    Parent = DepartureStop,
     TContext = {}
   > = Resolver<R, Parent, TContext>
 }
@@ -690,72 +803,49 @@ export namespace PlannedArrivalResolvers {
   > = Resolver<R, Parent, TContext>
 }
 
-export namespace PlannedDepartureResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = PlannedDeparture> {
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
+export namespace ObservedArrivalResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = ObservedArrival> {
+    arrivalEvent?: ArrivalEventResolver<JourneyEvent, TypeParent, TContext>
 
-    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
+    arrivalDate?: ArrivalDateResolver<Date, TypeParent, TContext>
 
-    departureDateTime?: DepartureDateTimeResolver<DateTime, TypeParent, TContext>
+    arrivalTime?: ArrivalTimeResolver<Time, TypeParent, TContext>
+
+    arrivalDateTime?: ArrivalDateTimeResolver<DateTime, TypeParent, TContext>
+
+    arrivalTimeDifference?: ArrivalTimeDifferenceResolver<number, TypeParent, TContext>
+
+    doorDidOpen?: DoorDidOpenResolver<boolean, TypeParent, TContext>
   }
 
-  export type DepartureDateResolver<
-    R = Date,
-    Parent = PlannedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureTimeResolver<
-    R = Time,
-    Parent = PlannedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureDateTimeResolver<
-    R = DateTime,
-    Parent = PlannedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace ObservedDepartureResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = ObservedDeparture> {
-    departureEvent?: DepartureEventResolver<JourneyEvent, TypeParent, TContext>
-
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
-
-    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
-
-    departureDateTime?: DepartureDateTimeResolver<DateTime, TypeParent, TContext>
-
-    departureTimeDifference?: DepartureTimeDifferenceResolver<
-      number,
-      TypeParent,
-      TContext
-    >
-  }
-
-  export type DepartureEventResolver<
+  export type ArrivalEventResolver<
     R = JourneyEvent,
-    Parent = ObservedDeparture,
+    Parent = ObservedArrival,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type DepartureDateResolver<
+  export type ArrivalDateResolver<
     R = Date,
-    Parent = ObservedDeparture,
+    Parent = ObservedArrival,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type DepartureTimeResolver<
+  export type ArrivalTimeResolver<
     R = Time,
-    Parent = ObservedDeparture,
+    Parent = ObservedArrival,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type DepartureDateTimeResolver<
+  export type ArrivalDateTimeResolver<
     R = DateTime,
-    Parent = ObservedDeparture,
+    Parent = ObservedArrival,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type DepartureTimeDifferenceResolver<
+  export type ArrivalTimeDifferenceResolver<
     R = number,
-    Parent = ObservedDeparture,
+    Parent = ObservedArrival,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DoorDidOpenResolver<
+    R = boolean,
+    Parent = ObservedArrival,
     TContext = {}
   > = Resolver<R, Parent, TContext>
 }
@@ -842,9 +932,81 @@ export namespace JourneyEventResolvers {
   > = Resolver<R, Parent, TContext>
 }
 
+export namespace PlannedDepartureResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = PlannedDeparture> {
+    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
+
+    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
+
+    departureDateTime?: DepartureDateTimeResolver<DateTime, TypeParent, TContext>
+  }
+
+  export type DepartureDateResolver<
+    R = Date,
+    Parent = PlannedDeparture,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DepartureTimeResolver<
+    R = Time,
+    Parent = PlannedDeparture,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DepartureDateTimeResolver<
+    R = DateTime,
+    Parent = PlannedDeparture,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+}
+
+export namespace ObservedDepartureResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = ObservedDeparture> {
+    departureEvent?: DepartureEventResolver<JourneyEvent, TypeParent, TContext>
+
+    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
+
+    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
+
+    departureDateTime?: DepartureDateTimeResolver<DateTime, TypeParent, TContext>
+
+    departureTimeDifference?: DepartureTimeDifferenceResolver<
+      number,
+      TypeParent,
+      TContext
+    >
+  }
+
+  export type DepartureEventResolver<
+    R = JourneyEvent,
+    Parent = ObservedDeparture,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DepartureDateResolver<
+    R = Date,
+    Parent = ObservedDeparture,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DepartureTimeResolver<
+    R = Time,
+    Parent = ObservedDeparture,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DepartureDateTimeResolver<
+    R = DateTime,
+    Parent = ObservedDeparture,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DepartureTimeDifferenceResolver<
+    R = number,
+    Parent = ObservedDeparture,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+}
+
 export namespace JourneyResolvers {
   export interface Resolvers<TContext = {}, TypeParent = Journey> {
     id?: IdResolver<string, TypeParent, TContext>
+
+    lineId?: LineIdResolver<string, TypeParent, TContext>
 
     routeId?: RouteIdResolver<string, TypeParent, TContext>
 
@@ -864,6 +1026,8 @@ export namespace JourneyResolvers {
 
     headsign?: HeadsignResolver<Maybe<string>, TypeParent, TContext>
 
+    name?: NameResolver<Maybe<string>, TypeParent, TContext>
+
     equipment?: EquipmentResolver<Equipment, TypeParent, TContext>
 
     events?: EventsResolver<Array<Maybe<JourneyEvent>>, TypeParent, TContext>
@@ -872,6 +1036,11 @@ export namespace JourneyResolvers {
   }
 
   export type IdResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type LineIdResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -921,6 +1090,11 @@ export namespace JourneyResolvers {
     Parent = Journey,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type NameResolver<R = Maybe<string>, Parent = Journey, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type EquipmentResolver<
     R = Equipment,
     Parent = Journey,
@@ -934,57 +1108,6 @@ export namespace JourneyResolvers {
   export type DeparturesResolver<
     R = Array<Maybe<Departure>>,
     Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace ObservedArrivalResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = ObservedArrival> {
-    arrivalEvent?: ArrivalEventResolver<Maybe<JourneyEvent>, TypeParent, TContext>
-
-    arrivalDate?: ArrivalDateResolver<Maybe<Date>, TypeParent, TContext>
-
-    arrivalTime?: ArrivalTimeResolver<Maybe<Time>, TypeParent, TContext>
-
-    arrivalDateTime?: ArrivalDateTimeResolver<Maybe<DateTime>, TypeParent, TContext>
-
-    arrivalTimeDifference?: ArrivalTimeDifferenceResolver<
-      Maybe<number>,
-      TypeParent,
-      TContext
-    >
-
-    doorDidOpen?: DoorDidOpenResolver<boolean, TypeParent, TContext>
-  }
-
-  export type ArrivalEventResolver<
-    R = Maybe<JourneyEvent>,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ArrivalDateResolver<
-    R = Maybe<Date>,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ArrivalTimeResolver<
-    R = Maybe<Time>,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ArrivalDateTimeResolver<
-    R = Maybe<DateTime>,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ArrivalTimeDifferenceResolver<
-    R = Maybe<number>,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DoorDidOpenResolver<
-    R = boolean,
-    Parent = ObservedArrival,
     TContext = {}
   > = Resolver<R, Parent, TContext>
 }
@@ -1076,12 +1199,13 @@ export interface IResolvers<TContext = {}> {
   RouteGeometryPoint?: RouteGeometryPointResolvers.Resolvers<TContext>
   Line?: LineResolvers.Resolvers<TContext>
   Departure?: DepartureResolvers.Resolvers<TContext>
+  DepartureStop?: DepartureStopResolvers.Resolvers<TContext>
   PlannedArrival?: PlannedArrivalResolvers.Resolvers<TContext>
+  ObservedArrival?: ObservedArrivalResolvers.Resolvers<TContext>
+  JourneyEvent?: JourneyEventResolvers.Resolvers<TContext>
   PlannedDeparture?: PlannedDepartureResolvers.Resolvers<TContext>
   ObservedDeparture?: ObservedDepartureResolvers.Resolvers<TContext>
-  JourneyEvent?: JourneyEventResolvers.Resolvers<TContext>
   Journey?: JourneyResolvers.Resolvers<TContext>
-  ObservedArrival?: ObservedArrivalResolvers.Resolvers<TContext>
   Position?: PositionResolvers.Resolvers
   Date?: GraphQLScalarType
   BBox?: GraphQLScalarType

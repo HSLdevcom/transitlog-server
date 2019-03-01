@@ -1,3 +1,8 @@
+import moment from 'moment-timezone'
+import { TZ } from './constants'
+// Set the default timezone for the app
+moment.tz.setDefault(TZ)
+
 import schema from './schema'
 import { ApolloServer } from 'apollo-server'
 import { resolvers } from './resolvers/'

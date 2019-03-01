@@ -27,7 +27,7 @@ export const createJourneyId = (
   const journey_start_time = get(
     journeyObject,
     'journey_start_time',
-    get(journeyObject, 'departureTime', null)
+    get(journeyObject, 'getDepartureTime', null)
   )
   const direction_id = getDirection(
     get(journeyObject, 'direction_id', get(journeyObject, 'direction', null))
