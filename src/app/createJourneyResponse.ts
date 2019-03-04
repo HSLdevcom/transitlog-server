@@ -32,13 +32,9 @@ const fetchJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
   return events.filter((pos) => !!pos.lat && !!pos.long && !!pos.journey_start_time)
 }
 
-const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
-  fetcher,
-  date,
-  time
-) => {
+const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date, time) => {
   const routes = await fetcher()
-  const validRoute = filterByDateChains<JoreRoute>({ routes }, date)
+  const validRoute = filterByDateChains<JoreRoute>([routes], date)
 
   if (!validRoute || validRoute.length === 0) {
     return false
@@ -46,13 +42,14 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 
   const journeyRoute = validRoute[0]
 
-  // TODO: Figure out why no departures are showing
+  const routeSegments: RouteSegment[] = get(journeyRoute, 'routeSegments.nodes', []) || []
+  const validRouteSegments = filterByDateChains<RouteSegment>(
+    groupBy(routeSegments, 'stopId'),
+    date
+  )
+  const sortedRouteSegments = sortBy(validRouteSegments, 'stopIndex')
 
-  let routeSegments: RouteSegment[] = get(journeyRoute, 'routeSegments.nodes', []) || []
-  routeSegments = filterByDateChains<RouteSegment>({ routeSegments }, date)
-  routeSegments = sortBy(routeSegments, 'stopIndex')
-
-  const stops = routeSegments.map(
+  const stops = sortedRouteSegments.map(
     (routeSegment): StopSegmentCombo => {
       let stopDepartures = get(routeSegment, 'stop.departures.nodes', [])
       stopDepartures = getValidDepartures(stopDepartures, date)
@@ -74,8 +71,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 
   const originDeparture =
     firstStopDepartures.find(
-      ({ hours, minutes, dayType, dateBegin, dateEnd, isNextDay }) =>
-        getDepartureTime({ hours, minutes, isNextDay }) === time
+      ({ hours, minutes, isNextDay }) => getDepartureTime({ hours, minutes, isNextDay }) === time
     ) || null
 
   if (!originDeparture) {
@@ -115,12 +111,10 @@ export async function createJourneyResponse(
     let journeyEvents = await cacheFetch(
       journeyEventsCacheKey,
       () => fetchJourneyEvents(getJourneyEvents),
-      5
+      60 * 60
     )
 
-    const vehicleGroups = Object.values(
-      groupBy(journeyEvents || null, 'unique_vehicle_id')
-    )
+    const vehicleGroups = Object.values(groupBy(journeyEvents || null, 'unique_vehicle_id'))
 
     journeyEvents = vehicleGroups[instance]
 
@@ -134,7 +128,7 @@ export async function createJourneyResponse(
     const routeAndDepartures = await cacheFetch<JourneyRoute>(
       routeCacheKey,
       () => fetchJourneyDepartures(getJourneyRoute, departureDate, departureTime),
-      5
+      24 * 60 * 60
     )
 
     if (!routeAndDepartures || routeAndDepartures.departures.length === 0) {
@@ -147,7 +141,7 @@ export async function createJourneyResponse(
       (departure: PlannedDeparture): Departure => {
         const stopEvents = orderBy(
           events.filter((pos) => pos.next_stop_id === departure.stopId),
-          'received_at_unix',
+          'tsi',
           'desc'
         )
 

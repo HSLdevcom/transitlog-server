@@ -10,7 +10,7 @@ import { Dictionary } from '../types/Dictionary'
 // validity ranges, so to figure out which ones are the valid ones we construct
 // "validity chains". The objects that don't fit in the chain are invalid.
 export function filterByDateChains<ItemType extends ValidityRange>(
-  groups: Dictionary<ItemType[]>,
+  groups: Dictionary<ItemType[]> | ItemType[][],
   date?: string
 ): ItemType[] {
   const validGroups = reduce(
@@ -122,9 +122,7 @@ export function filterByDateChains<ItemType extends ValidityRange>(
       // Find the valid endDates and use them to build competing chains.
       // If there is only one of the max endDates among the items
       // it won't be much of a competition.
-      const chains = dateEndOrdered
-        .filter(({ dateEnd }) => dateEnd === maxDate)
-        .map(createChain)
+      const chains = dateEndOrdered.filter(({ dateEnd }) => dateEnd === maxDate).map(createChain)
 
       // Declare the winner of the chain competition. Longest chain wins.
       // TODO: We might want to include items from the leftover chains if they don't

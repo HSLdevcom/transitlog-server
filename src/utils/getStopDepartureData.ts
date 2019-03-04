@@ -10,17 +10,19 @@ import moment from 'moment-timezone'
 
 /**
  *
- * @param stopPositions positions with next_stop_id = [current stop]
+ * @param stopEvents positions with next_stop_id = [current stop]
  * @param stopDeparture the planned departure from [current stop]
  * @param date selected date in YYYY-MM-DD format
  * @returns {*}
  */
 export const getStopDepartureData = (
-  stopPositions: Vehicles[] = [],
+  stopEvents: Vehicles[] = [],
   stopDeparture: PlannedDeparture,
   date: string
 ): ObservedDeparture | null => {
-  const departureEvent = stopPositions[0]
+  // The stopEvents are sorted by recorded-at time in descending order,
+  // so the last event from this stop is first. Exactly like we want it.
+  const departureEvent = stopEvents[0]
 
   if (!departureEvent) {
     return null
