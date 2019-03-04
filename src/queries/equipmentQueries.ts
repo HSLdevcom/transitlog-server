@@ -23,3 +23,14 @@ export const EQUIPMENT = gql`
   }
   ${EquipmentFieldsFragment}
 `
+
+export const EQUIPMENT_BY_ID = gql`
+  query JoreEquipmentById($vehicleId: String, $operatorId: String) {
+    allEquipment(condition: { vehicleId: $vehicleId, operatorId: $operatorId }) {
+      nodes {
+        ...EquipmentFieldsFragment
+      }
+    }
+  }
+  ${EquipmentFieldsFragment}
+`

@@ -2,10 +2,11 @@ import {
   Route as JoreRoute,
   RouteSegment,
   Departure as JoreDeparture,
+  Equipment as JoreEquipment,
 } from '../types/generated/jore-types'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
-import { Departure, Direction, Journey, Route } from '../types/generated/schema-types'
+import { Departure, Direction, Equipment, Journey, Route } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { get, groupBy, sortBy, orderBy } from 'lodash'
@@ -138,8 +139,9 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
 /**
  * This function fetches both the journey events and the journey departures using the functions
  * above and caches the result, which is a merge of the planned and observed data.
- * @param fetchRouteData The async function that fetches the route and departures from Jore
- * @param fetchJourneyEvents The async function that fetches the HFP events
+ * @param fetchRouteData Async function that fetches the route and departures from Jore
+ * @param fetchJourneyEvents Async function that fetches the HFP events
+ * @param fetchJourneyEquipment Async function that fetches the equipment that operated this journey.
  * @param routeId The route ID of the requested journey
  * @param direction The direction of the requested journey
  * @param departureDate The operation date of the journey
@@ -149,6 +151,10 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
 export async function createJourneyResponse(
   fetchRouteData: () => Promise<JoreRoute | null>,
   fetchJourneyEvents: () => Promise<Vehicles[]>,
+  fetchJourneyEquipment: (
+    vehicleId: string | number,
+    operatorId: string
+  ) => Promise<JoreEquipment | null>,
   routeId: string,
   direction: Direction,
   departureDate: string,
@@ -229,9 +235,18 @@ export async function createJourneyResponse(
       }
     )
 
+    // Get the ID of the vehicle that actually operated this journey and fetch its data.
+    const { owner_operator_id, vehicle_number } = events[0]
+    const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
+
+    const journeyEquipment = await cacheFetch<JoreEquipment>(
+      equipmentKey,
+      () => fetchJourneyEquipment(vehicle_number, owner_operator_id),
+      24 * 60 * 60
+    )
+
     // Everything is baked into a Journey domain object.
-    // TODO: add equipment.
-    return createJourneyObject(events, route, observedDepartures, null, instance)
+    return createJourneyObject(events, route, observedDepartures, journeyEquipment, instance)
   }
 
   // Cache the full journey data by instance, so separate vehicle journeys don't get mixed.

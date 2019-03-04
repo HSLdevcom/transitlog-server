@@ -44,9 +44,13 @@ const journey = (
   const fetchJourneyEvents = () =>
     dataSources.HFPAPI.getJourneyEvents(routeId, direction, departureDate, departureTime)
 
+  const fetchJourneyEquipment = (vehicleId, operatorId) =>
+    dataSources.JoreAPI.getEquipmentById(vehicleId, operatorId)
+
   return createJourneyResponse(
     fetchRouteData,
     fetchJourneyEvents,
+    fetchJourneyEquipment,
     routeId,
     direction,
     departureDate,

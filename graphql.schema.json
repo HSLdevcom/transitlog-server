@@ -1854,11 +1854,7 @@
             "name": "equipment",
             "description": "",
             "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": { "kind": "OBJECT", "name": "Equipment", "ofType": null }
-            },
+            "type": { "kind": "OBJECT", "name": "Equipment", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },

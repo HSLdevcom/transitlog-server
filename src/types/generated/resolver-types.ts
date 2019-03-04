@@ -992,7 +992,7 @@ export namespace JourneyResolvers {
 
     name?: NameResolver<Maybe<string>, TypeParent, TContext>
 
-    equipment?: EquipmentResolver<Equipment, TypeParent, TContext>
+    equipment?: EquipmentResolver<Maybe<Equipment>, TypeParent, TContext>
 
     events?: EventsResolver<Array<Maybe<JourneyEvent>>, TypeParent, TContext>
 
@@ -1059,7 +1059,7 @@ export namespace JourneyResolvers {
     Parent,
     TContext
   >
-  export type EquipmentResolver<R = Equipment, Parent = Journey, TContext = {}> = Resolver<
+  export type EquipmentResolver<R = Maybe<Equipment>, Parent = Journey, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

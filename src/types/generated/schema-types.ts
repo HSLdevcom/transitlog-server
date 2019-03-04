@@ -346,7 +346,7 @@ export interface Journey {
 
   name?: Maybe<string>
 
-  equipment: Equipment
+  equipment?: Maybe<Equipment>
 
   events: Array<Maybe<JourneyEvent>>
 

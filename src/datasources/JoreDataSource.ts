@@ -11,7 +11,7 @@ import { LINES } from '../queries/lineQueries'
 import { STOPS } from '../queries/stopQueries'
 import { JOURNEY_ROUTE, ROUTE_GEOMETRY, ROUTE_INDEX, ROUTES } from '../queries/routeQueries'
 import { Direction } from '../types/generated/schema-types'
-import { EQUIPMENT } from '../queries/equipmentQueries'
+import { EQUIPMENT, EQUIPMENT_BY_ID } from '../queries/equipmentQueries'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
 import { filterByDateChains } from '../utils/filterByDateChains'
 
@@ -43,6 +43,17 @@ export class JoreDataSource extends GraphQLDataSource {
   async getEquipment(): Promise<JoreEquipment[]> {
     const response = await this.query(EQUIPMENT, {})
     return get(response, 'data.allEquipment.nodes', null)
+  }
+
+  async getEquipmentById(vehicleId: string | number, operatorId: string): Promise<JoreEquipment[]> {
+    const response = await this.query(EQUIPMENT_BY_ID, {
+      variables: {
+        vehicleId: vehicleId + '',
+        operatorId: (operatorId + '').padStart(4, '0'),
+      },
+    })
+
+    return get(response, 'data.allEquipment.nodes[0]', null)
   }
 
   async getRouteIndex(routeId: string, direction: Direction) {

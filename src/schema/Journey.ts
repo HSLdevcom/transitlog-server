@@ -32,7 +32,7 @@ export const Journey = gql`
     instance: Int
     headsign: String
     name: String
-    equipment: Equipment!
+    equipment: Equipment
     events: [JourneyEvent]!
     departures: [Departure]!
   }
