@@ -1,10 +1,10 @@
 import { Route as JoreRoute, RouteSegment } from '../types/generated/jore-types'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
-import { Departure, Direction, Journey } from '../types/generated/schema-types'
+import { Departure, Direction, Journey, Route } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, omit, sortBy, orderBy } from 'lodash'
+import { get, groupBy, sortBy, orderBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { getValidDepartures } from '../utils/getValidDepartures'
@@ -15,6 +15,83 @@ import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { createStopObject } from './objects/createStopObject'
+import { createRouteObject } from './objects/createRouteObject'
+
+type JourneyRoute = {
+  route: Route
+  departures: PlannedDeparture[]
+}
+
+const fetchJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
+  const events = await fetcher()
+
+  if (events.length === 0) {
+    return false
+  }
+
+  return events.filter((pos) => !!pos.lat && !!pos.long && !!pos.journey_start_time)
+}
+
+const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
+  fetcher,
+  date,
+  time
+) => {
+  const routes = await fetcher()
+  const validRoute = filterByDateChains<JoreRoute>({ routes }, date)
+
+  if (!validRoute || validRoute.length === 0) {
+    return false
+  }
+
+  const journeyRoute = validRoute[0]
+
+  // TODO: Figure out why no departures are showing
+
+  let routeSegments: RouteSegment[] = get(journeyRoute, 'routeSegments.nodes', []) || []
+  routeSegments = filterByDateChains<RouteSegment>({ routeSegments }, date)
+  routeSegments = sortBy(routeSegments, 'stopIndex')
+
+  const stops = routeSegments.map(
+    (routeSegment): StopSegmentCombo => {
+      let stopDepartures = get(routeSegment, 'stop.departures.nodes', [])
+      stopDepartures = getValidDepartures(stopDepartures, date)
+
+      return {
+        destination: routeSegment.destinationFi || '',
+        distanceFromPrevious: routeSegment.distanceFromPrevious,
+        distanceFromStart: routeSegment.distanceFromStart,
+        duration: routeSegment.duration,
+        stopIndex: routeSegment.stopIndex,
+        isTimingStop: !!routeSegment.timingStopType,
+        ...createStopObject(get(routeSegment, 'stop', {})),
+        departures: stopDepartures,
+      }
+    }
+  )
+
+  const firstStopDepartures = get(stops, '[0].departures', [])
+
+  const originDeparture =
+    firstStopDepartures.find(
+      ({ hours, minutes, dayType, dateBegin, dateEnd, isNextDay }) =>
+        getDepartureTime({ hours, minutes, isNextDay }) === time
+    ) || null
+
+  if (!originDeparture) {
+    return false
+  }
+
+  const departures = stops.map((stop) => {
+    const departure = stop.departures.filter(
+      (dep) => dep.departureId === originDeparture.departureId
+    )[0]
+
+    return createPlannedDepartureObject(departure, stop, date)
+  })
+
+  return { route: createRouteObject(journeyRoute), departures }
+}
 
 export async function createJourneyResponse(
   getJourneyRoute: () => Promise<JoreRoute[]>,
@@ -25,73 +102,21 @@ export async function createJourneyResponse(
   departureTime: string,
   instance: number = 0
 ): Promise<Journey | null> {
-  const fetchJourneyEvents: CachedFetcher<Vehicles[]> = async () => {
-    const events = await getJourneyEvents()
-
-    if (events.length === 0) {
-      return false
-    }
-
-    return events.filter((pos) => !!pos.lat && !!pos.long && !!pos.journey_start_time)
-  }
-
-  const fetchJourneyRoute: CachedFetcher = async () => {
-    const routes = await getJourneyRoute()
-    const validRoute = filterByDateChains<JoreRoute>({ routes }, departureDate)
-
-    if (!validRoute || validRoute.length === 0) {
-      return false
-    }
-
-    return validRoute[0]
-  }
-
-  const getJourneyDepartures: CachedFetcher = async (journeyRoute) => {
-    let routeSegments: RouteSegment[] = get(journeyRoute, 'routeSegments.nodes', []) || []
-    routeSegments = filterByDateChains<RouteSegment>({ routeSegments }, departureDate)
-    routeSegments = sortBy(routeSegments, 'stopIndex')
-
-    const stops = routeSegments.map(
-      (routeSegment): StopSegmentCombo => {
-        let stopDepartures = get(routeSegment, 'stop.departures.nodes', [])
-        stopDepartures = getValidDepartures(stopDepartures, departureDate)
-
-        return {
-          destination: routeSegment.destinationFi || '',
-          distanceFromPrevious: routeSegment.distanceFromPrevious,
-          distanceFromStart: routeSegment.distanceFromStart,
-          duration: routeSegment.duration,
-          stopIndex: routeSegment.stopIndex,
-          isTimingStop: !!routeSegment.timingStopType,
-          ...createStopObject(get(routeSegment, 'stop', {})),
-          departures: stopDepartures,
-        }
-      }
-    )
-
-    const firstStopDepartures = get(stops, '[0].departures', [])
-
-    const originDeparture =
-      firstStopDepartures.find(
-        ({ hours, minutes, dayType, dateBegin, dateEnd, isNextDay }) =>
-          getDepartureTime({ hours, minutes, isNextDay }) === departureTime
-      ) || null
-
-    if (!originDeparture) {
-      return false
-    }
-
-    return stops.map((stop) => {
-      const departure = stop.departures.filter(
-        (dep) => dep.departureId === originDeparture.departureId
-      )[0]
-
-      return createPlannedDepartureObject(departure, stop, departureDate)
-    })
-  }
+  const journeyKey = createJourneyId({
+    routeId,
+    direction,
+    departureDate,
+    departureTime,
+  })
 
   const fetchAndProcessJourney = async () => {
-    let journeyEvents = await fetchJourneyEvents()
+    const journeyEventsCacheKey = `journey_events_${journeyKey}`
+
+    let journeyEvents = await cacheFetch(
+      journeyEventsCacheKey,
+      () => fetchJourneyEvents(getJourneyEvents),
+      5
+    )
 
     const vehicleGroups = Object.values(
       groupBy(journeyEvents || null, 'unique_vehicle_id')
@@ -105,32 +130,20 @@ export async function createJourneyResponse(
 
     const events: Vehicles[] = journeyEvents
 
-    const routeCacheKey = `journey_route_${createJourneyId({
-      routeId,
-      direction,
-      departureDate,
-      departureTime,
-    })}`
-
-    const journeyRoute = await cacheFetch<JoreRoute>(
+    const routeCacheKey = `journey_route_departures_${journeyKey}`
+    const routeAndDepartures = await cacheFetch<JourneyRoute>(
       routeCacheKey,
-      fetchJourneyRoute,
-      24 * 60 * 60
+      () => fetchJourneyDepartures(getJourneyRoute, departureDate, departureTime),
+      5
     )
 
-    const departuresCacheKey = 'departures_' + routeCacheKey
-
-    const plannedDepartures = await cacheFetch<PlannedDeparture[]>(
-      departuresCacheKey,
-      () => getJourneyDepartures(journeyRoute),
-      24 * 60 * 60
-    )
-
-    if (!plannedDepartures || plannedDepartures.length === 0) {
+    if (!routeAndDepartures || routeAndDepartures.departures.length === 0) {
       return createJourneyObject(events, null, [], null, instance)
     }
 
-    const observedDepartures: Departure[] = plannedDepartures.map(
+    const { route, departures } = routeAndDepartures
+
+    const observedDepartures: Departure[] = departures.map(
       (departure: PlannedDeparture): Departure => {
         const stopEvents = orderBy(
           events.filter((pos) => pos.next_stop_id === departure.stopId),
@@ -154,7 +167,7 @@ export async function createJourneyResponse(
       }
     )
 
-    return createJourneyObject(events, journeyRoute, observedDepartures, null, instance)
+    return createJourneyObject(events, route, observedDepartures, null, instance)
   }
 
   const journeyCacheKey = `journey_${createJourneyId({
@@ -164,7 +177,7 @@ export async function createJourneyResponse(
     departureTime,
   })}`
 
-  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, 60)
+  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, 1)
 
   if (!journey) {
     return null
