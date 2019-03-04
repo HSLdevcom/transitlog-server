@@ -5,8 +5,6 @@ import { createStopsResponse } from '../app/createStopsResponse'
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
-import { filterByDateChains } from '../utils/filterByDateChains'
-import { Route as JoreRoute } from '../types/generated/jore-types'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -41,35 +39,14 @@ const journey = (
   { routeId, direction, departureTime, departureDate, instance },
   { dataSources }
 ) => {
-  const getJourneyRoute = async () => {
-    const availableRoutes = await dataSources.JoreAPI.getRouteIndex(routeId, direction)
+  const fetchRouteData = () => dataSources.JoreAPI.getFullRoute(routeId, direction, departureDate)
 
-    if (!availableRoutes || availableRoutes.length === 0) {
-      return null
-    }
-
-    const validRoutes = filterByDateChains<JoreRoute>([availableRoutes], departureDate)
-
-    if (validRoutes.length === 0) {
-      return null
-    }
-
-    const route = validRoutes[0]
-    return dataSources.JoreAPI.getJourneyRoute(
-      route.routeId,
-      route.direction,
-      route.dateBegin,
-      route.dateEnd,
-      departureDate
-    )
-  }
-
-  const getJourneyEvents = () =>
+  const fetchJourneyEvents = () =>
     dataSources.HFPAPI.getJourneyEvents(routeId, direction, departureDate, departureTime)
 
   return createJourneyResponse(
-    getJourneyRoute,
-    getJourneyEvents,
+    fetchRouteData,
+    fetchJourneyEvents,
     routeId,
     direction,
     departureDate,

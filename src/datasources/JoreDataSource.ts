@@ -13,6 +13,7 @@ import { JOURNEY_ROUTE, ROUTE_GEOMETRY, ROUTE_INDEX, ROUTES } from '../queries/r
 import { Direction } from '../types/generated/schema-types'
 import { EQUIPMENT } from '../queries/equipmentQueries'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
+import { filterByDateChains } from '../utils/filterByDateChains'
 
 export class JoreDataSource extends GraphQLDataSource {
   baseURL = JORE_URL
@@ -73,5 +74,28 @@ export class JoreDataSource extends GraphQLDataSource {
     })
 
     return get(response, 'data.route', null)
+  }
+
+  async getFullRoute(routeId, direction, date) {
+    const availableRoutes = await this.getRouteIndex(routeId, direction)
+
+    if (!availableRoutes || availableRoutes.length === 0) {
+      return null
+    }
+
+    const validRoutes = filterByDateChains<JoreRoute>([availableRoutes], date)
+
+    if (validRoutes.length === 0) {
+      return null
+    }
+
+    const route = validRoutes[0]
+    return this.getJourneyRoute(
+      route.routeId,
+      route.direction,
+      route.dateBegin,
+      route.dateEnd,
+      date
+    )
   }
 }
