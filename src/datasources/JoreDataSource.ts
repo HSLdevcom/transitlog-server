@@ -9,7 +9,7 @@ import {
 } from '../types/generated/jore-types'
 import { LINES } from '../queries/lineQueries'
 import { STOPS } from '../queries/stopQueries'
-import { JOURNEY_ROUTE, ROUTE_GEOMETRY, ROUTES } from '../queries/routeQueries'
+import { JOURNEY_ROUTE, ROUTE_GEOMETRY, ROUTE_INDEX, ROUTES } from '../queries/routeQueries'
 import { Direction } from '../types/generated/schema-types'
 import { EQUIPMENT } from '../queries/equipmentQueries'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
@@ -44,9 +44,21 @@ export class JoreDataSource extends GraphQLDataSource {
     return get(response, 'data.allEquipment.nodes', null)
   }
 
+  async getRouteIndex(routeId: string, direction: Direction) {
+    const response = await this.query(ROUTE_INDEX, {
+      variables: {
+        routeId,
+        direction: direction + '',
+      },
+    })
+    return get(response, 'data.allRoutes.nodes', null)
+  }
+
   async getJourneyRoute(
     routeId: string,
     direction: Direction,
+    dateBegin: string,
+    dateEnd: string,
     date: string
   ): Promise<JoreRoute> {
     const dayType = getDayTypeFromDate(date)
@@ -54,10 +66,12 @@ export class JoreDataSource extends GraphQLDataSource {
       variables: {
         routeId,
         direction: direction + '',
+        dateBegin,
+        dateEnd,
         dayType,
       },
     })
 
-    return get(response, 'data.allRoutes.nodes', null)
+    return get(response, 'data.route', null)
   }
 }

@@ -16,11 +16,7 @@
               {
                 "name": "filter",
                 "description": "",
-                "type": {
-                  "kind": "INPUT_OBJECT",
-                  "name": "EquipmentFilterInput",
-                  "ofType": null
-                },
+                "type": { "kind": "INPUT_OBJECT", "name": "EquipmentFilterInput", "ofType": null },
                 "defaultValue": null
               },
               {
@@ -49,11 +45,7 @@
               {
                 "name": "filter",
                 "description": "",
-                "type": {
-                  "kind": "INPUT_OBJECT",
-                  "name": "StopFilterInput",
-                  "ofType": null
-                },
+                "type": { "kind": "INPUT_OBJECT", "name": "StopFilterInput", "ofType": null },
                 "defaultValue": null
               }
             ],
@@ -76,11 +68,7 @@
               {
                 "name": "filter",
                 "description": "",
-                "type": {
-                  "kind": "INPUT_OBJECT",
-                  "name": "RouteFilterInput",
-                  "ofType": null
-                },
+                "type": { "kind": "INPUT_OBJECT", "name": "RouteFilterInput", "ofType": null },
                 "defaultValue": null
               },
               {
@@ -148,11 +136,7 @@
               {
                 "name": "filter",
                 "description": "",
-                "type": {
-                  "kind": "INPUT_OBJECT",
-                  "name": "LineFilterInput",
-                  "ofType": null
-                },
+                "type": { "kind": "INPUT_OBJECT", "name": "LineFilterInput", "ofType": null },
                 "defaultValue": null
               },
               {
@@ -187,11 +171,7 @@
               {
                 "name": "filter",
                 "description": "",
-                "type": {
-                  "kind": "INPUT_OBJECT",
-                  "name": "DepartureFilterInput",
-                  "ofType": null
-                },
+                "type": { "kind": "INPUT_OBJECT", "name": "DepartureFilterInput", "ofType": null },
                 "defaultValue": null
               },
               {
@@ -855,11 +835,7 @@
                 "ofType": {
                   "kind": "NON_NULL",
                   "name": null,
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "RouteGeometryPoint",
-                    "ofType": null
-                  }
+                  "ofType": { "kind": "OBJECT", "name": "RouteGeometryPoint", "ofType": null }
                 }
               }
             },
@@ -2436,11 +2412,7 @@
                 "ofType": {
                   "kind": "NON_NULL",
                   "name": null,
-                  "ofType": {
-                    "kind": "ENUM",
-                    "name": "__DirectiveLocation",
-                    "ofType": null
-                  }
+                  "ofType": { "kind": "ENUM", "name": "__DirectiveLocation", "ofType": null }
                 }
               }
             },
@@ -2606,18 +2578,8 @@
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
-          {
-            "name": "PUBLIC",
-            "description": "",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "PRIVATE",
-            "description": "",
-            "isDeprecated": false,
-            "deprecationReason": null
-          }
+          { "name": "PUBLIC", "description": "", "isDeprecated": false, "deprecationReason": null },
+          { "name": "PRIVATE", "description": "", "isDeprecated": false, "deprecationReason": null }
         ],
         "possibleTypes": null
       },

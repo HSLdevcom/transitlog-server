@@ -99,13 +99,35 @@ export const ROUTE_GEOMETRY = gql`
   }
 `
 
-export const JOURNEY_ROUTE = gql`
-  query JoreJourneyRoute($routeId: String!, $direction: String!, $dayType: String!) {
+export const ROUTE_INDEX = gql`
+  query JoreRouteIndex($routeId: String!, $direction: String!) {
     allRoutes(condition: { routeId: $routeId, direction: $direction }) {
       nodes {
-        ...RouteFieldsFragment
-        ...ExtensiveRouteFieldsFragment
+        routeId
+        direction
+        dateBegin
+        dateEnd
       }
+    }
+  }
+`
+
+export const JOURNEY_ROUTE = gql`
+  query JoreJourneyRoute(
+    $routeId: String!
+    $direction: String!
+    $dateBegin: Date!
+    $dateEnd: Date!
+    $dayType: String!
+  ) {
+    route: routeByRouteIdAndDirectionAndDateBeginAndDateEnd(
+      routeId: $routeId
+      direction: $direction
+      dateBegin: $dateBegin
+      dateEnd: $dateEnd
+    ) {
+      ...RouteFieldsFragment
+      ...ExtensiveRouteFieldsFragment
     }
   }
   ${RouteFieldsFragment}

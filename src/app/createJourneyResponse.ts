@@ -1,4 +1,8 @@
-import { Route as JoreRoute, RouteSegment } from '../types/generated/jore-types'
+import {
+  Route as JoreRoute,
+  RouteSegment,
+  Departure as JoreDeparture,
+} from '../types/generated/jore-types'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, Journey, Route } from '../types/generated/schema-types'
@@ -7,10 +11,9 @@ import { filterByDateChains } from '../utils/filterByDateChains'
 import { get, groupBy, sortBy, orderBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
-import { getValidDepartures } from '../utils/getValidDepartures'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { StopSegmentCombo } from '../types/StopSegmentCombo'
-import { createPlannedDepartureObject } from './objects/createDepartureObject'
+import { createDepartureId, createPlannedDepartureObject } from './objects/createDepartureObject'
 import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
@@ -22,6 +25,8 @@ type JourneyRoute = {
   departures: PlannedDeparture[]
 }
 
+// Fetch the journey events and filter out the invalid ones.
+// TODO: Include null lat/lon or start_time when the app has to deal with those.
 const fetchJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
   const events = await fetcher()
 
@@ -33,26 +38,30 @@ const fetchJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
 }
 
 const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date, time) => {
-  const routes = await fetcher()
-  const validRoute = filterByDateChains<JoreRoute>([routes], date)
+  const journeyRoute = await fetcher()
 
-  if (!validRoute || validRoute.length === 0) {
+  if (!journeyRoute) {
     return false
   }
 
-  const journeyRoute = validRoute[0]
-
   const routeSegments: RouteSegment[] = get(journeyRoute, 'routeSegments.nodes', []) || []
   const validRouteSegments = filterByDateChains<RouteSegment>(
-    groupBy(routeSegments, 'stopId'),
+    groupBy(
+      routeSegments,
+      (segment) => segment.stopId + segment.stopIndex + segment.timingStopType
+    ),
     date
   )
   const sortedRouteSegments = sortBy(validRouteSegments, 'stopIndex')
 
   const stops = sortedRouteSegments.map(
     (routeSegment): StopSegmentCombo => {
-      let stopDepartures = get(routeSegment, 'stop.departures.nodes', [])
-      stopDepartures = getValidDepartures(stopDepartures, date)
+      const groupedDepartures = groupBy(
+        get(routeSegment, 'stop.departures.nodes', []),
+        createDepartureId
+      )
+
+      const validDepartures = filterByDateChains<JoreDeparture>(groupedDepartures, date)
 
       return {
         destination: routeSegment.destinationFi || '',
@@ -62,7 +71,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
         stopIndex: routeSegment.stopIndex,
         isTimingStop: !!routeSegment.timingStopType,
         ...createStopObject(get(routeSegment, 'stop', {})),
-        departures: stopDepartures,
+        departures: validDepartures,
       }
     }
   )
@@ -106,14 +115,7 @@ export async function createJourneyResponse(
   })
 
   const fetchAndProcessJourney = async () => {
-    const journeyEventsCacheKey = `journey_events_${journeyKey}`
-
-    let journeyEvents = await cacheFetch(
-      journeyEventsCacheKey,
-      () => fetchJourneyEvents(getJourneyEvents),
-      60 * 60
-    )
-
+    let journeyEvents = await fetchJourneyEvents(getJourneyEvents)
     const vehicleGroups = Object.values(groupBy(journeyEvents || null, 'unique_vehicle_id'))
 
     journeyEvents = vehicleGroups[instance]
@@ -171,7 +173,7 @@ export async function createJourneyResponse(
     departureTime,
   })}`
 
-  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, 1)
+  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, 5)
 
   if (!journey) {
     return null
