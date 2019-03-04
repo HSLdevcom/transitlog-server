@@ -18,16 +18,13 @@ interface JourneyObject {
 
 type Journey = HFPJourneyObject | JourneyObject
 
-export const createJourneyId = (
-  journeyObject: Journey | null = null,
-  matchInstance = true
-) => {
+export const createJourneyId = (journeyObject: Journey | null = null, matchInstance = true) => {
   const oday = get(journeyObject, 'oday', get(journeyObject, 'departureDate', null))
   const route_id = get(journeyObject, 'route_id', get(journeyObject, 'routeId', null))
   const journey_start_time = get(
     journeyObject,
     'journey_start_time',
-    get(journeyObject, 'getDepartureTime', null)
+    get(journeyObject, 'departureTime', null)
   )
   const direction_id = getDirection(
     get(journeyObject, 'direction_id', get(journeyObject, 'direction', null))

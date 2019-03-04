@@ -20,6 +20,7 @@ import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { createStopObject } from './objects/createStopObject'
 import { createRouteObject } from './objects/createRouteObject'
+import { differenceInSeconds } from 'date-fns'
 
 type JourneyRoute = {
   route: Route
@@ -249,9 +250,35 @@ export async function createJourneyResponse(
     return createJourneyObject(events, route, observedDepartures, journeyEquipment, instance)
   }
 
+  // Decide a suitable TTL for the cached journey based on if the journey is completed or not.
+  const getJourneyTTL = (data: Journey) => {
+    const lastDeparture = data.departures[data.departures.length - 1]
+
+    // If the last departure has observed data, we know the journey is near its end.
+    if (lastDeparture && lastDeparture.observedArrivalTime) {
+      const eventsLength = data.events.length
+      const lastEventTime = get(data, `events[{${eventsLength - 1}].recordedAt`, 1)
+      // Check the time since the last event
+      const eventsEndNowDiff = differenceInSeconds(new Date(), lastEventTime)
+
+      // If the time is more than 5 minutes, we can safely say that the journey has concluded.
+      if (eventsEndNowDiff > 5 * 60) {
+        return 24 * 60 * 60 // Cache for 24 hours.
+      }
+
+      // If the last stop has observed data but the event stream hasn't finished yet, cache for 5 seconds.
+      return 5
+    } else {
+      return 1 // Cache ongoing journeys for 1 second.
+    }
+  }
+
   // Cache the full journey data by instance, so separate vehicle journeys don't get mixed.
   const journeyCacheKey = `journey_${instance}_${journeyKey}`
-  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, 5)
+
+  console.log(journeyCacheKey)
+
+  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, getJourneyTTL)
 
   if (!journey) {
     return null
