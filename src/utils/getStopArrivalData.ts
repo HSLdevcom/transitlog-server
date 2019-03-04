@@ -7,44 +7,43 @@ import format from 'date-fns/format'
 import { DATE_FORMAT, TIME_FORMAT, TZ } from '../constants'
 import { createJourneyEventObject } from '../app/objects/createJourneyEventObject'
 import { ObservedArrival } from '../types/generated/schema-types'
+import { reverse } from 'lodash'
 
 export function getStopArrivalData(
-  stopPositions: Vehicles[] = [],
+  stopEvents: Vehicles[] = [],
   stopDeparture: PlannedDeparture,
   date: string
 ): ObservedArrival | null {
-  let arrivalEvent = stopPositions[0]
+  // The stopEvents are sorted by recorded-at time in descending order,
+  // so the last event from this stop is first. For this function,
+  // it is best to reverse it back to first-last order.
+  const reversedEvents = reverse([...stopEvents])
+  let arrivalEvent = reversedEvents[0]
 
   if (!arrivalEvent) {
     return null
   }
+
+  // TODO: Make this better once we have HFP 2.0
 
   // Find out when the vehicle arrived at the stop
   // by looking at when the doors were opened.
   let doorDidOpen = false
 
-  if (arrivalEvent) {
-    for (let i = 0; i < stopPositions.length; i++) {
-      const position = stopPositions[i]
+  for (let i = 0; i < reversedEvents.length; i++) {
+    const evt = reversedEvents[i]
 
-      if (doorDidOpen && !position.drst) {
-        arrivalEvent = stopPositions[i - 1]
-
-        // If that didn't exist, just pick the current item as a fallback.
-        if (!arrivalEvent) {
-          arrivalEvent = stopPositions[i]
-        }
-        break
-      }
-
-      if (!doorDidOpen && !!position.drst) {
-        doorDidOpen = true
-      }
+    if (!!evt.drst) {
+      doorDidOpen = true
+      const pickIdx = i > 0 ? i - 1 : 0
+      arrivalEvent = reversedEvents[pickIdx]
+      break
     }
   }
 
+  // If the loop didn't find an event, pick the last event for the stop as a fallback.
   if (!arrivalEvent) {
-    return null
+    arrivalEvent = reversedEvents[reversedEvents.length - 1]
   }
 
   const tst = arrivalEvent.tst
