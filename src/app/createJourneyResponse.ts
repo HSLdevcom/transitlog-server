@@ -275,9 +275,6 @@ export async function createJourneyResponse(
 
   // Cache the full journey data by instance, so separate vehicle journeys don't get mixed.
   const journeyCacheKey = `journey_${instance}_${journeyKey}`
-
-  console.log(journeyCacheKey)
-
   const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, getJourneyTTL)
 
   if (!journey) {
