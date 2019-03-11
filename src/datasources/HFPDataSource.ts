@@ -15,12 +15,7 @@ export class HFPDataSource extends GraphQLDataSource {
     return get(response, 'data.vehicles', [])
   }
 
-  async getJourneyEvents(
-    routeId,
-    direction,
-    departureDate,
-    departureTime
-  ): Promise<Vehicles> {
+  async getJourneyEvents(routeId, direction, departureDate, departureTime): Promise<Vehicles> {
     const response = await this.query(JOURNEY_EVENTS_QUERY, {
       variables: {
         routeId,
@@ -30,5 +25,9 @@ export class HFPDataSource extends GraphQLDataSource {
       },
     })
     return get(response, 'data.vehicles', [])
+  }
+
+  async getDepartureEvents(departure) {
+    return []
   }
 }

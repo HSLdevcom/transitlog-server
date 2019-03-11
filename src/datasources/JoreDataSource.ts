@@ -14,6 +14,7 @@ import { Direction } from '../types/generated/schema-types'
 import { EQUIPMENT, EQUIPMENT_BY_ID } from '../queries/equipmentQueries'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
 import { filterByDateChains } from '../utils/filterByDateChains'
+import { DEPARTURES_FOR_STOP_QUERY } from '../queries/departureQueries'
 
 export class JoreDataSource extends GraphQLDataSource {
   baseURL = JORE_URL
@@ -108,5 +109,21 @@ export class JoreDataSource extends GraphQLDataSource {
       route.dateEnd,
       date
     )
+  }
+
+  async getDepartures(stopId, date) {
+    if (!stopId || !date) {
+      return null
+    }
+
+    const dayType = getDayTypeFromDate(date)
+    const response = await this.query(DEPARTURES_FOR_STOP_QUERY, {
+      variables: {
+        dayType,
+        stopId,
+      },
+    })
+
+    return get(response, 'data.allDepartures.nodes', null)
   }
 }

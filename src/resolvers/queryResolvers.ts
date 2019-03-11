@@ -5,6 +5,7 @@ import { createStopsResponse } from '../app/createStopsResponse'
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
+import { createDeparturesResponse } from '../app/createDepartureResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -32,7 +33,12 @@ const lines = async (root, { filter, date }, { dataSources }) => {
   return createLinesResponse(getLines, date, filter)
 }
 
-const departures = (root, args, { app }) => []
+const departures = (root, { filter, stopId, date }, { dataSources }) => {
+  const fetchDepartures = () => dataSources.JoreAPI.getDepartures(stopId, date)
+  const fetchDepartureEvents = (departure) => dataSources.HFPAPI.getDepartureEvents(departure)
+
+  return createDeparturesResponse(fetchDepartures, fetchDepartureEvents, stopId, date, filter)
+}
 
 const journey = (
   root,

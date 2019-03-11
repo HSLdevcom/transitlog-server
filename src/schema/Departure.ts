@@ -74,5 +74,7 @@ export const Departure = gql`
   input DepartureFilterInput {
     routeId: String
     direction: Direction
+    minHour: Int
+    maxHour: Int
   }
 `
