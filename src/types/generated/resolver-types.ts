@@ -32,6 +32,10 @@ export interface DepartureFilterInput {
   routeId?: Maybe<string>
 
   direction?: Maybe<Direction>
+
+  minHour?: Maybe<number>
+
+  maxHour?: Maybe<number>
 }
 
 export enum CacheControlScope {
@@ -178,7 +182,7 @@ export namespace QueryResolvers {
 
     date?: Maybe<Date>
 
-    includeLinesWithoutRoutes?: Maybe<boolean>
+    includeLinesWithoutRoutes?: boolean
   }
 
   export type DeparturesResolver<
@@ -516,7 +520,7 @@ export namespace DepartureResolvers {
 
     index?: IndexResolver<Maybe<number>, TypeParent, TContext>
 
-    stop?: StopResolver<DepartureStop, TypeParent, TContext>
+    stop?: StopResolver<Maybe<DepartureStop>, TypeParent, TContext>
 
     plannedArrivalTime?: PlannedArrivalTimeResolver<Maybe<PlannedArrival>, TypeParent, TContext>
 
@@ -615,7 +619,7 @@ export namespace DepartureResolvers {
     Parent,
     TContext
   >
-  export type StopResolver<R = DepartureStop, Parent = Departure, TContext = {}> = Resolver<
+  export type StopResolver<R = Maybe<DepartureStop>, Parent = Departure, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -1146,7 +1150,7 @@ export interface UploadScalarConfig extends GraphQLScalarTypeConfig<Upload, any>
   name: 'Upload'
 }
 
-export interface IResolvers<TContext = {}> {
+export type IResolvers<TContext = {}> = {
   Query?: QueryResolvers.Resolvers<TContext>
   Equipment?: EquipmentResolvers.Resolvers<TContext>
   Stop?: StopResolvers.Resolvers<TContext>
@@ -1170,11 +1174,11 @@ export interface IResolvers<TContext = {}> {
   DateTime?: GraphQLScalarType
   VehicleId?: GraphQLScalarType
   Upload?: GraphQLScalarType
-}
+} & { [typeName: string]: never }
 
-export interface IDirectiveResolvers<Result> {
+export type IDirectiveResolvers<Result> = {
   cacheControl?: CacheControlDirectiveResolver<Result>
   skip?: SkipDirectiveResolver<Result>
   include?: IncludeDirectiveResolver<Result>
   deprecated?: DeprecatedDirectiveResolver<Result>
-}
+} & { [directiveName: string]: never }

@@ -1912,6 +1912,10 @@ export interface DeparturesByStopIdStopArgs {
 }
 export interface DeparturesForDateStopArgs {
   date?: Maybe<Date>
+
+  routeId?: Maybe<string>
+
+  direction?: Maybe<string>
   /** Only read the first `n` values of the set. */
   first?: Maybe<number>
   /** Only read the last `n` values of the set. */

@@ -3,6 +3,7 @@ import {
   Maybe,
   PlannedDeparture as PlannedDepartureTime,
   PlannedArrival,
+  DepartureStop,
 } from './generated/schema-types'
 import { StopSegmentCombo } from './StopSegmentCombo'
 
@@ -23,7 +24,7 @@ export interface PlannedDeparture {
   isNextDay?: Maybe<boolean>
   isTimingStop?: Maybe<boolean>
   index?: Maybe<number>
-  stop: StopSegmentCombo
+  stop: StopSegmentCombo | DepartureStop
   plannedArrivalTime: PlannedArrival
   plannedDepartureTime: PlannedDepartureTime
 }

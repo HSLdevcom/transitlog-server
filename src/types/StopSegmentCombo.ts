@@ -8,5 +8,5 @@ export interface StopSegmentCombo extends Stop {
   duration: number
   stopIndex: number
   isTimingStop: boolean
-  departures: JoreDeparture[]
+  departures?: JoreDeparture[]
 }

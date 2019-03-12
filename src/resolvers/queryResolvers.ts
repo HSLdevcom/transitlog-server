@@ -34,10 +34,11 @@ const lines = async (root, { filter, date }, { dataSources }) => {
 }
 
 const departures = (root, { filter, stopId, date }, { dataSources }) => {
-  const fetchDepartures = () => dataSources.JoreAPI.getDepartures(stopId, date)
-  const fetchDepartureEvents = (departure) => dataSources.HFPAPI.getDepartureEvents(departure)
+  const getDepartures = () => dataSources.JoreAPI.getDepartures(stopId, date)
+  const getStop = () => dataSources.JoreAPI.getDepartureStop(stopId)
+  const getDepartureEvents = (departure) => dataSources.HFPAPI.getDepartureEvents(departure)
 
-  return createDeparturesResponse(fetchDepartures, fetchDepartureEvents, stopId, date, filter)
+  return createDeparturesResponse(getDepartures, getStop, getDepartureEvents, stopId, date, filter)
 }
 
 const journey = (
@@ -45,18 +46,18 @@ const journey = (
   { routeId, direction, departureTime, departureDate, instance },
   { dataSources }
 ) => {
-  const fetchRouteData = () => dataSources.JoreAPI.getFullRoute(routeId, direction, departureDate)
+  const getRouteData = () => dataSources.JoreAPI.getFullRoute(routeId, direction, departureDate)
 
-  const fetchJourneyEvents = () =>
+  const getJourneyEvents = () =>
     dataSources.HFPAPI.getJourneyEvents(routeId, direction, departureDate, departureTime)
 
-  const fetchJourneyEquipment = (vehicleId, operatorId) =>
+  const getJourneyEquipment = (vehicleId, operatorId) =>
     dataSources.JoreAPI.getEquipmentById(vehicleId, operatorId)
 
   return createJourneyResponse(
-    fetchRouteData,
-    fetchJourneyEvents,
-    fetchJourneyEquipment,
+    getRouteData,
+    getJourneyEvents,
+    getJourneyEquipment,
     routeId,
     direction,
     departureDate,

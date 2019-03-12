@@ -32,6 +32,10 @@ export interface DepartureFilterInput {
   routeId?: Maybe<string>
 
   direction?: Maybe<Direction>
+
+  minHour?: Maybe<number>
+
+  maxHour?: Maybe<number>
 }
 
 export enum CacheControlScope {
@@ -214,7 +218,7 @@ export interface Departure {
 
   index?: Maybe<number>
 
-  stop: DepartureStop
+  stop?: Maybe<DepartureStop>
 
   plannedArrivalTime?: Maybe<PlannedArrival>
 
@@ -382,7 +386,7 @@ export interface LinesQueryArgs {
 
   date?: Maybe<Date>
 
-  includeLinesWithoutRoutes?: Maybe<boolean>
+  includeLinesWithoutRoutes?: boolean
 }
 export interface DeparturesQueryArgs {
   filter?: Maybe<DepartureFilterInput>

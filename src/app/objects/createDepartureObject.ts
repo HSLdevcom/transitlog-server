@@ -1,5 +1,5 @@
 import { Departure as JoreDeparture } from '../../types/generated/jore-types'
-import { PlannedArrival, PlannedDeparture } from '../../types/generated/schema-types'
+import { DepartureStop, PlannedArrival, PlannedDeparture } from '../../types/generated/schema-types'
 import { StopSegmentCombo } from '../../types/StopSegmentCombo'
 import { getDateFromDateTime, getDepartureTime } from '../../utils/time'
 import moment from 'moment-timezone'
@@ -34,7 +34,7 @@ export function createPlannedDepartureTimeObject(departure: JoreDeparture, date)
 
 export function createPlannedDepartureObject(
   departure: JoreDeparture,
-  stop: StopSegmentCombo,
+  stop: StopSegmentCombo | DepartureStop,
   departureDate: string
 ): PlannedDepartureObject {
   return {

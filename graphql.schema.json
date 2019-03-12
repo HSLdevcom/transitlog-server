@@ -974,6 +974,18 @@
             "description": "",
             "type": { "kind": "SCALAR", "name": "Direction", "ofType": null },
             "defaultValue": null
+          },
+          {
+            "name": "minHour",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "Int", "ofType": null },
+            "defaultValue": null
+          },
+          {
+            "name": "maxHour",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "Int", "ofType": null },
+            "defaultValue": null
           }
         ],
         "interfaces": null,
@@ -1137,11 +1149,7 @@
             "name": "stop",
             "description": "",
             "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": { "kind": "OBJECT", "name": "DepartureStop", "ofType": null }
-            },
+            "type": { "kind": "OBJECT", "name": "DepartureStop", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },

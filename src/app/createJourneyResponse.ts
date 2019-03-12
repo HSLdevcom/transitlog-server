@@ -75,10 +75,10 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   const sortedRouteSegments = sortBy(validRouteSegments, 'stopIndex')
 
   // The sorted array of segments can then be further reduced to stops. This returns an array
-  // of objects which have data from both the stop and the route segment. Crucially, the'
+  // of objects which have data from both the stop and the route segment. Crucially, the
   // segment carries the information about which stop is a timing stop. The segment can
-  // be seen as the "glue" between the route and the stops, since stops are otherwise oblivious
-  // to route-specific things. We want route-aware stops which segments provide.
+  // be seen as the "glue" between the journey and the stops, since stops are otherwise
+  // oblivious to route-specific things. We want route-aware stops which segments provide.
   const stops = sortedRouteSegments.map(
     (routeSegment): StopSegmentCombo => {
       // Group by departure and filter out any invalid departures.
@@ -124,7 +124,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // With the departureId from the first departure we can easily reduce the departures on each
   // stop down to the one departure that belongs to this specific journey.
   const departures = stops.map((stop) => {
-    const departure = stop.departures.filter(
+    const departure = get<StopSegmentCombo, any, []>(stop, 'departures', []).filter(
       (dep) => dep.departureId === originDeparture.departureId
     )[0] // The array should be only one element long, so get the one element out of it.
 

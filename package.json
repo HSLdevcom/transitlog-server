@@ -6,7 +6,7 @@
   "scripts": {
     "docker:build": "docker build --cpuset-cpus 2 -t hsldevcom/transitlog-server .",
     "docker:run": "docker run --name transitlog-server -p 1234:1234 hsldevcom/transitlog-server",
-    "start": "concurrently \"yarn:start:dev\" \"sleep 2 && yarn run codegen --watch\"",
+    "start": "concurrently \"yarn:start:dev\"",
     "start:dev": "NODE_ICU_DATA=\"$(pwd)/node_modules/full-icu\" nodemon --signal SIGTERM --watch 'src/**/*' -r ts-node/register -r dotenv/config src/server.ts",
     "start:production": "NODE_ICU_DATA=\"$(pwd)/node_modules/full-icu\" forever start -c \"node -r ts-node/register -r dotenv/config\" src/server.ts -l server.log -o server-out.log -e server-err.log && forever -f logs 0",
     "codegen": "gql-gen --config codegen.yml",

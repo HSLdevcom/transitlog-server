@@ -1,14 +1,13 @@
 import { queryResolvers } from './queryResolvers'
-import { StringIndexed } from '../types/StringIndexed'
-import { IResolvers } from '../types/generated/resolver-types'
 import { DateScalar } from './scalars/Date'
 import { TimeScalar } from './scalars/Time'
 import { DateTimeScalar } from './scalars/DateTime'
 import { VehicleIdScalar } from './scalars/VehicleId'
 import { BBoxScalar } from './scalars/BBox'
 import { DirectionScalar } from './scalars/Direction'
+import { StringIndexed } from '../types/StringIndexed'
 
-export const resolvers: StringIndexed<IResolvers> = {
+export const resolvers: StringIndexed<any> = {
   Query: queryResolvers,
   Date: DateScalar,
   Time: TimeScalar,

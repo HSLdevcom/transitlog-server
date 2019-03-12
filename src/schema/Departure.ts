@@ -64,7 +64,7 @@ export const Departure = gql`
     isNextDay: Boolean
     isTimingStop: Boolean
     index: Int
-    stop: DepartureStop!
+    stop: DepartureStop
     plannedArrivalTime: PlannedArrival
     observedArrivalTime: ObservedArrival
     plannedDepartureTime: PlannedDeparture
