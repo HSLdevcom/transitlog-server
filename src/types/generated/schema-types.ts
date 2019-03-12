@@ -74,9 +74,9 @@ export type Upload = any
 
 /** Any object that describes something with a position implements this interface. */
 export interface Position {
-  lat: number
+  lat?: Maybe<number>
 
-  lng: number
+  lng?: Maybe<number>
 }
 
 // ====================================================
@@ -296,9 +296,9 @@ export interface JourneyEvent extends Position {
 
   nextStopId?: Maybe<string>
 
-  lat: number
+  lat?: Maybe<number>
 
-  lng: number
+  lng?: Maybe<number>
 
   doorStatus?: Maybe<boolean>
 

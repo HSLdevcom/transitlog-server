@@ -848,9 +848,9 @@ export namespace JourneyEventResolvers {
 
     nextStopId?: NextStopIdResolver<Maybe<string>, TypeParent, TContext>
 
-    lat?: LatResolver<number, TypeParent, TContext>
+    lat?: LatResolver<Maybe<number>, TypeParent, TContext>
 
-    lng?: LngResolver<number, TypeParent, TContext>
+    lng?: LngResolver<Maybe<number>, TypeParent, TContext>
 
     doorStatus?: DoorStatusResolver<Maybe<boolean>, TypeParent, TContext>
 
@@ -886,12 +886,12 @@ export namespace JourneyEventResolvers {
     Parent = JourneyEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type LatResolver<R = number, Parent = JourneyEvent, TContext = {}> = Resolver<
+  export type LatResolver<R = Maybe<number>, Parent = JourneyEvent, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
   >
-  export type LngResolver<R = number, Parent = JourneyEvent, TContext = {}> = Resolver<
+  export type LngResolver<R = Maybe<number>, Parent = JourneyEvent, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

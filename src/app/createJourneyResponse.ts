@@ -42,7 +42,7 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
     return false
   }
 
-  return events.filter((pos) => !!pos.lat && !!pos.long && !!pos.journey_start_time)
+  return events.filter((pos) => !!pos.journey_start_time)
 }
 
 /**

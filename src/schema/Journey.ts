@@ -11,8 +11,8 @@ export const Journey = gql`
     recordedAtUnix: Int!
     recordedTime: Time!
     nextStopId: String
-    lat: Float!
-    lng: Float!
+    lat: Float
+    lng: Float
     doorStatus: Boolean
     velocity: Float
     delay: Int

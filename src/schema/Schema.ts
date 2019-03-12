@@ -12,8 +12,8 @@ export const Schema = gql`
   Any object that describes something with a position implements this interface.
   """
   interface Position {
-    lat: Float!
-    lng: Float!
+    lat: Float
+    lng: Float
   }
 
   schema {
@@ -25,11 +25,7 @@ export const Schema = gql`
     stops(filter: StopFilterInput): [Stop]!
     routes(filter: RouteFilterInput, date: Date): [Route]!
     routeGeometry(routeId: String!, direction: Direction!, date: Date!): RouteGeometry
-    lines(
-      filter: LineFilterInput
-      date: Date
-      includeLinesWithoutRoutes: Boolean = false
-    ): [Line]!
+    lines(filter: LineFilterInput, date: Date, includeLinesWithoutRoutes: Boolean = false): [Line]!
     departures(filter: DepartureFilterInput, stopId: String, date: Date!): [Departure]!
     journey(
       routeId: String!
