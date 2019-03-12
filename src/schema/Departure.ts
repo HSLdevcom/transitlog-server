@@ -32,6 +32,8 @@ export const Departure = gql`
 
   type DepartureStop {
     id: ID!
+    routeId: String
+    direction: Direction
     destination: String
     distanceFromPrevious: Int
     distanceFromStart: Int

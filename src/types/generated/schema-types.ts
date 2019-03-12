@@ -232,6 +232,10 @@ export interface Departure {
 export interface DepartureStop {
   id: string
 
+  routeId?: Maybe<string>
+
+  direction?: Maybe<Direction>
+
   destination?: Maybe<string>
 
   distanceFromPrevious?: Maybe<number>

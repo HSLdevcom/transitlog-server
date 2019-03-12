@@ -650,6 +650,10 @@ export namespace DepartureStopResolvers {
   export interface Resolvers<TContext = {}, TypeParent = DepartureStop> {
     id?: IdResolver<string, TypeParent, TContext>
 
+    routeId?: RouteIdResolver<Maybe<string>, TypeParent, TContext>
+
+    direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
+
     destination?: DestinationResolver<Maybe<string>, TypeParent, TContext>
 
     distanceFromPrevious?: DistanceFromPreviousResolver<Maybe<number>, TypeParent, TContext>
@@ -682,6 +686,16 @@ export namespace DepartureStopResolvers {
     Parent,
     TContext
   >
+  export type RouteIdResolver<R = Maybe<string>, Parent = DepartureStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DirectionResolver<
+    R = Maybe<Direction>,
+    Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type DestinationResolver<
     R = Maybe<string>,
     Parent = DepartureStop,

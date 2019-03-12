@@ -24,6 +24,7 @@ export class HFPDataSource extends GraphQLDataSource {
         departureTime,
       },
     })
+
     return get(response, 'data.vehicles', [])
   }
 

@@ -5,6 +5,7 @@ import { getDateFromDateTime, getDepartureTime } from '../../utils/time'
 import moment from 'moment-timezone'
 import { PlannedDeparture as PlannedDepartureObject } from '../../types/PlannedDeparture'
 import { TZ } from '../../constants'
+import { get } from 'lodash'
 
 export function createDepartureId(departure) {
   return `${departure.routeId}_${departure.direction}_${departure.hours}_${departure.minutes}_${
@@ -34,7 +35,7 @@ export function createPlannedDepartureTimeObject(departure: JoreDeparture, date)
 
 export function createPlannedDepartureObject(
   departure: JoreDeparture,
-  stop: StopSegmentCombo | DepartureStop,
+  stop: StopSegmentCombo | DepartureStop | null,
   departureDate: string
 ): PlannedDepartureObject {
   return {
@@ -52,8 +53,8 @@ export function createPlannedDepartureObject(
     departureId: departure.departureId,
     extraDeparture: departure.extraDeparture,
     isNextDay: departure.isNextDay,
-    isTimingStop: stop.isTimingStop,
-    index: stop.stopIndex,
+    isTimingStop: get(stop, 'isTimingStop', false),
+    index: get(stop, 'stopIndex', 0),
     stop,
     plannedArrivalTime: createPlannedArrivalTimeObject(departure, departureDate),
     plannedDepartureTime: createPlannedDepartureTimeObject(departure, departureDate),

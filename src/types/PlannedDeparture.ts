@@ -24,7 +24,7 @@ export interface PlannedDeparture {
   isNextDay?: Maybe<boolean>
   isTimingStop?: Maybe<boolean>
   index?: Maybe<number>
-  stop: StopSegmentCombo | DepartureStop
+  stop: StopSegmentCombo | DepartureStop | null
   plannedArrivalTime: PlannedArrival
   plannedDepartureTime: PlannedDepartureTime
 }

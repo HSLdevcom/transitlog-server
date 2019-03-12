@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { groupBy, get } from 'lodash'
+import { get, groupBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import {
   Departure as JoreDeparture,
@@ -11,6 +11,7 @@ import { Vehicles } from '../types/generated/hfp-types'
 import { cacheFetch } from './cache'
 import { createDepartureId, createPlannedDepartureObject } from './objects/createDepartureObject'
 import { createStopObject } from './objects/createStopObject'
+import { getDirection } from '../utils/getDirection'
 
 export async function createDeparturesResponse(
   getDepartures: () => Promise<JoreDeparture | null>,
@@ -29,12 +30,12 @@ export async function createDeparturesResponse(
 
     const stopObject = createStopObject(stop)
 
-    // TODO: Group route segments
-
-    const validSegments = filterByDateChains<JoreRouteSegment>(
+    const groupedRouteSegments = groupBy(
       get(stop, 'routeSegments.nodes', []),
-      date
+      (segment) => segment.routeId + segment.direction + segment.stopIndex
     )
+
+    const validSegments = filterByDateChains<JoreRouteSegment>(groupedRouteSegments, date)
 
     return validSegments.map((segment) => ({
       destination: segment.destinationFi || '',
@@ -43,14 +44,19 @@ export async function createDeparturesResponse(
       duration: segment.duration,
       stopIndex: segment.stopIndex,
       isTimingStop: !!segment.timingStopType,
+      routeId: segment.routeId,
+      direction: getDirection(segment.direction),
       ...stopObject,
     }))
   }
 
-  const fetchDepartures: CachedFetcher<Departure[]> = async (stops) => {
-    const departures = await getDepartures()
+  const fetchDepartures: CachedFetcher<Departure[]> = async () => {
+    const stopsPromise = fetchStops()
+    const departuresPromise = getDepartures()
 
-    if (!departures) {
+    const [stops, departures] = await Promise.all([stopsPromise, departuresPromise])
+
+    if (!stops || !departures) {
       return false
     }
 
@@ -58,23 +64,19 @@ export async function createDeparturesResponse(
     const validDepartures = filterByDateChains<JoreDeparture>(groupedDepartures, date)
 
     return validDepartures.map((departure) => {
-      const stop = stops.find(
-        (stop) => stop.routeId === departure.routeId && stop.direction === departure.direction
-      )
+      const stop = stops.find((stopSegment) => {
+        return (
+          stopSegment.routeId === departure.routeId &&
+          stopSegment.direction === getDirection(departure.direction)
+        )
+      })
 
-      return createPlannedDepartureObject(departure, stop, date)
+      return createPlannedDepartureObject(departure, stop || null, date)
     })
   }
 
-  const stopsCacheKey = `stops_${stopId}_${date}`
-  const stops = await cacheFetch<DepartureStop[]>(stopsCacheKey, fetchStops, 1)
-
   const departuresCacheKey = `departures_${stopId}_${date}`
-  const validDepartures = await cacheFetch<Departure[]>(
-    departuresCacheKey,
-    () => fetchDepartures(stops),
-    1
-  )
+  const validDepartures = await cacheFetch<Departure[]>(departuresCacheKey, fetchDepartures, 5)
 
   if (!validDepartures) {
     return []

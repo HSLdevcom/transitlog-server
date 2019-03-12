@@ -1,15 +1,15 @@
 import {
-  Route as JoreRoute,
-  RouteSegment,
   Departure as JoreDeparture,
   Equipment as JoreEquipment,
+  Route as JoreRoute,
+  RouteSegment,
 } from '../types/generated/jore-types'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
-import { Departure, Direction, Equipment, Journey, Route } from '../types/generated/schema-types'
+import { Departure, Direction, Journey, Route } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, sortBy, orderBy } from 'lodash'
+import { get, groupBy, orderBy, sortBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -182,12 +182,6 @@ export async function createJourneyResponse(
     const vehicleGroups = Object.values(groupBy(journeyEvents || null, 'unique_vehicle_id'))
     journeyEvents = vehicleGroups[instance]
 
-    if (!journeyEvents || journeyEvents.length === 0) {
-      return false
-    }
-
-    const events: Vehicles[] = journeyEvents
-
     // Fetch the planned departures and the route.
     const routeCacheKey = `journey_route_departures_${journeyKey}`
     const routeAndDepartures = await cacheFetch<JourneyRoute>(
@@ -195,6 +189,13 @@ export async function createJourneyResponse(
       () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
       24 * 60 * 60 // Cached for 24 hours, could probably be increased since this data never changes.
     )
+
+    // Note that we fetch and cache the route and the departures before bailing.
+    if (!journeyEvents || journeyEvents.length === 0) {
+      return false
+    }
+
+    const events: Vehicles[] = journeyEvents
 
     // Return only the events if no departures were found.
     if (!routeAndDepartures || routeAndDepartures.departures.length === 0) {
