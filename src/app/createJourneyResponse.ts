@@ -21,13 +21,12 @@ import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { createStopObject } from './objects/createStopObject'
 import { createRouteObject } from './objects/createRouteObject'
 import { differenceInSeconds } from 'date-fns'
+import { getStopEvents } from '../utils/getStopEvents'
 
 type JourneyRoute = {
   route: Route
   departures: PlannedDeparture[]
 }
-
-// TODO: Include null lat/lon or start_time when the app has to deal with those.
 
 /**
  * Fetch the journey events and filter out the invalid ones.
@@ -170,6 +169,7 @@ export async function createJourneyResponse(
     direction,
     departureDate,
     departureTime,
+    instance,
   })
 
   // Fetch events, route and departures, and match events to departures.
@@ -187,7 +187,7 @@ export async function createJourneyResponse(
     const routeAndDepartures = await cacheFetch<JourneyRoute>(
       routeCacheKey,
       () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
-      5 // 24 * 60 * 60 // Cached for 24 hours, could probably be increased since this data never changes.
+      24 * 60 * 60 // Cached for 24 hours, could probably be increased since this data never changes.
     )
 
     // Note that we fetch and cache the route and the departures before bailing.
@@ -199,7 +199,7 @@ export async function createJourneyResponse(
 
     // Return only the events if no departures were found.
     if (!routeAndDepartures || routeAndDepartures.departures.length === 0) {
-      return createJourneyObject(events, null, [], null, instance)
+      return createJourneyObject(events, null, [], null, instance || 0)
     }
 
     const { route, departures } = routeAndDepartures
@@ -211,11 +211,7 @@ export async function createJourneyResponse(
         // To get the events for a stop, first get all events with the next_stop_id matching
         // the current stop ID and sort by the timestamp in descending order. The departure
         // event will then be the first element in the array.
-        const stopEvents = orderBy(
-          events.filter((pos) => pos.next_stop_id === departure.stopId),
-          'tsi',
-          'desc'
-        )
+        const stopEvents = getStopEvents(events, departure.stopId)
 
         // Although they have a similar signature, the arrival and departure filters do not
         // work the same way. The arrival looks at door openings and the departure uses the
@@ -248,7 +244,7 @@ export async function createJourneyResponse(
     )
 
     // Everything is baked into a Journey domain object.
-    return createJourneyObject(events, route, observedDepartures, journeyEquipment, instance)
+    return createJourneyObject(events, route, observedDepartures, journeyEquipment, instance || 0)
   }
 
   // Decide a suitable TTL for the cached journey based on if the journey is completed or not.
@@ -276,7 +272,7 @@ export async function createJourneyResponse(
 
   // Cache the full journey data by instance, so separate vehicle journeys don't get mixed.
   const journeyCacheKey = `journey_${instance}_${journeyKey}`
-  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, 5)
+  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, getJourneyTTL)
 
   if (!journey) {
     return null
