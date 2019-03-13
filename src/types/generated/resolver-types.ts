@@ -770,6 +770,8 @@ export namespace PlannedArrivalResolvers {
     arrivalTime?: ArrivalTimeResolver<Time, TypeParent, TContext>
 
     arrivalDateTime?: ArrivalDateTimeResolver<DateTime, TypeParent, TContext>
+
+    isNextDay?: IsNextDayResolver<Maybe<boolean>, TypeParent, TContext>
   }
 
   export type ArrivalDateResolver<R = Date, Parent = PlannedArrival, TContext = {}> = Resolver<
@@ -784,6 +786,11 @@ export namespace PlannedArrivalResolvers {
   >
   export type ArrivalDateTimeResolver<
     R = DateTime,
+    Parent = PlannedArrival,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsNextDayResolver<
+    R = Maybe<boolean>,
     Parent = PlannedArrival,
     TContext = {}
   > = Resolver<R, Parent, TContext>
@@ -925,6 +932,8 @@ export namespace PlannedDepartureResolvers {
     departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
 
     departureDateTime?: DepartureDateTimeResolver<DateTime, TypeParent, TContext>
+
+    isNextDay?: IsNextDayResolver<Maybe<boolean>, TypeParent, TContext>
   }
 
   export type DepartureDateResolver<R = Date, Parent = PlannedDeparture, TContext = {}> = Resolver<
@@ -939,6 +948,11 @@ export namespace PlannedDepartureResolvers {
   >
   export type DepartureDateTimeResolver<
     R = DateTime,
+    Parent = PlannedDeparture,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsNextDayResolver<
+    R = Maybe<boolean>,
     Parent = PlannedDeparture,
     TContext = {}
   > = Resolver<R, Parent, TContext>

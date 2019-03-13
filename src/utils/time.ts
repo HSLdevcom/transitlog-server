@@ -59,23 +59,17 @@ export function getTimeString(hours = 0, minutes = 0, seconds = 0): string {
 export function getDateFromDateTime(date: string, time: string = '00:00:00'): Date {
   // Get the seconds elapsed during the date. The time can be a 24h+ time.
   const seconds = timeToSeconds(time)
-  // Create a moment from the date and add the seconds.
+  // Create a Date from the date and add the seconds.
   return addSeconds(startOfDay(date), seconds)
 }
 
 // Get the (potentially) 24h+ time of the journey.
-// For best results, pass in the observed start time as useDate, but if that's
-// not available, use the time of the first event from this journey that you have.
-export function getJourneyStartTime(
-  event: Vehicles | Journey,
-  useDate?: Date | null,
-  isNextDay: boolean = false
-): string {
+export function getJourneyStartTime(event: Vehicles | Journey, isNextDay: boolean = false): string {
   const operationDay = get(event, 'oday', get(event, 'departureDate', false))
   const journeyStartTime = get(event, 'journey_start_time', get(event, 'departureTime', false))
   const recordedAtTimestamp = get(event, 'tst', get(event, 'events[0].recordedAt', 0))
 
-  const eventDate = useDate ? useDate : new Date(recordedAtTimestamp)
+  const eventDate = new Date(recordedAtTimestamp)
   const odayDate = getDateFromDateTime(operationDay)
   const diff = diffHours(eventDate, odayDate)
 
@@ -95,7 +89,7 @@ export function getJourneyStartTime(
     planned start times for journeys that teeter in the edge of midnight.
    */
 
-  if (intHours <= 12 && (isNextDay || Math.floor(diff) >= 23)) {
+  if (intHours <= 19 && (isNextDay || Math.floor(diff) >= 23)) {
     intHours = intHours + Math.max(1, Math.floor(diff / 24)) * 24
   }
 

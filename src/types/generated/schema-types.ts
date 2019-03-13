@@ -269,6 +269,8 @@ export interface PlannedArrival {
   arrivalTime: Time
 
   arrivalDateTime: DateTime
+
+  isNextDay?: Maybe<boolean>
 }
 
 export interface ObservedArrival {
@@ -315,6 +317,8 @@ export interface PlannedDeparture {
   departureTime: Time
 
   departureDateTime: DateTime
+
+  isNextDay?: Maybe<boolean>
 }
 
 export interface ObservedDeparture {

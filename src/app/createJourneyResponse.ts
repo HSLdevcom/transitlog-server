@@ -105,7 +105,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   )
 
   // Departures have only one way of linking to other departures from the same journey and
-  // that is the departureId. To get the departureIf for this journey, we must start at
+  // that is the departureId. To get the departureId for this journey, we must start at
   // the first departure. Since we ordered the segments by stopIndex, the first stop is first.
   const firstStopDepartures = get(stops, '[0].departures', [])
 
@@ -187,7 +187,7 @@ export async function createJourneyResponse(
     const routeAndDepartures = await cacheFetch<JourneyRoute>(
       routeCacheKey,
       () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
-      24 * 60 * 60 // Cached for 24 hours, could probably be increased since this data never changes.
+      5 // 24 * 60 * 60 // Cached for 24 hours, could probably be increased since this data never changes.
     )
 
     // Note that we fetch and cache the route and the departures before bailing.
@@ -276,7 +276,7 @@ export async function createJourneyResponse(
 
   // Cache the full journey data by instance, so separate vehicle journeys don't get mixed.
   const journeyCacheKey = `journey_${instance}_${journeyKey}`
-  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, getJourneyTTL)
+  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, 5)
 
   if (!journey) {
     return null

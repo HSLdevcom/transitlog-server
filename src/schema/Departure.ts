@@ -5,6 +5,7 @@ export const Departure = gql`
     departureDate: Date!
     departureTime: Time!
     departureDateTime: DateTime!
+    isNextDay: Boolean
   }
 
   type ObservedDeparture {
@@ -19,6 +20,7 @@ export const Departure = gql`
     arrivalDate: Date!
     arrivalTime: Time!
     arrivalDateTime: DateTime!
+    isNextDay: Boolean
   }
 
   type ObservedArrival {

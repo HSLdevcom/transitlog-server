@@ -20,6 +20,7 @@ export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): 
     arrivalDate: date,
     arrivalTime,
     arrivalDateTime: moment.tz(getDateFromDateTime(date, arrivalTime), TZ).toISOString(true),
+    isNextDay: departure.isNextDay,
   }
 }
 
@@ -30,6 +31,7 @@ export function createPlannedDepartureTimeObject(departure: JoreDeparture, date)
     departureDate: date,
     departureTime,
     departureDateTime: moment.tz(getDateFromDateTime(date, departureTime), TZ).toISOString(true),
+    isNextDay: departure.isNextDay,
   }
 }
 

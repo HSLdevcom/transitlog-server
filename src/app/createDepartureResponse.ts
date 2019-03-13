@@ -112,6 +112,7 @@ export async function createDeparturesResponse(
       return departure
     }
 
+    const departureIsNextDay = get(departure, 'originDepartureTime.isNextDay', false)
     const routeId = get(departure, 'routeId', '')
     const direction = parseInt(get(departure, 'direction', '0'), 10)
 
@@ -119,7 +120,7 @@ export async function createDeparturesResponse(
       (event) =>
         event.route_id === routeId &&
         event.direction_id === direction &&
-        getJourneyStartTime(event) === originDepartureTime
+        getJourneyStartTime(event, departureIsNextDay) === originDepartureTime
     )
 
     const stopDeparture = departure

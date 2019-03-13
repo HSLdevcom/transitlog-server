@@ -6,6 +6,7 @@ import { createJourneyEventObject } from './createJourneyEventObject'
 import { get } from 'lodash'
 import { createEquipmentObject } from './createEquipmentObject'
 import { Equipment as JoreEquipment } from '../../types/generated/jore-types'
+import { getJourneyStartTime } from '../../utils/time'
 
 export function createJourneyObject(
   journeyEvents: Vehicles[],
@@ -15,6 +16,7 @@ export function createJourneyObject(
   instance: number = 0
 ): Journey {
   const journey = journeyEvents[0]
+  const firstDeparture = journeyDepartures[0]
 
   return {
     id: createJourneyId(journey),
@@ -22,7 +24,7 @@ export function createJourneyObject(
     routeId: get<Vehicles, any, string>(journey, 'route_id', get(journeyRoute, 'routeId', '')),
     direction: journey.direction_id,
     departureDate: journey.oday,
-    departureTime: journey.journey_start_time,
+    departureTime: getJourneyStartTime(journey, get(firstDeparture, 'isNextDay') || undefined),
     uniqueVehicleId: createUniqueVehicleId(journey.owner_operator_id, journey.vehicle_number),
     operatorId: journey.owner_operator_id,
     vehicleId: journey.vehicle_number + '',

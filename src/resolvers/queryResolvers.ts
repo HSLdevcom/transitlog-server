@@ -6,6 +6,7 @@ import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
 import { createDeparturesResponse } from '../app/createDepartureResponse'
+import { getNormalTime } from '../utils/time'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -49,7 +50,12 @@ const journey = (
   const getRouteData = () => dataSources.JoreAPI.getFullRoute(routeId, direction, departureDate)
 
   const getJourneyEvents = () =>
-    dataSources.HFPAPI.getJourneyEvents(routeId, direction, departureDate, departureTime)
+    dataSources.HFPAPI.getJourneyEvents(
+      routeId,
+      direction,
+      departureDate,
+      getNormalTime(departureTime)
+    )
 
   const getJourneyEquipment = (vehicleId, operatorId) =>
     dataSources.JoreAPI.getEquipmentById(vehicleId, operatorId)
