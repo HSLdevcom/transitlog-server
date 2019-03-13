@@ -14,6 +14,7 @@ import { createStopObject } from './objects/createStopObject'
 import { getDirection } from '../utils/getDirection'
 import { getDepartureTime, getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
+import { filterDepartures } from './filters/filterDepartures'
 
 export async function createDeparturesResponse(
   getDepartures: () => Promise<JoreDeparture | null>,
@@ -101,11 +102,13 @@ export async function createDeparturesResponse(
   const eventsCacheKey = `departure_events_${stopId}_${date}`
   const departureEvents = await cacheFetch<Vehicles[]>(eventsCacheKey, fetchEvents, 5)
 
+  const filteredDepartures = filterDepartures(validDepartures, filters)
+
   if (!departureEvents || departureEvents.length === 0) {
-    return validDepartures
+    return filteredDepartures
   }
 
-  return validDepartures.map((departure) => {
+  return filteredDepartures.map((departure) => {
     const originDepartureTime = get(departure, 'originDepartureTime.departureTime', null)
 
     if (!originDepartureTime) {
