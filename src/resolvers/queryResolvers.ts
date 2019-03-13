@@ -36,7 +36,7 @@ const lines = async (root, { filter, date }, { dataSources }) => {
 const departures = (root, { filter, stopId, date }, { dataSources }) => {
   const getDepartures = () => dataSources.JoreAPI.getDepartures(stopId, date)
   const getStop = () => dataSources.JoreAPI.getDepartureStop(stopId)
-  const getDepartureEvents = (departure) => dataSources.HFPAPI.getDepartureEvents(departure)
+  const getDepartureEvents = () => dataSources.HFPAPI.getDepartureEvents(stopId, date)
 
   return createDeparturesResponse(getDepartures, getStop, getDepartureEvents, stopId, date, filter)
 }

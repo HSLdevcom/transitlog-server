@@ -6,7 +6,8 @@ import parse from 'date-fns/parse'
 import format from 'date-fns/format'
 import { Vehicles } from '../types/generated/hfp-types'
 import { get } from 'lodash'
-import { Journey } from '../types/generated/schema-types'
+import { Departure, Journey } from '../types/generated/schema-types'
+import { PlannedDeparture } from '../types/PlannedDeparture'
 
 const num = (val) => parseInt(val, 10)
 
@@ -65,13 +66,13 @@ export function getDateFromDateTime(date: string, time: string = '00:00:00'): Da
 // Get the (potentially) 24h+ time of the journey.
 // For best results, pass in the observed start time as useDate, but if that's
 // not available, use the time of the first event from this journey that you have.
-export function getJourneyStartTime(event: Vehicles | Journey, useDate?: Date): string {
+export function getJourneyStartTime(
+  event: Vehicles | Journey,
+  useDate?: Date | null,
+  isNextDay: boolean = false
+): string {
   const operationDay = get(event, 'oday', get(event, 'departureDate', false))
-  const journeyStartTime = get(
-    event,
-    'journey_start_time',
-    get(event, 'departureTime', false)
-  )
+  const journeyStartTime = get(event, 'journey_start_time', get(event, 'departureTime', false))
   const recordedAtTimestamp = get(event, 'tst', get(event, 'events[0].recordedAt', 0))
 
   const eventDate = useDate ? useDate : new Date(recordedAtTimestamp)
@@ -94,7 +95,7 @@ export function getJourneyStartTime(event: Vehicles | Journey, useDate?: Date): 
     planned start times for journeys that teeter in the edge of midnight.
    */
 
-  if (intHours <= 12 && Math.floor(diff) >= 23) {
+  if (intHours <= 12 && (isNextDay || Math.floor(diff) >= 23)) {
     intHours = intHours + Math.max(1, Math.floor(diff / 24)) * 24
   }
 
@@ -128,11 +129,13 @@ type JoreDepartureTime = {
   [index: string]: any
 }
 
+// Custom type guard
+function isJoreDeparture(departure): departure is JoreDepartureTime {
+  return (departure as JoreDepartureTime).hours !== undefined
+}
+
 // Return the departure time as a 24h+ time string
-export function getDepartureTime(
-  departure: JoreDepartureTime,
-  useArrival = false
-): string {
+export function getDepartureTime(departure: JoreDepartureTime, useArrival = false): string {
   let { isNextDay, hours, minutes } = departure
 
   if (useArrival && departure.arrivalHours && departure.arrivalMinutes) {
@@ -145,7 +148,30 @@ export function getDepartureTime(
 }
 
 // Return the real time of the departure as a Date
-export function getRealDepartureDate(departure, date, useArrival): Date {
-  const time = getDepartureTime(departure, useArrival)
+export function getRealDepartureDate(
+  departure: JoreDepartureTime | PlannedDeparture | Departure,
+  date,
+  useArrival
+): Date {
+  let time = ''
+
+  if (departure && !isJoreDeparture(departure)) {
+    if (
+      useArrival &&
+      typeof departure.plannedArrivalTime !== 'undefined' &&
+      departure.plannedArrivalTime !== null
+    ) {
+      time = departure.plannedArrivalTime.arrivalTime
+    } else if (
+      !useArrival &&
+      typeof departure.plannedDepartureTime !== 'undefined' &&
+      departure.plannedDepartureTime !== null
+    ) {
+      time = departure.plannedDepartureTime.departureTime
+    }
+  } else if (isJoreDeparture(departure)) {
+    time = getDepartureTime(departure, useArrival)
+  }
+
   return getDateFromDateTime(date, time)
 }

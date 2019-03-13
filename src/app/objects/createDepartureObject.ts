@@ -56,6 +56,9 @@ export function createPlannedDepartureObject(
     isTimingStop: get(stop, 'isTimingStop', false),
     index: get(stop, 'stopIndex', 0),
     stop,
+    originDepartureTime: departure.originDeparture
+      ? createPlannedDepartureTimeObject(departure.originDeparture, departureDate)
+      : null,
     plannedArrivalTime: createPlannedArrivalTimeObject(departure, departureDate),
     plannedDepartureTime: createPlannedDepartureTimeObject(departure, departureDate),
   }

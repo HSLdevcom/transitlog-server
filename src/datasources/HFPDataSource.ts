@@ -4,6 +4,7 @@ import { HFP_URL } from '../constants'
 import { Vehicles } from '../types/generated/hfp-types'
 import { AVAILABLE_VEHICLES_QUERY } from '../queries/vehicleQueries'
 import { JOURNEY_EVENTS_QUERY } from '../queries/journeyQueries'
+import { DEPARTURE_EVENTS_QUERY } from '../queries/departureQueries'
 
 export class HFPDataSource extends GraphQLDataSource {
   baseURL = HFP_URL
@@ -28,7 +29,14 @@ export class HFPDataSource extends GraphQLDataSource {
     return get(response, 'data.vehicles', [])
   }
 
-  async getDepartureEvents(departure) {
-    return []
+  async getDepartureEvents(stopId: string, date: string) {
+    const response = await this.query(DEPARTURE_EVENTS_QUERY, {
+      variables: {
+        stopId,
+        date,
+      },
+    })
+
+    return get(response, 'data.vehicles', [])
   }
 }

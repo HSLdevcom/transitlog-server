@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { get, groupBy } from 'lodash'
+import { get, groupBy, orderBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import {
   Departure as JoreDeparture,
@@ -12,11 +12,13 @@ import { cacheFetch } from './cache'
 import { createDepartureId, createPlannedDepartureObject } from './objects/createDepartureObject'
 import { createStopObject } from './objects/createStopObject'
 import { getDirection } from '../utils/getDirection'
+import { getDepartureTime, getJourneyStartTime } from '../utils/time'
+import { getStopDepartureData } from '../utils/getStopDepartureData'
 
 export async function createDeparturesResponse(
   getDepartures: () => Promise<JoreDeparture | null>,
   getStop: () => Promise<JoreStop | null>,
-  getEvents: (departure: JoreDeparture) => Promise<Vehicles[]>,
+  getEvents: () => Promise<Vehicles[]>,
   stopId: string,
   date: string,
   filters: DepartureFilterInput
@@ -75,12 +77,58 @@ export async function createDeparturesResponse(
     })
   }
 
+  const fetchEvents: CachedFetcher<Vehicles[]> = async () => {
+    const events = await getEvents()
+
+    if (!events || events.length === 0) {
+      return false
+    }
+
+    return events
+  }
+
   const departuresCacheKey = `departures_${stopId}_${date}`
-  const validDepartures = await cacheFetch<Departure[]>(departuresCacheKey, fetchDepartures, 5)
+  const validDepartures = await cacheFetch<Departure[]>(
+    departuresCacheKey,
+    fetchDepartures,
+    24 * 60 * 60
+  )
 
   if (!validDepartures) {
     return []
   }
 
-  return validDepartures
+  const eventsCacheKey = `departure_events_${stopId}_${date}`
+  const departureEvents = await cacheFetch<Vehicles[]>(eventsCacheKey, fetchEvents, 5)
+
+  if (!departureEvents || departureEvents.length === 0) {
+    return validDepartures
+  }
+
+  return validDepartures.map((departure) => {
+    const originDepartureTime = get(departure, 'originDepartureTime.departureTime', null)
+
+    if (!originDepartureTime) {
+      return departure
+    }
+
+    const routeId = get(departure, 'routeId', '')
+    const direction = parseInt(get(departure, 'direction', '0'), 10)
+
+    const eventsForDeparture = departureEvents.filter(
+      (event) =>
+        event.route_id === routeId &&
+        event.direction_id === direction &&
+        getJourneyStartTime(event) === originDepartureTime
+    )
+
+    const stopDeparture = departure
+      ? getStopDepartureData(orderBy(eventsForDeparture, 'tsi', 'desc'), departure, date)
+      : null
+
+    return {
+      ...departure,
+      observedDepartureTime: stopDeparture,
+    }
+  })
 }
