@@ -4,6 +4,7 @@ import { ValidityRange } from '../types/ValidityRange'
 import diffHours from 'date-fns/difference_in_hours'
 import { MAX_JORE_YEAR } from '../constants'
 import { Dictionary } from '../types/Dictionary'
+import diffDays from 'date-fns/difference_in_days'
 
 // JORE objects have dateBegin and dateEnd props that express a validity range.
 // We have a problem where there can be multiple objects with overlapping
@@ -33,10 +34,6 @@ export function filterByDateChains<ItemType extends ValidityRange>(
       // Order the items descending from the most distant dateEnd. This
       // is the array we'll pull items from and add to the chain.
       const dateEndOrdered = orderBy(items, 'dateEnd', 'desc')
-
-      // Get the maximum date from amongst the items. The selected chain should
-      // end with an item with this date.
-      const maxDate = get(first(dateEndOrdered), 'dateEnd')
 
       // This function searches the ordered array to find the next link in the chain.
       // It checks the candidate's dateEnd if it is exactly a day off from item.
@@ -70,29 +67,20 @@ export function filterByDateChains<ItemType extends ValidityRange>(
       function createChain(startingPoint: ItemType): ItemType[] {
         const chain: ItemType[] = []
 
+        if (!startingPoint) {
+          return chain
+        }
+
         // Keep track of the iteration so that we can
         // kill the loop if it happens to run off.
         let i = 0
         const maxIterations = 100
 
-        // Until the chain ends with the minDate, run the loop.
         // Extra precautions for runaway loops.
         while (get(last(chain), 'dateBegin') !== minDate && i < maxIterations) {
           if (chain.length === 0) {
             // Use the starting item to start it off. This would be the "last" item in the chain.
-
-            // If the chain wouldn't end with this link, or if its
-            // dateBegin equals the minDate, add it to the chain.
-            if (findNextLink(startingPoint) || startingPoint.dateBegin === minDate) {
-              chain.push(startingPoint)
-
-              // If the dateBegin value is a valid minDate, we can end the chain right here.
-              if (startingPoint.dateBegin === minDate) {
-                break
-              }
-
-              continue
-            }
+            chain.push(startingPoint)
           }
 
           // Pick the last added item.
@@ -104,11 +92,7 @@ export function filterByDateChains<ItemType extends ValidityRange>(
             break
           }
 
-          // Make sure the item won't end the chain or is a valid end to the chain.
-          if (findNextLink(nextItem) || nextItem.dateBegin === minDate) {
-            chain.push(nextItem)
-          }
-
+          chain.push(nextItem)
           i++
         }
 
@@ -122,15 +106,61 @@ export function filterByDateChains<ItemType extends ValidityRange>(
       // Find the valid endDates and use them to build competing chains.
       // If there is only one of the max endDates among the items
       // it won't be much of a competition.
-      const chains = dateEndOrdered.filter(({ dateEnd }) => dateEnd === maxDate).map(createChain)
+      const chains = dateEndOrdered.map(createChain)
 
+      // The lack of chains is not very useful, so bail here in that case.
+      if (chains.length === 0) {
+        return filtered
+      }
+
+      const lengthOrdered = orderBy(chains, 'length', 'desc')
       // Declare the winner of the chain competition. Longest chain wins.
-      // TODO: We might want to include items from the leftover chains if they don't
-      //  overlap with any items in the winning chain. But such cases are very rare.
-      const longestChain: ItemType[] = orderBy(chains, 'length', 'desc')[0]
-      // Get the item that is active for the selected date from the chain of valid items.
-      filtered.push(date ? filterByDate(longestChain, date) : longestChain)
+      const longestChain = lengthOrdered[0]
+      const longestLength = longestChain.length
 
+      // Empty chains are not very useful, so bail here in that case.
+      if (longestLength === 0) {
+        return filtered
+      }
+
+      // There may be multiple chains with the same length. They all share the first
+      // prize, but we still need to declare an actual winner.
+      let winningChains = lengthOrdered.filter((chain) => chain.length === longestLength)
+
+      // Default to the first one. If there is only one longest chain, it will be used.
+      let winningChain = winningChains[0]
+
+      // In the case of many longest chains, further logic is needed. This means
+      // that items have probably been deleted and modified in JORE, like for
+      // exceptions that are in effect for a shorter time. Thus we want the
+      // chain that has the least amount of days between its items.
+      if (winningChains.length > 1) {
+        // First make sure that the chains actually have a valid item
+        if (date) {
+          winningChains = winningChains.filter((chain) => filterByDate(chain, date).length !== 0)
+        }
+
+        if (winningChains.length > 0) {
+          // Pick the chain with the least amount of days when where are many
+          // with the same length. The logic is that this should result in a
+          // "tighter fit" around the current date.
+          winningChain = orderBy(
+            winningChains,
+            (chain) => {
+              let days = 0
+
+              for (const item of chain) {
+                days += diffDays(item.dateEnd, item.dateBegin)
+              }
+
+              return days
+            },
+            'asc'
+          )[0] // The shortest-by-days chain is first
+        }
+      }
+      // Get the item that is active for the selected date from the chain of valid items.
+      filtered.push(date ? filterByDate(winningChain, date) : longestChain)
       return filtered
     },
     []
