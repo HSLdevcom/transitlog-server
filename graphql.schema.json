@@ -72,6 +72,12 @@
                 "defaultValue": null
               },
               {
+                "name": "line",
+                "description": "",
+                "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+                "defaultValue": null
+              },
+              {
                 "name": "date",
                 "description": "",
                 "type": { "kind": "SCALAR", "name": "Date", "ofType": null },
@@ -932,6 +938,14 @@
             "description": "",
             "args": [],
             "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "routesCount",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Int", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },

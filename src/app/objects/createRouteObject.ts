@@ -3,7 +3,7 @@ import { Route as JoreRoute } from '../../types/generated/jore-types'
 import { get } from 'lodash'
 
 function createRouteId(route: JoreRoute): string {
-  return `${route.routeId}_ ${route.direction}_${route.dateBegin}_${route.dateEnd}`
+  return `${route.routeId}_${route.direction}_${route.dateBegin}_${route.dateEnd}`
 }
 
 export function createRouteObject(route: JoreRoute): Route {

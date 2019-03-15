@@ -182,6 +182,8 @@ export interface Line {
 
   name?: Maybe<string>
 
+  routesCount?: Maybe<number>
+
   _matchScore?: Maybe<number>
 }
 
@@ -379,6 +381,8 @@ export interface StopsQueryArgs {
 }
 export interface RoutesQueryArgs {
   filter?: Maybe<RouteFilterInput>
+
+  line?: Maybe<string>
 
   date?: Maybe<Date>
 }

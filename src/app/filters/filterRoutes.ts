@@ -3,7 +3,11 @@ import { get } from 'lodash'
 import { RouteFilterInput } from '../../types/generated/schema-types'
 import { search } from './search'
 
-export function filterRoutes(routes: JoreRoute[], filter?: RouteFilterInput) {
+export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteFilterInput) {
+  if (line) {
+    return routes.filter((route) => get(route, 'line.nodes[0].lineId', '') === line)
+  }
+
   const routeIdFilter = get(filter, 'routeId', '')
   const directionFilter = get(filter, 'direction', '')
 

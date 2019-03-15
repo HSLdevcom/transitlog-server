@@ -5,6 +5,7 @@ export const Line = gql`
     id: ID!
     lineId: String!
     name: String
+    routesCount: Int
     _matchScore: Float
   }
 

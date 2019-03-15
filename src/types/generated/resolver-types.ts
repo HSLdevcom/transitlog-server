@@ -155,6 +155,8 @@ export namespace QueryResolvers {
   export interface RoutesArgs {
     filter?: Maybe<RouteFilterInput>
 
+    line?: Maybe<string>
+
     date?: Maybe<Date>
   }
 
@@ -465,6 +467,8 @@ export namespace LineResolvers {
 
     name?: NameResolver<Maybe<string>, TypeParent, TContext>
 
+    routesCount?: RoutesCountResolver<Maybe<number>, TypeParent, TContext>
+
     _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
   }
 
@@ -475,6 +479,11 @@ export namespace LineResolvers {
     TContext
   >
   export type NameResolver<R = Maybe<string>, Parent = Line, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type RoutesCountResolver<R = Maybe<number>, Parent = Line, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

@@ -9,6 +9,7 @@ import { filterRoutes } from './filters/filterRoutes'
 export async function createRoutesResponse(
   getRoutes: () => Promise<JoreRoute[]>,
   date?: string,
+  line?: string,
   filter?: RouteFilterInput
 ): Promise<Route[]> {
   const fetchAndValidate = async () => {
@@ -18,10 +19,7 @@ export async function createRoutesResponse(
       return false
     }
 
-    const groupedRoutes = groupBy(
-      routes,
-      ({ routeId, direction }) => `${routeId}.${direction}`
-    )
+    const groupedRoutes = groupBy(routes, ({ routeId, direction }) => `${routeId}.${direction}`)
 
     return filterByDateChains<JoreRoute>(groupedRoutes, date)
   }
@@ -33,6 +31,6 @@ export async function createRoutesResponse(
     return []
   }
 
-  const filteredRoutes = filterRoutes(validRoutes, filter)
+  const filteredRoutes = filterRoutes(validRoutes, line, filter)
   return filteredRoutes.map(createRouteObject)
 }

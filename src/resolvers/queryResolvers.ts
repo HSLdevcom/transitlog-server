@@ -19,9 +19,9 @@ const stops = (root, { filter }, { dataSources }) => {
   return createStopsResponse(getStops, filter)
 }
 
-const routes = async (root, { filter, date }, { dataSources }) => {
+const routes = async (root, { filter, line, date }, { dataSources }) => {
   const getRoutes = () => dataSources.JoreAPI.getRoutes()
-  return createRoutesResponse(getRoutes, date, filter)
+  return createRoutesResponse(getRoutes, date, line, filter)
 }
 
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
