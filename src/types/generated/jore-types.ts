@@ -189,6 +189,24 @@ export interface EquipmentCondition {
   /** Checks for equality with the object’s `emissionDesc` field. */
   emissionDesc?: Maybe<string>
 }
+/** A condition to be used against `ExceptionDay` object types. All fields are tested for equality and combined with a logical ‘and.’ */
+export interface ExceptionDayCondition {
+  /** Checks for equality with the object’s `exceptionDayType` field. */
+  exceptionDayType?: Maybe<Date>
+  /** Checks for equality with the object’s `description` field. */
+  description?: Maybe<string>
+}
+/** A condition to be used against `ExceptionDaysCalendar` object types. All fields are tested for equality and combined with a logical ‘and.’ */
+export interface ExceptionDaysCalendarCondition {
+  /** Checks for equality with the object’s `dateInEffect` field. */
+  dateInEffect?: Maybe<Date>
+  /** Checks for equality with the object’s `exceptionDayType` field. */
+  exceptionDayType?: Maybe<string>
+  /** Checks for equality with the object’s `dayType` field. */
+  dayType?: Maybe<string>
+  /** Checks for equality with the object’s `exclusive` field. */
+  exclusive?: Maybe<number>
+}
 /** A condition to be used against `Geometry` object types. All fields are tested for equality and combined with a logical ‘and.’ */
 export interface GeometryCondition {
   /** Checks for equality with the object’s `routeId` field. */
@@ -260,6 +278,21 @@ export interface PointGeometryCondition {
   x?: Maybe<number>
   /** Checks for equality with the object’s `point` field. */
   point?: Maybe<string>
+}
+/** A condition to be used against `ReplacementDaysCalendar` object types. All fields are tested for equality and combined with a logical ‘and.’ */
+export interface ReplacementDaysCalendarCondition {
+  /** Checks for equality with the object’s `dateInEffect` field. */
+  dateInEffect?: Maybe<Date>
+  /** Checks for equality with the object’s `replacingDayType` field. */
+  replacingDayType?: Maybe<string>
+  /** Checks for equality with the object’s `scope` field. */
+  scope?: Maybe<string>
+  /** Checks for equality with the object’s `dayType` field. */
+  dayType?: Maybe<string>
+  /** Checks for equality with the object’s `timeBegin` field. */
+  timeBegin?: Maybe<string>
+  /** Checks for equality with the object’s `timeEnd` field. */
+  timeEnd?: Maybe<string>
 }
 /** A condition to be used against `StopArea` object types. All fields are tested for equality and combined with a logical ‘and.’ */
 export interface StopAreaCondition {
@@ -503,6 +536,30 @@ export enum EquipmentOrderBy {
   PrimaryKeyAsc = 'PRIMARY_KEY_ASC',
   PrimaryKeyDesc = 'PRIMARY_KEY_DESC',
 }
+/** Methods to use when ordering `ExceptionDay`. */
+export enum ExceptionDaysOrderBy {
+  Natural = 'NATURAL',
+  ExceptionDayTypeAsc = 'EXCEPTION_DAY_TYPE_ASC',
+  ExceptionDayTypeDesc = 'EXCEPTION_DAY_TYPE_DESC',
+  DescriptionAsc = 'DESCRIPTION_ASC',
+  DescriptionDesc = 'DESCRIPTION_DESC',
+  PrimaryKeyAsc = 'PRIMARY_KEY_ASC',
+  PrimaryKeyDesc = 'PRIMARY_KEY_DESC',
+}
+/** Methods to use when ordering `ExceptionDaysCalendar`. */
+export enum ExceptionDaysCalendarsOrderBy {
+  Natural = 'NATURAL',
+  DateInEffectAsc = 'DATE_IN_EFFECT_ASC',
+  DateInEffectDesc = 'DATE_IN_EFFECT_DESC',
+  ExceptionDayTypeAsc = 'EXCEPTION_DAY_TYPE_ASC',
+  ExceptionDayTypeDesc = 'EXCEPTION_DAY_TYPE_DESC',
+  DayTypeAsc = 'DAY_TYPE_ASC',
+  DayTypeDesc = 'DAY_TYPE_DESC',
+  ExclusiveAsc = 'EXCLUSIVE_ASC',
+  ExclusiveDesc = 'EXCLUSIVE_DESC',
+  PrimaryKeyAsc = 'PRIMARY_KEY_ASC',
+  PrimaryKeyDesc = 'PRIMARY_KEY_DESC',
+}
 /** Methods to use when ordering `Geometry`. */
 export enum GeometriesOrderBy {
   Natural = 'NATURAL',
@@ -580,6 +637,24 @@ export enum PointGeometriesOrderBy {
   XDesc = 'X_DESC',
   PointAsc = 'POINT_ASC',
   PointDesc = 'POINT_DESC',
+}
+/** Methods to use when ordering `ReplacementDaysCalendar`. */
+export enum ReplacementDaysCalendarsOrderBy {
+  Natural = 'NATURAL',
+  DateInEffectAsc = 'DATE_IN_EFFECT_ASC',
+  DateInEffectDesc = 'DATE_IN_EFFECT_DESC',
+  ReplacingDayTypeAsc = 'REPLACING_DAY_TYPE_ASC',
+  ReplacingDayTypeDesc = 'REPLACING_DAY_TYPE_DESC',
+  ScopeAsc = 'SCOPE_ASC',
+  ScopeDesc = 'SCOPE_DESC',
+  DayTypeAsc = 'DAY_TYPE_ASC',
+  DayTypeDesc = 'DAY_TYPE_DESC',
+  TimeBeginAsc = 'TIME_BEGIN_ASC',
+  TimeBeginDesc = 'TIME_BEGIN_DESC',
+  TimeEndAsc = 'TIME_END_ASC',
+  TimeEndDesc = 'TIME_END_DESC',
+  PrimaryKeyAsc = 'PRIMARY_KEY_ASC',
+  PrimaryKeyDesc = 'PRIMARY_KEY_DESC',
 }
 /** Methods to use when ordering `StopArea`. */
 export enum StopAreasOrderBy {
@@ -660,6 +735,10 @@ export interface Query extends Node {
   allDepartures?: Maybe<DeparturesConnection>
   /** Reads and enables pagination through a set of `Equipment`. */
   allEquipment?: Maybe<EquipmentConnection>
+  /** Reads and enables pagination through a set of `ExceptionDay`. */
+  allExceptionDays?: Maybe<ExceptionDaysConnection>
+  /** Reads and enables pagination through a set of `ExceptionDaysCalendar`. */
+  allExceptionDaysCalendars?: Maybe<ExceptionDaysCalendarsConnection>
   /** Reads and enables pagination through a set of `Geometry`. */
   allGeometries?: Maybe<GeometriesConnection>
   /** Reads and enables pagination through a set of `Line`. */
@@ -668,6 +747,8 @@ export interface Query extends Node {
   allNotes?: Maybe<NotesConnection>
   /** Reads and enables pagination through a set of `PointGeometry`. */
   allPointGeometries?: Maybe<PointGeometriesConnection>
+  /** Reads and enables pagination through a set of `ReplacementDaysCalendar`. */
+  allReplacementDaysCalendars?: Maybe<ReplacementDaysCalendarsConnection>
   /** Reads and enables pagination through a set of `Route`. */
   allRoutes?: Maybe<RoutesConnection>
   /** Reads and enables pagination through a set of `RouteSegment`. */
@@ -685,15 +766,21 @@ export interface Query extends Node {
 
   equipmentByRegistryNr?: Maybe<Equipment>
 
+  exceptionDayByExceptionDayType?: Maybe<ExceptionDay>
+
+  exceptionDaysCalendarByDateInEffect?: Maybe<ExceptionDaysCalendar>
+
   geometryByRouteIdAndDirectionAndDateBeginAndDateEnd?: Maybe<Geometry>
 
   lineByLineIdAndDateBeginAndDateEnd?: Maybe<Line>
 
   noteByLineIdAndNoteIdAndNoteType?: Maybe<Note>
 
+  replacementDaysCalendarByDateInEffect?: Maybe<ReplacementDaysCalendar>
+
   routeByRouteIdAndDirectionAndDateBeginAndDateEnd?: Maybe<Route>
 
-  routeSegmentByRouteIdAndDirectionAndDateBeginAndDateEndAndStopId?: Maybe<RouteSegment>
+  routeSegmentByRouteIdAndDirectionAndDateBeginAndDateEndAndStopIndex?: Maybe<RouteSegment>
 
   stopByStopId?: Maybe<Stop>
 
@@ -712,8 +799,14 @@ export interface Query extends Node {
   departure?: Maybe<Departure>
   /** Reads a single `Equipment` using its globally unique `ID`. */
   equipment?: Maybe<Equipment>
+  /** Reads a single `ExceptionDay` using its globally unique `ID`. */
+  exceptionDay?: Maybe<ExceptionDay>
+  /** Reads a single `ExceptionDaysCalendar` using its globally unique `ID`. */
+  exceptionDaysCalendar?: Maybe<ExceptionDaysCalendar>
   /** Reads a single `Geometry` using its globally unique `ID`. */
   geometry?: Maybe<Geometry>
+  /** Reads a single `ReplacementDaysCalendar` using its globally unique `ID`. */
+  replacementDaysCalendar?: Maybe<ReplacementDaysCalendar>
   /** Reads a single `Route` using its globally unique `ID`. */
   route?: Maybe<Route>
   /** Reads a single `RouteSegment` using its globally unique `ID`. */
@@ -1327,6 +1420,68 @@ export interface EquipmentEdge {
   node?: Maybe<Equipment>
 }
 
+/** A connection to a list of `ExceptionDay` values. */
+export interface ExceptionDaysConnection {
+  /** A list of `ExceptionDay` objects. */
+  nodes: Array<Maybe<ExceptionDay>>
+  /** A list of edges which contains the `ExceptionDay` and cursor to aid in pagination. */
+  edges: ExceptionDaysEdge[]
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo
+  /** The count of *all* `ExceptionDay` you could get from the connection. */
+  totalCount?: Maybe<number>
+}
+
+export interface ExceptionDay extends Node {
+  /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
+  nodeId: string
+
+  exceptionDayType: Date
+
+  description?: Maybe<string>
+}
+
+/** A `ExceptionDay` edge in the connection. */
+export interface ExceptionDaysEdge {
+  /** A cursor for use in pagination. */
+  cursor?: Maybe<Cursor>
+  /** The `ExceptionDay` at the end of the edge. */
+  node?: Maybe<ExceptionDay>
+}
+
+/** A connection to a list of `ExceptionDaysCalendar` values. */
+export interface ExceptionDaysCalendarsConnection {
+  /** A list of `ExceptionDaysCalendar` objects. */
+  nodes: Array<Maybe<ExceptionDaysCalendar>>
+  /** A list of edges which contains the `ExceptionDaysCalendar` and cursor to aid in pagination. */
+  edges: ExceptionDaysCalendarsEdge[]
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo
+  /** The count of *all* `ExceptionDaysCalendar` you could get from the connection. */
+  totalCount?: Maybe<number>
+}
+
+export interface ExceptionDaysCalendar extends Node {
+  /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
+  nodeId: string
+
+  dateInEffect: Date
+
+  exceptionDayType: string
+
+  dayType: string
+
+  exclusive?: Maybe<number>
+}
+
+/** A `ExceptionDaysCalendar` edge in the connection. */
+export interface ExceptionDaysCalendarsEdge {
+  /** A cursor for use in pagination. */
+  cursor?: Maybe<Cursor>
+  /** The `ExceptionDaysCalendar` at the end of the edge. */
+  node?: Maybe<ExceptionDaysCalendar>
+}
+
 /** A connection to a list of `Geometry` values. */
 export interface GeometriesConnection {
   /** A list of `Geometry` objects. */
@@ -1402,6 +1557,43 @@ export interface PointGeometriesEdge {
   cursor?: Maybe<Cursor>
   /** The `PointGeometry` at the end of the edge. */
   node?: Maybe<PointGeometry>
+}
+
+/** A connection to a list of `ReplacementDaysCalendar` values. */
+export interface ReplacementDaysCalendarsConnection {
+  /** A list of `ReplacementDaysCalendar` objects. */
+  nodes: Array<Maybe<ReplacementDaysCalendar>>
+  /** A list of edges which contains the `ReplacementDaysCalendar` and cursor to aid in pagination. */
+  edges: ReplacementDaysCalendarsEdge[]
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo
+  /** The count of *all* `ReplacementDaysCalendar` you could get from the connection. */
+  totalCount?: Maybe<number>
+}
+
+export interface ReplacementDaysCalendar extends Node {
+  /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
+  nodeId: string
+
+  dateInEffect: Date
+
+  replacingDayType: string
+
+  scope?: Maybe<string>
+
+  dayType: string
+
+  timeBegin?: Maybe<string>
+
+  timeEnd?: Maybe<string>
+}
+
+/** A `ReplacementDaysCalendar` edge in the connection. */
+export interface ReplacementDaysCalendarsEdge {
+  /** A cursor for use in pagination. */
+  cursor?: Maybe<Cursor>
+  /** The `ReplacementDaysCalendar` at the end of the edge. */
+  node?: Maybe<ReplacementDaysCalendar>
 }
 
 /** A connection to a list of `StopArea` values. */
@@ -1520,6 +1712,38 @@ export interface AllEquipmentQueryArgs {
   /** A condition to be used in determining which values should be returned by the collection. */
   condition?: Maybe<EquipmentCondition>
 }
+export interface AllExceptionDaysQueryArgs {
+  /** Only read the first `n` values of the set. */
+  first?: Maybe<number>
+  /** Only read the last `n` values of the set. */
+  last?: Maybe<number>
+  /** Skip the first `n` values from our `after` cursor, an alternative to cursor based pagination. May not be used with `last`. */
+  offset?: Maybe<number>
+  /** Read all values in the set before (above) this cursor. */
+  before?: Maybe<Cursor>
+  /** Read all values in the set after (below) this cursor. */
+  after?: Maybe<Cursor>
+  /** The method to use when ordering `ExceptionDay`. */
+  orderBy?: ExceptionDaysOrderBy[]
+  /** A condition to be used in determining which values should be returned by the collection. */
+  condition?: Maybe<ExceptionDayCondition>
+}
+export interface AllExceptionDaysCalendarsQueryArgs {
+  /** Only read the first `n` values of the set. */
+  first?: Maybe<number>
+  /** Only read the last `n` values of the set. */
+  last?: Maybe<number>
+  /** Skip the first `n` values from our `after` cursor, an alternative to cursor based pagination. May not be used with `last`. */
+  offset?: Maybe<number>
+  /** Read all values in the set before (above) this cursor. */
+  before?: Maybe<Cursor>
+  /** Read all values in the set after (below) this cursor. */
+  after?: Maybe<Cursor>
+  /** The method to use when ordering `ExceptionDaysCalendar`. */
+  orderBy?: ExceptionDaysCalendarsOrderBy[]
+  /** A condition to be used in determining which values should be returned by the collection. */
+  condition?: Maybe<ExceptionDaysCalendarCondition>
+}
 export interface AllGeometriesQueryArgs {
   /** Only read the first `n` values of the set. */
   first?: Maybe<number>
@@ -1583,6 +1807,22 @@ export interface AllPointGeometriesQueryArgs {
   orderBy?: PointGeometriesOrderBy[]
   /** A condition to be used in determining which values should be returned by the collection. */
   condition?: Maybe<PointGeometryCondition>
+}
+export interface AllReplacementDaysCalendarsQueryArgs {
+  /** Only read the first `n` values of the set. */
+  first?: Maybe<number>
+  /** Only read the last `n` values of the set. */
+  last?: Maybe<number>
+  /** Skip the first `n` values from our `after` cursor, an alternative to cursor based pagination. May not be used with `last`. */
+  offset?: Maybe<number>
+  /** Read all values in the set before (above) this cursor. */
+  before?: Maybe<Cursor>
+  /** Read all values in the set after (below) this cursor. */
+  after?: Maybe<Cursor>
+  /** The method to use when ordering `ReplacementDaysCalendar`. */
+  orderBy?: ReplacementDaysCalendarsOrderBy[]
+  /** A condition to be used in determining which values should be returned by the collection. */
+  condition?: Maybe<ReplacementDaysCalendarCondition>
 }
 export interface AllRoutesQueryArgs {
   /** Only read the first `n` values of the set. */
@@ -1686,6 +1926,12 @@ export interface DepartureByRouteIdAndDirectionAndDateBeginAndDateEndAndHoursAnd
 export interface EquipmentByRegistryNrQueryArgs {
   registryNr: string
 }
+export interface ExceptionDayByExceptionDayTypeQueryArgs {
+  exceptionDayType: Date
+}
+export interface ExceptionDaysCalendarByDateInEffectQueryArgs {
+  dateInEffect: Date
+}
 export interface GeometryByRouteIdAndDirectionAndDateBeginAndDateEndQueryArgs {
   routeId: string
 
@@ -1709,6 +1955,9 @@ export interface NoteByLineIdAndNoteIdAndNoteTypeQueryArgs {
 
   noteType: string
 }
+export interface ReplacementDaysCalendarByDateInEffectQueryArgs {
+  dateInEffect: Date
+}
 export interface RouteByRouteIdAndDirectionAndDateBeginAndDateEndQueryArgs {
   routeId: string
 
@@ -1718,7 +1967,7 @@ export interface RouteByRouteIdAndDirectionAndDateBeginAndDateEndQueryArgs {
 
   dateEnd: Date
 }
-export interface RouteSegmentByRouteIdAndDirectionAndDateBeginAndDateEndAndStopIdQueryArgs {
+export interface RouteSegmentByRouteIdAndDirectionAndDateBeginAndDateEndAndStopIndexQueryArgs {
   routeId: string
 
   direction: string
@@ -1727,7 +1976,7 @@ export interface RouteSegmentByRouteIdAndDirectionAndDateBeginAndDateEndAndStopI
 
   dateEnd: Date
 
-  stopId: string
+  stopIndex: number
 }
 export interface StopByStopIdQueryArgs {
   stopId: string
@@ -1822,8 +2071,20 @@ export interface EquipmentQueryArgs {
   /** The globally unique `ID` to be used in selecting a single `Equipment`. */
   nodeId: string
 }
+export interface ExceptionDayQueryArgs {
+  /** The globally unique `ID` to be used in selecting a single `ExceptionDay`. */
+  nodeId: string
+}
+export interface ExceptionDaysCalendarQueryArgs {
+  /** The globally unique `ID` to be used in selecting a single `ExceptionDaysCalendar`. */
+  nodeId: string
+}
 export interface GeometryQueryArgs {
   /** The globally unique `ID` to be used in selecting a single `Geometry`. */
+  nodeId: string
+}
+export interface ReplacementDaysCalendarQueryArgs {
+  /** The globally unique `ID` to be used in selecting a single `ReplacementDaysCalendar`. */
   nodeId: string
 }
 export interface RouteQueryArgs {

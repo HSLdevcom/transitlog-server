@@ -23,7 +23,7 @@ export async function createStopsResponse(
 
   let filteredStops = stops
 
-  if (filter) {
+  if (filter && (filter.bbox || filter.search)) {
     filteredStops = []
 
     if (filter.bbox) {

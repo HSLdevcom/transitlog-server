@@ -5,6 +5,7 @@ export const Equipment = gql`
     id: ID!
     vehicleId: String!
     operatorId: String!
+    operatorName: String
     registryNr: String!
     age: Int!
     type: String!

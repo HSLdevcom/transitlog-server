@@ -4,6 +4,7 @@ import {
   PlannedDeparture as PlannedDepartureTime,
   PlannedArrival,
   DepartureStop,
+  DepartureJourney,
 } from './generated/schema-types'
 import { StopSegmentCombo } from './StopSegmentCombo'
 
@@ -25,6 +26,7 @@ export interface PlannedDeparture {
   isTimingStop?: Maybe<boolean>
   index?: Maybe<number>
   stop: StopSegmentCombo | DepartureStop | null
+  journey: DepartureJourney | null
   originDepartureTime?: PlannedDepartureTime | null
   plannedArrivalTime: PlannedArrival
   plannedDepartureTime: PlannedDepartureTime

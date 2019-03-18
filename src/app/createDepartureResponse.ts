@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { get, groupBy, orderBy } from 'lodash'
+import { get, groupBy, orderBy, flatten, map } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import {
   Departure as JoreDeparture,
@@ -9,13 +9,18 @@ import {
 import { Departure, DepartureFilterInput, DepartureStop } from '../types/generated/schema-types'
 import { Vehicles } from '../types/generated/hfp-types'
 import { cacheFetch } from './cache'
-import { createDepartureId, createPlannedDepartureObject } from './objects/createDepartureObject'
+import {
+  createDepartureId,
+  createDepartureJourneyObject,
+  createPlannedDepartureObject,
+} from './objects/createDepartureObject'
 import { createStopObject } from './objects/createStopObject'
 import { getDirection } from '../utils/getDirection'
-import { getDepartureTime, getJourneyStartTime } from '../utils/time'
+import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { filterDepartures } from './filters/filterDepartures'
 import { isToday } from 'date-fns'
+import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 
 export async function createDeparturesResponse(
   getDepartures: () => Promise<JoreDeparture | null>,
@@ -132,8 +137,9 @@ export async function createDeparturesResponse(
     return filteredDepartures
   }
 
-  // Link observed events to departures
-  return filteredDepartures.map((departure) => {
+  // Link observed events to departures. Events are ultimately grouped by vehicle ID
+  // to separate the
+  const departuresWithEvents: Departure[][] = filteredDepartures.map((departure) => {
     const originDepartureTime = get(departure, 'originDepartureTime.departureTime', null)
 
     // The departures are matched to events through the "journey start time", ie the time that
@@ -142,7 +148,7 @@ export async function createDeparturesResponse(
     // it with an event. If we don't have the origin departure time, we can't match the
     // departure to an event.
     if (!originDepartureTime) {
-      return departure
+      return [departure]
     }
 
     // We can use info that the departure happened during "the next day" when calculating
@@ -161,14 +167,21 @@ export async function createDeparturesResponse(
         getJourneyStartTime(event, departureIsNextDay) === originDepartureTime
     )
 
-    // Calculate the observed times for the stop using the event.
-    const stopDeparture = departure
-      ? getStopDepartureData(orderBy(eventsForDeparture, 'tsi', 'desc'), departure, date)
-      : null
+    const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture)
 
-    return {
-      ...departure,
-      observedDepartureTime: stopDeparture,
-    }
+    return eventsPerVehicleJourney.map((events, index) => {
+      // Calculate the observed times for the stop using the event.
+      const stopDeparture = departure
+        ? getStopDepartureData(orderBy(events, 'tsi', 'desc'), departure, date)
+        : null
+
+      return {
+        ...departure,
+        journey: createDepartureJourneyObject(events[0], departureIsNextDay, index),
+        observedDepartureTime: stopDeparture,
+      }
+    })
   })
+
+  return flatten(departuresWithEvents)
 }

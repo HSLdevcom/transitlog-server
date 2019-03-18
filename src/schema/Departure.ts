@@ -51,6 +51,16 @@ export const Departure = gql`
     modes: [String]!
   }
 
+  type DepartureJourney {
+    id: ID!
+    routeId: String!
+    direction: Direction!
+    departureDate: Date!
+    departureTime: Time!
+    uniqueVehicleId: VehicleId
+    instance: Int
+  }
+
   type Departure {
     id: ID!
     stopId: String!
@@ -69,6 +79,7 @@ export const Departure = gql`
     isTimingStop: Boolean
     index: Int
     stop: DepartureStop
+    journey: DepartureJourney
     plannedArrivalTime: PlannedArrival
     observedArrivalTime: ObservedArrival
     plannedDepartureTime: PlannedDeparture

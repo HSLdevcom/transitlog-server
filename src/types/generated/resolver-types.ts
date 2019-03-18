@@ -55,11 +55,11 @@ export type Direction = any
 /** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. The timezone is assumed to be Europe/Helsinki */
 export type Time = any
 
-/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
-export type DateTime = any
-
 /** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */
 export type VehicleId = any
+
+/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
+export type DateTime = any
 
 /** The `Upload` scalar type represents a file upload. */
 export type Upload = any
@@ -227,6 +227,8 @@ export namespace EquipmentResolvers {
 
     operatorId?: OperatorIdResolver<string, TypeParent, TContext>
 
+    operatorName?: OperatorNameResolver<Maybe<string>, TypeParent, TContext>
+
     registryNr?: RegistryNrResolver<string, TypeParent, TContext>
 
     age?: AgeResolver<number, TypeParent, TContext>
@@ -255,6 +257,11 @@ export namespace EquipmentResolvers {
     TContext
   >
   export type OperatorIdResolver<R = string, Parent = Equipment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type OperatorNameResolver<R = Maybe<string>, Parent = Equipment, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -531,6 +538,8 @@ export namespace DepartureResolvers {
 
     stop?: StopResolver<Maybe<DepartureStop>, TypeParent, TContext>
 
+    journey?: JourneyResolver<Maybe<DepartureJourney>, TypeParent, TContext>
+
     plannedArrivalTime?: PlannedArrivalTimeResolver<Maybe<PlannedArrival>, TypeParent, TContext>
 
     observedArrivalTime?: ObservedArrivalTimeResolver<Maybe<ObservedArrival>, TypeParent, TContext>
@@ -633,6 +642,11 @@ export namespace DepartureResolvers {
     Parent,
     TContext
   >
+  export type JourneyResolver<
+    R = Maybe<DepartureJourney>,
+    Parent = Departure,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type PlannedArrivalTimeResolver<
     R = Maybe<PlannedArrival>,
     Parent = Departure,
@@ -768,6 +782,60 @@ export namespace DepartureStopResolvers {
   export type ModesResolver<
     R = Array<Maybe<string>>,
     Parent = DepartureStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+}
+
+export namespace DepartureJourneyResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = DepartureJourney> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    routeId?: RouteIdResolver<string, TypeParent, TContext>
+
+    direction?: DirectionResolver<Direction, TypeParent, TContext>
+
+    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
+
+    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
+
+    uniqueVehicleId?: UniqueVehicleIdResolver<Maybe<VehicleId>, TypeParent, TContext>
+
+    instance?: InstanceResolver<Maybe<number>, TypeParent, TContext>
+  }
+
+  export type IdResolver<R = string, Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type RouteIdResolver<R = string, Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DirectionResolver<R = Direction, Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DepartureDateResolver<R = Date, Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DepartureTimeResolver<R = Time, Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type UniqueVehicleIdResolver<
+    R = Maybe<VehicleId>,
+    Parent = DepartureJourney,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type InstanceResolver<
+    R = Maybe<number>,
+    Parent = DepartureJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>
 }
@@ -1177,11 +1245,11 @@ export interface DirectionScalarConfig extends GraphQLScalarTypeConfig<Direction
 export interface TimeScalarConfig extends GraphQLScalarTypeConfig<Time, any> {
   name: 'Time'
 }
-export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<DateTime, any> {
-  name: 'DateTime'
-}
 export interface VehicleIdScalarConfig extends GraphQLScalarTypeConfig<VehicleId, any> {
   name: 'VehicleId'
+}
+export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<DateTime, any> {
+  name: 'DateTime'
 }
 export interface UploadScalarConfig extends GraphQLScalarTypeConfig<Upload, any> {
   name: 'Upload'
@@ -1197,6 +1265,7 @@ export type IResolvers<TContext = {}> = {
   Line?: LineResolvers.Resolvers<TContext>
   Departure?: DepartureResolvers.Resolvers<TContext>
   DepartureStop?: DepartureStopResolvers.Resolvers<TContext>
+  DepartureJourney?: DepartureJourneyResolvers.Resolvers<TContext>
   PlannedArrival?: PlannedArrivalResolvers.Resolvers<TContext>
   ObservedArrival?: ObservedArrivalResolvers.Resolvers<TContext>
   JourneyEvent?: JourneyEventResolvers.Resolvers<TContext>
@@ -1208,8 +1277,8 @@ export type IResolvers<TContext = {}> = {
   BBox?: GraphQLScalarType
   Direction?: GraphQLScalarType
   Time?: GraphQLScalarType
-  DateTime?: GraphQLScalarType
   VehicleId?: GraphQLScalarType
+  DateTime?: GraphQLScalarType
   Upload?: GraphQLScalarType
 } & { [typeName: string]: never }
 

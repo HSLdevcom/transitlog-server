@@ -3,5 +3,5 @@ export interface Dictionary<T> {
 }
 
 export interface NumericDictionary<T> {
-  [index: string]: T
+  [index: number]: T
 }

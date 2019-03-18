@@ -1,11 +1,23 @@
 import { Departure as JoreDeparture } from '../../types/generated/jore-types'
-import { DepartureStop, PlannedArrival, PlannedDeparture } from '../../types/generated/schema-types'
+import {
+  Date,
+  DepartureJourney,
+  DepartureStop,
+  Direction,
+  Maybe,
+  PlannedArrival,
+  PlannedDeparture,
+  Time,
+  VehicleId,
+} from '../../types/generated/schema-types'
 import { StopSegmentCombo } from '../../types/StopSegmentCombo'
-import { getDateFromDateTime, getDepartureTime } from '../../utils/time'
+import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../../utils/time'
 import moment from 'moment-timezone'
 import { PlannedDeparture as PlannedDepartureObject } from '../../types/PlannedDeparture'
 import { TZ } from '../../constants'
 import { get } from 'lodash'
+import { Vehicles } from '../../types/generated/hfp-types'
+import { createJourneyId } from '../../utils/createJourneyId'
 
 export function createDepartureId(departure) {
   return `${departure.routeId}_${departure.direction}_${departure.hours}_${departure.minutes}_${
@@ -35,6 +47,22 @@ export function createPlannedDepartureTimeObject(departure: JoreDeparture, date)
   }
 }
 
+export function createDepartureJourneyObject(
+  event: Vehicles,
+  departureIsNextDay: boolean,
+  instance = 0
+): DepartureJourney {
+  return {
+    id: createJourneyId(event),
+    routeId: event.route_id || '',
+    direction: event.direction_id,
+    departureDate: event.oday,
+    departureTime: getJourneyStartTime(event, departureIsNextDay),
+    uniqueVehicleId: event,
+    instance,
+  }
+}
+
 export function createPlannedDepartureObject(
   departure: JoreDeparture,
   stop: StopSegmentCombo | DepartureStop | null,
@@ -58,6 +86,7 @@ export function createPlannedDepartureObject(
     isTimingStop: get(stop, 'isTimingStop', false),
     index: get(stop, 'stopIndex', 0),
     stop,
+    journey: null,
     originDepartureTime: departure.originDeparture
       ? createPlannedDepartureTimeObject(departure.originDeparture, departureDate)
       : null,
