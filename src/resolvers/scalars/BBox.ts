@@ -56,9 +56,9 @@ export const BBoxScalar = new GraphQLScalarType({
 
     return createBBoxString(validateBbox(value))
   },
-  parseLiteral(ast): BBox | null {
+  parseLiteral(ast): StringOrNull {
     if (ast.kind === Kind.STRING) {
-      return validateBbox(ast.value)
+      return createBBoxString(validateBbox(ast.value))
     }
     return null
   },

@@ -27,15 +27,19 @@ export async function createStopsResponse(
 
   let filteredStops = stops
 
-  if (filter && (filter.bbox || filter.search)) {
+  if (filter && (filter.bbox || filter.search || filter.stopId)) {
     filteredStops = []
 
-    if (filter.bbox) {
-      filteredStops = filterStopsByBBox(stops, filter.bbox)
-    }
+    if (filter.stopId) {
+      filteredStops = stops.filter((stop) => stop.stopId === filter.stopId)
+    } else {
+      if (filter.bbox) {
+        filteredStops = filterStopsByBBox(stops, filter.bbox)
+      }
 
-    if (filter.search) {
-      filteredStops = search<JoreStop>(stops, filter.search, getSearchValue)
+      if (filter.search) {
+        filteredStops = search<JoreStop>(stops, filter.search, getSearchValue)
+      }
     }
   }
 
@@ -63,6 +67,7 @@ export async function createStopsResponse(
       }
 
       const stopRoute: StopRoute = {
+        lineId: get(route, 'line.nodes[0].lineId', ''),
         direction: getDirection(route.direction),
         routeId: route.routeId,
         isTimingStop: !!segment.timingStopType,

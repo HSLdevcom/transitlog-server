@@ -62,6 +62,7 @@ export async function createDeparturesResponse(
       duration: segment.duration,
       stopIndex: segment.stopIndex,
       isTimingStop: !!segment.timingStopType, // very important
+      lineId: get(segment, 'line.nodes[0].lineId', ''),
       routeId: segment.routeId,
       direction: getDirection(segment.direction),
       ...stopObject,
@@ -138,6 +139,7 @@ export async function createDeparturesResponse(
   }
 
   const firstStopId = get(filteredDepartures, '[0].stopId', '')
+  const lineId = get(filteredDepartures, '[0].stop.lineId', '')
 
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the
@@ -183,7 +185,12 @@ export async function createDeparturesResponse(
 
       return {
         ...departure,
-        journey: createDepartureJourneyObject(events[0], departureIsNextDay, firstStopId, index),
+        journey: createDepartureJourneyObject(
+          events[0],
+          departureIsNextDay,
+          { originStopId: firstStopId, lineId },
+          index
+        ),
         observedDepartureTime: stopDeparture,
       }
     })

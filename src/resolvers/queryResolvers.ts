@@ -14,9 +14,9 @@ const equipment = (root, { filter, date }, { dataSources }) => {
   return createEquipmentResponse(getEquipment, getObservedVehicles, filter, date)
 }
 
-const stops = (root, { filter }, { dataSources }) => {
+const stops = (root, { filter, date }, { dataSources }) => {
   const getStops = () => dataSources.JoreAPI.getStops()
-  return createStopsResponse(getStops, filter)
+  return createStopsResponse(getStops, date, filter)
 }
 
 const routes = async (root, { filter, line, date }, { dataSources }) => {

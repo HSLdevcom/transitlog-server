@@ -29,6 +29,11 @@ export const STOPS = gql`
             timingStopType
             route {
               nodes {
+                line {
+                  nodes {
+                    lineId
+                  }
+                }
                 originstopId
                 routeId
                 direction

@@ -3,6 +3,7 @@ import { gql } from 'apollo-server'
 export const Stop = gql`
   type StopRoute {
     originStopId: String!
+    lineId: String!
     routeId: String!
     direction: Direction!
     isTimingStop: Boolean!
@@ -23,6 +24,7 @@ export const Stop = gql`
 
   input StopFilterInput {
     search: String
+    stopId: String
     bbox: BBox
   }
 `

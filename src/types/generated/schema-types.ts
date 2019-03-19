@@ -11,6 +11,8 @@ export interface EquipmentFilterInput {
 export interface StopFilterInput {
   search?: Maybe<string>
 
+  stopId?: Maybe<string>
+
   bbox?: Maybe<BBox>
 }
 
@@ -150,6 +152,8 @@ export interface Stop extends Position {
 export interface StopRoute {
   originStopId: string
 
+  lineId: string
+
   routeId: string
 
   direction: Direction
@@ -283,6 +287,8 @@ export interface DepartureStop {
 
 export interface DepartureJourney {
   id: string
+
+  lineId: string
 
   routeId: string
 

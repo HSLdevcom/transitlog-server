@@ -19,6 +19,11 @@ export const DEPARTURE_STOP = gql`
           stopId
           nextStopId
           timingStopType
+          line {
+            nodes {
+              lineId
+            }
+          }
         }
       }
     }
