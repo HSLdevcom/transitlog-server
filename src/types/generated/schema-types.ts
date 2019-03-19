@@ -142,7 +142,19 @@ export interface Stop extends Position {
 
   modes: Array<Maybe<string>>
 
+  routes: Array<Maybe<StopRoute>>
+
   _matchScore?: Maybe<number>
+}
+
+export interface StopRoute {
+  originStopId: string
+
+  routeId: string
+
+  direction: Direction
+
+  isTimingStop: boolean
 }
 
 export interface Route {
@@ -402,6 +414,8 @@ export interface EquipmentQueryArgs {
 }
 export interface StopsQueryArgs {
   filter?: Maybe<StopFilterInput>
+
+  date?: Maybe<Date>
 }
 export interface RoutesQueryArgs {
   filter?: Maybe<RouteFilterInput>

@@ -22,7 +22,7 @@ export const Schema = gql`
 
   type Query {
     equipment(filter: EquipmentFilterInput, date: Date): [Equipment]!
-    stops(filter: StopFilterInput): [Stop]!
+    stops(filter: StopFilterInput, date: Date): [Stop]!
     routes(filter: RouteFilterInput, line: String, date: Date): [Route]!
     routeGeometry(routeId: String!, direction: Direction!, date: Date!): RouteGeometry
     lines(filter: LineFilterInput, date: Date, includeLinesWithoutRoutes: Boolean = false): [Line]!

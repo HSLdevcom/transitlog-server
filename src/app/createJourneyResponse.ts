@@ -65,7 +65,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // and sorted by the stopIndex.
   const routeSegments: RouteSegment[] = get(journeyRoute, 'routeSegments.nodes', []) || []
   const validRouteSegments = filterByDateChains<RouteSegment>(
-    groupBy(routeSegments, (segment) => segment.stopIndex + segment.timingStopType),
+    groupBy(routeSegments, 'stopIndex'),
     date
   )
   const sortedRouteSegments = sortBy(validRouteSegments, 'stopIndex')

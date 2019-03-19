@@ -19,6 +19,23 @@ export const STOPS = gql`
   query JoreStops {
     allStops {
       nodes {
+        routeSegments: routeSegmentsByStopId {
+          nodes {
+            dateBegin
+            dateEnd
+            routeId
+            direction
+            stopIndex
+            timingStopType
+            route {
+              nodes {
+                originstopId
+                routeId
+                direction
+              }
+            }
+          }
+        }
         ...StopFieldsFragment
       }
     }
@@ -27,12 +44,7 @@ export const STOPS = gql`
 `
 
 export const STOPS_BY_BBOX = gql`
-  query JoreStopsByBBox(
-    $minLat: Float!
-    $minLon: Float!
-    $maxLat: Float!
-    $maxLon: Float!
-  ) {
+  query JoreStopsByBBox($minLat: Float!, $minLon: Float!, $maxLat: Float!, $maxLon: Float!) {
     stopsByBbox(minLat: $minLat, minLon: $minLon, maxLat: $maxLat, maxLon: $maxLon) {
       nodes {
         ...StopFieldsFragment
