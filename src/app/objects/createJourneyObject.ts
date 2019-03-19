@@ -22,6 +22,7 @@ export function createJourneyObject(
     id: createJourneyId(journey),
     lineId: get(journeyRoute, 'lineId', ''),
     routeId: get<Vehicles, any, string>(journey, 'route_id', get(journeyRoute, 'routeId', '')),
+    originStopId: get(journeyRoute, 'originStopId', ''),
     direction: journey.direction_id,
     departureDate: journey.oday,
     departureTime: getJourneyStartTime(journey, get(firstDeparture, 'isNextDay') || undefined),

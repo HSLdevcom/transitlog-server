@@ -195,7 +195,7 @@ export namespace QueryResolvers {
   export interface DeparturesArgs {
     filter?: Maybe<DepartureFilterInput>
 
-    stopId?: Maybe<string>
+    stopId: string
 
     date: Date
   }
@@ -382,7 +382,7 @@ export namespace RouteResolvers {
 
     destinationStopId?: DestinationStopIdResolver<Maybe<string>, TypeParent, TContext>
 
-    originStopId?: OriginStopIdResolver<Maybe<string>, TypeParent, TContext>
+    originStopId?: OriginStopIdResolver<string, TypeParent, TContext>
 
     _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
   }
@@ -423,7 +423,7 @@ export namespace RouteResolvers {
     Parent = Route,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type OriginStopIdResolver<R = Maybe<string>, Parent = Route, TContext = {}> = Resolver<
+  export type OriginStopIdResolver<R = string, Parent = Route, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -794,6 +794,8 @@ export namespace DepartureJourneyResolvers {
 
     direction?: DirectionResolver<Direction, TypeParent, TContext>
 
+    originStopId?: OriginStopIdResolver<string, TypeParent, TContext>
+
     departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
 
     departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
@@ -814,6 +816,11 @@ export namespace DepartureJourneyResolvers {
     TContext
   >
   export type DirectionResolver<R = Direction, Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type OriginStopIdResolver<R = string, Parent = DepartureJourney, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -1085,6 +1092,8 @@ export namespace JourneyResolvers {
 
     direction?: DirectionResolver<Direction, TypeParent, TContext>
 
+    originStopId?: OriginStopIdResolver<string, TypeParent, TContext>
+
     departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
 
     departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
@@ -1124,6 +1133,11 @@ export namespace JourneyResolvers {
     TContext
   >
   export type DirectionResolver<R = Direction, Parent = Journey, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type OriginStopIdResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

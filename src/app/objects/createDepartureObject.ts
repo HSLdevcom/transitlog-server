@@ -50,12 +50,14 @@ export function createPlannedDepartureTimeObject(departure: JoreDeparture, date)
 export function createDepartureJourneyObject(
   event: Vehicles,
   departureIsNextDay: boolean,
+  originStopId = '',
   instance = 0
 ): DepartureJourney {
   return {
     id: createJourneyId(event),
     routeId: event.route_id || '',
     direction: event.direction_id,
+    originStopId,
     departureDate: event.oday,
     departureTime: getJourneyStartTime(event, departureIsNextDay),
     uniqueVehicleId: event,

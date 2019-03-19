@@ -137,6 +137,8 @@ export async function createDeparturesResponse(
     return filteredDepartures
   }
 
+  const firstStopId = get(filteredDepartures, '[0].stopId', '')
+
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the
   const departuresWithEvents: Departure[][] = filteredDepartures.map((departure) => {
@@ -167,6 +169,10 @@ export async function createDeparturesResponse(
         getJourneyStartTime(event, departureIsNextDay) === originDepartureTime
     )
 
+    if (!eventsForDeparture || eventsForDeparture.length === 0) {
+      return [departure]
+    }
+
     const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture)
 
     return eventsPerVehicleJourney.map((events, index) => {
@@ -177,7 +183,7 @@ export async function createDeparturesResponse(
 
       return {
         ...departure,
-        journey: createDepartureJourneyObject(events[0], departureIsNextDay, index),
+        journey: createDepartureJourneyObject(events[0], departureIsNextDay, firstStopId, index),
         observedDepartureTime: stopDeparture,
       }
     })

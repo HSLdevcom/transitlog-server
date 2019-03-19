@@ -24,6 +24,7 @@ export const Journey = gql`
     lineId: String!
     routeId: String!
     direction: Direction!
+    originStopId: String!
     departureDate: Date!
     departureTime: Time!
     uniqueVehicleId: VehicleId

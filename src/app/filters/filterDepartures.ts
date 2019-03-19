@@ -18,15 +18,10 @@ export function filterDepartures(departures: Departure[], filter?: DepartureFilt
       }
     }
 
-    // Clean up the routeId to be compatible with what
-    // the user would enter into the filter field.
-    const routeIdFilterTerm = routeId
-      .substring(1)
-      .replace(/^0+/, '')
-      .toLowerCase()
+    const routeIdFilterTerm = routeId.replace(/^0+/, '').toLowerCase()
 
     // Filer by route id if filter is set.
-    if (routeFilter && !routeIdFilterTerm.startsWith(routeFilter.toLowerCase())) {
+    if (routeFilter && !routeIdFilterTerm.includes(routeFilter.toLowerCase())) {
       return false
     }
 

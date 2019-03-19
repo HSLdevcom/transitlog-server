@@ -2,6 +2,7 @@ import { Route as JoreRoute } from '../../types/generated/jore-types'
 import { get } from 'lodash'
 import { RouteFilterInput } from '../../types/generated/schema-types'
 import { search } from './search'
+import { getDirection } from '../../utils/getDirection'
 
 export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteFilterInput) {
   if (line) {
@@ -9,7 +10,14 @@ export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteF
   }
 
   const routeIdFilter = get(filter, 'routeId', '')
-  const directionFilter = get(filter, 'direction', '')
+  const directionFilter = getDirection(get(filter, 'direction', ''))
+
+  if (routeIdFilter && directionFilter) {
+    return routes.filter(
+      (route) =>
+        route.routeId === routeIdFilter && getDirection(route.direction) === directionFilter
+    )
+  }
 
   let searchFilter =
     routeIdFilter || directionFilter

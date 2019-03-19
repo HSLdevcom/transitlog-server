@@ -162,7 +162,7 @@ export interface Route {
 
   destinationStopId?: Maybe<string>
 
-  originStopId?: Maybe<string>
+  originStopId: string
 
   _matchScore?: Maybe<number>
 }
@@ -276,6 +276,8 @@ export interface DepartureJourney {
 
   direction: Direction
 
+  originStopId: string
+
   departureDate: Date
 
   departureTime: Time
@@ -364,6 +366,8 @@ export interface Journey {
 
   direction: Direction
 
+  originStopId: string
+
   departureDate: Date
 
   departureTime: Time
@@ -423,7 +427,7 @@ export interface LinesQueryArgs {
 export interface DeparturesQueryArgs {
   filter?: Maybe<DepartureFilterInput>
 
-  stopId?: Maybe<string>
+  stopId: string
 
   date: Date
 }

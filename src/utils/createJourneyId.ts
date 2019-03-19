@@ -1,6 +1,7 @@
 import { get } from 'lodash'
 import { getDirection } from './getDirection'
 import { Direction } from '../types/generated/schema-types'
+import { intval } from './isWithinRange'
 
 interface HFPJourneyObject {
   oday?: string
@@ -32,7 +33,7 @@ export const createJourneyId = (journeyObject: Journey | null = null, instance =
     get(journeyObject, 'direction_id', get(journeyObject, 'direction', null))
   )
 
-  let journeyInstance = getDirection(get(journeyObject, 'instance', instance))
+  let journeyInstance = intval(get(journeyObject, 'instance', instance))
 
   if (!route_id || !oday || !journey_start_time) {
     return ''

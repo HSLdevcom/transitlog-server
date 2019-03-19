@@ -1,5 +1,5 @@
 export function intval(val: string | number = 0) {
-  return typeof val === 'string' ? parseInt(val.replace(/\D/g, ''), 10) : val
+  return !val ? 0 : typeof val === 'string' ? parseInt(val.replace(/\D/g, ''), 10) : val
 }
 
 export function isBefore(value, otherValue) {

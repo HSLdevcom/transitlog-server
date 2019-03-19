@@ -10,7 +10,7 @@ export const Route = gql`
     origin: String
     name: String
     destinationStopId: String
-    originStopId: String
+    originStopId: String!
     _matchScore: Float
   }
 
