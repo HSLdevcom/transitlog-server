@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { get, groupBy, orderBy, flatten, map } from 'lodash'
+import { get, groupBy, orderBy, flatten } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import {
   Departure as JoreDeparture,
@@ -136,7 +136,7 @@ export async function createDeparturesResponse(
 
   // We can still return planned departures without observed events.
   if (!departureEvents || departureEvents.length === 0) {
-    return filteredDepartures
+    return orderBy(filteredDepartures, 'plannedDepartureTime.departureTime')
   }
 
   const firstStopId = get(filteredDepartures, '[0].stopId', '')
@@ -197,5 +197,5 @@ export async function createDeparturesResponse(
     })
   })
 
-  return flatten(departuresWithEvents)
+  return orderBy(flatten(departuresWithEvents), 'plannedDepartureTime.departureTime')
 }

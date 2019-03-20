@@ -49,7 +49,7 @@ export class JoreDataSource extends GraphQLDataSource {
         stopId,
       },
     })
-    return get(response, 'data.allStops.nodes', null)
+    return get(response, 'data.stopByStopId', null)
   }
 
   async getStops(): Promise<JoreStop[]> {
