@@ -119,6 +119,8 @@ export namespace QueryResolvers {
 
     routeGeometry?: RouteGeometryResolver<Maybe<RouteGeometry>, TypeParent, TContext>
 
+    routeSegments?: RouteSegmentsResolver<Array<Maybe<RouteSegment>>, TypeParent, TContext>
+
     lines?: LinesResolver<Array<Maybe<Line>>, TypeParent, TContext>
 
     departures?: DeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
@@ -170,6 +172,19 @@ export namespace QueryResolvers {
     TContext = {}
   > = Resolver<R, Parent, TContext, RouteGeometryArgs>
   export interface RouteGeometryArgs {
+    routeId: string
+
+    direction: Direction
+
+    date: Date
+  }
+
+  export type RouteSegmentsResolver<
+    R = Array<Maybe<RouteSegment>>,
+    Parent = {},
+    TContext = {}
+  > = Resolver<R, Parent, TContext, RouteSegmentsArgs>
+  export interface RouteSegmentsArgs {
     routeId: string
 
     direction: Direction
@@ -511,6 +526,102 @@ export namespace RouteGeometryPointResolvers {
     TContext
   >
   export type LngResolver<R = number, Parent = RouteGeometryPoint, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
+export namespace RouteSegmentResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = RouteSegment> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    lineId?: LineIdResolver<string, TypeParent, TContext>
+
+    routeId?: RouteIdResolver<string, TypeParent, TContext>
+
+    direction?: DirectionResolver<Direction, TypeParent, TContext>
+
+    originStopId?: OriginStopIdResolver<string, TypeParent, TContext>
+
+    stopId?: StopIdResolver<string, TypeParent, TContext>
+
+    stop?: StopResolver<Stop, TypeParent, TContext>
+
+    destination?: DestinationResolver<string, TypeParent, TContext>
+
+    distanceFromPrevious?: DistanceFromPreviousResolver<Maybe<number>, TypeParent, TContext>
+
+    distanceFromStart?: DistanceFromStartResolver<Maybe<number>, TypeParent, TContext>
+
+    duration?: DurationResolver<Maybe<number>, TypeParent, TContext>
+
+    stopIndex?: StopIndexResolver<number, TypeParent, TContext>
+
+    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
+  }
+
+  export type IdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type LineIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type RouteIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DirectionResolver<R = Direction, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type OriginStopIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type StopIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type StopResolver<R = Stop, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DestinationResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DistanceFromPreviousResolver<
+    R = Maybe<number>,
+    Parent = RouteSegment,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DistanceFromStartResolver<
+    R = Maybe<number>,
+    Parent = RouteSegment,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DurationResolver<R = Maybe<number>, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type StopIndexResolver<R = number, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type IsTimingStopResolver<R = boolean, Parent = RouteSegment, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -1335,6 +1446,7 @@ export type IResolvers<TContext = {}> = {
   Route?: RouteResolvers.Resolvers<TContext>
   RouteGeometry?: RouteGeometryResolvers.Resolvers<TContext>
   RouteGeometryPoint?: RouteGeometryPointResolvers.Resolvers<TContext>
+  RouteSegment?: RouteSegmentResolvers.Resolvers<TContext>
   Line?: LineResolvers.Resolvers<TContext>
   Departure?: DepartureResolvers.Resolvers<TContext>
   DepartureStop?: DepartureStopResolvers.Resolvers<TContext>

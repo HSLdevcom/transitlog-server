@@ -9,7 +9,7 @@ function createRouteId(route: JoreRoute): string {
 export function createRouteObject(route: JoreRoute): Route {
   return {
     id: createRouteId(route),
-    lineId: get(route, 'line.nodes[0].lineId', 'No line'),
+    lineId: get(route, 'line.nodes[0].lineId', ''),
     routeId: route.routeId,
     direction: parseInt(route.direction, 10),
     origin: route.originFi,

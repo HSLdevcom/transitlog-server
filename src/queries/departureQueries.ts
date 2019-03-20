@@ -1,6 +1,30 @@
 import { gql } from 'apollo-server'
 import { StopFieldsFragment } from './stopQueries'
 
+export const DepartureFieldsFragment = gql`
+  fragment DepartureFieldsFragment on Departure {
+    stopId
+    extraDeparture
+    routeId
+    direction
+    hours
+    minutes
+    isNextDay
+    arrivalHours
+    arrivalMinutes
+    departureId
+    dateBegin
+    dateEnd
+    dayType
+    terminalTime
+    recoveryTime
+    equipmentRequired
+    equipmentType
+    trunkColorRequired
+    operatorId
+  }
+`
+
 export const DEPARTURE_STOP = gql`
   query stopByStopId($stopId: String!) {
     stop: stopByStopId(stopId: $stopId) {
@@ -38,25 +62,7 @@ export const DEPARTURES_FOR_STOP_QUERY = gql`
       condition: { stopId: $stopId, dayType: $dayType }
     ) {
       nodes {
-        stopId
-        dayType
-        hours
-        minutes
-        arrivalHours
-        arrivalMinutes
-        terminalTime
-        recoveryTime
-        equipmentRequired
-        equipmentType
-        trunkColorRequired
-        operatorId
-        dateBegin
-        dateEnd
-        routeId
-        direction
-        departureId
-        extraDeparture
-        isNextDay
+        ...DepartureFieldsFragment
         originDeparture {
           stopId
           dayType
@@ -72,6 +78,7 @@ export const DEPARTURES_FOR_STOP_QUERY = gql`
       }
     }
   }
+  ${DepartureFieldsFragment}
 `
 
 export const DEPARTURE_EVENTS_QUERY = gql`

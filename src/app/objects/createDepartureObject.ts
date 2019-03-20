@@ -1,14 +1,9 @@
 import { Departure as JoreDeparture } from '../../types/generated/jore-types'
 import {
-  Date,
   DepartureJourney,
   DepartureStop,
-  Direction,
-  Maybe,
   PlannedArrival,
   PlannedDeparture,
-  Time,
-  VehicleId,
 } from '../../types/generated/schema-types'
 import { StopSegmentCombo } from '../../types/StopSegmentCombo'
 import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../../utils/time'

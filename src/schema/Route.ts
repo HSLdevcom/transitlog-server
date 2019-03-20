@@ -14,6 +14,22 @@ export const Route = gql`
     _matchScore: Float
   }
 
+  type RouteSegment {
+    id: ID!
+    lineId: String!
+    routeId: String!
+    direction: Direction!
+    originStopId: String!
+    stopId: String!
+    stop: Stop!
+    destination: String!
+    distanceFromPrevious: Int
+    distanceFromStart: Int
+    duration: Int
+    stopIndex: Int!
+    isTimingStop: Boolean!
+  }
+
   type RouteGeometryPoint implements Position {
     lat: Float!
     lng: Float!

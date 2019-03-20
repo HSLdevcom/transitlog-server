@@ -6,10 +6,17 @@ import {
   Line as JoreLine,
   Stop as JoreStop,
   Equipment as JoreEquipment,
+  RouteSegment as JoreRouteSegment,
 } from '../types/generated/jore-types'
 import { LINES } from '../queries/lineQueries'
 import { STOPS } from '../queries/stopQueries'
-import { JOURNEY_ROUTE, ROUTE_GEOMETRY, ROUTE_INDEX, ROUTES } from '../queries/routeQueries'
+import {
+  JOURNEY_ROUTE,
+  ROUTE_GEOMETRY,
+  ROUTE_INDEX,
+  ROUTE_SEGMENTS,
+  ROUTES,
+} from '../queries/routeQueries'
 import { Direction } from '../types/generated/schema-types'
 import { EQUIPMENT, EQUIPMENT_BY_ID } from '../queries/equipmentQueries'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
@@ -55,6 +62,16 @@ export class JoreDataSource extends GraphQLDataSource {
     })
 
     return get(response, 'data.allEquipment.nodes[0]', null)
+  }
+
+  async getRouteSegments(routeId: string, direction: Direction): Promise<JoreRouteSegment[]> {
+    const response = await this.query(ROUTE_SEGMENTS, {
+      variables: {
+        routeId,
+        direction: direction + '',
+      },
+    })
+    return get(response, 'data.allRoutes.nodes', null)
   }
 
   async getRouteIndex(routeId: string, direction: Direction) {

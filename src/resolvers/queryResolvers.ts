@@ -7,6 +7,7 @@ import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
 import { createDeparturesResponse } from '../app/createDepartureResponse'
 import { getNormalTime } from '../utils/time'
+import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -27,6 +28,11 @@ const routes = async (root, { filter, line, date }, { dataSources }) => {
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
   const getRouteGeometry = () => dataSources.JoreAPI.getRouteGeometry(routeId, direction)
   return createRouteGeometryResponse(getRouteGeometry, date, routeId, direction)
+}
+
+const routeSegments = (root, { routeId, direction, date }, { dataSources }) => {
+  const getRouteSegments = () => dataSources.JoreAPI.getRouteSegments(routeId, direction)
+  return createRouteSegmentsResponse(getRouteSegments, date, routeId, direction)
 }
 
 const lines = async (root, { filter, date }, { dataSources }) => {
@@ -77,6 +83,7 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   stops,
   routes,
   routeGeometry,
+  routeSegments,
   lines,
   departures,
   journey,

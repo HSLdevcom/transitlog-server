@@ -19,7 +19,7 @@ export async function createRouteGeometryResponse(
       return false
     }
 
-    const geometries = get(validRoutes, '[0].geometries.nodes', [])
+    const geometries = get(selectedRoute, 'geometries.nodes', [])
 
     const geometry = geometries.find(
       ({ dateBegin: geomDateBegin, dateEnd: geomDateEnd }) =>

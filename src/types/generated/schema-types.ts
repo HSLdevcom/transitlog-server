@@ -94,6 +94,8 @@ export interface Query {
 
   routeGeometry?: Maybe<RouteGeometry>
 
+  routeSegments: Array<Maybe<RouteSegment>>
+
   lines: Array<Maybe<Line>>
 
   departures: Array<Maybe<Departure>>
@@ -191,6 +193,34 @@ export interface RouteGeometryPoint extends Position {
   lat: number
 
   lng: number
+}
+
+export interface RouteSegment {
+  id: string
+
+  lineId: string
+
+  routeId: string
+
+  direction: Direction
+
+  originStopId: string
+
+  stopId: string
+
+  stop: Stop
+
+  destination: string
+
+  distanceFromPrevious?: Maybe<number>
+
+  distanceFromStart?: Maybe<number>
+
+  duration?: Maybe<number>
+
+  stopIndex: number
+
+  isTimingStop: boolean
 }
 
 export interface Line {
@@ -431,6 +461,13 @@ export interface RoutesQueryArgs {
   date?: Maybe<Date>
 }
 export interface RouteGeometryQueryArgs {
+  routeId: string
+
+  direction: Direction
+
+  date: Date
+}
+export interface RouteSegmentsQueryArgs {
   routeId: string
 
   direction: Direction

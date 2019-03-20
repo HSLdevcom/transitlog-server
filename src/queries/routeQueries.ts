@@ -1,5 +1,6 @@
 import { gql } from 'apollo-server'
 import { StopFieldsFragment } from './stopQueries'
+import { DepartureFieldsFragment } from './departureQueries'
 
 export const RouteFieldsFragment = gql`
   fragment RouteFieldsFragment on Route {
@@ -20,47 +21,35 @@ export const RouteFieldsFragment = gql`
   }
 `
 
+export const RouteSegmentFieldsFragment = gql`
+  fragment RouteSegmentFieldsFragment on RouteSegment {
+    stopId
+    nextStopId
+    dateBegin
+    dateEnd
+    duration
+    stopIndex
+    distanceFromPrevious
+    distanceFromStart
+    destinationFi
+    timingStopType
+    direction
+    routeId
+  }
+`
+
 export const ExtensiveRouteFieldsFragment = gql`
   fragment ExtensiveRouteFieldsFragment on Route {
     routeSegments {
       nodes {
-        stopId
-        nextStopId
-        dateBegin
-        dateEnd
-        duration
-        stopIndex
-        distanceFromPrevious
-        distanceFromStart
-        destinationFi
-        timingStopType
-        direction
-        routeId
+        ...RouteSegmentFieldsFragment
         stop: stopByStopId {
           ...StopFieldsFragment
           departures: departuresByStopId(
             condition: { routeId: $routeId, direction: $direction, dayType: $dayType }
           ) {
             nodes {
-              stopId
-              extraDeparture
-              routeId
-              direction
-              hours
-              minutes
-              isNextDay
-              arrivalHours
-              arrivalMinutes
-              departureId
-              dateBegin
-              dateEnd
-              dayType
-              terminalTime
-              recoveryTime
-              equipmentRequired
-              equipmentType
-              trunkColorRequired
-              operatorId
+              ...DepartureFieldsFragment
             }
           }
         }
@@ -68,6 +57,8 @@ export const ExtensiveRouteFieldsFragment = gql`
     }
   }
   ${StopFieldsFragment}
+  ${DepartureFieldsFragment}
+  ${RouteSegmentFieldsFragment}
 `
 
 export const ROUTES = gql`
@@ -110,6 +101,35 @@ export const ROUTE_INDEX = gql`
       }
     }
   }
+`
+
+export const ROUTE_SEGMENTS = gql`
+  query JoreRouteSegments($routeId: String!, $direction: String!) {
+    allRoutes(condition: { routeId: $routeId, direction: $direction }) {
+      nodes {
+        routeId
+        direction
+        dateBegin
+        dateEnd
+        originstopId
+        line {
+          nodes {
+            lineId
+          }
+        }
+        routeSegments {
+          nodes {
+            ...RouteSegmentFieldsFragment
+            stop: stopByStopId {
+              ...StopFieldsFragment
+            }
+          }
+        }
+      }
+    }
+  }
+  ${RouteSegmentFieldsFragment}
+  ${StopFieldsFragment}
 `
 
 export const JOURNEY_ROUTE = gql`
