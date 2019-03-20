@@ -43,9 +43,18 @@ export const DEPARTURE_STOP = gql`
           stopId
           nextStopId
           timingStopType
-          line {
+          route {
             nodes {
-              lineId
+              dateBegin
+              dateEnd
+              routeId
+              direction
+              originstopId
+              line {
+                nodes {
+                  lineId
+                }
+              }
             }
           }
         }

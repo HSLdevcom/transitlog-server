@@ -1,8 +1,8 @@
 import BoundingBox from 'boundingbox'
 import { BBox } from '../../types/BBox'
-import { Stop as JoreStop } from '../../types/generated/jore-types'
+import { Stop } from '../../types/generated/schema-types'
 
-export function filterStopsByBBox(stops: JoreStop[], bbox: BBox) {
+export function filterStopsByBBox(stops: Stop[], bbox: BBox) {
   const bounds = new BoundingBox({
     minlat: bbox.minLat,
     minlon: bbox.minLng,
@@ -11,7 +11,7 @@ export function filterStopsByBBox(stops: JoreStop[], bbox: BBox) {
   })
 
   return stops.filter((stop) => {
-    const stopPoint = new BoundingBox({ lat: stop.lat, lon: stop.lon })
+    const stopPoint = new BoundingBox({ lat: stop.lat, lng: stop.lng })
     return stopPoint.within(bounds)
   })
 }

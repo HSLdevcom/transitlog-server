@@ -3,7 +3,7 @@ import { DateScalar } from './scalars/Date'
 import { TimeScalar } from './scalars/Time'
 import { DateTimeScalar } from './scalars/DateTime'
 import { VehicleIdScalar } from './scalars/VehicleId'
-import { BBoxScalar } from './scalars/BBox'
+import { BBoxScalar, PreciseBBoxScalar } from './scalars/BBox'
 import { DirectionScalar } from './scalars/Direction'
 import { StringIndexed } from '../types/StringIndexed'
 
@@ -14,6 +14,7 @@ export const resolvers: StringIndexed<any> = {
   DateTime: DateTimeScalar,
   VehicleId: VehicleIdScalar,
   BBox: BBoxScalar,
+  PreciseBBox: PreciseBBoxScalar,
   Direction: DirectionScalar,
   Position: {
     __resolveType(obj, context, info) {
@@ -21,8 +22,12 @@ export const resolvers: StringIndexed<any> = {
         return 'JourneyEvent'
       }
 
-      if (obj.stopId) {
+      if (obj.stopId && !obj.routeId) {
         return 'Stop'
+      }
+
+      if (obj.stopId && obj.routeId) {
+        return 'RouteSegment'
       }
 
       if (Object.keys(obj).length === 2) {

@@ -32,25 +32,6 @@ export const Departure = gql`
     doorDidOpen: Boolean!
   }
 
-  type DepartureStop {
-    id: ID!
-    routeId: String
-    direction: Direction
-    destination: String
-    distanceFromPrevious: Int
-    distanceFromStart: Int
-    duration: Int
-    stopIndex: Int
-    isTimingStop: Boolean
-    stopId: String!
-    shortId: String!
-    lat: Float!
-    lng: Float!
-    name: String
-    radius: Float
-    modes: [String]!
-  }
-
   type DepartureJourney {
     id: ID!
     lineId: String!
@@ -80,7 +61,7 @@ export const Departure = gql`
     isNextDay: Boolean
     isTimingStop: Boolean
     index: Int
-    stop: DepartureStop
+    stop: RouteSegment
     journey: DepartureJourney
     plannedArrivalTime: PlannedArrival
     observedArrivalTime: ObservedArrival

@@ -10,10 +10,6 @@ export interface EquipmentFilterInput {
 
 export interface StopFilterInput {
   search?: Maybe<string>
-
-  stopId?: Maybe<string>
-
-  bbox?: Maybe<BBox>
 }
 
 export interface RouteFilterInput {
@@ -48,11 +44,11 @@ export enum CacheControlScope {
 /** A Date string in YYYY-MM-DD format. The timezone is assumed to be Europe/Helsinki. */
 export type Date = any
 
-/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. */
-export type BBox = any
-
 /** The direction of a route. An integer of either 1 or 2. */
 export type Direction = any
+
+/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
+export type BBox = any
 
 /** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. The timezone is assumed to be Europe/Helsinki */
 export type Time = any
@@ -62,6 +58,9 @@ export type VehicleId = any
 
 /** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
 export type DateTime = any
+
+/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
+export type PreciseBBox = any
 
 /** The `Upload` scalar type represents a file upload. */
 export type Upload = any
@@ -88,7 +87,11 @@ export interface Position {
 export interface Query {
   equipment: Array<Maybe<Equipment>>
 
+  stop?: Maybe<Stop>
+
   stops: Array<Maybe<Stop>>
+
+  stopsByBbox: Array<Maybe<Stop>>
 
   routes: Array<Maybe<Route>>
 
@@ -195,7 +198,7 @@ export interface RouteGeometryPoint extends Position {
   lng: number
 }
 
-export interface RouteSegment {
+export interface RouteSegment extends Position {
   id: string
 
   lineId: string
@@ -278,7 +281,7 @@ export interface Departure {
 
   index?: Maybe<number>
 
-  stop?: Maybe<DepartureStop>
+  stop?: Maybe<RouteSegment>
 
   journey?: Maybe<DepartureJourney>
 
@@ -289,40 +292,6 @@ export interface Departure {
   plannedDepartureTime?: Maybe<PlannedDeparture>
 
   observedDepartureTime?: Maybe<ObservedDeparture>
-}
-
-export interface DepartureStop {
-  id: string
-
-  routeId?: Maybe<string>
-
-  direction?: Maybe<Direction>
-
-  destination?: Maybe<string>
-
-  distanceFromPrevious?: Maybe<number>
-
-  distanceFromStart?: Maybe<number>
-
-  duration?: Maybe<number>
-
-  stopIndex?: Maybe<number>
-
-  isTimingStop?: Maybe<boolean>
-
-  stopId: string
-
-  shortId: string
-
-  lat: number
-
-  lng: number
-
-  name?: Maybe<string>
-
-  radius?: Maybe<number>
-
-  modes: Array<Maybe<string>>
 }
 
 export interface DepartureJourney {
@@ -458,10 +427,18 @@ export interface EquipmentQueryArgs {
 
   date?: Maybe<Date>
 }
+export interface StopQueryArgs {
+  stopId: string
+
+  date: Date
+}
 export interface StopsQueryArgs {
   filter?: Maybe<StopFilterInput>
+}
+export interface StopsByBboxQueryArgs {
+  filter?: Maybe<StopFilterInput>
 
-  date?: Maybe<Date>
+  bbox: BBox
 }
 export interface RoutesQueryArgs {
   filter?: Maybe<RouteFilterInput>

@@ -24,7 +24,5 @@ export const Stop = gql`
 
   input StopFilterInput {
     search: String
-    stopId: String
-    bbox: BBox
   }
 `

@@ -6,6 +6,7 @@ export const Schema = gql`
   scalar DateTime
   scalar VehicleId
   scalar BBox
+  scalar PreciseBBox
   scalar Direction
 
   """
@@ -22,7 +23,9 @@ export const Schema = gql`
 
   type Query {
     equipment(filter: EquipmentFilterInput, date: Date): [Equipment]!
-    stops(filter: StopFilterInput, date: Date): [Stop]!
+    stop(stopId: String!, date: Date!): Stop
+    stops(filter: StopFilterInput): [Stop]!
+    stopsByBbox(filter: StopFilterInput, bbox: BBox!): [Stop]!
     routes(filter: RouteFilterInput, line: String, date: Date): [Route]!
     routeGeometry(routeId: String!, direction: Direction!, date: Date!): RouteGeometry
     routeSegments(routeId: String!, direction: Direction!, date: Date!): [RouteSegment]!

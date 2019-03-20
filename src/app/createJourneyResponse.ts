@@ -2,26 +2,25 @@ import {
   Departure as JoreDeparture,
   Equipment as JoreEquipment,
   Route as JoreRoute,
-  RouteSegment,
+  RouteSegment as JoreRouteSegment,
 } from '../types/generated/jore-types'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
-import { Departure, Direction, Journey, Route } from '../types/generated/schema-types'
+import { Departure, Direction, Journey, Route, RouteSegment } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { get, groupBy, sortBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
-import { StopSegmentCombo } from '../types/StopSegmentCombo'
 import { createDepartureId, createPlannedDepartureObject } from './objects/createDepartureObject'
 import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
-import { createStopObject } from './objects/createStopObject'
 import { createRouteObject } from './objects/createRouteObject'
 import { differenceInSeconds } from 'date-fns'
 import { getStopEvents } from '../utils/getStopEvents'
+import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
 
 type JourneyRoute = {
   route: Route
@@ -63,8 +62,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // A route is divided into route segments, each with a stop. The stop has departures associated
   // with it. To get to the departures, we need to ensure that each route segment is valid
   // and sorted by the stopIndex.
-  const routeSegments: RouteSegment[] = get(journeyRoute, 'routeSegments.nodes', []) || []
-  const validRouteSegments = filterByDateChains<RouteSegment>(
+  const routeSegments: JoreRouteSegment[] = get(journeyRoute, 'routeSegments.nodes', []) || []
+  const validRouteSegments = filterByDateChains<JoreRouteSegment>(
     groupBy(routeSegments, 'stopIndex'),
     date
   )
@@ -76,27 +75,24 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // be seen as the "glue" between the journey and the stops, since stops are otherwise
   // oblivious to route-specific things. We want route-aware stops which segments provide.
   const stops = sortedRouteSegments.map(
-    (routeSegment): StopSegmentCombo => {
+    (routeSegment): { departures: JoreDeparture[]; stop: RouteSegment } => {
       // Group by departure and filter out any invalid departures.
       const groupedDepartures = groupBy(
         get(routeSegment, 'stop.departures.nodes', []),
         createDepartureId
       )
+
       const validDepartures = filterByDateChains<JoreDeparture>(groupedDepartures, date)
 
       // Merge the route segment and the stop data, picking what we need from the segment and
       // splatting the stop. What we really need from the segment is the timing stop type and
       // the stop index. The departures will later be matched with actually observed events.
-      return {
-        destination: routeSegment.destinationFi || '',
-        distanceFromPrevious: routeSegment.distanceFromPrevious,
-        distanceFromStart: routeSegment.distanceFromStart,
-        duration: routeSegment.duration,
-        stopIndex: routeSegment.stopIndex,
-        isTimingStop: !!routeSegment.timingStopType,
-        ...createStopObject(get(routeSegment, 'stop', {})),
-        departures: validDepartures,
-      }
+      const stopSegment = createRouteSegmentObject(
+        routeSegment,
+        get(routeSegment, 'route.nodes[0]', {})
+      )
+
+      return { departures: validDepartures, stop: stopSegment }
     }
   )
 
@@ -119,18 +115,15 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
 
   // With the departureId from the first departure we can easily reduce the departures on each
   // stop down to the one departure that belongs to this specific journey.
-  const departures = stops.map((stop) => {
-    const departure = get<StopSegmentCombo, any, []>(stop, 'departures', []).filter(
-      (dep) => dep.departureId === originDeparture.departureId
-    )[0] // The array should be only one element long, so get the one element out of it.
-
+  const stopDepartures = stops.map(({ stop, departures = [] }) => {
+    const departure = departures.filter((dep) => dep.departureId === originDeparture.departureId)[0]
     // The departures are then converted to objects native to this domain.
     return createPlannedDepartureObject(departure, stop, date)
   })
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
-  return { route: createRouteObject(journeyRoute), departures }
+  return { route: createRouteObject(journeyRoute), departures: stopDepartures }
 }
 
 /**

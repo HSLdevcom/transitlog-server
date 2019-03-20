@@ -1,11 +1,10 @@
 import { Departure as JoreDeparture } from '../../types/generated/jore-types'
 import {
   DepartureJourney,
-  DepartureStop,
   PlannedArrival,
   PlannedDeparture,
+  RouteSegment,
 } from '../../types/generated/schema-types'
-import { StopSegmentCombo } from '../../types/StopSegmentCombo'
 import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../../utils/time'
 import moment from 'moment-timezone'
 import { PlannedDeparture as PlannedDepartureObject } from '../../types/PlannedDeparture'
@@ -13,6 +12,7 @@ import { TZ } from '../../constants'
 import { get } from 'lodash'
 import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
+import { StopSegmentCombo } from '../../types/StopSegmentCombo'
 
 export function createDepartureId(departure) {
   return `${departure.routeId}_${departure.direction}_${departure.hours}_${departure.minutes}_${
@@ -63,7 +63,7 @@ export function createDepartureJourneyObject(
 
 export function createPlannedDepartureObject(
   departure: JoreDeparture,
-  stop: StopSegmentCombo | DepartureStop | null,
+  stop: RouteSegment | null,
   departureDate: string
 ): PlannedDepartureObject {
   return {

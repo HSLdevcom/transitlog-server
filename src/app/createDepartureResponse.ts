@@ -6,7 +6,7 @@ import {
   RouteSegment as JoreRouteSegment,
   Stop as JoreStop,
 } from '../types/generated/jore-types'
-import { Departure, DepartureFilterInput, DepartureStop } from '../types/generated/schema-types'
+import { Departure, DepartureFilterInput, RouteSegment } from '../types/generated/schema-types'
 import { Vehicles } from '../types/generated/hfp-types'
 import { cacheFetch } from './cache'
 import {
@@ -32,7 +32,7 @@ export async function createDeparturesResponse(
 ) {
   // Fetch the stop which the departures are requested from.
   // Combines the stop data with route segments to end up with stop objects with route data.
-  const fetchStops: CachedFetcher<DepartureStop[]> = async () => {
+  const fetchStops: CachedFetcher<RouteSegment[]> = async () => {
     const stop = await getStop()
 
     // Return false to sip caching an empty value
@@ -63,6 +63,7 @@ export async function createDeparturesResponse(
       stopIndex: segment.stopIndex,
       isTimingStop: !!segment.timingStopType, // very important
       lineId: get(segment, 'line.nodes[0].lineId', ''),
+      originStopId: get(segment, 'route.nodes[0].originstopId', ''),
       routeId: segment.routeId,
       direction: getDirection(segment.direction),
       ...stopObject,

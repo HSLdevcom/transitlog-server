@@ -14,7 +14,7 @@ export const Route = gql`
     _matchScore: Float
   }
 
-  type RouteSegment {
+  type RouteSegment implements Position {
     id: ID!
     lineId: String!
     routeId: String!

@@ -1,7 +1,7 @@
 import { QueryResolvers } from '../types/generated/resolver-types'
 import { createLinesResponse } from '../app/createLinesResponse'
 import { createRoutesResponse } from '../app/createRoutesResponse'
-import { createStopsResponse } from '../app/createStopsResponse'
+import { createStopResponse, createStopsResponse } from '../app/createStopsResponse'
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
@@ -15,9 +15,19 @@ const equipment = (root, { filter, date }, { dataSources }) => {
   return createEquipmentResponse(getEquipment, getObservedVehicles, filter, date)
 }
 
-const stops = (root, { filter, date }, { dataSources }) => {
+const stops = (root, { filter }, { dataSources }) => {
   const getStops = () => dataSources.JoreAPI.getStops()
-  return createStopsResponse(getStops, date, filter)
+  return createStopsResponse(getStops, filter)
+}
+
+const stopsByBbox = (root, { filter, bbox }, { dataSources }) => {
+  const getStops = () => dataSources.JoreAPI.getStopsByBBox(bbox)
+  return createStopsResponse(getStops, filter, bbox)
+}
+
+const stop = (root, { stopId, date }, { dataSources }) => {
+  const getStop = () => dataSources.JoreAPI.getStop(stopId)
+  return createStopResponse(getStop, date, stopId)
 }
 
 const routes = async (root, { filter, line, date }, { dataSources }) => {
@@ -80,7 +90,9 @@ const journey = (
 
 export const queryResolvers: QueryResolvers.Resolvers = {
   equipment,
+  stop,
   stops,
+  stopsByBbox,
   routes,
   routeGeometry,
   routeSegments,

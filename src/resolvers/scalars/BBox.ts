@@ -3,8 +3,9 @@ import { StringOrNull } from '../../types/NullOr'
 import { UserInputError } from 'apollo-server'
 import { BBox } from '../../types/BBox'
 import { createBBoxString } from '../../utils/createBBoxString'
+import { getRoundedBbox } from '../../utils/getRoundedBbox'
 
-function validateBbox(value: unknown): BBox | null {
+function createBboxObject(value: unknown, round = true): BBox | null {
   if (typeof value !== 'string' || !value) {
     return null
   }
@@ -34,31 +35,59 @@ function validateBbox(value: unknown): BBox | null {
     )
   }
 
-  return {
+  const bboxObj = {
     minLng,
     minLat,
     maxLng,
     maxLat,
   }
+
+  if (!round) {
+    return bboxObj
+  }
+
+  return getRoundedBbox(bboxObj)
 }
 
 export const BBoxScalar = new GraphQLScalarType({
   name: 'BBox',
   description:
-    "A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns.",
+    "A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired.",
   parseValue(value: StringOrNull): BBox | null {
-    return validateBbox(value)
+    return createBboxObject(value, true)
   },
   serialize(value): StringOrNull {
     if (typeof value !== 'string' || !value) {
       return null
     }
 
-    return createBBoxString(validateBbox(value))
+    return createBBoxString(createBboxObject(value, true))
   },
   parseLiteral(ast): StringOrNull {
     if (ast.kind === Kind.STRING) {
-      return createBBoxString(validateBbox(ast.value))
+      return createBBoxString(createBboxObject(ast.value, true))
+    }
+    return null
+  },
+})
+
+export const PreciseBBoxScalar = new GraphQLScalarType({
+  name: 'PreciseBBox',
+  description:
+    "A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded.",
+  parseValue(value: StringOrNull): BBox | null {
+    return createBboxObject(value, false)
+  },
+  serialize(value): StringOrNull {
+    if (typeof value !== 'string' || !value) {
+      return null
+    }
+
+    return createBBoxString(createBboxObject(value, false))
+  },
+  parseLiteral(ast): StringOrNull {
+    if (ast.kind === Kind.STRING) {
+      return createBBoxString(createBboxObject(ast.value, false))
     }
     return null
   },

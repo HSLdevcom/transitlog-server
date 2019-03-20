@@ -9,7 +9,7 @@ import {
   RouteSegment as JoreRouteSegment,
 } from '../types/generated/jore-types'
 import { LINES } from '../queries/lineQueries'
-import { STOPS } from '../queries/stopQueries'
+import { STOP_BY_ID, STOPS, STOPS_BY_BBOX } from '../queries/stopQueries'
 import {
   JOURNEY_ROUTE,
   ROUTE_GEOMETRY,
@@ -43,9 +43,27 @@ export class JoreDataSource extends GraphQLDataSource {
     return get(response, 'data.allRoutes.nodes', null)
   }
 
+  async getStop(stopId: string): Promise<JoreStop> {
+    const response = await this.query(STOP_BY_ID, {
+      variables: {
+        stopId,
+      },
+    })
+    return get(response, 'data.allStops.nodes', null)
+  }
+
   async getStops(): Promise<JoreStop[]> {
     const response = await this.query(STOPS, {})
     return get(response, 'data.allStops.nodes', null)
+  }
+
+  async getStopsByBBox(bbox): Promise<JoreStop[]> {
+    const response = await this.query(STOPS_BY_BBOX, {
+      variables: {
+        ...bbox,
+      },
+    })
+    return get(response, 'data.stopsByBbox.nodes', null)
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {

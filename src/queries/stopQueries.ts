@@ -19,28 +19,6 @@ export const STOPS = gql`
   query JoreStops {
     allStops {
       nodes {
-        routeSegments: routeSegmentsByStopId {
-          nodes {
-            dateBegin
-            dateEnd
-            routeId
-            direction
-            stopIndex
-            timingStopType
-            route {
-              nodes {
-                line {
-                  nodes {
-                    lineId
-                  }
-                }
-                originstopId
-                routeId
-                direction
-              }
-            }
-          }
-        }
         ...StopFieldsFragment
       }
     }
@@ -49,11 +27,42 @@ export const STOPS = gql`
 `
 
 export const STOPS_BY_BBOX = gql`
-  query JoreStopsByBBox($minLat: Float!, $minLon: Float!, $maxLat: Float!, $maxLon: Float!) {
-    stopsByBbox(minLat: $minLat, minLon: $minLon, maxLat: $maxLat, maxLon: $maxLon) {
+  query JoreStopsByBBox($minLat: Float!, $minLng: Float!, $maxLat: Float!, $maxLng: Float!) {
+    stopsByBbox(minLat: $minLat, minLon: $minLng, maxLat: $maxLat, maxLon: $maxLng) {
       nodes {
         ...StopFieldsFragment
       }
+    }
+  }
+  ${StopFieldsFragment}
+`
+
+export const STOP_BY_ID = gql`
+  query JoreStopById($stopId: String!) {
+    stopByStopId(stopId: $stopId) {
+      routeSegments: routeSegmentsByStopId {
+        nodes {
+          dateBegin
+          dateEnd
+          routeId
+          direction
+          stopIndex
+          timingStopType
+          route {
+            nodes {
+              line {
+                nodes {
+                  lineId
+                }
+              }
+              originstopId
+              routeId
+              direction
+            }
+          }
+        }
+      }
+      ...StopFieldsFragment
     }
   }
   ${StopFieldsFragment}

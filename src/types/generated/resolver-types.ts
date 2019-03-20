@@ -10,10 +10,6 @@ export interface EquipmentFilterInput {
 
 export interface StopFilterInput {
   search?: Maybe<string>
-
-  stopId?: Maybe<string>
-
-  bbox?: Maybe<BBox>
 }
 
 export interface RouteFilterInput {
@@ -48,11 +44,11 @@ export enum CacheControlScope {
 /** A Date string in YYYY-MM-DD format. The timezone is assumed to be Europe/Helsinki. */
 export type Date = any
 
-/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. */
-export type BBox = any
-
 /** The direction of a route. An integer of either 1 or 2. */
 export type Direction = any
+
+/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
+export type BBox = any
 
 /** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. The timezone is assumed to be Europe/Helsinki */
 export type Time = any
@@ -62,6 +58,9 @@ export type VehicleId = any
 
 /** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
 export type DateTime = any
+
+/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
+export type PreciseBBox = any
 
 /** The `Upload` scalar type represents a file upload. */
 export type Upload = any
@@ -113,7 +112,11 @@ export namespace QueryResolvers {
   export interface Resolvers<TContext = {}, TypeParent = {}> {
     equipment?: EquipmentResolver<Array<Maybe<Equipment>>, TypeParent, TContext>
 
+    stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
+
     stops?: StopsResolver<Array<Maybe<Stop>>, TypeParent, TContext>
+
+    stopsByBbox?: StopsByBboxResolver<Array<Maybe<Stop>>, TypeParent, TContext>
 
     routes?: RoutesResolver<Array<Maybe<Route>>, TypeParent, TContext>
 
@@ -140,6 +143,18 @@ export namespace QueryResolvers {
     date?: Maybe<Date>
   }
 
+  export type StopResolver<R = Maybe<Stop>, Parent = {}, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext,
+    StopArgs
+  >
+  export interface StopArgs {
+    stopId: string
+
+    date: Date
+  }
+
   export type StopsResolver<R = Array<Maybe<Stop>>, Parent = {}, TContext = {}> = Resolver<
     R,
     Parent,
@@ -148,8 +163,18 @@ export namespace QueryResolvers {
   >
   export interface StopsArgs {
     filter?: Maybe<StopFilterInput>
+  }
 
-    date?: Maybe<Date>
+  export type StopsByBboxResolver<R = Array<Maybe<Stop>>, Parent = {}, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext,
+    StopsByBboxArgs
+  >
+  export interface StopsByBboxArgs {
+    filter?: Maybe<StopFilterInput>
+
+    bbox: BBox
   }
 
   export type RoutesResolver<R = Array<Maybe<Route>>, Parent = {}, TContext = {}> = Resolver<
@@ -733,7 +758,7 @@ export namespace DepartureResolvers {
 
     index?: IndexResolver<Maybe<number>, TypeParent, TContext>
 
-    stop?: StopResolver<Maybe<DepartureStop>, TypeParent, TContext>
+    stop?: StopResolver<Maybe<RouteSegment>, TypeParent, TContext>
 
     journey?: JourneyResolver<Maybe<DepartureJourney>, TypeParent, TContext>
 
@@ -834,7 +859,7 @@ export namespace DepartureResolvers {
     Parent,
     TContext
   >
-  export type StopResolver<R = Maybe<DepartureStop>, Parent = Departure, TContext = {}> = Resolver<
+  export type StopResolver<R = Maybe<RouteSegment>, Parent = Departure, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -862,123 +887,6 @@ export namespace DepartureResolvers {
   export type ObservedDepartureTimeResolver<
     R = Maybe<ObservedDeparture>,
     Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace DepartureStopResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = DepartureStop> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<Maybe<string>, TypeParent, TContext>
-
-    direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
-
-    destination?: DestinationResolver<Maybe<string>, TypeParent, TContext>
-
-    distanceFromPrevious?: DistanceFromPreviousResolver<Maybe<number>, TypeParent, TContext>
-
-    distanceFromStart?: DistanceFromStartResolver<Maybe<number>, TypeParent, TContext>
-
-    duration?: DurationResolver<Maybe<number>, TypeParent, TContext>
-
-    stopIndex?: StopIndexResolver<Maybe<number>, TypeParent, TContext>
-
-    isTimingStop?: IsTimingStopResolver<Maybe<boolean>, TypeParent, TContext>
-
-    stopId?: StopIdResolver<string, TypeParent, TContext>
-
-    shortId?: ShortIdResolver<string, TypeParent, TContext>
-
-    lat?: LatResolver<number, TypeParent, TContext>
-
-    lng?: LngResolver<number, TypeParent, TContext>
-
-    name?: NameResolver<Maybe<string>, TypeParent, TContext>
-
-    radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
-
-    modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = DepartureStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RouteIdResolver<R = Maybe<string>, Parent = DepartureStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DirectionResolver<
-    R = Maybe<Direction>,
-    Parent = DepartureStop,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DestinationResolver<
-    R = Maybe<string>,
-    Parent = DepartureStop,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DistanceFromPreviousResolver<
-    R = Maybe<number>,
-    Parent = DepartureStop,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DistanceFromStartResolver<
-    R = Maybe<number>,
-    Parent = DepartureStop,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DurationResolver<R = Maybe<number>, Parent = DepartureStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopIndexResolver<
-    R = Maybe<number>,
-    Parent = DepartureStop,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsTimingStopResolver<
-    R = Maybe<boolean>,
-    Parent = DepartureStop,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type StopIdResolver<R = string, Parent = DepartureStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ShortIdResolver<R = string, Parent = DepartureStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LatResolver<R = number, Parent = DepartureStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LngResolver<R = number, Parent = DepartureStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type NameResolver<R = Maybe<string>, Parent = DepartureStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RadiusResolver<R = Maybe<number>, Parent = DepartureStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ModesResolver<
-    R = Array<Maybe<string>>,
-    Parent = DepartureStop,
     TContext = {}
   > = Resolver<R, Parent, TContext>
 }
@@ -1409,8 +1317,8 @@ export namespace PositionResolvers {
     __resolveType: ResolveType
   }
   export type ResolveType<
-    R = 'Stop' | 'RouteGeometryPoint' | 'JourneyEvent',
-    Parent = Stop | RouteGeometryPoint | JourneyEvent,
+    R = 'Stop' | 'RouteGeometryPoint' | 'RouteSegment' | 'JourneyEvent',
+    Parent = Stop | RouteGeometryPoint | RouteSegment | JourneyEvent,
     TContext = {}
   > = TypeResolveFn<R, Parent, TContext>
 }
@@ -1454,11 +1362,11 @@ export interface DeprecatedDirectiveArgs {
 export interface DateScalarConfig extends GraphQLScalarTypeConfig<Date, any> {
   name: 'Date'
 }
-export interface BBoxScalarConfig extends GraphQLScalarTypeConfig<BBox, any> {
-  name: 'BBox'
-}
 export interface DirectionScalarConfig extends GraphQLScalarTypeConfig<Direction, any> {
   name: 'Direction'
+}
+export interface BBoxScalarConfig extends GraphQLScalarTypeConfig<BBox, any> {
+  name: 'BBox'
 }
 export interface TimeScalarConfig extends GraphQLScalarTypeConfig<Time, any> {
   name: 'Time'
@@ -1468,6 +1376,9 @@ export interface VehicleIdScalarConfig extends GraphQLScalarTypeConfig<VehicleId
 }
 export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<DateTime, any> {
   name: 'DateTime'
+}
+export interface PreciseBBoxScalarConfig extends GraphQLScalarTypeConfig<PreciseBBox, any> {
+  name: 'PreciseBBox'
 }
 export interface UploadScalarConfig extends GraphQLScalarTypeConfig<Upload, any> {
   name: 'Upload'
@@ -1484,7 +1395,6 @@ export type IResolvers<TContext = {}> = {
   RouteSegment?: RouteSegmentResolvers.Resolvers<TContext>
   Line?: LineResolvers.Resolvers<TContext>
   Departure?: DepartureResolvers.Resolvers<TContext>
-  DepartureStop?: DepartureStopResolvers.Resolvers<TContext>
   DepartureJourney?: DepartureJourneyResolvers.Resolvers<TContext>
   PlannedArrival?: PlannedArrivalResolvers.Resolvers<TContext>
   ObservedArrival?: ObservedArrivalResolvers.Resolvers<TContext>
@@ -1494,11 +1404,12 @@ export type IResolvers<TContext = {}> = {
   Journey?: JourneyResolvers.Resolvers<TContext>
   Position?: PositionResolvers.Resolvers
   Date?: GraphQLScalarType
-  BBox?: GraphQLScalarType
   Direction?: GraphQLScalarType
+  BBox?: GraphQLScalarType
   Time?: GraphQLScalarType
   VehicleId?: GraphQLScalarType
   DateTime?: GraphQLScalarType
+  PreciseBBox?: GraphQLScalarType
   Upload?: GraphQLScalarType
 } & { [typeName: string]: never }
 
