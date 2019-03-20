@@ -18,6 +18,7 @@ export const createRouteSegmentObject = (
   route: JoreRoute
 ): RouteSegment => {
   return {
+    ...createStopObject(get(routeSegment, 'stop', {})),
     id: createSegmentId(routeSegment),
     lineId: get(route, 'line.nodes[0].lineId', ''),
     routeId: routeSegment.routeId,
@@ -29,7 +30,5 @@ export const createRouteSegmentObject = (
     duration: routeSegment.duration,
     stopIndex: routeSegment.stopIndex,
     isTimingStop: !!routeSegment.timingStopType,
-    stopId: routeSegment.stopId,
-    stop: createStopObject(get(routeSegment, 'stop', {})),
   }
 }

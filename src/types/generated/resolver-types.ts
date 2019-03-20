@@ -544,10 +544,6 @@ export namespace RouteSegmentResolvers {
 
     originStopId?: OriginStopIdResolver<string, TypeParent, TContext>
 
-    stopId?: StopIdResolver<string, TypeParent, TContext>
-
-    stop?: StopResolver<Stop, TypeParent, TContext>
-
     destination?: DestinationResolver<string, TypeParent, TContext>
 
     distanceFromPrevious?: DistanceFromPreviousResolver<Maybe<number>, TypeParent, TContext>
@@ -559,6 +555,20 @@ export namespace RouteSegmentResolvers {
     stopIndex?: StopIndexResolver<number, TypeParent, TContext>
 
     isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
+
+    stopId?: StopIdResolver<string, TypeParent, TContext>
+
+    shortId?: ShortIdResolver<string, TypeParent, TContext>
+
+    lat?: LatResolver<number, TypeParent, TContext>
+
+    lng?: LngResolver<number, TypeParent, TContext>
+
+    name?: NameResolver<Maybe<string>, TypeParent, TContext>
+
+    radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
+
+    modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
@@ -582,16 +592,6 @@ export namespace RouteSegmentResolvers {
     TContext
   >
   export type OriginStopIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopResolver<R = Stop, Parent = RouteSegment, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -626,6 +626,41 @@ export namespace RouteSegmentResolvers {
     Parent,
     TContext
   >
+  export type StopIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ShortIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type LatResolver<R = number, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type LngResolver<R = number, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type NameResolver<R = Maybe<string>, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type RadiusResolver<R = Maybe<number>, Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ModesResolver<
+    R = Array<Maybe<string>>,
+    Parent = RouteSegment,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 export namespace LineResolvers {

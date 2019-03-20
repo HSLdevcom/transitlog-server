@@ -20,14 +20,19 @@ export const Route = gql`
     routeId: String!
     direction: Direction!
     originStopId: String!
-    stopId: String!
-    stop: Stop!
     destination: String!
     distanceFromPrevious: Int
     distanceFromStart: Int
     duration: Int
     stopIndex: Int!
     isTimingStop: Boolean!
+    stopId: String!
+    shortId: String!
+    lat: Float!
+    lng: Float!
+    name: String
+    radius: Float
+    modes: [String]!
   }
 
   type RouteGeometryPoint implements Position {

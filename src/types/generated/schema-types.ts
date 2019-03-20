@@ -206,10 +206,6 @@ export interface RouteSegment {
 
   originStopId: string
 
-  stopId: string
-
-  stop: Stop
-
   destination: string
 
   distanceFromPrevious?: Maybe<number>
@@ -221,6 +217,20 @@ export interface RouteSegment {
   stopIndex: number
 
   isTimingStop: boolean
+
+  stopId: string
+
+  shortId: string
+
+  lat: number
+
+  lng: number
+
+  name?: Maybe<string>
+
+  radius?: Maybe<number>
+
+  modes: Array<Maybe<string>>
 }
 
 export interface Line {
