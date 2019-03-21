@@ -45,7 +45,7 @@ export function createPlannedDepartureTimeObject(departure: JoreDeparture, date)
 export function createDepartureJourneyObject(
   event: Vehicles,
   departureIsNextDay: boolean,
-  routeData: { originStopId: string; lineId: string } = { originStopId: '', lineId: '' },
+  routeData: { originStopId?: string; lineId?: string } = { originStopId: '', lineId: '' },
   instance = 0
 ): DepartureJourney {
   return {
@@ -56,7 +56,7 @@ export function createDepartureJourneyObject(
     originStopId: routeData.originStopId,
     departureDate: event.oday,
     departureTime: getJourneyStartTime(event, departureIsNextDay),
-    uniqueVehicleId: event,
+    uniqueVehicleId: event.unique_vehicle_id,
     instance,
   }
 }
@@ -66,8 +66,10 @@ export function createPlannedDepartureObject(
   stop: RouteSegment | null,
   departureDate: string
 ): PlannedDepartureObject {
+  const departureId = createDepartureId(departure)
+
   return {
-    id: createDepartureId(departure),
+    id: departureId,
     stopId: departure.stopId,
     dayType: departure.dayType,
     equipmentType: departure.equipmentType,

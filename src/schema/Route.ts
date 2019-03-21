@@ -11,15 +11,16 @@ export const Route = gql`
     name: String
     destinationStopId: String
     originStopId: String!
+    mode: String
     _matchScore: Float
   }
 
   type RouteSegment implements Position {
     id: ID!
-    lineId: String!
+    lineId: String
     routeId: String!
     direction: Direction!
-    originStopId: String!
+    originStopId: String
     destination: String!
     distanceFromPrevious: Int
     distanceFromStart: Int

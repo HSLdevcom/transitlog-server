@@ -50,11 +50,6 @@ export const DEPARTURE_STOP = gql`
               routeId
               direction
               originstopId
-              line {
-                nodes {
-                  lineId
-                }
-              }
             }
           }
         }

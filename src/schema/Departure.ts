@@ -34,10 +34,10 @@ export const Departure = gql`
 
   type DepartureJourney {
     id: ID!
-    lineId: String!
+    lineId: String
     routeId: String!
     direction: Direction!
-    originStopId: String!
+    originStopId: String
     departureDate: Date!
     departureTime: Time!
     uniqueVehicleId: VehicleId

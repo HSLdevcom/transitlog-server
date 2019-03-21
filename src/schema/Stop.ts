@@ -2,8 +2,8 @@ import { gql } from 'apollo-server'
 
 export const Stop = gql`
   type StopRoute {
-    originStopId: String!
-    lineId: String!
+    originStopId: String
+    lineId: String
     routeId: String!
     direction: Direction!
     isTimingStop: Boolean!

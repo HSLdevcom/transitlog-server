@@ -21,10 +21,10 @@ export const Journey = gql`
 
   type Journey {
     id: ID!
-    lineId: String!
+    lineId: String
     routeId: String!
     direction: Direction!
-    originStopId: String!
+    originStopId: String
     departureDate: Date!
     departureTime: Time!
     uniqueVehicleId: VehicleId
@@ -33,6 +33,7 @@ export const Journey = gql`
     instance: Int
     headsign: String
     name: String
+    mode: String
     equipment: Equipment
     events: [JourneyEvent]!
     departures: [Departure]!

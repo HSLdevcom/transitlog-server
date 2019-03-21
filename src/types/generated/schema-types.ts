@@ -93,6 +93,8 @@ export interface Query {
 
   stopsByBbox: Array<Maybe<Stop>>
 
+  route?: Maybe<Route>
+
   routes: Array<Maybe<Route>>
 
   routeGeometry?: Maybe<RouteGeometry>
@@ -155,9 +157,9 @@ export interface Stop extends Position {
 }
 
 export interface StopRoute {
-  originStopId: string
+  originStopId?: Maybe<string>
 
-  lineId: string
+  lineId?: Maybe<string>
 
   routeId: string
 
@@ -185,6 +187,8 @@ export interface Route {
 
   originStopId: string
 
+  mode?: Maybe<string>
+
   _matchScore?: Maybe<number>
 }
 
@@ -201,13 +205,13 @@ export interface RouteGeometryPoint extends Position {
 export interface RouteSegment extends Position {
   id: string
 
-  lineId: string
+  lineId?: Maybe<string>
 
   routeId: string
 
   direction: Direction
 
-  originStopId: string
+  originStopId?: Maybe<string>
 
   destination: string
 
@@ -297,13 +301,13 @@ export interface Departure {
 export interface DepartureJourney {
   id: string
 
-  lineId: string
+  lineId?: Maybe<string>
 
   routeId: string
 
   direction: Direction
 
-  originStopId: string
+  originStopId?: Maybe<string>
 
   departureDate: Date
 
@@ -387,13 +391,13 @@ export interface ObservedDeparture {
 export interface Journey {
   id: string
 
-  lineId: string
+  lineId?: Maybe<string>
 
   routeId: string
 
   direction: Direction
 
-  originStopId: string
+  originStopId?: Maybe<string>
 
   departureDate: Date
 
@@ -410,6 +414,8 @@ export interface Journey {
   headsign?: Maybe<string>
 
   name?: Maybe<string>
+
+  mode?: Maybe<string>
 
   equipment?: Maybe<Equipment>
 
@@ -439,6 +445,13 @@ export interface StopsByBboxQueryArgs {
   filter?: Maybe<StopFilterInput>
 
   bbox: BBox
+}
+export interface RouteQueryArgs {
+  routeId: string
+
+  direction: Direction
+
+  date: Date
 }
 export interface RoutesQueryArgs {
   filter?: Maybe<RouteFilterInput>

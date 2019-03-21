@@ -40,6 +40,7 @@ export const RouteSegmentFieldsFragment = gql`
 
 export const ExtensiveRouteFieldsFragment = gql`
   fragment ExtensiveRouteFieldsFragment on Route {
+    mode
     routeSegments {
       nodes {
         ...RouteSegmentFieldsFragment
@@ -59,6 +60,17 @@ export const ExtensiveRouteFieldsFragment = gql`
   ${StopFieldsFragment}
   ${DepartureFieldsFragment}
   ${RouteSegmentFieldsFragment}
+`
+
+export const ROUTE_QUERY = gql`
+  query JoreRoute($routeId: String!, $direction: String!) {
+    allRoutes(condition: { routeId: $routeId, direction: $direction }) {
+      nodes {
+        ...RouteFieldsFragment
+      }
+    }
+  }
+  ${RouteFieldsFragment}
 `
 
 export const ROUTES = gql`
@@ -112,11 +124,6 @@ export const ROUTE_SEGMENTS = gql`
         dateBegin
         dateEnd
         originstopId
-        line {
-          nodes {
-            lineId
-          }
-        }
         routeSegments {
           nodes {
             ...RouteSegmentFieldsFragment

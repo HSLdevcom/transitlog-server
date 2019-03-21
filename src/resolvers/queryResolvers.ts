@@ -1,6 +1,6 @@
 import { QueryResolvers } from '../types/generated/resolver-types'
 import { createLinesResponse } from '../app/createLinesResponse'
-import { createRoutesResponse } from '../app/createRoutesResponse'
+import { createRouteResponse, createRoutesResponse } from '../app/createRoutesResponse'
 import { createStopResponse, createStopsResponse } from '../app/createStopsResponse'
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
@@ -28,6 +28,11 @@ const stopsByBbox = (root, { filter, bbox }, { dataSources }) => {
 const stop = (root, { stopId, date }, { dataSources }) => {
   const getStop = () => dataSources.JoreAPI.getStop(stopId)
   return createStopResponse(getStop, date, stopId)
+}
+
+const route = async (root, { routeId, direction, date }, { dataSources }) => {
+  const getRoute = () => dataSources.JoreAPI.getRoute(routeId, direction)
+  return createRouteResponse(getRoute, date, routeId, direction)
 }
 
 const routes = async (root, { filter, line, date }, { dataSources }) => {
@@ -93,6 +98,7 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   stop,
   stops,
   stopsByBbox,
+  route,
   routes,
   routeGeometry,
   routeSegments,

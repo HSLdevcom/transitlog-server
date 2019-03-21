@@ -14,6 +14,7 @@ import {
   JOURNEY_ROUTE,
   ROUTE_GEOMETRY,
   ROUTE_INDEX,
+  ROUTE_QUERY,
   ROUTE_SEGMENTS,
   ROUTES,
 } from '../queries/routeQueries'
@@ -29,6 +30,16 @@ export class JoreDataSource extends GraphQLDataSource {
   async getLines(): Promise<JoreLine[]> {
     const response = await this.query(LINES, {})
     return get(response, 'data.allLines.nodes', null)
+  }
+
+  async getRoute(routeId, direction): Promise<JoreRoute[]> {
+    const response = await this.query(ROUTE_QUERY, {
+      variables: {
+        routeId,
+        direction: direction + '',
+      },
+    })
+    return get(response, 'data.allRoutes.nodes', null)
   }
 
   async getRoutes(): Promise<JoreRoute[]> {

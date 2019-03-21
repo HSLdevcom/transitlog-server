@@ -6,12 +6,12 @@ import parse from 'date-fns/parse'
 import format from 'date-fns/format'
 import { DATE_FORMAT, TIME_FORMAT, TZ } from '../constants'
 import { createJourneyEventObject } from '../app/objects/createJourneyEventObject'
-import { ObservedArrival } from '../types/generated/schema-types'
+import { Departure, ObservedArrival } from '../types/generated/schema-types'
 import { reverse } from 'lodash'
 
 export function getStopArrivalData(
   stopEvents: Vehicles[] = [],
-  stopDeparture: PlannedDeparture,
+  stopDeparture: PlannedDeparture | Departure,
   date: string
 ): ObservedArrival | null {
   // The stopEvents are sorted by recorded-at time in descending order,

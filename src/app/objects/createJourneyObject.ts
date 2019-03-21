@@ -32,6 +32,7 @@ export function createJourneyObject(
     instance,
     headsign: journey.headsign,
     name: get(journeyRoute, 'name', ''),
+    mode: get(journeyRoute, 'mode', ''),
     equipment: journeyEquipment ? createEquipmentObject(journeyEquipment) : null,
     events: journeyEvents.map(createJourneyEventObject),
     departures: journeyDepartures,

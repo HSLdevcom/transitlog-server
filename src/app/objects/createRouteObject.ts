@@ -17,6 +17,7 @@ export function createRouteObject(route: JoreRoute): Route {
     name: route.nameFi,
     destinationStopId: route.destinationstopId,
     originStopId: route.originstopId,
+    mode: route.mode,
     // @ts-ignore
     _matchScore: route._matchScore,
   }

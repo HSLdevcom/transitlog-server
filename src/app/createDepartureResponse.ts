@@ -21,6 +21,7 @@ import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { filterDepartures } from './filters/filterDepartures'
 import { isToday } from 'date-fns'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
+import { getStopArrivalData } from '../utils/getStopArrivalData'
 
 export async function createDeparturesResponse(
   getDepartures: () => Promise<JoreDeparture | null>,
@@ -44,7 +45,6 @@ export async function createDeparturesResponse(
 
     // Group route segments for validation. The segments will be validated within their groups
     // according to date chain logic.
-    // TODO: make sure this works for problematic routes that want the grouping done by stopId instead of stopIndex.
     const groupedRouteSegments = groupBy(
       get(stop, 'routeSegments.nodes', []),
       (segment) => segment.routeId + segment.direction + segment.stopIndex
@@ -55,19 +55,23 @@ export async function createDeparturesResponse(
 
     // Create a combo of the stop data and the route segment. The segment acts as glue between
     // the stop and the route, carrying such data as timing stop status.
-    return validSegments.map((segment) => ({
-      destination: segment.destinationFi || '',
-      distanceFromPrevious: segment.distanceFromPrevious,
-      distanceFromStart: segment.distanceFromStart,
-      duration: segment.duration,
-      stopIndex: segment.stopIndex,
-      isTimingStop: !!segment.timingStopType, // very important
-      lineId: get(segment, 'line.nodes[0].lineId', ''),
-      originStopId: get(segment, 'route.nodes[0].originstopId', ''),
-      routeId: segment.routeId,
-      direction: getDirection(segment.direction),
-      ...stopObject,
-    }))
+    return validSegments.map((segment) => {
+      const route = get(segment, 'route.nodes[0]', {})
+
+      return {
+        destination: segment.destinationFi || '',
+        distanceFromPrevious: segment.distanceFromPrevious,
+        distanceFromStart: segment.distanceFromStart,
+        duration: segment.duration,
+        stopIndex: segment.stopIndex,
+        isTimingStop: !!segment.timingStopType, // very important
+        lineId: get(route, 'line.nodes[0].lineId', ''),
+        originStopId: get(route, 'originstopId', ''),
+        routeId: segment.routeId,
+        direction: getDirection(segment.direction),
+        ...stopObject,
+      }
+    })
   }
 
   // Fetches the departures and stop data for the stop and validates them.
@@ -139,11 +143,8 @@ export async function createDeparturesResponse(
     return orderBy(filteredDepartures, 'plannedDepartureTime.departureTime')
   }
 
-  const firstStopId = get(filteredDepartures, '[0].stopId', '')
-  const lineId = get(filteredDepartures, '[0].stop.lineId', '')
-
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
-  // to separate the
+  // to separate the "instances" of the journey.
   const departuresWithEvents: Departure[][] = filteredDepartures.map((departure) => {
     const originDepartureTime = get(departure, 'originDepartureTime.departureTime', null)
 
@@ -177,21 +178,23 @@ export async function createDeparturesResponse(
     }
 
     const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture)
+    const firstStopId = get(departure, 'stop.originStopId', '')
 
     return eventsPerVehicleJourney.map((events, index) => {
-      // Calculate the observed times for the stop using the event.
-      const stopDeparture = departure
-        ? getStopDepartureData(orderBy(events, 'tsi', 'desc'), departure, date)
-        : null
+      const stopEvents = orderBy(events, 'tsi', 'desc')
+
+      const stopArrival = departure ? getStopArrivalData(stopEvents, departure, date) : null
+      const stopDeparture = departure ? getStopDepartureData(stopEvents, departure, date) : null
 
       return {
         ...departure,
         journey: createDepartureJourneyObject(
           events[0],
           departureIsNextDay,
-          { originStopId: firstStopId, lineId },
+          { originStopId: firstStopId },
           index
         ),
+        observedArrivalTime: stopArrival,
         observedDepartureTime: stopDeparture,
       }
     })
