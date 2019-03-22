@@ -21,6 +21,7 @@ import { createRouteObject } from './objects/createRouteObject'
 import { differenceInSeconds } from 'date-fns'
 import { getStopEvents } from '../utils/getStopEvents'
 import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
+import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 
 type JourneyRoute = {
   route: Route
@@ -172,7 +173,7 @@ export async function createJourneyResponse(
 
     // There could have been many vehicles operating this journey. Separate them by
     // vehicle ID and use the instance argument to select the set of events.
-    const vehicleGroups = Object.values(groupBy(journeyEvents || null, 'unique_vehicle_id'))
+    const vehicleGroups = groupEventsByInstances(journeyEvents || [])
     journeyEvents = vehicleGroups[instance]
 
     // Fetch the planned departures and the route.
