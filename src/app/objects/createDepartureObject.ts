@@ -12,12 +12,11 @@ import { TZ } from '../../constants'
 import { get } from 'lodash'
 import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
-import { StopSegmentCombo } from '../../types/StopSegmentCombo'
 
-export function createDepartureId(departure) {
+export function createDepartureId(departure, instance = 0) {
   return `${departure.routeId}_${departure.direction}_${departure.hours}_${departure.minutes}_${
     departure.stopId
-  }_${departure.dayType}_${departure.extraDeparture}`
+  }_${departure.dayType}_${departure.extraDeparture}_${instance}`
 }
 
 export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): PlannedArrival {
@@ -49,7 +48,7 @@ export function createDepartureJourneyObject(
   instance = 0
 ): DepartureJourney {
   return {
-    id: createJourneyId(event),
+    id: createJourneyId(event, instance),
     lineId: routeData.lineId,
     routeId: event.route_id || '',
     direction: event.direction_id,
@@ -58,6 +57,7 @@ export function createDepartureJourneyObject(
     departureTime: getJourneyStartTime(event, departureIsNextDay),
     uniqueVehicleId: event.unique_vehicle_id,
     instance,
+    _multipleInstances: instance > 0,
   }
 }
 

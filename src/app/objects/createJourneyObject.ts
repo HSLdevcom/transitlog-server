@@ -19,7 +19,7 @@ export function createJourneyObject(
   const firstDeparture = journeyDepartures[0]
 
   return {
-    id: createJourneyId(journey),
+    id: createJourneyId(journey, instance),
     lineId: get(journeyRoute, 'lineId', ''),
     routeId: get<Vehicles, any, string>(journey, 'route_id', get(journeyRoute, 'routeId', '')),
     originStopId: get(journeyRoute, 'originStopId', ''),

@@ -933,6 +933,8 @@ export namespace DepartureJourneyResolvers {
     uniqueVehicleId?: UniqueVehicleIdResolver<Maybe<VehicleId>, TypeParent, TContext>
 
     instance?: InstanceResolver<Maybe<number>, TypeParent, TContext>
+
+    _multipleInstances?: _MultipleInstancesResolver<Maybe<boolean>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = DepartureJourney, TContext = {}> = Resolver<
@@ -977,6 +979,11 @@ export namespace DepartureJourneyResolvers {
   > = Resolver<R, Parent, TContext>
   export type InstanceResolver<
     R = Maybe<number>,
+    Parent = DepartureJourney,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type _MultipleInstancesResolver<
+    R = Maybe<boolean>,
     Parent = DepartureJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>

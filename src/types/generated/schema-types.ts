@@ -316,6 +316,8 @@ export interface DepartureJourney {
   uniqueVehicleId?: Maybe<VehicleId>
 
   instance?: Maybe<number>
+
+  _multipleInstances?: Maybe<boolean>
 }
 
 export interface PlannedArrival {

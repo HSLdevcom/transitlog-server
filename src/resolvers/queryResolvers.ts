@@ -75,6 +75,7 @@ const journey = (
       routeId,
       direction,
       departureDate,
+      // TODO: Check what this returns for 24h+ queries and make sure that only events from one journey is used.
       getNormalTime(departureTime)
     )
 

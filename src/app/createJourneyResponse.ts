@@ -154,13 +154,16 @@ export async function createJourneyResponse(
   instance: number = 0
 ): Promise<Journey | null> {
   // The journey identifier used when caching various items.
-  const journeyKey = createJourneyId({
-    routeId,
-    direction,
-    departureDate,
-    departureTime,
-    instance,
-  })
+  const journeyKey = createJourneyId(
+    {
+      routeId,
+      direction,
+      departureDate,
+      departureTime,
+      instance,
+    },
+    instance
+  )
 
   // Fetch events, route and departures, and match events to departures.
   // Return the full journey data.

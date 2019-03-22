@@ -39,7 +39,7 @@ export const createJourneyId = (journeyObject: Journey | null = null, instance =
     return ''
   }
 
-  if (!instance) {
+  if (!journeyInstance) {
     journeyInstance = 0
   }
 
