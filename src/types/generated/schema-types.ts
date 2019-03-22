@@ -315,9 +315,7 @@ export interface DepartureJourney {
 
   uniqueVehicleId?: Maybe<VehicleId>
 
-  instance?: Maybe<number>
-
-  _multipleInstances?: Maybe<boolean>
+  _numInstance?: Maybe<number>
 }
 
 export interface PlannedArrival {
@@ -411,8 +409,6 @@ export interface Journey {
 
   vehicleId?: Maybe<string>
 
-  instance?: Maybe<number>
-
   headsign?: Maybe<string>
 
   name?: Maybe<string>
@@ -499,5 +495,5 @@ export interface JourneyQueryArgs {
 
   departureDate: Date
 
-  instance?: Maybe<number>
+  uniqueVehicleId: VehicleId
 }

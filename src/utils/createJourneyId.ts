@@ -1,7 +1,8 @@
 import { get } from 'lodash'
 import { getDirection } from './getDirection'
-import { Direction } from '../types/generated/schema-types'
+import { Direction, VehicleId } from '../types/generated/schema-types'
 import { intval } from './isWithinRange'
+import { createUniqueVehicleId, createValidVehicleId } from './createUniqueVehicleId'
 
 interface HFPJourneyObject {
   oday?: string
@@ -16,32 +17,30 @@ interface JourneyObject {
   routeId: string
   direction: Direction
   departureTime: string
-  instance?: number
+  uniqueVehicleId: VehicleId
 }
 
 type Journey = HFPJourneyObject | JourneyObject
 
-export const createJourneyId = (journeyObject: Journey | null = null, instance = 0) => {
-  const oday = get(journeyObject, 'oday', get(journeyObject, 'departureDate', null))
-  const route_id = get(journeyObject, 'route_id', get(journeyObject, 'routeId', null))
-  const journey_start_time = get(
+export const createJourneyId = (journeyObject: Journey | null = null) => {
+  const departureDate = get(journeyObject, 'oday', get(journeyObject, 'departureDate', null))
+  const routeId = get(journeyObject, 'route_id', get(journeyObject, 'routeId', null))
+  const departureTime = get(
     journeyObject,
     'journey_start_time',
     get(journeyObject, 'departureTime', null)
   )
-  const direction_id = getDirection(
+  const direction = getDirection(
     get(journeyObject, 'direction_id', get(journeyObject, 'direction', null))
   )
 
-  let journeyInstance = intval(get(journeyObject, 'instance', instance))
+  const uniqueVehicleId = createValidVehicleId(
+    get(journeyObject, 'unique_vehicle_id', get(journeyObject, 'uniqueVehicleId', ''))
+  )
 
-  if (!route_id || !oday || !journey_start_time) {
+  if (!routeId || !departureDate || !departureTime || !uniqueVehicleId) {
     return ''
   }
 
-  if (!journeyInstance) {
-    journeyInstance = 0
-  }
-
-  return `${oday}_${journey_start_time}_${route_id}_${direction_id}_${journeyInstance}`
+  return `${departureDate}_${departureTime}_${routeId}_${direction}_${uniqueVehicleId}`
 }

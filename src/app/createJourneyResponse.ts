@@ -6,7 +6,14 @@ import {
 } from '../types/generated/jore-types'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
-import { Departure, Direction, Journey, Route, RouteSegment } from '../types/generated/schema-types'
+import {
+  Departure,
+  Direction,
+  Journey,
+  Route,
+  RouteSegment,
+  VehicleId,
+} from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { get, groupBy, sortBy } from 'lodash'
@@ -22,6 +29,7 @@ import { differenceInSeconds } from 'date-fns'
 import { getStopEvents } from '../utils/getStopEvents'
 import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
+import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 
 type JourneyRoute = {
   route: Route
@@ -137,7 +145,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
  * @param direction The direction of the requested journey
  * @param departureDate The operation date of the journey
  * @param departureTime The journey's departure from the first stop.
- * @param instance The "instance" of the journey if it was operated with many vehicles
+ * @param uniqueVehicleId
  */
 export async function createJourneyResponse(
   fetchRouteData: () => Promise<JoreRoute | null>,
@@ -150,21 +158,16 @@ export async function createJourneyResponse(
   direction: Direction,
   departureDate: string,
   departureTime: string,
-  // If there are many vehicles operating this journey, this argument
-  // can be used to select which set of observed events to fetch.
-  instance: number = 0
+  uniqueVehicleId: VehicleId
 ): Promise<Journey | null> {
   // The journey identifier used when caching various items.
-  const journeyKey = createJourneyId(
-    {
-      routeId,
-      direction,
-      departureDate,
-      departureTime,
-      instance,
-    },
-    instance
-  )
+  const journeyKey = createJourneyId({
+    routeId,
+    direction,
+    departureDate,
+    departureTime,
+    uniqueVehicleId,
+  })
 
   // Fetch events, route and departures, and match events to departures.
   // Return the full journey data.
@@ -174,7 +177,11 @@ export async function createJourneyResponse(
     // There could have been many vehicles operating this journey. Separate them by
     // vehicle ID and use the instance argument to select the set of events.
     const vehicleGroups = groupEventsByInstances(journeyEvents || [])
-    journeyEvents = vehicleGroups[instance]
+    const selectedVehicleGroups = vehicleGroups.find(
+      ([groupId]) => groupId === createValidVehicleId(uniqueVehicleId)
+    )
+
+    journeyEvents = selectedVehicleGroups ? selectedVehicleGroups[1] : []
 
     // Fetch the planned departures and the route.
     const routeCacheKey = `journey_route_departures_${journeyKey}`
@@ -193,7 +200,7 @@ export async function createJourneyResponse(
 
     // Return only the events if no departures were found.
     if (!routeAndDepartures || routeAndDepartures.departures.length === 0) {
-      return createJourneyObject(events, null, [], null, instance || 0)
+      return createJourneyObject(events, null, [], null)
     }
 
     const { route, departures } = routeAndDepartures
@@ -238,7 +245,7 @@ export async function createJourneyResponse(
     )
 
     // Everything is baked into a Journey domain object.
-    return createJourneyObject(events, route, observedDepartures, journeyEquipment, instance || 0)
+    return createJourneyObject(events, route, observedDepartures, journeyEquipment)
   }
 
   // Decide a suitable TTL for the cached journey based on if the journey is completed or not.
@@ -264,8 +271,7 @@ export async function createJourneyResponse(
     }
   }
 
-  // Cache the full journey data by instance, so separate vehicle journeys don't get mixed.
-  const journeyCacheKey = `journey_${instance}_${journeyKey}`
+  const journeyCacheKey = `journey_${journeyKey}`
   const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, getJourneyTTL)
 
   if (!journey) {

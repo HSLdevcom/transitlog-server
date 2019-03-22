@@ -406,9 +406,13 @@
                 "defaultValue": null
               },
               {
-                "name": "instance",
+                "name": "uniqueVehicleId",
                 "description": "",
-                "type": { "kind": "SCALAR", "name": "Int", "ofType": null },
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": { "kind": "SCALAR", "name": "VehicleId", "ofType": null }
+                },
                 "defaultValue": null
               }
             ],
@@ -1744,18 +1748,10 @@
             "deprecationReason": null
           },
           {
-            "name": "instance",
+            "name": "_numInstance",
             "description": "",
             "args": [],
             "type": { "kind": "SCALAR", "name": "Int", "ofType": null },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "_multipleInstances",
-            "description": "",
-            "args": [],
-            "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           }
@@ -2276,14 +2272,6 @@
             "description": "",
             "args": [],
             "type": { "kind": "SCALAR", "name": "String", "ofType": null },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "instance",
-            "description": "",
-            "args": [],
-            "type": { "kind": "SCALAR", "name": "Int", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },

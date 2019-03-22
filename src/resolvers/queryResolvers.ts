@@ -65,7 +65,7 @@ const departures = (root, { filter, stopId, date }, { dataSources }) => {
 
 const journey = (
   root,
-  { routeId, direction, departureTime, departureDate, instance },
+  { routeId, direction, departureTime, departureDate, uniqueVehicleId },
   { dataSources }
 ) => {
   const getRouteData = () => dataSources.JoreAPI.getFullRoute(routeId, direction, departureDate)
@@ -75,12 +75,12 @@ const journey = (
       routeId,
       direction,
       departureDate,
-      // TODO: Check what this returns for 24h+ queries and make sure that only events from one journey is used.
-      getNormalTime(departureTime)
+      departureTime,
+      uniqueVehicleId
     )
 
   const getJourneyEquipment = (vehicleId, operatorId) =>
-    dataSources.JoreAPI.getEquipmentById(vehicleId, operatorId)
+    dataSources.JoreAPI.getEquipmentById(uniqueVehicleId, operatorId)
 
   return createJourneyResponse(
     getRouteData,
@@ -90,7 +90,7 @@ const journey = (
     direction,
     departureDate,
     departureTime,
-    instance
+    uniqueVehicleId
   )
 }
 

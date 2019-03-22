@@ -177,7 +177,10 @@ export async function createDeparturesResponse(
       return [departure]
     }
 
-    const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture)
+    const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
+      ([_, instanceEvents]) => instanceEvents
+    )
+
     const firstStopId = get(departure, 'stop.originStopId', '')
 
     return eventsPerVehicleJourney.map((events, index, instances) => {
@@ -189,13 +192,9 @@ export async function createDeparturesResponse(
       const departureJourney = createDepartureJourneyObject(
         events[0],
         departureIsNextDay,
-        { originStopId: firstStopId },
-        index
+        firstStopId,
+        instances.length > 1 ? index + 1 : 0
       )
-
-      if (instances.length > 1) {
-        departureJourney._multipleInstances = true
-      }
 
       return {
         ...departure,

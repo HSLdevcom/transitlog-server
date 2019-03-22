@@ -12,14 +12,13 @@ export function createJourneyObject(
   journeyEvents: Vehicles[],
   journeyRoute?: Route | null,
   journeyDepartures: Departure[] = [],
-  journeyEquipment?: JoreEquipment | null,
-  instance: number = 0
+  journeyEquipment?: JoreEquipment | null
 ): Journey {
   const journey = journeyEvents[0]
   const firstDeparture = journeyDepartures[0]
 
   return {
-    id: createJourneyId(journey, instance),
+    id: createJourneyId(journey),
     lineId: get(journeyRoute, 'lineId', ''),
     routeId: get<Vehicles, any, string>(journey, 'route_id', get(journeyRoute, 'routeId', '')),
     originStopId: get(journeyRoute, 'originStopId', ''),
@@ -29,7 +28,6 @@ export function createJourneyObject(
     uniqueVehicleId: createUniqueVehicleId(journey.owner_operator_id, journey.vehicle_number),
     operatorId: journey.owner_operator_id,
     vehicleId: journey.vehicle_number + '',
-    instance,
     headsign: journey.headsign,
     name: get(journeyRoute, 'name', ''),
     mode: get(journeyRoute, 'mode', ''),

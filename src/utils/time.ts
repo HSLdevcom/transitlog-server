@@ -52,6 +52,16 @@ export function getNormalTime(time?: string): string {
   return getTimeString(intHours, num(minutes), num(seconds))
 }
 
+export function isNextDay(time?: string): boolean {
+  const [hours = '0'] = (time || '').split(':')
+
+  if (parseInt(hours, 10) > 23) {
+    return true
+  }
+
+  return false
+}
+
 export function getTimeString(hours = 0, minutes = 0, seconds = 0): string {
   return `${doubleDigit(hours)}:${doubleDigit(minutes)}:${doubleDigit(seconds)}`
 }

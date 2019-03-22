@@ -41,8 +41,7 @@ export const Departure = gql`
     departureDate: Date!
     departureTime: Time!
     uniqueVehicleId: VehicleId
-    instance: Int
-    _multipleInstances: Boolean
+    _numInstance: Int
   }
 
   type Departure {

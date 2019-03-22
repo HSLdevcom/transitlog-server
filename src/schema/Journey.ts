@@ -30,7 +30,6 @@ export const Journey = gql`
     uniqueVehicleId: VehicleId
     operatorId: String
     vehicleId: String
-    instance: Int
     headsign: String
     name: String
     mode: String
