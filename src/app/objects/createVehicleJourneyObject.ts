@@ -5,15 +5,8 @@ import { getDirection } from '../../utils/getDirection'
 import get from 'lodash/get'
 import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 import { TZ } from '../../constants'
-import {
-  getDateFromDateTime,
-  getDepartureTime,
-  getJourneyEventTime,
-  getJourneyStartTime,
-  getRealDepartureDate,
-} from '../../utils/time'
+import { getDateFromDateTime, getJourneyEventTime, getJourneyStartTime } from '../../utils/time'
 import moment from 'moment-timezone'
-import { diffDepartureJourney } from '../../utils/diffDepartureJourney'
 
 export const createVehicleJourneyObject = (event: Vehicles): VehicleJourney => {
   const observedDepartureTime = moment.tz(event.tst, TZ)

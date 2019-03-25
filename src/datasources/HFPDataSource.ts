@@ -4,7 +4,11 @@ import moment from 'moment-timezone'
 import { HFP_URL, TZ } from '../constants'
 import { Vehicles } from '../types/generated/hfp-types'
 import { AVAILABLE_VEHICLES_QUERY } from '../queries/vehicleQueries'
-import { JOURNEY_EVENTS_QUERY, VEHICLE_JOURNEYS_QUERY } from '../queries/journeyQueries'
+import {
+  AREA_EVENTS_QUERY,
+  JOURNEY_EVENTS_QUERY,
+  VEHICLE_JOURNEYS_QUERY,
+} from '../queries/journeyQueries'
 import { DEPARTURE_EVENTS_QUERY } from '../queries/departureQueries'
 import { getNormalTime, isNextDay } from '../utils/time'
 
@@ -14,6 +18,13 @@ export class HFPDataSource extends GraphQLDataSource {
   async getAvailableVehicles(date): Promise<Vehicles[]> {
     const response = await this.query(AVAILABLE_VEHICLES_QUERY, {
       variables: { date },
+    })
+    return get(response, 'data.vehicles', [])
+  }
+
+  async getAreaJourneys(minTime, maxTime, bbox): Promise<Vehicles[]> {
+    const response = await this.query(AREA_EVENTS_QUERY, {
+      variables: { minTime, maxTime, ...bbox },
     })
     return get(response, 'data.vehicles', [])
   }

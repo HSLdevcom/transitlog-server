@@ -40,5 +40,11 @@ export const Schema = gql`
       uniqueVehicleId: VehicleId!
     ): Journey
     vehicleJourneys(uniqueVehicleId: VehicleId!, date: Date!): [VehicleJourney]!
+    eventsByBbox(
+      minTime: DateTime!
+      maxTime: DateTime!
+      bbox: PreciseBBox!
+      filters: AreaEventsFilterInput
+    ): [AreaJourney]!
   }
 `

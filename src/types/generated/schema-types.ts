@@ -36,6 +36,12 @@ export interface DepartureFilterInput {
   maxHour?: Maybe<number>
 }
 
+export interface AreaEventsFilterInput {
+  routeId?: Maybe<string>
+
+  direction?: Maybe<Direction>
+}
+
 export enum CacheControlScope {
   Public = 'PUBLIC',
   Private = 'PRIVATE',
@@ -108,6 +114,8 @@ export interface Query {
   journey?: Maybe<Journey>
 
   vehicleJourneys: Array<Maybe<VehicleJourney>>
+
+  eventsByBbox: Array<Maybe<AreaJourney>>
 }
 
 export interface Equipment {
@@ -462,6 +470,34 @@ export interface VehicleJourney {
   nextStopId: string
 }
 
+export interface AreaJourney {
+  id: string
+
+  lineId?: Maybe<string>
+
+  routeId: string
+
+  direction: Direction
+
+  nextStopId?: Maybe<string>
+
+  departureDate: Date
+
+  departureTime: Time
+
+  uniqueVehicleId?: Maybe<VehicleId>
+
+  operatorId?: Maybe<string>
+
+  vehicleId?: Maybe<string>
+
+  headsign?: Maybe<string>
+
+  mode?: Maybe<string>
+
+  events: Array<Maybe<JourneyEvent>>
+}
+
 // ====================================================
 // Arguments
 // ====================================================
@@ -541,4 +577,13 @@ export interface VehicleJourneysQueryArgs {
   uniqueVehicleId: VehicleId
 
   date: Date
+}
+export interface EventsByBboxQueryArgs {
+  minTime: DateTime
+
+  maxTime: DateTime
+
+  bbox: PreciseBBox
+
+  filters?: Maybe<AreaEventsFilterInput>
 }

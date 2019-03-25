@@ -58,4 +58,25 @@ export const Journey = gql`
     timeDifference: Int!
     nextStopId: String!
   }
+
+  type AreaJourney {
+    id: ID!
+    lineId: String
+    routeId: String!
+    direction: Direction!
+    nextStopId: String
+    departureDate: Date!
+    departureTime: Time!
+    uniqueVehicleId: VehicleId
+    operatorId: String
+    vehicleId: String
+    headsign: String
+    mode: String
+    events: [JourneyEvent]!
+  }
+
+  input AreaEventsFilterInput {
+    routeId: String
+    direction: Direction
+  }
 `
