@@ -8,6 +8,7 @@ import { createJourneyResponse } from '../app/createJourneyResponse'
 import { createDeparturesResponse } from '../app/createDepartureResponse'
 import { getNormalTime } from '../utils/time'
 import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
+import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -94,6 +95,11 @@ const journey = (
   )
 }
 
+const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources }) => {
+  const getVehicleJourneys = () => dataSources.HFPAPI.getJourneysForVehicle(uniqueVehicleId, date)
+  return createVehicleJourneysResponse(getVehicleJourneys, uniqueVehicleId, date)
+}
+
 export const queryResolvers: QueryResolvers.Resolvers = {
   equipment,
   stop,
@@ -106,4 +112,5 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   lines,
   departures,
   journey,
+  vehicleJourneys,
 }

@@ -39,6 +39,30 @@ export const JOURNEY_EVENTS_QUERY = gql`
       oday
       direction_id
       route_id
+      line
+      desi
+      headsign
+    }
+  }
+`
+
+export const VEHICLE_JOURNEYS_QUERY = gql`
+  query vehicleHfpQuery($date: date!, $uniqueVehicleId: String!) {
+    vehicles(
+      order_by: [{ tst: asc }]
+      where: { oday: { _eq: $date }, unique_vehicle_id: { _eq: $uniqueVehicleId } }
+    ) {
+      journey_start_time
+      next_stop_id
+      tst
+      tsi
+      owner_operator_id
+      vehicle_number
+      unique_vehicle_id
+      mode
+      oday
+      direction_id
+      route_id
       desi
       headsign
     }

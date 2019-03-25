@@ -106,6 +106,8 @@ export interface Query {
   departures: Array<Maybe<Departure>>
 
   journey?: Maybe<Journey>
+
+  vehicleJourneys: Array<Maybe<VehicleJourney>>
 }
 
 export interface Equipment {
@@ -422,6 +424,44 @@ export interface Journey {
   departures: Array<Maybe<Departure>>
 }
 
+export interface VehicleJourney {
+  id: string
+
+  lineId?: Maybe<string>
+
+  routeId: string
+
+  direction: Direction
+
+  originStopId?: Maybe<string>
+
+  departureDate: Date
+
+  departureTime: Time
+
+  uniqueVehicleId?: Maybe<VehicleId>
+
+  operatorId?: Maybe<string>
+
+  vehicleId?: Maybe<string>
+
+  headsign?: Maybe<string>
+
+  mode?: Maybe<string>
+
+  receivedAt: DateTime
+
+  recordedAt: DateTime
+
+  recordedAtUnix: number
+
+  recordedTime: Time
+
+  timeDifference: number
+
+  nextStopId: string
+}
+
 // ====================================================
 // Arguments
 // ====================================================
@@ -496,4 +536,9 @@ export interface JourneyQueryArgs {
   departureDate: Date
 
   uniqueVehicleId: VehicleId
+}
+export interface VehicleJourneysQueryArgs {
+  uniqueVehicleId: VehicleId
+
+  date: Date
 }

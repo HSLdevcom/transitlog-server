@@ -1,4 +1,3 @@
-import get from 'lodash/get'
 import moment from 'moment-timezone'
 import { getRealDepartureDate } from './time'
 import { TZ } from '../constants'

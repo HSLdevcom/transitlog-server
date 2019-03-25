@@ -39,5 +39,6 @@ export const Schema = gql`
       departureDate: Date!
       uniqueVehicleId: VehicleId!
     ): Journey
+    vehicleJourneys(uniqueVehicleId: VehicleId!, date: Date!): [VehicleJourney]!
   }
 `

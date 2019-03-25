@@ -37,4 +37,25 @@ export const Journey = gql`
     events: [JourneyEvent]!
     departures: [Departure]!
   }
+
+  type VehicleJourney {
+    id: ID!
+    lineId: String
+    routeId: String!
+    direction: Direction!
+    originStopId: String
+    departureDate: Date!
+    departureTime: Time!
+    uniqueVehicleId: VehicleId
+    operatorId: String
+    vehicleId: String
+    headsign: String
+    mode: String
+    receivedAt: DateTime!
+    recordedAt: DateTime!
+    recordedAtUnix: Int!
+    recordedTime: Time!
+    timeDifference: Int!
+    nextStopId: String!
+  }
 `
