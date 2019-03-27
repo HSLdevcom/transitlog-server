@@ -47,7 +47,11 @@ export async function createRouteSegmentsResponse(
   }
 
   const cacheKey = `routeSegments_${routeId}_${direction}_${date}`
-  const validRouteSegments = await cacheFetch<RouteSegment[]>(cacheKey, fetchAndValidate)
+  const validRouteSegments = await cacheFetch<RouteSegment[]>(
+    cacheKey,
+    fetchAndValidate,
+    24 * 60 * 60
+  )
 
   if (!validRouteSegments) {
     return []

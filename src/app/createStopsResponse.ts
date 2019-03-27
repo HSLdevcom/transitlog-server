@@ -66,7 +66,7 @@ export async function createStopResponse(
   }
 
   const cacheKey = `stop_${date}_${stopId}`
-  const stop = await cacheFetch<Stop>(cacheKey, fetchStop, 86400)
+  const stop = await cacheFetch<Stop>(cacheKey, fetchStop, 24 * 60 * 60)
 
   if (!stop) {
     return null

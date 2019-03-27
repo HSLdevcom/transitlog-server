@@ -23,7 +23,7 @@ export async function createLinesResponse(
   }
 
   const cacheKey = !date ? false : `lines_${date}`
-  const validLines = await cacheFetch<JoreLine[]>(cacheKey, fetchAndValidate)
+  const validLines = await cacheFetch<JoreLine[]>(cacheKey, fetchAndValidate, 24 * 60 * 60)
 
   if (!validLines) {
     return []

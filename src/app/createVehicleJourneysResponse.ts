@@ -5,6 +5,7 @@ import { cacheFetch } from './cache'
 import { createVehicleJourneyObject } from './objects/createVehicleJourneyObject'
 import { groupBy, map, orderBy, compact } from 'lodash'
 import { findJourneyStartEvent } from '../utils/findJourneyStartEvent'
+import { isToday } from 'date-fns'
 
 export const createVehicleJourneysResponse = async (
   getVehicleJourneys: () => Promise<Vehicles[] | null>,
@@ -28,8 +29,11 @@ export const createVehicleJourneysResponse = async (
     return journeyEvents.map(createVehicleJourneyObject)
   }
 
+  // Cache events for the current day for 60 seconds, otherwise 24 hours.
+  const cacheTTL: number = isToday(date) ? 5 : 24 * 60 * 60
+
   const cacheKey = `vehicle_journeys_${uniqueVehicleId}_${date}`
-  const journeys = await cacheFetch<VehicleJourney[]>(cacheKey, fetchJourneys, 5)
+  const journeys = await cacheFetch<VehicleJourney[]>(cacheKey, fetchJourneys, cacheTTL)
 
   if (!journeys) {
     return []

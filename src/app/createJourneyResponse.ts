@@ -267,7 +267,7 @@ export async function createJourneyResponse(
       // If the last stop has observed data but the event stream hasn't finished yet, cache for 5 seconds.
       return 5
     } else {
-      return 1 // Cache ongoing journeys for 1 second.
+      return 2 // Cache ongoing journeys for s seconds.
     }
   }
 
