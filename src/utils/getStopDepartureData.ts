@@ -6,6 +6,8 @@ import { createJourneyEventObject } from '../app/objects/createJourneyEventObjec
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { getJourneyEventTime } from './time'
+import { createDepartureId } from '../app/objects/createDepartureObject'
+import { createJourneyId } from './createJourneyId'
 
 /**
  *
@@ -28,9 +30,11 @@ export const getStopDepartureData = (
   }
 
   const departureDiff = diffDepartureJourney(departureEvent, stopDeparture, date)
+  const journeyId = createJourneyId(departureEvent)
 
   return {
-    departureEvent: createJourneyEventObject(departureEvent),
+    id: `odt_${journeyId}_${departureEvent.tst}_${createDepartureId(stopDeparture)}`,
+    departureEvent: createJourneyEventObject(departureEvent, journeyId),
     departureDate: departureEvent.oday,
     departureTime: getJourneyEventTime(departureEvent),
     departureDateTime: moment.tz(departureEvent.tst, TZ).toISOString(true),

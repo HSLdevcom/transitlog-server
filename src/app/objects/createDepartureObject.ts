@@ -14,16 +14,18 @@ import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
 
-export function createDepartureId(departure, instance = 0) {
+export function createDepartureId(departure) {
   return `${departure.routeId}_${departure.direction}_${departure.hours}_${departure.minutes}_${
     departure.stopId
-  }_${departure.dayType}_${departure.extraDeparture}_${instance}`
+  }_${departure.dayType}_${departure.extraDeparture}`
 }
 
 export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): PlannedArrival {
   const arrivalTime = getDepartureTime(departure, true)
+  const departureId = createDepartureId(departure)
 
   return {
+    id: `pat_${departureId}_${arrivalTime}`, // pat = Planned Arrival Time
     arrivalDate: date,
     arrivalTime,
     arrivalDateTime: moment.tz(getDateFromDateTime(date, arrivalTime), TZ).toISOString(true),
@@ -33,8 +35,10 @@ export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): 
 
 export function createPlannedDepartureTimeObject(departure: JoreDeparture, date): PlannedDeparture {
   const departureTime = getDepartureTime(departure)
+  const departureId = createDepartureId(departure)
 
   return {
+    id: `pdt_${departureId}_${departureTime}`, // pdt = Planned Departure Time
     departureDate: date,
     departureTime,
     departureDateTime: moment.tz(getDateFromDateTime(date, departureTime), TZ).toISOString(true),
@@ -51,7 +55,7 @@ export function createDepartureJourneyObject(
   const id = createJourneyId(event)
 
   return {
-    id,
+    id: `departure_journey_${id}`,
     routeId: event.route_id || '',
     direction: event.direction_id,
     originStopId,

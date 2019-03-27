@@ -101,9 +101,9 @@ const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources }) => {
   return createVehicleJourneysResponse(getVehicleJourneys, uniqueVehicleId, date)
 }
 
-const eventsByBbox = (root, { minTime, maxTime, bbox, filters }, { dataSources }) => {
-  const getAreaJourneys = () => dataSources.HFPAPI.getAreaJourneys(minTime, maxTime, bbox)
-  return createAreaJourneysResponse(getAreaJourneys, minTime, maxTime, bbox, filters)
+const eventsByBbox = (root, { minTime, maxTime, bbox, date, filters }, { dataSources }) => {
+  const getAreaJourneys = () => dataSources.HFPAPI.getAreaJourneys(minTime, maxTime, bbox, date)
+  return createAreaJourneysResponse(getAreaJourneys, minTime, maxTime, bbox, date, filters)
 }
 
 export const queryResolvers: QueryResolvers.Resolvers = {

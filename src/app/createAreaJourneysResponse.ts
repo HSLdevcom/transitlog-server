@@ -16,6 +16,7 @@ export const createAreaJourneysResponse = async (
   minTime: DateTime,
   maxTime: DateTime,
   bbox: PreciseBBox,
+  date: string,
   filters: AreaEventsFilterInput
 ): Promise<AreaJourney[]> => {
   const fetchJourneys: CachedFetcher<AreaJourney[]> = async () => {
@@ -28,8 +29,8 @@ export const createAreaJourneysResponse = async (
     return map(groupBy(areaJourneys, 'journey_start_time'), createAreaJourneyObject)
   }
 
-  const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}`
-  const journeys = await cacheFetch<AreaJourney[]>(cacheKey, fetchJourneys, 10)
+  const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}`
+  const journeys = await cacheFetch<AreaJourney[]>(cacheKey, fetchJourneys, 10 * 60)
 
   if (!journeys) {
     return []

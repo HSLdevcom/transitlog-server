@@ -16,9 +16,10 @@ export function createJourneyObject(
 ): Journey {
   const journey = journeyEvents[0]
   const firstDeparture = journeyDepartures[0]
+  const id = createJourneyId(journey)
 
   return {
-    id: createJourneyId(journey),
+    id,
     lineId: get(journeyRoute, 'lineId', ''),
     routeId: get<Vehicles, any, string>(journey, 'route_id', get(journeyRoute, 'routeId', '')),
     originStopId: get(journeyRoute, 'originStopId', ''),
@@ -32,7 +33,7 @@ export function createJourneyObject(
     name: get(journeyRoute, 'name', ''),
     mode: get(journeyRoute, 'mode', ''),
     equipment: journeyEquipment ? createEquipmentObject(journeyEquipment) : null,
-    events: journeyEvents.map(createJourneyEventObject),
+    events: journeyEvents.map((event) => createJourneyEventObject(event, id)),
     departures: journeyDepartures,
   }
 }

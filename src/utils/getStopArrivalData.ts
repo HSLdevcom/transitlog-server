@@ -8,6 +8,8 @@ import { DATE_FORMAT, TIME_FORMAT, TZ } from '../constants'
 import { createJourneyEventObject } from '../app/objects/createJourneyEventObject'
 import { Departure, ObservedArrival } from '../types/generated/schema-types'
 import { reverse } from 'lodash'
+import { createJourneyId } from './createJourneyId'
+import { createDepartureId } from '../app/objects/createDepartureObject'
 
 export function getStopArrivalData(
   stopEvents: Vehicles[] = [],
@@ -49,8 +51,11 @@ export function getStopArrivalData(
   const tst = arrivalEvent.tst
   const arrivalTime = parse(tst)
 
+  const journeyId = createJourneyId(arrivalEvent)
+
   return {
-    arrivalEvent: createJourneyEventObject(arrivalEvent),
+    id: `oat_${journeyId}_${arrivalTime}_${createDepartureId(stopDeparture)}`,
+    arrivalEvent: createJourneyEventObject(arrivalEvent, journeyId),
     arrivalDate: format(arrivalTime, DATE_FORMAT),
     arrivalTime: format(arrivalTime, TIME_FORMAT),
     // Yes, tst is iso 8601 already but in UTC. We want the local timezone.

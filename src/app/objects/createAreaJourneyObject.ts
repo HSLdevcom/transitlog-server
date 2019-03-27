@@ -11,9 +11,10 @@ export const createAreaJourneyObject = (events: Vehicles[]): AreaJourney => {
   const journey = events[0]
   const departureTime = getJourneyStartTime(journey)
   const departureDate = get(journey, 'oday')
+  const id = createJourneyId(journey)
 
   return {
-    id: createJourneyId(journey),
+    id,
     routeId: get(journey, 'route_id', '') || '',
     direction: getDirection(journey.direction_id),
     departureDate,
@@ -23,7 +24,6 @@ export const createAreaJourneyObject = (events: Vehicles[]): AreaJourney => {
     vehicleId: get(journey, 'vehicle_number', '') + '',
     headsign: get(journey, 'headsign', ''),
     mode: get(journey, 'mode', 'BUS'),
-    events: events.map(createJourneyEventObject),
-    nextStopId: get(journey, 'next_stop_id', '') || '',
+    events: events.map((event) => createJourneyEventObject(event, id)),
   }
 }

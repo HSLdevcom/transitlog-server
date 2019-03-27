@@ -167,6 +167,8 @@ export interface Stop extends Position {
 }
 
 export interface StopRoute {
+  id: string
+
   originStopId?: Maybe<string>
 
   lineId?: Maybe<string>
@@ -203,6 +205,8 @@ export interface Route {
 }
 
 export interface RouteGeometry {
+  id: string
+
   coordinates: RouteGeometryPoint[]
 }
 
@@ -329,6 +333,8 @@ export interface DepartureJourney {
 }
 
 export interface PlannedArrival {
+  id: string
+
   arrivalDate: Date
 
   arrivalTime: Time
@@ -339,6 +345,8 @@ export interface PlannedArrival {
 }
 
 export interface ObservedArrival {
+  id: string
+
   arrivalEvent: JourneyEvent
 
   arrivalDate: Date
@@ -353,6 +361,8 @@ export interface ObservedArrival {
 }
 
 export interface JourneyEvent extends Position {
+  id: string
+
   receivedAt: DateTime
 
   recordedAt: DateTime
@@ -377,6 +387,8 @@ export interface JourneyEvent extends Position {
 }
 
 export interface PlannedDeparture {
+  id: string
+
   departureDate: Date
 
   departureTime: Time
@@ -387,6 +399,8 @@ export interface PlannedDeparture {
 }
 
 export interface ObservedDeparture {
+  id: string
+
   departureEvent: JourneyEvent
 
   departureDate: Date
@@ -478,8 +492,6 @@ export interface AreaJourney {
   routeId: string
 
   direction: Direction
-
-  nextStopId?: Maybe<string>
 
   departureDate: Date
 
@@ -584,6 +596,8 @@ export interface EventsByBboxQueryArgs {
   maxTime: DateTime
 
   bbox: PreciseBBox
+
+  date: Date
 
   filters?: Maybe<AreaEventsFilterInput>
 }

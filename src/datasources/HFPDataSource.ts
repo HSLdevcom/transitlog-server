@@ -22,9 +22,9 @@ export class HFPDataSource extends GraphQLDataSource {
     return get(response, 'data.vehicles', [])
   }
 
-  async getAreaJourneys(minTime, maxTime, bbox): Promise<Vehicles[]> {
+  async getAreaJourneys(minTime, maxTime, bbox, date): Promise<Vehicles[]> {
     const response = await this.query(AREA_EVENTS_QUERY, {
-      variables: { minTime, maxTime, ...bbox },
+      variables: { minTime, maxTime, date, ...bbox },
     })
     return get(response, 'data.vehicles', [])
   }

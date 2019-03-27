@@ -44,6 +44,7 @@ export const Schema = gql`
       minTime: DateTime!
       maxTime: DateTime!
       bbox: PreciseBBox!
+      date: Date!
       filters: AreaEventsFilterInput
     ): [AreaJourney]!
   }

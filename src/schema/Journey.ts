@@ -6,6 +6,7 @@ import { gql } from 'apollo-server'
 
 export const Journey = gql`
   type JourneyEvent implements Position {
+    id: ID!
     receivedAt: DateTime!
     recordedAt: DateTime!
     recordedAtUnix: Int!
@@ -64,7 +65,6 @@ export const Journey = gql`
     lineId: String
     routeId: String!
     direction: Direction!
-    nextStopId: String
     departureDate: Date!
     departureTime: Time!
     uniqueVehicleId: VehicleId

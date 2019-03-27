@@ -74,6 +74,7 @@ export const VEHICLE_JOURNEYS_QUERY = gql`
 
 export const AREA_EVENTS_QUERY = gql`
   query areaEventsQuery(
+    $date: date!
     $minTime: timestamptz!
     $maxTime: timestamptz!
     $minLat: float8!
@@ -85,6 +86,7 @@ export const AREA_EVENTS_QUERY = gql`
       order_by: { tsi: asc }
       where: {
         _and: [
+          { oday: { _eq: $date } }
           { tst: { _lte: $maxTime } }
           { tst: { _gte: $minTime } }
           { lat: { _lte: $maxLat } }

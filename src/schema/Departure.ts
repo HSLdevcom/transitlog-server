@@ -2,6 +2,7 @@ import { gql } from 'apollo-server'
 
 export const Departure = gql`
   type PlannedDeparture {
+    id: ID!
     departureDate: Date!
     departureTime: Time!
     departureDateTime: DateTime!
@@ -9,6 +10,7 @@ export const Departure = gql`
   }
 
   type ObservedDeparture {
+    id: ID!
     departureEvent: JourneyEvent!
     departureDate: Date!
     departureTime: Time!
@@ -17,6 +19,7 @@ export const Departure = gql`
   }
 
   type PlannedArrival {
+    id: ID!
     arrivalDate: Date!
     arrivalTime: Time!
     arrivalDateTime: DateTime!
@@ -24,6 +27,7 @@ export const Departure = gql`
   }
 
   type ObservedArrival {
+    id: ID!
     arrivalEvent: JourneyEvent!
     arrivalDate: Date!
     arrivalTime: Time!

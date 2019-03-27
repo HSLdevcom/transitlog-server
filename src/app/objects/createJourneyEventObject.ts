@@ -4,11 +4,14 @@ import { TZ } from '../../constants'
 import moment from 'moment-timezone'
 import { getJourneyEventTime } from '../../utils/time'
 
-export function createJourneyEventObject(event: Vehicles): JourneyEvent {
+export function createJourneyEventObject(event: Vehicles, id: string): JourneyEvent {
+  const unix = parseInt(event.tsi, 10)
+
   return {
+    id: `journey_event_${id}_${unix}`,
     receivedAt: moment.tz(event.received_at, TZ).toISOString(true),
     recordedAt: moment.tz(event.tst, TZ).toISOString(true),
-    recordedAtUnix: parseInt(event.tsi, 10),
+    recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
     nextStopId: event.next_stop_id,
     lat: event.lat,

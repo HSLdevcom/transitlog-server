@@ -49,6 +49,7 @@ export async function createStopResponse(
       }
 
       const stopRoute: StopRoute = {
+        id: `stop_route_${route.routeId}_${route.direction}_${route.dateBegin}_${route.dateEnd}`,
         lineId: get(route, 'line.nodes[0].lineId', ''),
         direction: getDirection(route.direction),
         routeId: route.routeId,

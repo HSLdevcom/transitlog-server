@@ -42,6 +42,7 @@ export const Route = gql`
   }
 
   type RouteGeometry {
+    id: ID!
     coordinates: [RouteGeometryPoint!]!
   }
 
