@@ -8,7 +8,7 @@ async function getRedis() {
   }
 
   const client = new Redis({
-    host: '0.0.0.0',
+    host: process.env.REDIS_HOST,
     port: 6379,
     lazyConnect: true,
   })
