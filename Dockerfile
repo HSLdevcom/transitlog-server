@@ -14,6 +14,6 @@ RUN yarn
 # Bundle app source
 COPY . ${WORK}
 
-EXPOSE 1234
+EXPOSE 4000
 
 CMD yarn run start:production

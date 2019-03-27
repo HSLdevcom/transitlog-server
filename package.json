@@ -6,9 +6,8 @@
   "scripts": {
     "docker:build": "docker build --cpuset-cpus 2 -t hsldevcom/transitlog-server .",
     "docker:run": "docker run --name transitlog-server -p 1234:1234 hsldevcom/transitlog-server",
-    "start": "concurrently \"yarn:start:dev\"",
-    "start:dev": "NODE_ICU_DATA=\"$(pwd)/node_modules/full-icu\" nodemon --signal SIGTERM --watch 'src/**/*' -r ts-node/register -r dotenv/config src/server.ts",
-    "start:production": "NODE_ICU_DATA=\"$(pwd)/node_modules/full-icu\" forever start -c \"node -r ts-node/register -r dotenv/config\" src/server.ts -l server.log -o server-out.log -e server-err.log && forever -f logs 0",
+    "start": "NODE_ICU_DATA=\"$(pwd)/node_modules/full-icu\" ts-node-dev --no-notify --respawn -r dotenv/config src/server.ts",
+    "start:production": "NODE_ICU_DATA=\"$(pwd)/node_modules/full-icu\" forever start -c \"ts-node -T -r dotenv/config\" src/server.ts -l server.log -o server-out.log -e server-err.log && forever -f logs 0",
     "codegen": "gql-gen --config codegen.yml",
     "codestyle": "prettier \"src/**/*.{ts,js,json}\" --write",
     "test": "node scripts/test.js",
@@ -71,6 +70,7 @@
     "nodemon": "^1.18.10",
     "prettier": "^1.16.4",
     "ts-jest": "^24.0.0",
+    "ts-node-dev": "^1.0.0-pre.32",
     "tslint": "^5.13.1",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1"
