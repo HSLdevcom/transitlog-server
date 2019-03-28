@@ -83,10 +83,13 @@ export class JoreDataSource extends GraphQLDataSource {
   }
 
   async getEquipmentById(vehicleId: string | number, operatorId: string): Promise<JoreEquipment[]> {
+    const joreVehicleId = vehicleId + ''
+    const joreOperatorId = (operatorId + '').padStart(4, '0')
+
     const response = await this.query(EQUIPMENT_BY_ID, {
       variables: {
-        vehicleId: vehicleId + '',
-        operatorId: (operatorId + '').padStart(4, '0'),
+        vehicleId: joreVehicleId,
+        operatorId: joreOperatorId,
       },
     })
 

@@ -236,12 +236,13 @@ export async function createJourneyResponse(
 
     // Get the ID of the vehicle that actually operated this journey and fetch its data.
     const { owner_operator_id, vehicle_number } = events[0]
+
     const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
 
     const journeyEquipment = await cacheFetch<JoreEquipment>(
       equipmentKey,
       () => fetchJourneyEquipment(vehicle_number, owner_operator_id),
-      24 * 60 * 60
+      5
     )
 
     // Everything is baked into a Journey domain object.
@@ -272,7 +273,11 @@ export async function createJourneyResponse(
   }
 
   const journeyCacheKey = `journey_${journeyKey}`
-  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, getJourneyTTL)
+  const journey = await cacheFetch<Journey>(
+    journeyCacheKey,
+    fetchAndProcessJourney,
+    5 /*getJourneyTTL*/
+  )
 
   if (!journey) {
     return null

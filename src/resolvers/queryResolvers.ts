@@ -82,7 +82,7 @@ const journey = (
     )
 
   const getJourneyEquipment = (vehicleId, operatorId) =>
-    dataSources.JoreAPI.getEquipmentById(uniqueVehicleId, operatorId)
+    dataSources.JoreAPI.getEquipmentById(vehicleId, operatorId)
 
   return createJourneyResponse(
     getRouteData,
