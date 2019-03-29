@@ -124,11 +124,19 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
 
   // With the departureId from the first departure we can easily reduce the departures on each
   // stop down to the one departure that belongs to this specific journey.
-  const stopDepartures = stops.map(({ stop, departures = [] }) => {
-    const departure = departures.filter((dep) => dep.departureId === originDeparture.departureId)[0]
-    // The departures are then converted to objects native to this domain.
-    return createPlannedDepartureObject(departure, stop, date)
-  })
+  const stopDepartures = stops.reduce(
+    (plannedDepartures: PlannedDeparture[], { stop, departures = [] }) => {
+      const departure = departures.find((dep) => dep.departureId === originDeparture.departureId)
+
+      if (departure) {
+        // The departures are then converted to objects native to this domain.
+        plannedDepartures.push(createPlannedDepartureObject(departure, stop, date))
+      }
+
+      return plannedDepartures
+    },
+    []
+  )
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.

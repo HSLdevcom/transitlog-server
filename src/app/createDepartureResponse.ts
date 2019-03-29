@@ -36,7 +36,7 @@ export async function createDeparturesResponse(
   const fetchStops: CachedFetcher<RouteSegment[]> = async () => {
     const stop = await getStop()
 
-    // Return false to sip caching an empty value
+    // Return false to skip caching an empty value
     if (!stop) {
       return false
     }
