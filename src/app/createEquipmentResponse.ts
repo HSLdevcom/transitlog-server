@@ -75,7 +75,7 @@ export async function createEquipmentResponse(
 
   if (date) {
     const vehicleHfpCacheKey = `equipment_observed_${date}`
-    const ttl = isToday(date) ? 5 * 60 : 24 * 60 * 60
+    const ttl = isToday(date) ? 5 * 60 : 0
 
     const vehicles: Vehicles[] =
       (await cacheFetch<Vehicles[]>(vehicleHfpCacheKey, getObservedVehicles, ttl)) || []

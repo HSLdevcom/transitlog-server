@@ -40,11 +40,7 @@ export async function createRouteGeometryResponse(
   }
 
   const cacheKey = `routeGeometry_${routeId}_${direction}_${date}`
-  const validRouteGeometry = await cacheFetch<RouteGeometry>(
-    cacheKey,
-    fetchAndValidate,
-    24 * 60 * 60
-  )
+  const validRouteGeometry = await cacheFetch<RouteGeometry>(cacheKey, fetchAndValidate)
 
   if (!validRouteGeometry) {
     return null

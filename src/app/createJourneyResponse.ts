@@ -273,11 +273,7 @@ export async function createJourneyResponse(
   }
 
   const journeyCacheKey = `journey_${journeyKey}`
-  const journey = await cacheFetch<Journey>(
-    journeyCacheKey,
-    fetchAndProcessJourney,
-    5 /*getJourneyTTL*/
-  )
+  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, getJourneyTTL)
 
   if (!journey) {
     return null

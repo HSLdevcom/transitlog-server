@@ -2,7 +2,6 @@ import { BBox, Stop, StopFilterInput, StopRoute } from '../types/generated/schem
 import { RouteSegment, Stop as JoreStop } from '../types/generated/jore-types'
 import { cacheFetch } from './cache'
 import { createStopObject } from './objects/createStopObject'
-import { filterStopsByBBox } from './filters/filterStopsByBBox'
 import { search } from './filters/search'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { get, groupBy, uniqBy, orderBy } from 'lodash'
@@ -66,7 +65,7 @@ export async function createStopResponse(
   }
 
   const cacheKey = `stop_${date}_${stopId}`
-  const stop = await cacheFetch<Stop>(cacheKey, fetchStop, 24 * 60 * 60)
+  const stop = await cacheFetch<Stop>(cacheKey, fetchStop)
 
   if (!stop) {
     return null
