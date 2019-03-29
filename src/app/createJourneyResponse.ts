@@ -168,28 +168,41 @@ export async function createJourneyResponse(
   departureTime: string,
   uniqueVehicleId: VehicleId
 ): Promise<Journey | null> {
-  // The journey identifier used when caching various items.
-  const journeyKey = createJourneyId({
-    routeId,
-    direction,
-    departureDate,
-    departureTime,
-    uniqueVehicleId,
-  })
-
   // Fetch events, route and departures, and match events to departures.
   // Return the full journey data.
   const fetchAndProcessJourney = async (): Promise<Journey | false> => {
     let journeyEvents = await fetchValidJourneyEvents(fetchJourneyEvents)
+    let journeyKey
 
     // There could have been many vehicles operating this journey. Separate them by
     // vehicle ID and use the instance argument to select the set of events.
     const vehicleGroups = groupEventsByInstances(journeyEvents || [])
-    const selectedVehicleGroups = vehicleGroups.find(
-      ([groupId]) => groupId === createValidVehicleId(uniqueVehicleId)
-    )
 
-    journeyEvents = selectedVehicleGroups ? selectedVehicleGroups[1] : []
+    if (uniqueVehicleId) {
+      const selectedVehicleGroups = vehicleGroups.find(
+        ([groupId]) => groupId === createValidVehicleId(uniqueVehicleId)
+      )
+
+      journeyEvents = selectedVehicleGroups ? selectedVehicleGroups[1] : []
+      journeyKey = createJourneyId({
+        routeId,
+        direction,
+        departureDate,
+        departureTime,
+        uniqueVehicleId,
+      })
+    } else {
+      const instanceGroup = vehicleGroups[0]
+      journeyEvents = instanceGroup[1]
+
+      journeyKey = createJourneyId({
+        routeId,
+        direction,
+        departureDate,
+        departureTime,
+        uniqueVehicleId: instanceGroup[0],
+      })
+    }
 
     // Fetch the planned departures and the route.
     const routeCacheKey = `journey_route_departures_${journeyKey}`
@@ -276,8 +289,29 @@ export async function createJourneyResponse(
     }
   }
 
-  const journeyCacheKey = `journey_${journeyKey}`
-  const journey = await cacheFetch<Journey>(journeyCacheKey, fetchAndProcessJourney, getJourneyTTL)
+  const getJourneyCacheKey = (data?: Journey) => {
+    let journeyKey: false | string = false
+
+    if (data && !uniqueVehicleId) {
+      journeyKey = data.id
+    } else if (uniqueVehicleId) {
+      journeyKey = createJourneyId({
+        routeId,
+        direction,
+        departureDate,
+        departureTime,
+        uniqueVehicleId,
+      })
+    }
+
+    return !journeyKey ? false : `journey_${journeyKey}`
+  }
+
+  const journey = await cacheFetch<Journey>(
+    getJourneyCacheKey,
+    fetchAndProcessJourney,
+    getJourneyTTL
+  )
 
   if (!journey) {
     return null

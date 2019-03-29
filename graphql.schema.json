@@ -408,11 +408,7 @@
               {
                 "name": "uniqueVehicleId",
                 "description": "",
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": { "kind": "SCALAR", "name": "VehicleId", "ofType": null }
-                },
+                "type": { "kind": "SCALAR", "name": "VehicleId", "ofType": null },
                 "defaultValue": null
               }
             ],

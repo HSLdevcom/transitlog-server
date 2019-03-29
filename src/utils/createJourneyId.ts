@@ -21,8 +21,11 @@ export const createJourneyId = (journeyObject: Journey | null) => {
     get(journeyObject, 'unique_vehicle_id', get(journeyObject, 'uniqueVehicleId', ''))
   )
 
-  if (!routeId || !departureDate || !departureTime || !uniqueVehicleId) {
+  if (!routeId || !direction || !departureDate || !departureTime) {
     return ''
+  }
+
+  if (!uniqueVehicleId) {
   }
 
   return `${departureDate}_${departureTime}_${routeId}_${direction}_${uniqueVehicleId}`

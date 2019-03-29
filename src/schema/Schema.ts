@@ -37,7 +37,7 @@ export const Schema = gql`
       direction: Direction!
       departureTime: Time!
       departureDate: Date!
-      uniqueVehicleId: VehicleId!
+      uniqueVehicleId: VehicleId
     ): Journey
     vehicleJourneys(uniqueVehicleId: VehicleId!, date: Date!): [VehicleJourney]!
     eventsByBbox(

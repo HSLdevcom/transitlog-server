@@ -583,7 +583,7 @@ export interface JourneyQueryArgs {
 
   departureDate: Date
 
-  uniqueVehicleId: VehicleId
+  uniqueVehicleId?: Maybe<VehicleId>
 }
 export interface VehicleJourneysQueryArgs {
   uniqueVehicleId: VehicleId

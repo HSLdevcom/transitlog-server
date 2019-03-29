@@ -1,5 +1,5 @@
 import { GraphQLDataSource } from '../utils/GraphQLDataSource'
-import { get } from 'lodash'
+import { get, groupBy } from 'lodash'
 import moment from 'moment-timezone'
 import { HFP_URL, TZ } from '../constants'
 import { Vehicles } from '../types/generated/hfp-types'
@@ -49,12 +49,17 @@ export class HFPDataSource extends GraphQLDataSource {
     direction,
     departureDate,
     departureTime,
-    uniqueVehicleId
+    uniqueVehicleId = ''
   ): Promise<Vehicles[]> {
     // TODO: Check what this returns for 24h+ queries and make sure that only events from one journey is used.
-    const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
-    const operatorId = parseInt(operatorPart, 10)
-    const vehicleId = parseInt(vehiclePart, 10)
+    let operatorId
+    let vehicleId
+
+    if (uniqueVehicleId) {
+      const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
+      operatorId = parseInt(operatorPart, 10)
+      vehicleId = parseInt(vehiclePart, 10)
+    }
 
     const response = await this.query(JOURNEY_EVENTS_QUERY, {
       variables: {
@@ -62,7 +67,7 @@ export class HFPDataSource extends GraphQLDataSource {
         direction,
         departureDate,
         departureTime: getNormalTime(departureTime),
-        uniqueVehicleId: `${operatorId}/${vehicleId}`,
+        compareVehicleId: uniqueVehicleId ? { _eq: `${operatorId}/${vehicleId}` } : undefined,
         compareEventTime: isNextDay(departureTime)
           ? {
               _gt: moment.tz(departureDate, TZ).toISOString(),
@@ -71,7 +76,14 @@ export class HFPDataSource extends GraphQLDataSource {
       },
     })
 
-    return get(response, 'data.vehicles', [])
+    let vehicles: Vehicles[] = get(response, 'data.vehicles', [])
+
+    if (!uniqueVehicleId && vehicles.length !== 0) {
+      const firstVehicleId = vehicles[0].unique_vehicle_id
+      vehicles = vehicles.filter((event) => event.unique_vehicle_id === firstVehicleId)
+    }
+
+    return vehicles
   }
 
   async getDepartureEvents(stopId: string, date: string) {

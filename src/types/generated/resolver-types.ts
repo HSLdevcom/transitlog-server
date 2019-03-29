@@ -285,7 +285,7 @@ export namespace QueryResolvers {
 
     departureDate: Date
 
-    uniqueVehicleId: VehicleId
+    uniqueVehicleId?: Maybe<VehicleId>
   }
 
   export type VehicleJourneysResolver<

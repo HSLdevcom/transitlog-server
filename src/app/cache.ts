@@ -42,18 +42,23 @@ export async function getItem<T>(key): Promise<T | null> {
 }
 
 export async function cacheFetch<DataType = any>(
-  cacheKey,
-  fetchData,
+  cacheKey: false | string | ((data?: DataType) => string | false),
+  fetchData: () => Promise<DataType | false | null>,
   ttl: number | ((data: DataType) => number) = 0
 ): Promise<DataType | null> {
   if (!cacheKey) {
-    return fetchData()
+    const uncachedData = await fetchData()
+    return uncachedData || null
   }
 
-  const cachedData = await getItem<DataType>(cacheKey)
+  const computedCacheKey = typeof cacheKey === 'function' ? cacheKey() : cacheKey
 
-  if (cachedData) {
-    return cachedData
+  if (computedCacheKey) {
+    const cachedData = await getItem<DataType>(computedCacheKey)
+
+    if (cachedData) {
+      return cachedData
+    }
   }
 
   const data = await fetchData()
@@ -64,7 +69,12 @@ export async function cacheFetch<DataType = any>(
 
   const ttlValue = typeof ttl === 'function' ? ttl(data) : ttl
   const ttlConfig = ttlValue > 0 ? ['EX', ttlValue] : []
-  await setItem<DataType>(cacheKey, data, ttlConfig)
+
+  const useCacheKey = typeof cacheKey === 'function' ? cacheKey(data) : cacheKey
+
+  if (useCacheKey) {
+    await setItem<DataType>(useCacheKey, data, ttlConfig)
+  }
 
   return data
 }

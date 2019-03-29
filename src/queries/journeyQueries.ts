@@ -38,7 +38,7 @@ export const JOURNEY_EVENTS_QUERY = gql`
     $routeId: String!
     $departureTime: time!
     $direction: smallint!
-    $uniqueVehicleId: String!
+    $compareVehicleId: text_comparison_exp
     $compareEventTime: timestamptz_comparison_exp
   ) {
     vehicles(
@@ -48,7 +48,7 @@ export const JOURNEY_EVENTS_QUERY = gql`
         route_id: { _eq: $routeId }
         direction_id: { _eq: $direction }
         journey_start_time: { _eq: $departureTime }
-        unique_vehicle_id: { _eq: $uniqueVehicleId }
+        unique_vehicle_id: $compareVehicleId
         tst: $compareEventTime
       }
     ) {
