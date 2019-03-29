@@ -1,35 +1,18 @@
 import { get } from 'lodash'
 import { getDirection } from './getDirection'
-import { Direction, VehicleId } from '../types/generated/schema-types'
-import { intval } from './isWithinRange'
-import { createUniqueVehicleId, createValidVehicleId } from './createUniqueVehicleId'
+import { createValidVehicleId } from './createUniqueVehicleId'
+import { getJourneyStartTime } from './time'
+import { Journey } from '../types/Journey'
 
-interface HFPJourneyObject {
-  oday?: string
-  route_id?: string | null
-  direction_id?: number
-  journey_start_time?: string
-  instance?: number
-}
+export const createJourneyId = (journeyObject: Journey | null) => {
+  if (!journeyObject) {
+    return ''
+  }
 
-interface JourneyObject {
-  departureDate: string
-  routeId: string
-  direction: Direction
-  departureTime: string
-  uniqueVehicleId: VehicleId
-}
-
-type Journey = HFPJourneyObject | JourneyObject
-
-export const createJourneyId = (journeyObject: Journey | null = null) => {
   const departureDate = get(journeyObject, 'oday', get(journeyObject, 'departureDate', null))
   const routeId = get(journeyObject, 'route_id', get(journeyObject, 'routeId', null))
-  const departureTime = get(
-    journeyObject,
-    'journey_start_time',
-    get(journeyObject, 'departureTime', null)
-  )
+  const departureTime = getJourneyStartTime(journeyObject)
+
   const direction = getDirection(
     get(journeyObject, 'direction_id', get(journeyObject, 'direction', null))
   )

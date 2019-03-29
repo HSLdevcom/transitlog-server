@@ -16,6 +16,7 @@ export function createJourneyObject(
 ): Journey {
   const journey = journeyEvents[0]
   const firstDeparture = journeyDepartures[0]
+  const departureTime = getJourneyStartTime(journey, get(firstDeparture, 'isNextDay') || undefined)
   const id = createJourneyId(journey)
 
   return {
@@ -25,7 +26,7 @@ export function createJourneyObject(
     originStopId: get(journeyRoute, 'originStopId', ''),
     direction: journey.direction_id,
     departureDate: journey.oday,
-    departureTime: getJourneyStartTime(journey, get(firstDeparture, 'isNextDay') || undefined),
+    departureTime,
     uniqueVehicleId: createUniqueVehicleId(journey.owner_operator_id, journey.vehicle_number),
     operatorId: journey.owner_operator_id,
     vehicleId: journey.vehicle_number + '',
