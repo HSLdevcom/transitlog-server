@@ -23,6 +23,7 @@ import { EQUIPMENT, EQUIPMENT_BY_ID } from '../queries/equipmentQueries'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { DEPARTURE_STOP, DEPARTURES_FOR_STOP_QUERY } from '../queries/departureQueries'
+import { EXCEPTION_DAYS_QUERY } from '../queries/exceptionDayQueries'
 
 export class JoreDataSource extends GraphQLDataSource {
   baseURL = JORE_URL
@@ -188,5 +189,19 @@ export class JoreDataSource extends GraphQLDataSource {
     })
 
     return get(response, 'data.allDepartures.nodes', null)
+  }
+
+  async getExceptionDaysForYear(year) {
+    if (!year) {
+      return null
+    }
+
+    const response = await this.query(EXCEPTION_DAYS_QUERY, {
+      variables: {
+        year,
+      },
+    })
+
+    return get(response, 'data', {})
   }
 }

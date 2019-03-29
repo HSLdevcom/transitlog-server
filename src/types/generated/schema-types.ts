@@ -111,6 +111,8 @@ export interface Query {
 
   departures: Array<Maybe<Departure>>
 
+  exceptionDays: Array<Maybe<ExceptionDay>>
+
   journey?: Maybe<Journey>
 
   vehicleJourneys: Array<Maybe<VehicleJourney>>
@@ -412,6 +414,26 @@ export interface ObservedDeparture {
   departureTimeDifference: number
 }
 
+export interface ExceptionDay {
+  id: string
+
+  exceptionDate: Date
+
+  newDayType: string
+
+  dayType: string
+
+  modeScope?: Maybe<string>
+
+  description?: Maybe<string>
+
+  exclusive: boolean
+
+  startTime?: Maybe<Time>
+
+  endTime?: Maybe<Time>
+}
+
 export interface Journey {
   id: string
 
@@ -573,6 +595,9 @@ export interface DeparturesQueryArgs {
   stopId: string
 
   date: Date
+}
+export interface ExceptionDaysQueryArgs {
+  year: string
 }
 export interface JourneyQueryArgs {
   routeId: string

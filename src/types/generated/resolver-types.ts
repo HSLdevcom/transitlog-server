@@ -136,6 +136,8 @@ export namespace QueryResolvers {
 
     departures?: DeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
 
+    exceptionDays?: ExceptionDaysResolver<Array<Maybe<ExceptionDay>>, TypeParent, TContext>
+
     journey?: JourneyResolver<Maybe<Journey>, TypeParent, TContext>
 
     vehicleJourneys?: VehicleJourneysResolver<Array<Maybe<VehicleJourney>>, TypeParent, TContext>
@@ -268,6 +270,15 @@ export namespace QueryResolvers {
     stopId: string
 
     date: Date
+  }
+
+  export type ExceptionDaysResolver<
+    R = Array<Maybe<ExceptionDay>>,
+    Parent = {},
+    TContext = {}
+  > = Resolver<R, Parent, TContext, ExceptionDaysArgs>
+  export interface ExceptionDaysArgs {
+    year: string
   }
 
   export type JourneyResolver<R = Maybe<Journey>, Parent = {}, TContext = {}> = Resolver<
@@ -1304,6 +1315,74 @@ export namespace ObservedDepartureResolvers {
   > = Resolver<R, Parent, TContext>
 }
 
+export namespace ExceptionDayResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = ExceptionDay> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    exceptionDate?: ExceptionDateResolver<Date, TypeParent, TContext>
+
+    newDayType?: NewDayTypeResolver<string, TypeParent, TContext>
+
+    dayType?: DayTypeResolver<string, TypeParent, TContext>
+
+    modeScope?: ModeScopeResolver<Maybe<string>, TypeParent, TContext>
+
+    description?: DescriptionResolver<Maybe<string>, TypeParent, TContext>
+
+    exclusive?: ExclusiveResolver<boolean, TypeParent, TContext>
+
+    startTime?: StartTimeResolver<Maybe<Time>, TypeParent, TContext>
+
+    endTime?: EndTimeResolver<Maybe<Time>, TypeParent, TContext>
+  }
+
+  export type IdResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ExceptionDateResolver<R = Date, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type NewDayTypeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DayTypeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ModeScopeResolver<R = Maybe<string>, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DescriptionResolver<
+    R = Maybe<string>,
+    Parent = ExceptionDay,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type ExclusiveResolver<R = boolean, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type StartTimeResolver<R = Maybe<Time>, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type EndTimeResolver<R = Maybe<Time>, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
 export namespace JourneyResolvers {
   export interface Resolvers<TContext = {}, TypeParent = Journey> {
     id?: IdResolver<string, TypeParent, TContext>
@@ -1731,6 +1810,7 @@ export type IResolvers<TContext = {}> = {
   JourneyEvent?: JourneyEventResolvers.Resolvers<TContext>
   PlannedDeparture?: PlannedDepartureResolvers.Resolvers<TContext>
   ObservedDeparture?: ObservedDepartureResolvers.Resolvers<TContext>
+  ExceptionDay?: ExceptionDayResolvers.Resolvers<TContext>
   Journey?: JourneyResolvers.Resolvers<TContext>
   VehicleJourney?: VehicleJourneyResolvers.Resolvers<TContext>
   AreaJourney?: AreaJourneyResolvers.Resolvers<TContext>

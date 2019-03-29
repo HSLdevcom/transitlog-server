@@ -46,24 +46,28 @@ export async function createEquipmentResponse(
   }
 
   const equipmentCacheKey = `equipment`
-  const equipment = await cacheFetch<Equipment[]>(equipmentCacheKey, fetchEquipment, 24 * 60 * 60)
+  const equipmentData = await cacheFetch<Equipment[]>(
+    equipmentCacheKey,
+    fetchEquipment,
+    24 * 60 * 60
+  )
 
-  if (!equipment) {
+  if (!equipmentData) {
     return []
   }
 
   if (!filter && !date) {
-    return orderBy(equipment, ['operatorId', 'vehicleId'], ['asc', 'asc'])
+    return orderBy(equipmentData, ['operatorId', 'vehicleId'], ['asc', 'asc'])
   }
 
   const vehicleIdFilter = get(filter, 'vehicleId', '')
   const operatorIdFilter = get(filter, 'operatorId', '')
   const searchFilter = get(filter, 'search', '')
 
-  let filteredEquipment = equipment
+  let filteredEquipment = equipmentData
 
   if (vehicleIdFilter && operatorIdFilter) {
-    filteredEquipment = equipment.filter(
+    filteredEquipment = equipmentData.filter(
       (item) => item.operatorId === operatorIdFilter && item.vehicleId === vehicleIdFilter
     )
   } else if (searchFilter || (vehicleIdFilter || operatorIdFilter)) {

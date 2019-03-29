@@ -32,6 +32,7 @@ export const Schema = gql`
     routeSegments(routeId: String!, direction: Direction!, date: Date!): [RouteSegment]!
     lines(filter: LineFilterInput, date: Date, includeLinesWithoutRoutes: Boolean = false): [Line]!
     departures(filter: DepartureFilterInput, stopId: String!, date: Date!): [Departure]!
+    exceptionDays(year: String!): [ExceptionDay]!
     journey(
       routeId: String!
       direction: Direction!
