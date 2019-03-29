@@ -262,7 +262,7 @@ export async function createJourneyResponse(
 
       // If the time is more than 5 minutes, we can safely say that the journey has concluded.
       if (eventsEndNowDiff > 5 * 60) {
-        return 24 * 60 * 60 // Cache for 24 hours.
+        return 30 * 24 * 60 * 60 // Cache for a month.
       }
 
       // If the last stop has observed data but the event stream hasn't finished yet, cache for 5 seconds.
