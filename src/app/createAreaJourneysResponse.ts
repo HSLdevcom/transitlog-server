@@ -30,7 +30,7 @@ export const createAreaJourneysResponse = async (
   }
 
   const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}`
-  const journeys = await cacheFetch<AreaJourney[]>(cacheKey, fetchJourneys, 10 * 60)
+  const journeys = await cacheFetch<AreaJourney[]>(cacheKey, fetchJourneys, 5 * 60)
 
   if (!journeys) {
     return []

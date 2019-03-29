@@ -193,10 +193,8 @@ export async function createJourneyResponse(
 
     // Fetch the planned departures and the route.
     const routeCacheKey = `journey_route_departures_${journeyKey}`
-    const routeAndDepartures = await cacheFetch<JourneyRoute>(
-      routeCacheKey,
-      () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
-      24 * 60 * 60 // Cached for 24 hours, could probably be increased since this data never changes.
+    const routeAndDepartures = await cacheFetch<JourneyRoute>(routeCacheKey, () =>
+      fetchJourneyDepartures(fetchRouteData, departureDate, departureTime)
     )
 
     // Note that we fetch and cache the route and the departures before bailing.
@@ -247,10 +245,8 @@ export async function createJourneyResponse(
 
     const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
 
-    const journeyEquipment = await cacheFetch<JoreEquipment>(
-      equipmentKey,
-      () => fetchJourneyEquipment(vehicle_number, owner_operator_id),
-      5
+    const journeyEquipment = await cacheFetch<JoreEquipment>(equipmentKey, () =>
+      fetchJourneyEquipment(vehicle_number, owner_operator_id)
     )
 
     // Everything is baked into a Journey domain object.
@@ -276,7 +272,7 @@ export async function createJourneyResponse(
       // If the last stop has observed data but the event stream hasn't finished yet, cache for 5 seconds.
       return 5
     } else {
-      return 2 // Cache ongoing journeys for s seconds.
+      return 1 // Cache ongoing journeys for 1 second.
     }
   }
 
