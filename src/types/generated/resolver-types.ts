@@ -138,6 +138,8 @@ export namespace QueryResolvers {
 
     journey?: JourneyResolver<Maybe<Journey>, TypeParent, TContext>
 
+    journeys?: JourneysResolver<Array<Maybe<Journey>>, TypeParent, TContext>
+
     vehicleJourneys?: VehicleJourneysResolver<Array<Maybe<VehicleJourney>>, TypeParent, TContext>
 
     eventsByBbox?: EventsByBboxResolver<Array<Maybe<AreaJourney>>, TypeParent, TContext>
@@ -286,6 +288,20 @@ export namespace QueryResolvers {
     departureDate: Date
 
     uniqueVehicleId?: Maybe<VehicleId>
+  }
+
+  export type JourneysResolver<R = Array<Maybe<Journey>>, Parent = {}, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext,
+    JourneysArgs
+  >
+  export interface JourneysArgs {
+    routeId: string
+
+    direction: Direction
+
+    departureDate: Date
   }
 
   export type VehicleJourneysResolver<
@@ -1334,9 +1350,9 @@ export namespace JourneyResolvers {
 
     equipment?: EquipmentResolver<Maybe<Equipment>, TypeParent, TContext>
 
-    events?: EventsResolver<Array<Maybe<JourneyEvent>>, TypeParent, TContext>
+    events?: EventsResolver<Maybe<JourneyEvent[]>, TypeParent, TContext>
 
-    departures?: DeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
+    departures?: DeparturesResolver<Maybe<Departure[]>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
@@ -1409,13 +1425,13 @@ export namespace JourneyResolvers {
     Parent,
     TContext
   >
-  export type EventsResolver<
-    R = Array<Maybe<JourneyEvent>>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
+  export type EventsResolver<R = Maybe<JourneyEvent[]>, Parent = Journey, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type DeparturesResolver<
-    R = Array<Maybe<Departure>>,
+    R = Maybe<Departure[]>,
     Parent = Journey,
     TContext = {}
   > = Resolver<R, Parent, TContext>

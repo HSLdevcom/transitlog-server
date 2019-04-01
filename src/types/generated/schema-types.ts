@@ -113,6 +113,8 @@ export interface Query {
 
   journey?: Maybe<Journey>
 
+  journeys: Array<Maybe<Journey>>
+
   vehicleJourneys: Array<Maybe<VehicleJourney>>
 
   eventsByBbox: Array<Maybe<AreaJourney>>
@@ -441,9 +443,9 @@ export interface Journey {
 
   equipment?: Maybe<Equipment>
 
-  events: Array<Maybe<JourneyEvent>>
+  events?: Maybe<JourneyEvent[]>
 
-  departures: Array<Maybe<Departure>>
+  departures?: Maybe<Departure[]>
 }
 
 export interface VehicleJourney {
@@ -584,6 +586,13 @@ export interface JourneyQueryArgs {
   departureDate: Date
 
   uniqueVehicleId?: Maybe<VehicleId>
+}
+export interface JourneysQueryArgs {
+  routeId: string
+
+  direction: Direction
+
+  departureDate: Date
 }
 export interface VehicleJourneysQueryArgs {
   uniqueVehicleId: VehicleId

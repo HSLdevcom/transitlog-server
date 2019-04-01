@@ -10,6 +10,7 @@ import { getNormalTime } from '../utils/time'
 import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
+import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -96,6 +97,25 @@ const journey = (
   )
 }
 
+const journeys = (root, { routeId, direction, departureDate }, { dataSources }) => {
+  const getRoute = () => dataSources.JoreAPI.getRoute(routeId, direction)
+
+  const getJourneyList = () =>
+    dataSources.HFPAPI.listJourneysForRoute(routeId, direction, departureDate)
+
+  const getJourney = (journeyRouteId, journeyDirection, departureTime) =>
+    dataSources.HFPAPI.getJourneyEvents(routeId, direction, departureDate, departureTime)
+
+  return createRouteJourneysResponse(
+    getRoute,
+    getJourneyList,
+    getJourney,
+    routeId,
+    direction,
+    departureDate
+  )
+}
+
 const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources }) => {
   const getVehicleJourneys = () => dataSources.HFPAPI.getJourneysForVehicle(uniqueVehicleId, date)
   return createVehicleJourneysResponse(getVehicleJourneys, uniqueVehicleId, date)
@@ -119,5 +139,6 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   departures,
   journey,
   vehicleJourneys,
+  journeys,
   eventsByBbox,
 }
