@@ -121,7 +121,7 @@ export async function createDeparturesResponse(
   const validDepartures = await cacheFetch<Departure[]>(
     departuresCacheKey,
     fetchDepartures,
-    24 * 60 * 60
+    30 * 24 * 60 * 60
   )
 
   if (!validDepartures) {
@@ -130,7 +130,7 @@ export async function createDeparturesResponse(
 
   // Cache events for the current day for 10 seconds only.
   // Older dates can be cached for longer.
-  const journeyTTL: number = isToday(date) ? 10 : 24 * 60 * 60
+  const journeyTTL: number = isToday(date) ? 10 : 30 * 24 * 60 * 60
 
   const eventsCacheKey = `departure_events_${stopId}_${date}`
   const departureEvents = await cacheFetch<Vehicles[]>(eventsCacheKey, fetchEvents, journeyTTL)
