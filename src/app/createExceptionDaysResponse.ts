@@ -70,7 +70,7 @@ export const createExceptionDaysResponse = async (
   }
 
   const cacheKey = `exception_days_${year}`
-  const exceptionDays = await cacheFetch<ExceptionDay[]>(cacheKey, fetchData, 1)
+  const exceptionDays = await cacheFetch<ExceptionDay[]>(cacheKey, fetchData, 24 * 60 * 60)
 
   if (!exceptionDays) {
     return []
