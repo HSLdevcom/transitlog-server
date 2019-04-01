@@ -36,12 +36,13 @@ export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): 
 export function createPlannedDepartureTimeObject(departure: JoreDeparture, date): PlannedDeparture {
   const departureTime = getDepartureTime(departure)
   const departureId = createDepartureId(departure)
+  const departureDateTime = getDateFromDateTime(date, departureTime).toISOString(true)
 
   return {
     id: `pdt_${departureId}_${departureTime}`, // pdt = Planned Departure Time
     departureDate: date,
     departureTime,
-    departureDateTime: moment.tz(getDateFromDateTime(date, departureTime), TZ).toISOString(true),
+    departureDateTime,
     isNextDay: departure.isNextDay,
   }
 }

@@ -44,7 +44,7 @@ export async function getItem<T>(key): Promise<T | null> {
 export async function cacheFetch<DataType = any>(
   cacheKey: false | string | ((data?: DataType) => string | false),
   fetchData: () => Promise<DataType | false | null>,
-  ttl: number | ((data: DataType) => number) = 0
+  ttl: number | ((data: DataType) => number) = 30 * 24 * 60 * 60
 ): Promise<DataType | null> {
   if (!cacheKey) {
     const uncachedData = await fetchData()
