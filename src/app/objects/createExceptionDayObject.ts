@@ -1,21 +1,13 @@
-import {
-  ExceptionDay as ExceptionDayDescriptor,
-  ExceptionDaysCalendar,
-  ReplacementDaysCalendar,
-} from '../../types/generated/jore-types'
+import { JoreExceptionDayDescription, JoreExceptionDay, JoreReplacementDay } from '../../types/Jore'
 import { ExceptionDay } from '../../types/generated/schema-types'
 import { get } from 'lodash'
 
-function isReplacementDay(
-  item: ExceptionDaysCalendar | ReplacementDaysCalendar
-): item is ReplacementDaysCalendar {
-  return (item as ReplacementDaysCalendar).scope !== undefined
+function isReplacementDay(item: JoreExceptionDay | JoreReplacementDay): item is JoreReplacementDay {
+  return (item as JoreReplacementDay).scope !== undefined
 }
 
-function isExceptionDay(
-  item: ExceptionDaysCalendar | ReplacementDaysCalendar
-): item is ExceptionDaysCalendar {
-  return (item as ExceptionDaysCalendar).exclusive !== undefined
+function isExceptionDay(item: JoreExceptionDay | JoreReplacementDay): item is JoreExceptionDay {
+  return (item as JoreExceptionDay).exclusive !== undefined
 }
 
 function getMode(code) {
@@ -36,8 +28,8 @@ function getMode(code) {
 }
 
 export const createExceptionDayObject = (
-  config: ReplacementDaysCalendar | ExceptionDaysCalendar | null,
-  description?: ExceptionDayDescriptor | null
+  config: JoreReplacementDay | JoreExceptionDay | null,
+  description?: JoreExceptionDayDescription | null
 ): ExceptionDay | null => {
   if (!config) {
     return null
@@ -45,16 +37,16 @@ export const createExceptionDayObject = (
 
   return {
     id: `exception_day_${isReplacementDay(config) ? 'replacement' : 'exception'}_${
-      config.dayType
-    }_${config.dateInEffect}`,
-    dayType: config.dayType,
+      config.day_type
+    }_${config.date_in_effect}`,
+    dayType: config.day_type,
     description: description ? get(description, 'description', '') : '',
-    exceptionDate: config.dateInEffect,
+    exceptionDate: config.date_in_effect,
     exclusive: isExceptionDay(config) ? config.exclusive === 1 : false,
     type: isExceptionDay(config) ? 'exception' : 'replacement',
     modeScope: isReplacementDay(config) ? getMode(config.scope) : '',
-    newDayType: isExceptionDay(config) ? config.exceptionDayType : config.replacingDayType,
-    startTime: isReplacementDay(config) ? config.timeBegin : null,
-    endTime: isReplacementDay(config) ? config.timeEnd : null,
+    newDayType: isExceptionDay(config) ? config.exception_day_type : config.replacing_day_type,
+    startTime: isReplacementDay(config) ? config.time_begin : null,
+    endTime: isReplacementDay(config) ? config.time_end : null,
   }
 }

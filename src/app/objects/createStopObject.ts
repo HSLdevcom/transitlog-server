@@ -1,16 +1,16 @@
-import { Stop as JoreStop } from '../../types/generated/jore-types'
+import { JoreStop, Mode } from '../../types/Jore'
 import { Stop, StopRoute } from '../../types/generated/schema-types'
 
 export function createStopObject(stop: JoreStop, stopRoutes: StopRoute[] = []): Stop {
   return {
-    id: stop.stopId,
-    stopId: stop.stopId,
-    shortId: stop.shortId,
+    id: stop.stop_id,
+    stopId: stop.stop_id,
+    shortId: stop.short_id,
     lat: stop.lat,
     lng: stop.lon,
-    name: stop.nameFi,
-    radius: stop.stopRadius,
-    modes: stop.modes.nodes,
+    name: stop.name_fi,
+    radius: stop.stop_radius,
+    modes: stop.modes || [Mode.Bus],
     routes: stopRoutes,
     // @ts-ignore
     _matchScore: stop._matchScore,

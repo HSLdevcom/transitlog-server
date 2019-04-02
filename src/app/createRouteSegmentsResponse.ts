@@ -1,10 +1,8 @@
 import { get, groupBy, sortBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { Route as JoreRoute, RouteSegment as JoreRouteSegment } from '../types/generated/jore-types'
+import { JoreRoute, JoreRouteSegment } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Direction, RouteSegment } from '../types/generated/schema-types'
-import { createStopObject } from './objects/createStopObject'
-import { getDirection } from '../utils/getDirection'
 import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
 
 export async function createRouteSegmentsResponse(
@@ -25,11 +23,11 @@ export async function createRouteSegmentsResponse(
     const routeSegments: JoreRouteSegment[] = get(selectedRoute, 'routeSegments.nodes', []) || []
 
     const validRouteSegments = filterByDateChains<JoreRouteSegment>(
-      groupBy(routeSegments, 'stopIndex'),
+      groupBy(routeSegments, 'stop_index'),
       date
     )
 
-    const sortedRouteSegments = sortBy(validRouteSegments, 'stopIndex')
+    const sortedRouteSegments = sortBy(validRouteSegments, 'stop_index')
 
     // The sorted array of segments can then be further reduced to segment and stop combos.
     // This returns an array of objects which have data from both the stop and the route

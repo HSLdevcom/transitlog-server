@@ -1,11 +1,7 @@
 import { ExceptionDataSource } from '../datasources/ExceptionDataSource'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { ExceptionDay } from '../types/generated/schema-types'
-import {
-  ExceptionDay as ExceptionDayDescriptor,
-  ExceptionDaysCalendar,
-  ReplacementDaysCalendar,
-} from '../types/generated/jore-types'
+import { JoreExceptionDayDescription, JoreExceptionDay, JoreReplacementDay } from '../types/Jore'
 import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
 import { isSameYear } from 'date-fns'
 import { cacheFetch } from '../app/cache'
@@ -30,9 +26,11 @@ const fetchExceptions: CachedFetcher<ExceptionDay[]> = async (year) => {
     replacementDays: { nodes: replacementDayNodes },
   } = exceptionData
 
-  const exceptionDayIndex: ExceptionDayDescriptor[] = compact(exceptionDayDescriptionNodes || [])
-  const joreExceptionDays: ExceptionDaysCalendar[] = compact(exceptionDayNodes || [])
-  const joreReplacementDays: ReplacementDaysCalendar[] = compact(replacementDayNodes || [])
+  const exceptionDayIndex: JoreExceptionDayDescription[] = compact(
+    exceptionDayDescriptionNodes || []
+  )
+  const joreExceptionDays: JoreExceptionDay[] = compact(exceptionDayNodes || [])
+  const joreReplacementDays: JoreReplacementDay[] = compact(replacementDayNodes || [])
 
   const exceptionDayObjects = joreExceptionDays.reduce((days: ExceptionDay[], day) => {
     const description = exceptionDayIndex.find(

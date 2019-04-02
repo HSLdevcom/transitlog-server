@@ -1,7 +1,7 @@
 import { groupBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { createRouteObject } from './objects/createRouteObject'
-import { Route as JoreRoute } from '../types/generated/jore-types'
+import { JoreRoute } from '../types/Jore'
 import { Direction, Route, RouteFilterInput } from '../types/generated/schema-types'
 import { cacheFetch } from './cache'
 import { filterRoutes } from './filters/filterRoutes'
@@ -46,7 +46,7 @@ export async function createRoutesResponse(
       return false
     }
 
-    const groupedRoutes = groupBy(routes, ({ routeId, direction }) => `${routeId}.${direction}`)
+    const groupedRoutes = groupBy(routes, ({ route_id, direction }) => `${route_id}.${direction}`)
 
     return filterByDateChains<JoreRoute>(groupedRoutes, date)
   }

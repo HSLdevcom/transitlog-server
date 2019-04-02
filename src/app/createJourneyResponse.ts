@@ -1,9 +1,4 @@
-import {
-  Departure as JoreDeparture,
-  Equipment as JoreEquipment,
-  Route as JoreRoute,
-  RouteSegment as JoreRouteSegment,
-} from '../types/generated/jore-types'
+import { JoreDeparture, JoreEquipment, JoreRoute, JoreRouteSegment } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
 import {
@@ -115,7 +110,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
   const originDeparture =
     firstStopDepartures.find(
-      ({ hours, minutes, isNextDay }) => getDepartureTime({ hours, minutes, isNextDay }) === time
+      ({ hours, minutes, is_next_day }) =>
+        getDepartureTime({ hours, minutes, is_next_day }) === time
     ) || null
 
   if (!originDeparture) {
@@ -126,7 +122,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // stop down to the one departure that belongs to this specific journey.
   const stopDepartures = stops.reduce(
     (plannedDepartures: PlannedDeparture[], { stop, departures = [] }) => {
-      const departure = departures.find((dep) => dep.departureId === originDeparture.departureId)
+      const departure = departures.find((dep) => dep.departure_id === originDeparture.departureId)
 
       if (departure) {
         // The departures are then converted to objects native to this domain.

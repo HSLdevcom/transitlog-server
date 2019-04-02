@@ -6,7 +6,7 @@ import { MAX_JORE_YEAR } from '../constants'
 import { Dictionary } from '../types/Dictionary'
 import diffDays from 'date-fns/difference_in_days'
 
-// JORE objects have dateBegin and dateEnd props that express a validity range.
+// JORE objects have date_begin and date_end props that express a validity range.
 // We have a problem where there can be multiple objects with overlapping
 // validity ranges, so to figure out which ones are the valid ones we construct
 // "validity chains". The objects that don't fit in the chain are invalid.
@@ -27,16 +27,16 @@ export function filterByDateChains<ItemType extends ValidityRange>(
         return filtered
       }
 
-      // Get the minimum dateBegin amongst the items
-      const dateBeginOrdered = orderBy(items, 'dateBegin', 'asc')
-      const minDate = get(first(dateBeginOrdered), 'dateBegin')
+      // Get the minimum date_begin amongst the items
+      const dateBeginOrdered = orderBy(items, 'date_begin', 'asc')
+      const minDate = get(first(dateBeginOrdered), 'date_begin')
 
-      // Order the items descending from the most distant dateEnd. This
+      // Order the items descending from the most distant date_end. This
       // is the array we'll pull items from and add to the chain.
-      const dateEndOrdered = orderBy(items, 'dateEnd', 'desc')
+      const dateEndOrdered = orderBy(items, 'date_end', 'desc')
 
       // This function searches the ordered array to find the next link in the chain.
-      // It checks the candidate's dateEnd if it is exactly a day off from item.
+      // It checks the candidate's date_end if it is exactly a day off from item.
       // If it returns false, it did not find a result and item would end the chain.
       function findNextLink(item) {
         if (!item) {
@@ -46,12 +46,12 @@ export function filterByDateChains<ItemType extends ValidityRange>(
         for (const candidate of dateEndOrdered) {
           const hoursDiff = diffHours(
             // To get a positive number, put the date we presume to be LATER first.
-            get(item, 'dateBegin', MAX_JORE_YEAR + '-12-31'),
+            get(item, 'date_begin', MAX_JORE_YEAR + '-12-31'),
             // and put the date we presume to be EARLIER second.
-            get(candidate, 'dateEnd', MAX_JORE_YEAR + '-12-31')
+            get(candidate, 'date_end', MAX_JORE_YEAR + '-12-31')
           )
 
-          // If the candidate's dateEnd is roughly one day before our item's dateBegin,
+          // If the candidate's date_end is roughly one day before our item's date_begin,
           // it is a valid link for the chain. Need to use hours because of DST.
           if (hoursDiff > 22 && hoursDiff < 26) {
             return candidate
@@ -77,7 +77,7 @@ export function filterByDateChains<ItemType extends ValidityRange>(
         const maxIterations = 100
 
         // Extra precautions for runaway loops.
-        while (get(last(chain), 'dateBegin') !== minDate && i < maxIterations) {
+        while (get(last(chain), 'date_begin') !== minDate && i < maxIterations) {
           if (chain.length === 0) {
             // Use the starting item to start it off. This would be the "last" item in the chain.
             chain.push(startingPoint)
@@ -150,7 +150,7 @@ export function filterByDateChains<ItemType extends ValidityRange>(
               let days = 0
 
               for (const item of chain) {
-                days += diffDays(item.dateEnd, item.dateBegin)
+                days += diffDays(item.date_end, item.date_begin)
               }
 
               return days

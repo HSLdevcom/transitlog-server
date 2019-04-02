@@ -1,6 +1,6 @@
 import { get } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { Route as JoreRoute } from '../types/generated/jore-types'
+import { JoreRoute } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Direction, RouteGeometry } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -24,7 +24,7 @@ export async function createRouteGeometryResponse(
 
     const geometry = geometries.find(
       ({ dateBegin: geomDateBegin, dateEnd: geomDateEnd }) =>
-        geomDateBegin === selectedRoute.dateBegin && geomDateEnd === selectedRoute.dateEnd
+        geomDateBegin === selectedRoute.date_begin && geomDateEnd === selectedRoute.date_end
     )
 
     // Convert to lat/lng points

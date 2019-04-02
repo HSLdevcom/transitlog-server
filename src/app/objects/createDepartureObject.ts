@@ -1,4 +1,4 @@
-import { Departure as JoreDeparture } from '../../types/generated/jore-types'
+import { JoreDeparture } from '../../types/Jore'
 import {
   DepartureJourney,
   PlannedArrival,
@@ -15,9 +15,9 @@ import { createJourneyId } from '../../utils/createJourneyId'
 import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
 
 export function createDepartureId(departure) {
-  return `${departure.routeId}_${departure.direction}_${departure.hours}_${departure.minutes}_${
-    departure.stopId
-  }_${departure.dayType}_${departure.extraDeparture}`
+  return `${departure.route_id}_${departure.direction}_${departure.hours}_${departure.minutes}_${
+    departure.stop_id
+  }_${departure.day_type}_${departure.extra_departure}`
 }
 
 export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): PlannedArrival {
@@ -29,11 +29,14 @@ export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): 
     arrivalDate: date,
     arrivalTime,
     arrivalDateTime: moment.tz(getDateFromDateTime(date, arrivalTime), TZ).toISOString(true),
-    isNextDay: departure.isNextDay,
+    isNextDay: departure.arrival_is_next_day,
   }
 }
 
-export function createPlannedDepartureTimeObject(departure: JoreDeparture, date): PlannedDeparture {
+export function createPlannedDepartureTimeObject(
+  departure: JoreDeparture,
+  date: string
+): PlannedDeparture {
   const departureTime = getDepartureTime(departure)
   const departureId = createDepartureId(departure)
   const departureDateTime = getDateFromDateTime(date, departureTime).toISOString(true)
@@ -43,7 +46,7 @@ export function createPlannedDepartureTimeObject(departure: JoreDeparture, date)
     departureDate: date,
     departureTime,
     departureDateTime,
-    isNextDay: departure.isNextDay,
+    isNextDay: departure.is_next_day,
   }
 }
 
@@ -76,25 +79,25 @@ export function createPlannedDepartureObject(
 
   return {
     id: departureId,
-    stopId: departure.stopId,
-    dayType: departure.dayType,
-    equipmentType: departure.equipmentType,
-    equipmentIsRequired: !!departure.equipmentRequired,
-    equipmentColor: departure.trunkColorRequired ? 'HSL-orans' : '',
-    operatorId: departure.operatorId,
-    routeId: departure.routeId,
+    stopId: departure.stop_id,
+    dayType: departure.day_type,
+    equipmentType: departure.equipment_type,
+    equipmentIsRequired: !!departure.equipment_required,
+    equipmentColor: departure.trunk_color_required ? 'HSL-orans' : '',
+    operatorId: departure.operator_id,
+    routeId: departure.route_id,
     direction: departure.direction,
-    terminalTime: departure.terminalTime,
-    recoveryTime: departure.recoveryTime,
-    departureId: departure.departureId,
-    extraDeparture: departure.extraDeparture,
-    isNextDay: departure.isNextDay,
+    terminalTime: departure.terminal_time,
+    recoveryTime: departure.recovery_time,
+    departureId: departure.departure_id,
+    extraDeparture: departure.extra_departure,
+    isNextDay: departure.is_next_day,
     isTimingStop: get(stop, 'isTimingStop', false),
     index: get(stop, 'stopIndex', 0),
     stop,
     journey: null,
-    originDepartureTime: departure.originDeparture
-      ? createPlannedDepartureTimeObject(departure.originDeparture, departureDate)
+    originDepartureTime: departure.origin_departure
+      ? createPlannedDepartureTimeObject(departure.origin_departure, departureDate)
       : null,
     plannedArrivalTime: createPlannedArrivalTimeObject(departure, departureDate),
     plannedDepartureTime: createPlannedDepartureTimeObject(departure, departureDate),

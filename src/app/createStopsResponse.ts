@@ -1,5 +1,5 @@
 import { BBox, Stop, StopFilterInput, StopRoute } from '../types/generated/schema-types'
-import { RouteSegment, Stop as JoreStop } from '../types/generated/jore-types'
+import { JoreRouteSegment, JoreStop } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { createStopObject } from './objects/createStopObject'
 import { search } from './filters/search'
@@ -25,15 +25,15 @@ export async function createStopResponse(
       return false
     }
 
-    let validRouteSegments = filterByDateChains<RouteSegment>(
-      groupBy(
+    let validRouteSegments = filterByDateChains<JoreRouteSegment>(
+      groupBy<JoreRouteSegment>(
         get(stop, 'routeSegments.nodes', []),
-        (segment) => segment.routeId + segment.direction + segment.stopIndex
+        (segment) => segment.route_id + segment.direction + segment.stop_index
       ),
       date
     )
 
-    validRouteSegments = uniqBy(validRouteSegments, 'routeId')
+    validRouteSegments = uniqBy<JoreRouteSegment>(validRouteSegments, 'route_id')
 
     if (!validRouteSegments || validRouteSegments.length === 0) {
       return false
@@ -48,19 +48,19 @@ export async function createStopResponse(
       }
 
       const stopRoute: StopRoute = {
-        id: `stop_route_${route.routeId}_${route.direction}_${route.dateBegin}_${route.dateEnd}`,
-        lineId: get(route, 'line.nodes[0].lineId', ''),
+        id: `stop_route_${route.route_id}_${route.direction}_${route.date_begin}_${route.date_end}`,
+        lineId: get(route, 'line.nodes[0].line_id', ''),
         direction: getDirection(route.direction),
-        routeId: route.routeId,
-        isTimingStop: !!segment.timingStopType,
-        originStopId: route.originstopId,
+        routeId: route.route_id,
+        isTimingStop: !!segment.timing_stop_type,
+        originStopId: route.originstop_id,
       }
 
       routes.push(stopRoute)
       return routes
     }, [])
 
-    stopRoutes = orderBy(stopRoutes, 'routeId')
+    stopRoutes = orderBy(stopRoutes, 'route_id')
     return createStopObject(stop, stopRoutes)
   }
 

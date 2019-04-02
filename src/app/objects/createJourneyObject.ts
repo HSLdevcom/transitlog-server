@@ -5,7 +5,7 @@ import { Departure, Journey, Route } from '../../types/generated/schema-types'
 import { createJourneyEventObject } from './createJourneyEventObject'
 import { get } from 'lodash'
 import { createEquipmentObject } from './createEquipmentObject'
-import { Equipment as JoreEquipment } from '../../types/generated/jore-types'
+import { JoreEquipment } from '../../types/Jore'
 import { getJourneyStartTime } from '../../utils/time'
 
 export function createJourneyObject(

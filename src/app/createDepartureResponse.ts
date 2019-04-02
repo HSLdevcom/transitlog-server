@@ -1,11 +1,7 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { get, groupBy, orderBy, flatten } from 'lodash'
+import { flatten, get, groupBy, orderBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import {
-  Departure as JoreDeparture,
-  RouteSegment as JoreRouteSegment,
-  Stop as JoreStop,
-} from '../types/generated/jore-types'
+import { JoreDeparture, JoreRouteSegment, JoreStop } from '../types/Jore'
 import { Departure, DepartureFilterInput, RouteSegment } from '../types/generated/schema-types'
 import { Vehicles } from '../types/generated/hfp-types'
 import { cacheFetch } from './cache'
@@ -22,6 +18,7 @@ import { filterDepartures } from './filters/filterDepartures'
 import { isToday } from 'date-fns'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
+import { Dictionary } from '../types/Dictionary'
 
 export async function createDeparturesResponse(
   getDepartures: () => Promise<JoreDeparture | null>,
@@ -47,7 +44,7 @@ export async function createDeparturesResponse(
     // according to date chain logic.
     const groupedRouteSegments = groupBy(
       get(stop, 'routeSegments.nodes', []),
-      (segment) => segment.routeId + segment.direction + segment.stopIndex
+      (segment) => segment.route_id + segment.direction + segment.stop_index
     )
 
     // Validate by date chains and return only segments valid during the requested date.
@@ -59,15 +56,15 @@ export async function createDeparturesResponse(
       const route = get(segment, 'route.nodes[0]', {})
 
       return {
-        destination: segment.destinationFi || '',
-        distanceFromPrevious: segment.distanceFromPrevious,
-        distanceFromStart: segment.distanceFromStart,
+        destination: segment.destination_fi || '',
+        distanceFromPrevious: segment.distance_from_previous,
+        distanceFromStart: segment.distance_from_start,
         duration: segment.duration,
-        stopIndex: segment.stopIndex,
-        isTimingStop: !!segment.timingStopType, // very important
-        lineId: get(route, 'line.nodes[0].lineId', ''),
-        originStopId: get(route, 'originstopId', ''),
-        routeId: segment.routeId,
+        stopIndex: segment.stop_index,
+        isTimingStop: !!segment.timing_stop_type, // very important
+        lineId: get(route, 'line.nodes[0].line_id', ''),
+        originStopId: get(route, 'originstop_id', ''),
+        routeId: segment.route_id,
         direction: getDirection(segment.direction),
         ...stopObject,
       }
@@ -89,14 +86,16 @@ export async function createDeparturesResponse(
     }
 
     // Group and validate departures with date chains
-    const groupedDepartures = groupBy(departures, createDepartureId)
+    const groupedDepartures = groupBy<JoreDeparture>(departures, createDepartureId) as Dictionary<
+      JoreDeparture[]
+    >
     const validDepartures = filterByDateChains<JoreDeparture>(groupedDepartures, date)
 
     return validDepartures.map((departure) => {
       // Find a relevant stop segment and use it in the departure response.
       const stop = stops.find((stopSegment) => {
         return (
-          stopSegment.routeId === departure.routeId &&
+          stopSegment.routeId === departure.route_id &&
           stopSegment.direction === getDirection(departure.direction)
         )
       })

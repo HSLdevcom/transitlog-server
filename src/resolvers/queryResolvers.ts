@@ -6,11 +6,9 @@ import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
 import { createDeparturesResponse } from '../app/createDepartureResponse'
-import { getNormalTime } from '../utils/time'
 import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
-import { createExceptionDaysResponse } from '../app/createExceptionDaysResponse'
 import { getExceptions } from '../utils/getExceptions'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
