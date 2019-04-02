@@ -11,6 +11,7 @@ import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
 import { createExceptionDaysResponse } from '../app/createExceptionDaysResponse'
+import { getExceptions } from '../utils/getExceptions'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -107,9 +108,8 @@ const eventsByBbox = (root, { minTime, maxTime, bbox, date, filters }, { dataSou
   return createAreaJourneysResponse(getAreaJourneys, minTime, maxTime, bbox, date, filters)
 }
 
-const exceptionDays = (root, { year }, { dataSources }) => {
-  const getExceptionData = () => dataSources.JoreAPI.getExceptionDaysForYear(year)
-  return createExceptionDaysResponse(getExceptionData, year)
+const exceptionDays = (root, { year }) => {
+  return getExceptions(year)
 }
 
 export const queryResolvers: QueryResolvers.Resolvers = {

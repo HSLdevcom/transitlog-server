@@ -427,6 +427,8 @@ export interface ExceptionDay {
 
   description?: Maybe<string>
 
+  type: string
+
   exclusive: boolean
 
   startTime?: Maybe<Time>

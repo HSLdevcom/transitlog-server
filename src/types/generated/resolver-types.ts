@@ -1329,6 +1329,8 @@ export namespace ExceptionDayResolvers {
 
     description?: DescriptionResolver<Maybe<string>, TypeParent, TContext>
 
+    type?: TypeResolver<string, TypeParent, TContext>
+
     exclusive?: ExclusiveResolver<boolean, TypeParent, TContext>
 
     startTime?: StartTimeResolver<Maybe<Time>, TypeParent, TContext>
@@ -1366,6 +1368,11 @@ export namespace ExceptionDayResolvers {
     Parent = ExceptionDay,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type TypeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type ExclusiveResolver<R = boolean, Parent = ExceptionDay, TContext = {}> = Resolver<
     R,
     Parent,

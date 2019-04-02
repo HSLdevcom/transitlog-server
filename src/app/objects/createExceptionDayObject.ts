@@ -51,6 +51,7 @@ export const createExceptionDayObject = (
     description: description ? get(description, 'description', '') : '',
     exceptionDate: config.dateInEffect,
     exclusive: isExceptionDay(config) ? config.exclusive === 1 : false,
+    type: isExceptionDay(config) ? 'exception' : 'replacement',
     modeScope: isReplacementDay(config) ? getMode(config.scope) : '',
     newDayType: isExceptionDay(config) ? config.exceptionDayType : config.replacingDayType,
     startTime: isReplacementDay(config) ? config.timeBegin : null,

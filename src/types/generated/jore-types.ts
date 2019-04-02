@@ -192,7 +192,7 @@ export interface EquipmentCondition {
 /** A condition to be used against `ExceptionDay` object types. All fields are tested for equality and combined with a logical ‘and.’ */
 export interface ExceptionDayCondition {
   /** Checks for equality with the object’s `exceptionDayType` field. */
-  exceptionDayType?: Maybe<Date>
+  exceptionDayType?: Maybe<string>
   /** Checks for equality with the object’s `description` field. */
   description?: Maybe<string>
 }
@@ -1436,7 +1436,7 @@ export interface ExceptionDay extends Node {
   /** A globally unique identifier. Can be used in various places throughout the system to identify this single value. */
   nodeId: string
 
-  exceptionDayType: Date
+  exceptionDayType: string
 
   description?: Maybe<string>
 }
@@ -1927,7 +1927,7 @@ export interface EquipmentByRegistryNrQueryArgs {
   registryNr: string
 }
 export interface ExceptionDayByExceptionDayTypeQueryArgs {
-  exceptionDayType: Date
+  exceptionDayType: string
 }
 export interface ExceptionDaysCalendarByDateInEffectQueryArgs {
   dateInEffect: Date
