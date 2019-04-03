@@ -9,7 +9,7 @@ export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteF
     return routes.filter((route) => get(route, 'line.nodes[0].line_id', '') === line)
   }
 
-  const routeIdFilter = get(filter, 'route_id', '')
+  const routeIdFilter = get(filter, 'routeId', '')
   const directionFilter = getDirection(get(filter, 'direction', ''))
 
   if (routeIdFilter && directionFilter) {

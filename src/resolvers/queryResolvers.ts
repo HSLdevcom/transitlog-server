@@ -1,6 +1,6 @@
 import { QueryResolvers } from '../types/generated/resolver-types'
 import { createLinesResponse } from '../app/createLinesResponse'
-import { createRouteResponse, createRoutesResponse } from '../app/createRoutesResponse'
+import { createRoutesResponse } from '../app/createRoutesResponse'
 import { createStopResponse, createStopsResponse } from '../app/createStopsResponse'
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
@@ -33,8 +33,9 @@ const stop = (root, { stopId, date }, { dataSources }) => {
 }
 
 const route = async (root, { routeId, direction, date }, { dataSources }) => {
-  const getRoute = () => dataSources.JoreAPI.getRoute(routeId, direction)
-  return createRouteResponse(getRoute, date, routeId, direction)
+  const getRoutes = () => dataSources.JoreAPI.getRoutes()
+  const routes = await createRoutesResponse(getRoutes, date, undefined, { routeId, direction })
+  return routes[0]
 }
 
 const routes = async (root, { filter, line, date }, { dataSources }) => {

@@ -43,12 +43,13 @@ export class JoreDataSource extends SQLDataSource {
     return this.getBatched(query)
   }
 
-  async getRoute(routeId, direction): Promise<JoreRoute[]> {
-    return []
-  }
-
   async getRoutes(): Promise<JoreRoute[]> {
-    return []
+    const query = this.db
+      .withSchema(SCHEMA)
+      .select()
+      .from('route')
+
+    return this.getBatched(query)
   }
 
   async getRouteGeometry(routeId: string, direction: Direction): Promise<JoreRoute[]> {
