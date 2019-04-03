@@ -1,10 +1,10 @@
-import { BBox, Stop, StopFilterInput, StopRoute } from '../types/generated/schema-types'
+import { BBox, SimpleStop, Stop, StopFilterInput, StopRoute } from '../types/generated/schema-types'
 import { JoreLine, JoreRoute, JoreRouteSegment, JoreStop } from '../types/Jore'
 import { cacheFetch } from './cache'
-import { createStopObject } from './objects/createStopObject'
+import { createSimpleStopObject, createStopObject } from './objects/createStopObject'
 import { search } from './filters/search'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, uniqBy, orderBy } from 'lodash'
+import { groupBy, uniqBy, orderBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
 
@@ -74,21 +74,21 @@ export async function createStopsResponse(
   getStops: () => Promise<JoreStop[]>,
   filter?: StopFilterInput,
   bbox: BBox = {}
-): Promise<Stop[]> {
-  const fetchStops: CachedFetcher<Stop[]> = async () => {
-    const stops = await getStops()
+): Promise<SimpleStop[]> {
+  const fetchStops: CachedFetcher<SimpleStop[]> = async () => {
+    const fetchedStops = await getStops()
 
-    if (!stops || stops.length === 0) {
+    if (!fetchedStops || fetchedStops.length === 0) {
       return false
     }
 
-    return stops.map((stop) => createStopObject(stop))
+    return fetchedStops.map((stop) => createSimpleStopObject(stop))
   }
 
   // Create a separate cache key for bbox queries.
   const bboxStr = Object.values(bbox).join(',')
   const cacheKey = `stops${bbox ? `_bbox_${bboxStr}` : ''}`
-  const stops = await cacheFetch<Stop[]>(cacheKey, fetchStops, bbox ? 5 * 60 : 24 * 60 * 60)
+  const stops = await cacheFetch<SimpleStop[]>(cacheKey, fetchStops, bbox ? 5 * 60 : 24 * 60 * 60)
 
   if (!stops) {
     return []
@@ -97,7 +97,7 @@ export async function createStopsResponse(
   let filteredStops = stops
 
   if (filter && filter.search) {
-    filteredStops = search<Stop>(stops, filter.search, getSearchValue)
+    filteredStops = search<SimpleStop>(stops, filter.search, getSearchValue)
   }
 
   return filteredStops

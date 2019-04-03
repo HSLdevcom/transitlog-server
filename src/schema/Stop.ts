@@ -10,6 +10,18 @@ export const Stop = gql`
     isTimingStop: Boolean!
   }
 
+  type SimpleStop implements Position {
+    id: ID!
+    stopId: String!
+    shortId: String!
+    lat: Float!
+    lng: Float!
+    name: String
+    radius: Float
+    modes: [String]!
+    _matchScore: Float
+  }
+
   type Stop implements Position {
     id: ID!
     stopId: String!
@@ -20,7 +32,6 @@ export const Stop = gql`
     radius: Float
     modes: [String]!
     routes: [StopRoute]!
-    _matchScore: Float
   }
 
   input StopFilterInput {

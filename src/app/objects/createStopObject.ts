@@ -1,5 +1,20 @@
 import { JoreStop, Mode } from '../../types/Jore'
-import { Stop, StopRoute } from '../../types/generated/schema-types'
+import { SimpleStop, Stop, StopRoute } from '../../types/generated/schema-types'
+
+export function createSimpleStopObject(stop: JoreStop): SimpleStop {
+  return {
+    id: stop.stop_id,
+    stopId: stop.stop_id,
+    shortId: stop.short_id,
+    lat: stop.lat,
+    lng: stop.lon,
+    name: stop.name_fi,
+    radius: stop.stop_radius,
+    modes: stop.modes || [Mode.Bus],
+    // @ts-ignore
+    _matchScore: stop._matchScore,
+  }
+}
 
 export function createStopObject(stop: JoreStop, stopRoutes: StopRoute[] = []): Stop {
   return {
@@ -12,7 +27,5 @@ export function createStopObject(stop: JoreStop, stopRoutes: StopRoute[] = []): 
     radius: stop.stop_radius,
     modes: stop.modes || [Mode.Bus],
     routes: stopRoutes,
-    // @ts-ignore
-    _matchScore: stop._matchScore,
   }
 }

@@ -93,7 +93,14 @@ where stop.stop_id = :stopId;`,
   }
 
   async getStopsByBBox(bbox): Promise<JoreStop[]> {
-    return []
+    const query = this.db.select().from(
+      this.db.raw(`:schema:.stops_by_bbox(:minLat, :minLng, :maxLat, :maxLng)`, {
+        schema: SCHEMA,
+        ...bbox,
+      })
+    )
+
+    return this.getBatched(query)
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
