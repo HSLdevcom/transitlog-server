@@ -6,7 +6,7 @@ import { getDirection } from '../../utils/getDirection'
 
 export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteFilterInput) {
   if (line) {
-    return routes.filter((route) => get(route, 'line.nodes[0].line_id', '') === line)
+    return routes.filter((route) => get(route, 'line_id', '') === line)
   }
 
   const routeIdFilter = get(filter, 'routeId', '')

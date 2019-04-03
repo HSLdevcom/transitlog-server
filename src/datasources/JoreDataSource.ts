@@ -45,9 +45,8 @@ export class JoreDataSource extends SQLDataSource {
 
   async getRoutes(): Promise<JoreRoute[]> {
     const query = this.db
-      .withSchema(SCHEMA)
       .select()
-      .from('route')
+      .from(this.db.raw(`:schema:.route, :schema:.route_line(route)`, { schema: SCHEMA }))
 
     return this.getBatched(query)
   }
@@ -104,14 +103,26 @@ where stop.stop_id = :stopId;`,
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
-    return []
+    const query = this.db
+      .withSchema(SCHEMA)
+      .select()
+      .from('equipment')
+
+    return this.getBatched(query)
   }
 
   async getEquipmentById(vehicleId: string | number, operatorId: string): Promise<JoreEquipment[]> {
     const joreVehicleId = vehicleId + ''
     const joreOperatorId = (operatorId + '').padStart(4, '0')
 
-    return []
+    const query = this.db
+      .withSchema(SCHEMA)
+      .select()
+      .from('equipment')
+      .where('vehicle_id', joreVehicleId)
+      .where('operator_id', joreOperatorId)
+
+    return this.getBatched(query)
   }
 
   async getRouteSegments(routeId: string, direction: Direction): Promise<JoreRouteSegment[]> {
