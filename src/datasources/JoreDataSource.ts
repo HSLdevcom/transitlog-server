@@ -52,8 +52,21 @@ export class JoreDataSource extends SQLDataSource {
     return this.getBatched(query)
   }
 
-  async getRouteGeometry(routeId: string, direction: Direction): Promise<JoreRoute[]> {
-    return []
+  async getRouteGeometry(
+    routeId: string,
+    direction: Direction,
+    date: string
+  ): Promise<JoreRoute[]> {
+    const query = this.db.raw(
+      `SELECT route.date_begin, route.date_end, geometry.geometry
+from :schema:.route as route,
+     :schema:.route_geometries(route, :date) as geometry
+where route_id = :routeId
+  and direction = :direction`,
+      { schema: SCHEMA, routeId, direction: direction + '', date }
+    )
+
+    return this.getBatched(query)
   }
 
   async getStop(stopId: string): Promise<JoreStop | null> {

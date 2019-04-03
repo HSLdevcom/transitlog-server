@@ -20,27 +20,28 @@ export async function createRouteGeometryResponse(
       return false
     }
 
-    const geometries = get(selectedRoute, 'geometries.nodes', [])
-
-    const geometry = geometries.find(
-      ({ dateBegin: geomDateBegin, dateEnd: geomDateEnd }) =>
-        geomDateBegin === selectedRoute.date_begin && geomDateEnd === selectedRoute.date_end
-    )
+    const geometry = get(selectedRoute, 'geometry.coordinates', [])
 
     // Convert to lat/lng points
-    const coordinates = get(geometry, 'geometry.coordinates', []).map(([lon, lat]) => ({
+    const coordinates = geometry.map(([lon, lat]) => ({
       lat,
       lng: lon,
     }))
 
     return {
-      id: `route_geometry_${routeId}_${direction}_${geometry.dateBegin}_${geometry.dateEnd}`,
+      id: `route_geometry_${routeId}_${direction}_${selectedRoute.date_begin}_${
+        selectedRoute.date_end
+      }`,
       coordinates,
     }
   }
 
   const cacheKey = `routeGeometry_${routeId}_${direction}_${date}`
-  const validRouteGeometry = await cacheFetch<RouteGeometry>(cacheKey, fetchAndValidate)
+  const validRouteGeometry = await cacheFetch<RouteGeometry>(
+    cacheKey,
+    fetchAndValidate,
+    24 * 60 * 60
+  )
 
   if (!validRouteGeometry) {
     return null

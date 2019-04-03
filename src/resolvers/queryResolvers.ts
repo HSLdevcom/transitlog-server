@@ -44,7 +44,7 @@ const routes = async (root, { filter, line, date }, { dataSources }) => {
 }
 
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
-  const getRouteGeometry = () => dataSources.JoreAPI.getRouteGeometry(routeId, direction)
+  const getRouteGeometry = () => dataSources.JoreAPI.getRouteGeometry(routeId, direction, date)
   return createRouteGeometryResponse(getRouteGeometry, date, routeId, direction)
 }
 
