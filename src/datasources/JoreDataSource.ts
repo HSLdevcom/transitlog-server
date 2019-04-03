@@ -69,12 +69,27 @@ where route_id = :routeId
     return this.getBatched(query)
   }
 
-  async getStop(stopId: string): Promise<JoreStop | null> {
-    return null
+  async getStopSegments(stopId: string, date: string): Promise<JoreStop[]> {
+    const query = this.db.raw(
+      `SELECT *
+FROM :schema:.stop as stop,
+     :schema:.stop_route_segments_for_date(stop, :date) as route_segment,
+     :schema:.route_segment_line(route_segment) as line,
+     :schema:.route_segment_route(route_segment, :date) as route
+where stop.stop_id = :stopId;`,
+      { schema: SCHEMA, stopId, date }
+    )
+
+    return this.getBatched(query)
   }
 
   async getStops(): Promise<JoreStop[]> {
-    return []
+    const query = this.db
+      .withSchema(SCHEMA)
+      .select()
+      .from('stop')
+
+    return this.getBatched(query)
   }
 
   async getStopsByBBox(bbox): Promise<JoreStop[]> {

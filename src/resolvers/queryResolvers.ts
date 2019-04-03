@@ -28,8 +28,8 @@ const stopsByBbox = (root, { filter, bbox }, { dataSources }) => {
 }
 
 const stop = (root, { stopId, date }, { dataSources }) => {
-  const getStop = () => dataSources.JoreAPI.getStop(stopId)
-  return createStopResponse(getStop, date, stopId)
+  const getStopSegments = () => dataSources.JoreAPI.getStopSegments(stopId, date)
+  return createStopResponse(getStopSegments, date, stopId)
 }
 
 const route = async (root, { routeId, direction, date }, { dataSources }) => {

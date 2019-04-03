@@ -1,5 +1,5 @@
 import { BBox, Stop, StopFilterInput, StopRoute } from '../types/generated/schema-types'
-import { JoreRouteSegment, JoreStop } from '../types/Jore'
+import { JoreLine, JoreRoute, JoreRouteSegment, JoreStop } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { createStopObject } from './objects/createStopObject'
 import { search } from './filters/search'
@@ -13,47 +13,43 @@ function getSearchValue(item) {
   return stopId ? [stopId, shortId, name] : []
 }
 
+// Result from the query is a join of a stop and route segments.
+type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute & JoreLine
+
 export async function createStopResponse(
-  getStop: () => Promise<JoreStop>,
+  getStops: () => Promise<JoreCombinedStop[]>,
   date: string,
   stopId: string
 ): Promise<Stop | null> {
   const fetchStop: CachedFetcher<Stop> = async () => {
-    const stop = await getStop()
+    const stops = await getStops()
 
-    if (!stop) {
+    if (!stops || stops.length === 0) {
       return false
     }
 
-    let validRouteSegments = filterByDateChains<JoreRouteSegment>(
-      groupBy<JoreRouteSegment>(
-        get(stop, 'routeSegments.nodes', []),
+    let validStops = filterByDateChains<JoreCombinedStop>(
+      groupBy<JoreCombinedStop>(
+        stops,
         (segment) => segment.route_id + segment.direction + segment.stop_index
       ),
       date
     )
 
-    validRouteSegments = uniqBy<JoreRouteSegment>(validRouteSegments, 'route_id')
+    validStops = uniqBy<JoreCombinedStop>(validStops, 'route_id')
 
-    if (!validRouteSegments || validRouteSegments.length === 0) {
+    if (!validStops || validStops.length === 0) {
       return false
     }
 
-    let stopRoutes = validRouteSegments.reduce((routes: StopRoute[], segment) => {
-      // The route segment should only have one route, so no validation is necessary.
-      const route = get(segment, 'route.nodes', [])[0]
-
-      if (!route) {
-        return routes
-      }
-
+    let stopRoutes = validStops.reduce((routes: StopRoute[], stop: JoreCombinedStop) => {
       const stopRoute: StopRoute = {
-        id: `stop_route_${route.route_id}_${route.direction}_${route.date_begin}_${route.date_end}`,
-        lineId: get(route, 'line.nodes[0].line_id', ''),
-        direction: getDirection(route.direction),
-        routeId: route.route_id,
-        isTimingStop: !!segment.timing_stop_type,
-        originStopId: route.originstop_id,
+        id: `stop_route_${stop.route_id}_${stop.direction}_${stop.date_begin}_${stop.date_end}`,
+        lineId: stop.line_id,
+        direction: getDirection(stop.direction),
+        routeId: stop.route_id,
+        isTimingStop: !!stop.timing_stop_type,
+        originStopId: stop.originstop_id,
       }
 
       routes.push(stopRoute)
@@ -61,7 +57,7 @@ export async function createStopResponse(
     }, [])
 
     stopRoutes = orderBy(stopRoutes, 'route_id')
-    return createStopObject(stop, stopRoutes)
+    return createStopObject(validStops[0], stopRoutes)
   }
 
   const cacheKey = `stop_${date}_${stopId}`
