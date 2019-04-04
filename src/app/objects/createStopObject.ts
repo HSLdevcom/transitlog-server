@@ -1,7 +1,7 @@
-import { JoreStop, Mode } from '../../types/Jore'
+import { JoreRouteDepartureData, JoreStop, Mode } from '../../types/Jore'
 import { SimpleStop, Stop, StopRoute } from '../../types/generated/schema-types'
 
-export function createSimpleStopObject(stop: JoreStop): SimpleStop {
+export function createSimpleStopObject(stop: JoreStop | JoreRouteDepartureData): SimpleStop {
   return {
     id: stop.stop_id,
     stopId: stop.stop_id,
@@ -16,7 +16,10 @@ export function createSimpleStopObject(stop: JoreStop): SimpleStop {
   }
 }
 
-export function createStopObject(stop: JoreStop, stopRoutes: StopRoute[] = []): Stop {
+export function createStopObject(
+  stop: JoreStop | JoreRouteDepartureData,
+  stopRoutes: StopRoute[] = []
+): Stop {
   return {
     id: stop.stop_id,
     stopId: stop.stop_id,

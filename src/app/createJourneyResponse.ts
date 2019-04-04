@@ -1,5 +1,6 @@
 import {
   JoreDeparture,
+  JoreRouteDepartureData,
   JoreEquipment,
   JoreRoute,
   JoreRouteData,
@@ -19,7 +20,7 @@ import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { get, groupBy, sortBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
-import { getDepartureTime } from '../utils/time'
+import { getDepartureTime, getNormalTime, secondsToTimeObject, timeToSeconds } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createDepartureId, createPlannedDepartureObject } from './objects/createDepartureObject'
 import { PlannedDeparture } from '../types/PlannedDeparture'
@@ -35,6 +36,11 @@ import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 type JourneyRoute = {
   route: Route
   departures: PlannedDeparture[]
+}
+
+type JourneyRouteData = {
+  route: JoreRoute | null
+  departures: JoreRouteDepartureData[]
 }
 
 /**
@@ -63,86 +69,45 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
  * @returns Promise<JourneyRoute> Includes the route data and the departures.
  */
 const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date, time) => {
-  const journeyRoute = await fetcher()
+  const journeyRoute: JourneyRouteData = await fetcher()
 
-  if (!journeyRoute) {
+  if (!journeyRoute.route || journeyRoute.departures.length === 0) {
     return false
   }
 
   // A route is divided into route segments, each with a stop. The stop has departures associated
   // with it. To get to the departures, we need to ensure that each route segment is valid
   // and sorted by the stopIndex.
-  const routeSegments: JoreRouteData[] = get(journeyRoute, 'routeSegments.nodes', []) || []
-  const validRouteSegments = filterByDateChains<JoreRouteData>(
-    groupBy(routeSegments, 'stopIndex'),
+  const departures: JoreRouteDepartureData[] = get(journeyRoute, 'departures', []) || []
+
+  const validDepartures = filterByDateChains<JoreRouteDepartureData>(
+    groupBy(departures, ({ stop_index, departure_id }) => `${stop_index}${departure_id}`),
     date
   )
-  const sortedRouteSegments = sortBy(validRouteSegments, 'stopIndex')
-
-  // The sorted array of segments can then be further reduced to stops. This returns an array
-  // of objects which have data from both the stop and the route segment. Crucially, the
-  // segment carries the information about which stop is a timing stop. The segment can
-  // be seen as the "glue" between the journey and the stops, since stops are otherwise
-  // oblivious to route-specific things. We want route-aware stops which segments provide.
-  const stops = sortedRouteSegments.map(
-    (routeSegment): { departures: JoreDeparture[]; stop: RouteSegment } => {
-      // Group by departure and filter out any invalid departures.
-      const groupedDepartures = groupBy(
-        get(routeSegment, 'stop.departures.nodes', []),
-        createDepartureId
-      )
-
-      const validDepartures = filterByDateChains<JoreDeparture>(groupedDepartures, date)
-
-      // Merge the route segment and the stop data, picking what we need from the segment and
-      // splatting the stop. What we really need from the segment is the timing stop type and
-      // the stop index. The departures will later be matched with actually observed events.
-      const stopSegment = createRouteSegmentObject(
-        routeSegment,
-        get(routeSegment, 'route.nodes[0]', {})
-      )
-
-      return { departures: validDepartures, stop: stopSegment }
-    }
-  )
-
-  // Departures have only one way of linking to other departures from the same journey and
-  // that is the departureId. To get the departureId for this journey, we must start at
-  // the first departure. Since we ordered the segments by stopIndex, the first stop is first.
-  const firstStopDepartures = get(stops, '[0].departures', [])
 
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
   const originDeparture =
-    firstStopDepartures.find(
-      ({ hours, minutes, is_next_day }) =>
-        getDepartureTime({ hours, minutes, is_next_day }) === time
-    ) || null
+    validDepartures.find((departure) => getDepartureTime(departure) === time) || null
 
   if (!originDeparture) {
     return false
   }
 
-  // With the departureId from the first departure we can easily reduce the departures on each
-  // stop down to the one departure that belongs to this specific journey.
-  const stopDepartures = stops.reduce(
-    (plannedDepartures: PlannedDeparture[], { stop, departures = [] }) => {
-      const departure = departures.find((dep) => dep.departure_id === originDeparture.departureId)
-
-      if (departure) {
-        // The departures are then converted to objects native to this domain.
-        plannedDepartures.push(createPlannedDepartureObject(departure, stop, date))
-      }
-
-      return plannedDepartures
-    },
-    []
+  const journeyDepartures = validDepartures.filter(
+    (departure) => departure.departure_id === originDeparture.departure_id
   )
+
+  const stopDepartures = journeyDepartures.map((departure) => {
+    // The departures are then converted to objects native to this domain.
+    const stop = createRouteSegmentObject(departure, journeyRoute.route)
+    return createPlannedDepartureObject(departure, stop, date)
+  })
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
-  return { route: createRouteObject(journeyRoute), departures: stopDepartures }
+  return { route: createRouteObject(journeyRoute.route), departures: stopDepartures }
 }
 
 /**
@@ -158,7 +123,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
  * @param uniqueVehicleId
  */
 export async function createJourneyResponse(
-  fetchRouteData: () => Promise<JoreRoute | null>,
+  fetchRouteData: () => Promise<JoreRouteDepartureData>,
   fetchJourneyEvents: () => Promise<Vehicles[]>,
   fetchJourneyEquipment: (
     vehicleId: string | number,
@@ -208,8 +173,10 @@ export async function createJourneyResponse(
 
     // Fetch the planned departures and the route.
     const routeCacheKey = `journey_route_departures_${journeyKey}`
-    const routeAndDepartures = await cacheFetch<JourneyRoute>(routeCacheKey, () =>
-      fetchJourneyDepartures(fetchRouteData, departureDate, departureTime)
+    const routeAndDepartures = await cacheFetch<JourneyRoute>(
+      routeCacheKey,
+      () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
+      1
     )
 
     // Note that we fetch and cache the route and the departures before bailing.

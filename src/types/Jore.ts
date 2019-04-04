@@ -141,6 +141,10 @@ export interface JoreRouteSegment {
 }
 
 export type JoreRouteData = JoreRoute & JoreRouteSegment & JoreStop
+export type JoreRouteDepartureData = JoreRoute &
+  JoreRouteSegment &
+  JoreStop &
+  JoreDeparture & { departure_date_begin?: string; departure_date_end?: string }
 
 export interface JoreEquipment {
   class?: Maybe<string>

@@ -1,4 +1,4 @@
-import { JoreDeparture } from '../../types/Jore'
+import { JoreDeparture, JoreRouteDepartureData } from '../../types/Jore'
 import {
   DepartureJourney,
   PlannedArrival,
@@ -13,6 +13,7 @@ import { get } from 'lodash'
 import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
+import { createStopObject } from './createStopObject'
 
 export function createDepartureId(departure) {
   return `${departure.route_id}_${departure.direction}_${departure.hours}_${departure.minutes}_${
@@ -71,7 +72,7 @@ export function createDepartureJourneyObject(
 }
 
 export function createPlannedDepartureObject(
-  departure: JoreDeparture,
+  departure: JoreRouteDepartureData,
   stop: RouteSegment | null,
   departureDate: string
 ): PlannedDepartureObject {
@@ -92,8 +93,8 @@ export function createPlannedDepartureObject(
     departureId: departure.departure_id,
     extraDeparture: departure.extra_departure,
     isNextDay: departure.is_next_day,
-    isTimingStop: get(stop, 'isTimingStop', false),
-    index: get(stop, 'stopIndex', 0),
+    isTimingStop: !!departure.timing_stop_type,
+    index: departure.stop_index,
     stop,
     journey: null,
     originDepartureTime: departure.origin_departure

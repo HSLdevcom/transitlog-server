@@ -2,7 +2,7 @@ import { getDirection } from '../../utils/getDirection'
 import { createSimpleStopObject } from './createStopObject'
 import { get } from 'lodash'
 import { RouteSegment } from '../../types/generated/schema-types'
-import { JoreRoute, JoreRouteData, JoreRouteSegment } from '../../types/Jore'
+import { JoreRoute, JoreRouteData } from '../../types/Jore'
 
 export function createSegmentId(routeSegment) {
   return `${routeSegment.route_id}_${routeSegment.direction}_${routeSegment.stop_index}_${
@@ -12,16 +12,16 @@ export function createSegmentId(routeSegment) {
 
 export const createRouteSegmentObject = (
   routeSegment: JoreRouteData,
-  route?: JoreRoute
+  route?: JoreRoute | null
 ): RouteSegment => {
   return {
     ...createSimpleStopObject(routeSegment),
-    id: createSegmentId(routeSegment),
-    lineId: get(routeSegment, 'line_id', ''),
+    id: createSegmentId({ ...route, ...routeSegment }),
+    lineId: get(routeSegment, 'line_id', get(route, 'line_id', '')),
     routeId: routeSegment.route_id,
     direction: getDirection(routeSegment.direction),
-    originStopId: routeSegment.originstop_id,
-    destination: routeSegment.destination_fi || '',
+    originStopId: get(routeSegment, 'originstop_id', get(route, 'originstop_id', '')),
+    destination: get(routeSegment, 'destination_fi', get(route, 'destination_fi', '')) || '',
     distanceFromPrevious: routeSegment.distance_from_previous,
     distanceFromStart: routeSegment.distance_from_start,
     duration: routeSegment.duration,

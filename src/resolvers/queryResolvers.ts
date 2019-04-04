@@ -10,6 +10,7 @@ import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
 import { getExceptions } from '../utils/getExceptions'
+import { secondsToTimeObject, timeToSeconds } from '../utils/time'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -71,7 +72,7 @@ const journey = (
   { routeId, direction, departureTime, departureDate, uniqueVehicleId },
   { dataSources }
 ) => {
-  const getRouteData = () => dataSources.JoreAPI.getFullRoute(routeId, direction, departureDate)
+  const getRouteData = () => dataSources.JoreAPI.getDepartureData(routeId, direction, departureDate)
 
   const getJourneyEvents = () =>
     dataSources.HFPAPI.getJourneyEvents(

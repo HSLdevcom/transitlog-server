@@ -1,7 +1,7 @@
 import { CachedFetcher } from '../types/CachedFetcher'
 import { flatten, get, groupBy, orderBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { JoreDeparture, JoreRouteSegment, JoreStop } from '../types/Jore'
+import { JoreDeparture, JoreRouteDepartureData, JoreRouteSegment, JoreStop } from '../types/Jore'
 import { Departure, DepartureFilterInput, RouteSegment } from '../types/generated/schema-types'
 import { Vehicles } from '../types/generated/hfp-types'
 import { cacheFetch } from './cache'
@@ -21,7 +21,7 @@ import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { Dictionary } from '../types/Dictionary'
 
 export async function createDeparturesResponse(
-  getDepartures: () => Promise<JoreDeparture | null>,
+  getDepartures: () => Promise<JoreRouteDepartureData>,
   getStop: () => Promise<JoreStop | null>,
   getEvents: () => Promise<Vehicles[]>,
   stopId: string,
@@ -86,10 +86,11 @@ export async function createDeparturesResponse(
     }
 
     // Group and validate departures with date chains
-    const groupedDepartures = groupBy<JoreDeparture>(departures, createDepartureId) as Dictionary<
-      JoreDeparture[]
-    >
-    const validDepartures = filterByDateChains<JoreDeparture>(groupedDepartures, date)
+    const groupedDepartures = groupBy<JoreRouteDepartureData>(
+      departures,
+      createDepartureId
+    ) as Dictionary<JoreRouteDepartureData[]>
+    const validDepartures = filterByDateChains<JoreRouteDepartureData>(groupedDepartures, date)
 
     return validDepartures.map((departure) => {
       // Find a relevant stop segment and use it in the departure response.
