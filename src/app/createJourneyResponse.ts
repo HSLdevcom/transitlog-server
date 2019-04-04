@@ -128,7 +128,7 @@ export async function createJourneyResponse(
   fetchJourneyEquipment: (
     vehicleId: string | number,
     operatorId: string
-  ) => Promise<JoreEquipment | null>,
+  ) => Promise<JoreEquipment[]>,
   routeId: string,
   direction: Direction,
   departureDate: string,
@@ -176,7 +176,7 @@ export async function createJourneyResponse(
     const routeAndDepartures = await cacheFetch<JourneyRoute>(
       routeCacheKey,
       () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
-      1
+      24 * 60 * 60
     )
 
     // Note that we fetch and cache the route and the departures before bailing.
@@ -227,12 +227,17 @@ export async function createJourneyResponse(
 
     const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
 
-    const journeyEquipment = await cacheFetch<JoreEquipment>(equipmentKey, () =>
+    const journeyEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
       fetchJourneyEquipment(vehicle_number, owner_operator_id)
     )
 
     // Everything is baked into a Journey domain object.
-    return createJourneyObject(events, route, observedDepartures, journeyEquipment)
+    return createJourneyObject(
+      events,
+      route,
+      observedDepartures,
+      get(journeyEquipment, '[0]', null)
+    )
   }
 
   // Decide a suitable TTL for the cached journey based on if the journey is completed or not.
@@ -240,7 +245,10 @@ export async function createJourneyResponse(
     const lastDeparture = data.departures[data.departures.length - 1]
 
     // If the last departure has observed data, we know the journey is near its end.
-    if (lastDeparture && lastDeparture.observedArrivalTime) {
+    if (
+      lastDeparture &&
+      (lastDeparture.observedArrivalTime || lastDeparture.observedDepartureTime)
+    ) {
       const eventsLength = data.events.length
       const lastEventTime = get(data, `events[{${eventsLength - 1}].recordedAt`, 1)
       // Check the time since the last event
@@ -275,6 +283,8 @@ export async function createJourneyResponse(
 
     return !journeyKey ? false : `journey_${journeyKey}`
   }
+
+  // TODO: What's up with caching TTL here.
 
   const journey = await cacheFetch<Journey>(
     getJourneyCacheKey,
