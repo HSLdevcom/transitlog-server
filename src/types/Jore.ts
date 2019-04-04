@@ -140,6 +140,8 @@ export interface JoreRouteSegment {
   has_regular_day_departures?: Maybe<boolean>
 }
 
+export type JoreRouteData = JoreRoute & JoreRouteSegment & JoreStop
+
 export interface JoreEquipment {
   class?: Maybe<string>
   registry_nr: string

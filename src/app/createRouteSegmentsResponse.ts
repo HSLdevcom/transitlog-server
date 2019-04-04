@@ -1,33 +1,25 @@
-import { get, groupBy, sortBy } from 'lodash'
+import { groupBy, sortBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { JoreRoute, JoreRouteSegment } from '../types/Jore'
+import { JoreRouteData } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Direction, RouteSegment } from '../types/generated/schema-types'
 import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
 
 export async function createRouteSegmentsResponse(
-  getRouteSegments: () => Promise<JoreRoute[]>,
+  getRouteSegments: () => Promise<JoreRouteData[]>,
   date: string,
   routeId: string,
   direction: Direction
 ): Promise<RouteSegment[]> {
   const fetchAndValidate = async () => {
     const routes = await getRouteSegments()
-    const validRoutes = filterByDateChains<JoreRoute>({ routes }, date)
-    const selectedRoute = validRoutes ? validRoutes[0] : null
+    const validRoutes = filterByDateChains<JoreRouteData>(groupBy(routes, 'stop_index'), date)
 
-    if (!selectedRoute) {
+    if (!validRoutes || validRoutes.length === 0) {
       return false
     }
 
-    const routeSegments: JoreRouteSegment[] = get(selectedRoute, 'routeSegments.nodes', []) || []
-
-    const validRouteSegments = filterByDateChains<JoreRouteSegment>(
-      groupBy(routeSegments, 'stop_index'),
-      date
-    )
-
-    const sortedRouteSegments = sortBy(validRouteSegments, 'stop_index')
+    const sortedRouteSegments = sortBy(validRoutes, 'stop_index')
 
     // The sorted array of segments can then be further reduced to segment and stop combos.
     // This returns an array of objects which have data from both the stop and the route
@@ -39,7 +31,7 @@ export async function createRouteSegmentsResponse(
         // Merge the route segment and the stop data, picking what we need from the segment and
         // splatting the stop. What we really need from the segment is the timing stop type and
         // the stop index. The departures will later be matched with actually observed events.
-        return createRouteSegmentObject(routeSegment, selectedRoute)
+        return createRouteSegmentObject(routeSegment)
       }
     )
   }

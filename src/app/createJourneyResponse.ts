@@ -1,4 +1,10 @@
-import { JoreDeparture, JoreEquipment, JoreRoute, JoreRouteSegment } from '../types/Jore'
+import {
+  JoreDeparture,
+  JoreEquipment,
+  JoreRoute,
+  JoreRouteData,
+  JoreRouteSegment,
+} from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
 import {
@@ -66,8 +72,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // A route is divided into route segments, each with a stop. The stop has departures associated
   // with it. To get to the departures, we need to ensure that each route segment is valid
   // and sorted by the stopIndex.
-  const routeSegments: JoreRouteSegment[] = get(journeyRoute, 'routeSegments.nodes', []) || []
-  const validRouteSegments = filterByDateChains<JoreRouteSegment>(
+  const routeSegments: JoreRouteData[] = get(journeyRoute, 'routeSegments.nodes', []) || []
+  const validRouteSegments = filterByDateChains<JoreRouteData>(
     groupBy(routeSegments, 'stopIndex'),
     date
   )

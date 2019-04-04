@@ -119,14 +119,30 @@ where stop.stop_id = :stopId;`,
       .withSchema(SCHEMA)
       .select()
       .from('equipment')
-      .where('vehicle_id', joreVehicleId)
-      .where('operator_id', joreOperatorId)
+      .where({ vehicle_id: joreVehicleId, operator_id: joreOperatorId })
 
     return this.getBatched(query)
   }
 
   async getRouteSegments(routeId: string, direction: Direction): Promise<JoreRouteSegment[]> {
-    return []
+    const query = this.db.raw(
+      `select route.originstop_id,
+       route.date_begin as route_date_begin,
+       route.date_end   as route_date_end,
+       route.origin_fi,
+       route.destination_fi,
+       line.line_id,
+       route_segment.*,
+       stop.*
+FROM :schema:.route AS route,
+     :schema:.route_line(route) as line,
+     :schema:.route_route_segments(route) AS route_segment
+LEFT OUTER JOIN :schema:.stop AS stop ON stop.stop_id = route_segment.stop_id
+WHERE route.route_id = :routeId AND route.direction = :direction;`,
+      { schema: SCHEMA, routeId, direction: direction + '' }
+    )
+
+    return this.getBatched(query)
   }
 
   async getRouteIndex(routeId: string, direction: Direction): Promise<JoreRoute[]> {
