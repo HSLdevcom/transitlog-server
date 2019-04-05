@@ -408,7 +408,6 @@ FROM :schema:.departure departure
     LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
 WHERE departure.stop_id = :stopId
   AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-DISTINCT ON (hours, minutes)
 ORDER BY departure.hours ASC,
          departure.minutes ASC,
          departure.route_id ASC,
