@@ -7,16 +7,15 @@ import {
   JoreRouteDepartureData,
   JoreDepartureWithOrigin,
   JoreExceptionDay,
-  JoreReplacementDay,
 } from '../types/Jore'
 import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import Knex from 'knex'
-import { orderBy } from 'lodash'
+import { orderBy, uniq } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
 import { JourneyRouteData } from '../app/createJourneyResponse'
-import { endOfYear, format, getYear, isSameYear, startOfYear } from 'date-fns'
+import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'date-fns'
 import { cacheFetch } from '../app/cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
@@ -211,8 +210,8 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
     dateEnd: string,
     date: string
   ): Promise<JoreRouteDepartureData[] | null> {
-    // TODO: query with exception and replacement day types
-    const dayTypes = [getDayTypeFromDate(date)]
+    const dayTypes = await this.getDayTypesForDate(date)
+
     const query = this.db.raw(
       `
     SELECT
@@ -255,9 +254,11 @@ FROM :schema:.route route
                         AND route.date_begin <= route_segment.date_end
                         AND route.date_end >= route_segment.date_begin
     LEFT OUTER JOIN (
-                        SELECT *
+                        SELECT DISTINCT ON (departure.hours, departure.minutes) *
                         FROM :schema:.departure
                         WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+                        ORDER BY departure.hours ASC,
+                                 departure.minutes ASC
                     ) departure
                     ON route_segment.route_id = departure.route_id
                         AND route_segment.direction = departure.direction
@@ -348,12 +349,35 @@ WHERE stop.stop_id = :stopId;`,
     return this.getBatched(query)
   }
 
+  async getDayTypesForDate(date): Promise<string[]> {
+    const exceptions = await this.getExceptions(date)
+    let dayTypes: string[] = []
+
+    if (exceptions && exceptions.length !== 0) {
+      dayTypes = uniq(
+        exceptions.reduce(
+          (exceptionDayTypes: string[], { effectiveDayTypes }) => [
+            ...exceptionDayTypes,
+            ...effectiveDayTypes,
+          ],
+          []
+        )
+      )
+    }
+
+    if (dayTypes.length === 0) {
+      dayTypes = [getDayTypeFromDate(date)]
+    }
+
+    return dayTypes
+  }
+
   async getDepartures(stopId, date): Promise<JoreDepartureWithOrigin[]> {
-    // TODO: query with exception and replacement day types
-    const dayTypes = [getDayTypeFromDate(date)]
+    const dayTypes = await this.getDayTypesForDate(date)
     const query = this.db.raw(
       `
-SELECT departure.route_id,
+SELECT DISTINCT ON (departure.hours, departure.minutes) 
+       departure.route_id,
        departure.direction,
        departure.stop_id,
        departure.hours,
@@ -384,6 +408,7 @@ FROM :schema:.departure departure
     LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
 WHERE departure.stop_id = :stopId
   AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+DISTINCT ON (hours, minutes)
 ORDER BY departure.hours ASC,
          departure.minutes ASC,
          departure.route_id ASC,
@@ -394,9 +419,7 @@ ORDER BY departure.hours ASC,
     return this.getBatched(query)
   }
 
-  async getExceptionDaysForYear(
-    year
-  ): Promise<{ exceptionDays: JoreExceptionDay[]; replacementDays: JoreReplacementDay[] } | null> {
+  async getExceptionDaysForYear(year): Promise<JoreExceptionDay[] | null> {
     if (!year) {
       return null
     }
@@ -404,61 +427,43 @@ ORDER BY departure.hours ASC,
     const startDate = format(startOfYear(year), 'YYYY-MM-DD')
     const endDate = format(endOfYear(year), 'YYYY-MM-DD')
 
-    const exceptionDaysQuery = this.db
-      .withSchema(SCHEMA)
-      .select(
-        'date_in_effect',
-        'exception_days_calendar.exception_day_type',
-        'description',
-        'day_type',
-        'exclusive'
-      )
-      .from('exception_days_calendar')
-      .leftOuterJoin(
-        'exception_days',
-        'exception_days_calendar.exception_day_type',
-        'exception_days.exception_day_type'
-      )
-      .whereBetween('date_in_effect', [startDate, endDate])
-      .orderBy('date_in_effect', 'ASC')
+    const query = this.db.raw(
+      `
+SELECT ex_day.date_in_effect,
+   ex_desc.description,
+   ex_day.day_type,
+   ex_day.exclusive,
+   rep_day.scope,
+   rep_day.time_begin,
+   rep_day.time_end,
+   CASE
+       WHEN ex_day.exclusive = 1 THEN ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type]
+       ELSE ARRAY [ex_day.day_type, ex_day.exception_day_type, rep_day.replacing_day_type]
+       END effective_day_types
+FROM :schema:.exception_days_calendar ex_day
+     LEFT OUTER JOIN :schema:.exception_days ex_desc
+                     ON ex_day.exception_day_type = ex_desc.exception_day_type
+     FULL OUTER JOIN :schema:.replacement_days_calendar rep_day USING (date_in_effect)
+WHERE date_in_effect >= :startDate AND
+      date_in_effect < :endDate
+ORDER BY date_in_effect ASC;
+    `,
+      { schema: SCHEMA, startDate, endDate }
+    )
 
-    const replacementDaysQuery = this.db
-      .withSchema(SCHEMA)
-      .select('date_in_effect', 'replacing_day_type', 'day_type', 'scope', 'time_begin', 'time_end')
-      .from('replacement_days_calendar')
-      .whereBetween('date_in_effect', [startDate, endDate])
-      .orderBy('date_in_effect', 'ASC')
-
-    return Promise.all<JoreExceptionDay[], JoreReplacementDay[]>([
-      this.getBatched(exceptionDaysQuery),
-      this.getBatched(replacementDaysQuery),
-    ]).then(([exceptionDays, replacementDays]) => {
-      const exceptions = exceptionDays && exceptionDays.length !== 0 ? exceptionDays : []
-      const replacements = replacementDays && replacementDays.length !== 0 ? replacementDays : []
-
-      if (!exceptions && !replacements) {
-        return null
-      }
-
-      return {
-        exceptionDays,
-        replacementDays,
-      }
-    })
+    return this.getBatched(query)
   }
 
-  async getExceptions(date) {
+  async getExceptions(date): Promise<ExceptionDay[]> {
     const fetchExceptions: CachedFetcher<ExceptionDay[]> = async (year) => {
-      const exceptionData = await this.getExceptionDaysForYear(year)
+      const exceptionDays = await this.getExceptionDaysForYear(year)
 
-      if (!exceptionData) {
+      if (!exceptionDays) {
         return false
       }
 
-      const { exceptionDays, replacementDays } = exceptionData
-
-      const exceptionDayObjects = [...exceptionDays, ...replacementDays].reduce(
-        (days: ExceptionDay[], day: JoreExceptionDay | JoreReplacementDay) => {
+      const exceptionDayObjects = exceptionDays.reduce(
+        (days: ExceptionDay[], day: JoreExceptionDay) => {
           const dayObject = createExceptionDayObject(day)
 
           if (dayObject) {
@@ -470,8 +475,8 @@ ORDER BY departure.hours ASC,
         []
       )
 
-      const combinedDays = orderBy(exceptionDayObjects, 'exceptionDate')
-      return combinedDays.filter((day) => isSameYear(day.exceptionDate, year))
+      const orderedDays = orderBy(exceptionDayObjects, 'exceptionDate')
+      return orderedDays.filter((day) => isSameYear(day.exceptionDate, year))
     }
 
     const queryYear = getYear(date) + ''
@@ -479,11 +484,15 @@ ORDER BY departure.hours ASC,
     const exceptionDays = await cacheFetch<ExceptionDay[]>(
       cacheKey,
       () => fetchExceptions(queryYear),
-      1 // 24 * 60 * 60
+      24 * 60 * 60
     )
 
     if (!exceptionDays) {
       return []
+    }
+
+    if (date.length > 4) {
+      return exceptionDays.filter(({ exceptionDate }) => isEqual(exceptionDate, date))
     }
 
     return exceptionDays

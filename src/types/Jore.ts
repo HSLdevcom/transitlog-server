@@ -207,17 +207,11 @@ export interface JorePointGeometry {
 
 export interface JoreExceptionDay {
   date_in_effect: string
-  exception_day_type: string
-  description?: string
+  effective_day_types: Array<string | null>
+  description: Maybe<string>
   day_type: string
-  exclusive?: Maybe<number>
-}
-
-export interface JoreReplacementDay {
-  date_in_effect: string
-  replacing_day_type: string
-  scope?: Maybe<string>
-  day_type: string
-  time_begin?: Maybe<string>
-  time_end?: Maybe<string>
+  exclusive: number
+  scope: Maybe<string>
+  time_begin: Maybe<string>
+  time_end: Maybe<string>
 }

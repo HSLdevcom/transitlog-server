@@ -1,50 +1,22 @@
-import { JoreExceptionDay, JoreReplacementDay } from '../../types/Jore'
+import { JoreExceptionDay } from '../../types/Jore'
 import { ExceptionDay } from '../../types/generated/schema-types'
+import { getMode } from '../../utils/getMode'
+import { compact } from 'lodash'
 
-function isReplacementDay(item: JoreExceptionDay | JoreReplacementDay): item is JoreReplacementDay {
-  return (item as JoreReplacementDay).scope !== undefined
-}
-
-function isExceptionDay(item: JoreExceptionDay | JoreReplacementDay): item is JoreExceptionDay {
-  return (item as JoreExceptionDay).exclusive !== undefined
-}
-
-function getMode(code) {
-  switch (code) {
-    case '02':
-      return 'TRAM'
-    case '06':
-      return 'SUBWAY'
-    case '07':
-      return 'FERRY'
-    case '12':
-      return 'RAIL'
-    case '13':
-      return 'RAIL'
-    default:
-      return 'BUS'
-  }
-}
-
-export const createExceptionDayObject = (
-  config: JoreReplacementDay | JoreExceptionDay | null
-): ExceptionDay | null => {
+export const createExceptionDayObject = (config: JoreExceptionDay | null): ExceptionDay | null => {
   if (!config) {
     return null
   }
 
   return {
-    id: `exception_day_${isReplacementDay(config) ? 'replacement' : 'exception'}_${
-      config.day_type
-    }_${config.date_in_effect}`,
+    id: `exception_day_${config.day_type}_${config.date_in_effect}`,
     dayType: config.day_type,
-    description: isExceptionDay(config) ? config.description : '',
+    description: config.description || '',
     exceptionDate: config.date_in_effect,
-    exclusive: isExceptionDay(config) ? config.exclusive === 1 : false,
-    type: isExceptionDay(config) ? 'exception' : 'replacement',
-    modeScope: isReplacementDay(config) ? getMode(config.scope) : '',
-    newDayType: isExceptionDay(config) ? config.exception_day_type : config.replacing_day_type,
-    startTime: isReplacementDay(config) ? config.time_begin : null,
-    endTime: isReplacementDay(config) ? config.time_end : null,
+    exclusive: config.exclusive === 1 || false,
+    modeScope: getMode(config.scope) || '',
+    effectiveDayTypes: compact(config.effective_day_types),
+    startTime: config.time_begin || null,
+    endTime: config.time_end || null,
   }
 }

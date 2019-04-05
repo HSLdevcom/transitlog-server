@@ -437,15 +437,13 @@ export interface ExceptionDay {
 
   exceptionDate: Date
 
-  newDayType: string
+  effectiveDayTypes: string[]
 
   dayType: string
 
   modeScope?: Maybe<string>
 
   description?: Maybe<string>
-
-  type: string
 
   exclusive: boolean
 

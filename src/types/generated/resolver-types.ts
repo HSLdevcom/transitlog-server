@@ -1381,15 +1381,13 @@ export namespace ExceptionDayResolvers {
 
     exceptionDate?: ExceptionDateResolver<Date, TypeParent, TContext>
 
-    newDayType?: NewDayTypeResolver<string, TypeParent, TContext>
+    effectiveDayTypes?: EffectiveDayTypesResolver<string[], TypeParent, TContext>
 
     dayType?: DayTypeResolver<string, TypeParent, TContext>
 
     modeScope?: ModeScopeResolver<Maybe<string>, TypeParent, TContext>
 
     description?: DescriptionResolver<Maybe<string>, TypeParent, TContext>
-
-    type?: TypeResolver<string, TypeParent, TContext>
 
     exclusive?: ExclusiveResolver<boolean, TypeParent, TContext>
 
@@ -1408,11 +1406,11 @@ export namespace ExceptionDayResolvers {
     Parent,
     TContext
   >
-  export type NewDayTypeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
+  export type EffectiveDayTypesResolver<
+    R = string[],
+    Parent = ExceptionDay,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type DayTypeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
     R,
     Parent,
@@ -1428,11 +1426,6 @@ export namespace ExceptionDayResolvers {
     Parent = ExceptionDay,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type TypeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
   export type ExclusiveResolver<R = boolean, Parent = ExceptionDay, TContext = {}> = Resolver<
     R,
     Parent,
