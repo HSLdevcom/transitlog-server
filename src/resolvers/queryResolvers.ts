@@ -9,8 +9,6 @@ import { createDeparturesResponse } from '../app/createDeparturesResponse'
 import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
-import { getExceptions } from '../utils/getExceptions'
-import { secondsToTimeObject, timeToSeconds } from '../utils/time'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -108,8 +106,9 @@ const eventsByBbox = (root, { minTime, maxTime, bbox, date, filters }, { dataSou
   return createAreaJourneysResponse(getAreaJourneys, minTime, maxTime, bbox, date, filters)
 }
 
-const exceptionDays = (root, { year }) => {
-  return getExceptions(year)
+const exceptionDays = (root, { year }, { dataSources }) => {
+  // The full resolver is in the Jore datasource because we need it for other queries too.
+  return dataSources.JoreAPI.getExceptions(year)
 }
 
 export const queryResolvers: QueryResolvers.Resolvers = {

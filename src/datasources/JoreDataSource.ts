@@ -3,18 +3,23 @@ import {
   JoreLine,
   JoreStop,
   JoreEquipment,
-  JoreDeparture,
   JoreRouteData,
   JoreRouteDepartureData,
   JoreDepartureWithOrigin,
+  JoreExceptionDay,
+  JoreReplacementDay,
 } from '../types/Jore'
-import { Direction } from '../types/generated/schema-types'
+import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import Knex from 'knex'
-import { get } from 'lodash'
+import { orderBy } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
 import { JourneyRouteData } from '../app/createJourneyResponse'
+import { endOfYear, format, getYear, isSameYear, startOfYear } from 'date-fns'
+import { cacheFetch } from '../app/cache'
+import { CachedFetcher } from '../types/CachedFetcher'
+import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
 
 const knex: Knex = Knex({
   dialect: 'postgres',
@@ -389,11 +394,98 @@ ORDER BY departure.hours ASC,
     return this.getBatched(query)
   }
 
-  async getExceptionDaysForYear(year) {
+  async getExceptionDaysForYear(
+    year
+  ): Promise<{ exceptionDays: JoreExceptionDay[]; replacementDays: JoreReplacementDay[] } | null> {
     if (!year) {
       return null
     }
 
-    return {}
+    const startDate = format(startOfYear(year), 'YYYY-MM-DD')
+    const endDate = format(endOfYear(year), 'YYYY-MM-DD')
+
+    const exceptionDaysQuery = this.db
+      .withSchema(SCHEMA)
+      .select(
+        'date_in_effect',
+        'exception_days_calendar.exception_day_type',
+        'description',
+        'day_type',
+        'exclusive'
+      )
+      .from('exception_days_calendar')
+      .leftOuterJoin(
+        'exception_days',
+        'exception_days_calendar.exception_day_type',
+        'exception_days.exception_day_type'
+      )
+      .whereBetween('date_in_effect', [startDate, endDate])
+      .orderBy('date_in_effect', 'ASC')
+
+    const replacementDaysQuery = this.db
+      .withSchema(SCHEMA)
+      .select('date_in_effect', 'replacing_day_type', 'day_type', 'scope', 'time_begin', 'time_end')
+      .from('replacement_days_calendar')
+      .whereBetween('date_in_effect', [startDate, endDate])
+      .orderBy('date_in_effect', 'ASC')
+
+    return Promise.all<JoreExceptionDay[], JoreReplacementDay[]>([
+      this.getBatched(exceptionDaysQuery),
+      this.getBatched(replacementDaysQuery),
+    ]).then(([exceptionDays, replacementDays]) => {
+      const exceptions = exceptionDays && exceptionDays.length !== 0 ? exceptionDays : []
+      const replacements = replacementDays && replacementDays.length !== 0 ? replacementDays : []
+
+      if (!exceptions && !replacements) {
+        return null
+      }
+
+      return {
+        exceptionDays,
+        replacementDays,
+      }
+    })
+  }
+
+  async getExceptions(date) {
+    const fetchExceptions: CachedFetcher<ExceptionDay[]> = async (year) => {
+      const exceptionData = await this.getExceptionDaysForYear(year)
+
+      if (!exceptionData) {
+        return false
+      }
+
+      const { exceptionDays, replacementDays } = exceptionData
+
+      const exceptionDayObjects = [...exceptionDays, ...replacementDays].reduce(
+        (days: ExceptionDay[], day: JoreExceptionDay | JoreReplacementDay) => {
+          const dayObject = createExceptionDayObject(day)
+
+          if (dayObject) {
+            days.push(dayObject)
+          }
+
+          return days
+        },
+        []
+      )
+
+      const combinedDays = orderBy(exceptionDayObjects, 'exceptionDate')
+      return combinedDays.filter((day) => isSameYear(day.exceptionDate, year))
+    }
+
+    const queryYear = getYear(date) + ''
+    const cacheKey = `exception_days_${queryYear}`
+    const exceptionDays = await cacheFetch<ExceptionDay[]>(
+      cacheKey,
+      () => fetchExceptions(queryYear),
+      1 // 24 * 60 * 60
+    )
+
+    if (!exceptionDays) {
+      return []
+    }
+
+    return exceptionDays
   }
 }

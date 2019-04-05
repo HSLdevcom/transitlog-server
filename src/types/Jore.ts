@@ -184,18 +184,6 @@ export interface JoreEquipment {
   emission_desc?: Maybe<string>
 }
 
-export interface JoreExceptionDayDescription {
-  exception_day_type: string
-  description?: Maybe<string>
-}
-
-export interface JoreExceptionDay {
-  date_in_effect: string
-  exception_day_type: string
-  day_type: string
-  exclusive?: Maybe<number>
-}
-
 export interface JoreGeometry {
   route_id: string
   direction: string
@@ -215,6 +203,14 @@ export interface JorePointGeometry {
   y: number
   x: number
   point?: Maybe<string>
+}
+
+export interface JoreExceptionDay {
+  date_in_effect: string
+  exception_day_type: string
+  description?: string
+  day_type: string
+  exclusive?: Maybe<number>
 }
 
 export interface JoreReplacementDay {
