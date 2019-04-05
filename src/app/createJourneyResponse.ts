@@ -1,28 +1,14 @@
-import {
-  JoreDeparture,
-  JoreRouteDepartureData,
-  JoreEquipment,
-  JoreRoute,
-  JoreRouteData,
-  JoreRouteSegment,
-} from '../types/Jore'
+import { JoreRouteDepartureData, JoreEquipment, JoreRoute } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
-import {
-  Departure,
-  Direction,
-  Journey,
-  Route,
-  RouteSegment,
-  VehicleId,
-} from '../types/generated/schema-types'
+import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, sortBy } from 'lodash'
+import { get, groupBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
-import { getDepartureTime, getNormalTime, secondsToTimeObject, timeToSeconds } from '../utils/time'
+import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
-import { createDepartureId, createPlannedDepartureObject } from './objects/createDepartureObject'
+import { createPlannedDepartureObject } from './objects/createDepartureObject'
 import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
@@ -38,7 +24,7 @@ type JourneyRoute = {
   departures: PlannedDeparture[]
 }
 
-type JourneyRouteData = {
+export type JourneyRouteData = {
   route: JoreRoute | null
   departures: JoreRouteDepartureData[]
 }
@@ -75,9 +61,6 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
     return false
   }
 
-  // A route is divided into route segments, each with a stop. The stop has departures associated
-  // with it. To get to the departures, we need to ensure that each route segment is valid
-  // and sorted by the stopIndex.
   const departures: JoreRouteDepartureData[] = get(journeyRoute, 'departures', []) || []
 
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(
@@ -89,7 +72,9 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
   const originDeparture =
-    validDepartures.find((departure) => getDepartureTime(departure) === time) || null
+    validDepartures.find(
+      (departure) => departure.stop_index === 1 && getDepartureTime(departure) === time
+    ) || null
 
   if (!originDeparture) {
     return false
@@ -123,7 +108,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
  * @param uniqueVehicleId
  */
 export async function createJourneyResponse(
-  fetchRouteData: () => Promise<JoreRouteDepartureData>,
+  fetchRouteData: () => Promise<JourneyRouteData>,
   fetchJourneyEvents: () => Promise<Vehicles[]>,
   fetchJourneyEquipment: (
     vehicleId: string | number,
@@ -137,7 +122,7 @@ export async function createJourneyResponse(
 ): Promise<Journey | null> {
   // Fetch events, route and departures, and match events to departures.
   // Return the full journey data.
-  const fetchAndProcessJourney = async (): Promise<Journey | false> => {
+  const fetchAndProcessJourney: CachedFetcher<Journey> = async () => {
     let journeyEvents = await fetchValidJourneyEvents(fetchJourneyEvents)
     let journeyKey
 
@@ -145,30 +130,31 @@ export async function createJourneyResponse(
     // vehicle ID and use the instance argument to select the set of events.
     const vehicleGroups = groupEventsByInstances(journeyEvents || [])
 
+    const journeyKeyParts = {
+      routeId,
+      direction,
+      departureDate,
+      departureTime,
+      uniqueVehicleId: '',
+    }
+
     if (uniqueVehicleId) {
       const selectedVehicleGroups = vehicleGroups.find(
         ([groupId]) => groupId === createValidVehicleId(uniqueVehicleId)
       )
 
       journeyEvents = selectedVehicleGroups ? selectedVehicleGroups[1] : []
-      journeyKey = createJourneyId({
-        routeId,
-        direction,
-        departureDate,
-        departureTime,
-        uniqueVehicleId,
-      })
-    } else {
+      journeyKey = createJourneyId({ ...journeyKeyParts, uniqueVehicleId })
+    } else if (vehicleGroups.length !== 0) {
       const instanceGroup = vehicleGroups[0]
-      journeyEvents = instanceGroup[1]
+      journeyEvents = instanceGroup[1] // 0 is vehicle ID, 1 is the events
 
       journeyKey = createJourneyId({
-        routeId,
-        direction,
-        departureDate,
-        departureTime,
+        ...journeyKeyParts,
         uniqueVehicleId: instanceGroup[0],
       })
+    } else {
+      journeyKey = createJourneyId(journeyKeyParts)
     }
 
     // Fetch the planned departures and the route.
@@ -187,7 +173,11 @@ export async function createJourneyResponse(
     const events: Vehicles[] = journeyEvents
 
     // Return only the events if no departures were found.
-    if (!routeAndDepartures || routeAndDepartures.departures.length === 0) {
+    if (
+      !routeAndDepartures ||
+      !routeAndDepartures.route ||
+      routeAndDepartures.departures.length === 0
+    ) {
       return createJourneyObject(events, null, [], null)
     }
 
@@ -266,6 +256,8 @@ export async function createJourneyResponse(
     }
   }
 
+  // Note that the journey is cached but cannot be retrieved from the cache
+  // if createJourneyResponse was called without a uniqueVehicleId.
   const getJourneyCacheKey = (data?: Journey) => {
     let journeyKey: false | string = false
 
@@ -283,8 +275,6 @@ export async function createJourneyResponse(
 
     return !journeyKey ? false : `journey_${journeyKey}`
   }
-
-  // TODO: What's up with caching TTL here.
 
   const journey = await cacheFetch<Journey>(
     getJourneyCacheKey,

@@ -13,6 +13,7 @@ import { filterByDateChains } from '../utils/filterByDateChains'
 import Knex from 'knex'
 import { get } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
+import { JourneyRouteData } from '../app/createJourneyResponse'
 
 const knex: Knex = Knex({
   dialect: 'postgres',
@@ -187,9 +188,9 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
         route.name_fi,
         route.date_begin,
         route.date_end
-      FROM :schema:.route route LEFT OUTER JOIN :schema:.route_line(route) line ON true
-      WHERE route_id = :routeId
-        AND direction = :direction;
+      FROM :schema:.route route, :schema:.route_line(route) line
+      WHERE route.route_id = :routeId
+        AND route.direction = :direction;
       `,
       { schema: SCHEMA, routeId, direction: direction + '' }
     )
@@ -273,11 +274,7 @@ ORDER BY route_segment.stop_index ASC,
     return this.getBatched(routeSegmentsQuery)
   }
 
-  async getDepartureData(
-    routeId,
-    direction,
-    date
-  ): Promise<{ route: JoreRoute | null; departures: JoreRouteDepartureData[] }> {
+  async getDepartureData(routeId, direction, date): Promise<JourneyRouteData> {
     const availableRoutes = await this.getRouteIndex(routeId, direction)
 
     if (!availableRoutes || availableRoutes.length === 0) {
@@ -301,7 +298,7 @@ ORDER BY route_segment.stop_index ASC,
     )
 
     if (!departures) {
-      return { route: null, departures: [] }
+      return { route, departures: [] }
     }
 
     return { route, departures }
