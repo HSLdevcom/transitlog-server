@@ -11,7 +11,6 @@ import { ApolloServer } from 'apollo-server'
 import { resolvers } from './resolvers/'
 import { JoreDataSource } from './datasources/JoreDataSource'
 import { HFPDataSource } from './datasources/HFPDataSource'
-import { ExceptionDataSource } from './datasources/ExceptionDataSource'
 
 const server = new ApolloServer({
   typeDefs: schema,
@@ -19,7 +18,6 @@ const server = new ApolloServer({
   dataSources: () => ({
     JoreAPI: new JoreDataSource(),
     HFPAPI: new HFPDataSource(),
-    ExceptionAPI: new ExceptionDataSource(),
   }),
 })
 

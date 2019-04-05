@@ -18,6 +18,18 @@ export type Json = string
 // Types
 // ====================================================
 
+export interface JoreOriginDeparture {
+  hours: number
+  minutes: number
+  stop_id: string
+  departure_id: number
+  is_next_day: boolean
+  extra_departure: string
+  day_type: string
+  route_id: string
+  direction: string
+}
+
 export interface JoreDeparture {
   stop_id: string
   route_id: string
@@ -46,7 +58,7 @@ export interface JoreDeparture {
   available_operators?: Maybe<string>
   trunk_color_required?: Maybe<number>
   is_regular_day_departure?: Maybe<boolean>
-  origin_departure?: Maybe<JoreDeparture>
+  origin_departure?: Maybe<JoreOriginDeparture>
 }
 
 export interface JoreStop {
@@ -145,6 +157,19 @@ export type JoreRouteDepartureData = JoreRoute &
   JoreRouteSegment &
   JoreStop &
   JoreDeparture & { departure_date_begin?: string; departure_date_end?: string }
+
+export type JoreStopSegment = JoreRouteSegment & JoreStop & { originstop_id: string }
+
+interface JoreOriginDepartureProps {
+  origin_stop_id?: string
+  origin_hours?: number
+  origin_minutes?: number
+  origin_departure_id?: number
+  origin_is_next_day?: boolean
+  origin_extra_departure?: string
+}
+
+export type JoreDepartureWithOrigin = JoreDeparture & JoreOriginDepartureProps
 
 export interface JoreEquipment {
   class?: Maybe<string>

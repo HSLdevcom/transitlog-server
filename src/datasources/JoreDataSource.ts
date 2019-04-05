@@ -6,6 +6,7 @@ import {
   JoreDeparture,
   JoreRouteData,
   JoreRouteDepartureData,
+  JoreDepartureWithOrigin,
 } from '../types/Jore'
 import { Direction } from '../types/generated/schema-types'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
@@ -207,7 +208,7 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
   ): Promise<JoreRouteDepartureData[] | null> {
     // TODO: query with exception and replacement day types
     const dayTypes = [getDayTypeFromDate(date)]
-    const routeSegmentsQuery = this.db.raw(
+    const query = this.db.raw(
       `
     SELECT
        route_segment.next_stop_id,
@@ -271,7 +272,7 @@ ORDER BY route_segment.stop_index ASC,
       { schema: SCHEMA, routeId, direction: direction + '', dateBegin, dateEnd }
     )
 
-    return this.getBatched(routeSegmentsQuery)
+    return this.getBatched(query)
   }
 
   async getDepartureData(routeId, direction, date): Promise<JourneyRouteData> {
@@ -309,12 +310,83 @@ ORDER BY route_segment.stop_index ASC,
       return null
     }
 
-    return null
+    const query = this.db.raw(
+      `
+SELECT stop.stop_id,
+       stop.lat,
+       stop.lon,
+       stop.short_id,
+       stop.name_fi,
+       stop.stop_radius,
+       stop.stop_type,
+       route_segment.date_begin,
+       route_segment.date_end,
+       route_segment.destination_fi,
+       route_segment.distance_from_previous,
+       route_segment.distance_from_start,
+       route_segment.duration,
+       route_segment.route_id,
+       route_segment.direction,
+       route_segment.stop_index,
+       route_segment.next_stop_id,
+       route_segment.timing_stop_type,
+       route.originstop_id,
+       line.line_id
+FROM :schema:.stop stop
+     LEFT OUTER JOIN :schema:.route_segment route_segment USING (stop_id),
+     :schema:.route_segment_route(route_segment, null) route,
+     :schema:.route_line(route) line
+WHERE stop.stop_id = :stopId;`,
+      { schema: SCHEMA, stopId }
+    )
+
+    return this.getBatched(query)
   }
 
-  async getDepartures(stopId, date): Promise<JoreDeparture[]> {
-    const dayType = getDayTypeFromDate(date)
-    return []
+  async getDepartures(stopId, date): Promise<JoreDepartureWithOrigin[]> {
+    // TODO: query with exception and replacement day types
+    const dayTypes = [getDayTypeFromDate(date)]
+    const query = this.db.raw(
+      `
+SELECT departure.route_id,
+       departure.direction,
+       departure.stop_id,
+       departure.hours,
+       departure.minutes,
+       departure.day_type,
+       departure.extra_departure,
+       departure.is_next_day,
+       departure.arrival_is_next_day,
+       departure.arrival_hours,
+       departure.arrival_minutes,
+       departure.terminal_time,
+       departure.recovery_time,
+       departure.equipment_type,
+       departure.equipment_required,
+       departure.operator_id,
+       departure.trunk_color_required,
+       departure.date_begin,
+       departure.date_end,
+       departure.departure_id,
+       origin_departure.stop_id as origin_stop_id,
+       origin_departure.hours as origin_hours,
+       origin_departure.minutes as origin_minutes,
+       origin_departure.is_next_day as origin_is_next_day,
+       origin_departure.is_next_day as origin_is_next_day,
+       origin_departure.extra_departure as origin_extra_departure,
+       origin_departure.departure_id as origin_departure_id
+FROM :schema:.departure departure
+    LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
+WHERE departure.stop_id = :stopId
+  AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+ORDER BY departure.hours ASC,
+         departure.minutes ASC,
+         departure.route_id ASC,
+         departure.direction ASC;`,
+      { schema: SCHEMA, stopId }
+    )
+
+    return this.getBatched(query)
   }
 
   async getExceptionDaysForYear(year) {

@@ -1,4 +1,9 @@
-import { JoreDeparture, JoreRouteDepartureData } from '../../types/Jore'
+import {
+  JoreDeparture,
+  JoreDepartureWithOrigin,
+  JoreOriginDeparture,
+  JoreRouteDepartureData,
+} from '../../types/Jore'
 import {
   DepartureJourney,
   PlannedArrival,
@@ -9,11 +14,10 @@ import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../.
 import moment from 'moment-timezone'
 import { PlannedDeparture as PlannedDepartureObject } from '../../types/PlannedDeparture'
 import { TZ } from '../../constants'
-import { get } from 'lodash'
 import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
-import { createStopObject } from './createStopObject'
+import { get } from 'lodash'
 
 export function createDepartureId(departure) {
   return `${departure.route_id}_${departure.direction}_${departure.hours}_${departure.minutes}_${
@@ -35,7 +39,7 @@ export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): 
 }
 
 export function createPlannedDepartureTimeObject(
-  departure: JoreDeparture,
+  departure: JoreDeparture | JoreOriginDeparture,
   date: string
 ): PlannedDeparture {
   const departureTime = getDepartureTime(departure)
@@ -72,7 +76,7 @@ export function createDepartureJourneyObject(
 }
 
 export function createPlannedDepartureObject(
-  departure: JoreRouteDepartureData,
+  departure: JoreRouteDepartureData | JoreDepartureWithOrigin,
   stop: RouteSegment | null,
   departureDate: string
 ): PlannedDepartureObject {
@@ -93,8 +97,8 @@ export function createPlannedDepartureObject(
     departureId: departure.departure_id,
     extraDeparture: departure.extra_departure,
     isNextDay: departure.is_next_day,
-    isTimingStop: !!departure.timing_stop_type,
-    index: departure.stop_index,
+    isTimingStop: !!get(departure, 'timing_stop_type', false) || false,
+    index: get(departure, 'stop_index', 0),
     stop,
     journey: null,
     originDepartureTime: departure.origin_departure
