@@ -24,14 +24,15 @@ export const Schema = gql`
   type Query {
     equipment(filter: EquipmentFilterInput, date: Date): [Equipment]!
     stop(stopId: String!, date: Date!): Stop
-    stops(filter: StopFilterInput): [Stop]!
-    stopsByBbox(filter: StopFilterInput, bbox: BBox!): [Stop]!
+    stops(filter: StopFilterInput): [SimpleStop]!
+    stopsByBbox(filter: StopFilterInput, bbox: BBox!): [SimpleStop]!
     route(routeId: String!, direction: Direction!, date: Date!): Route
     routes(filter: RouteFilterInput, line: String, date: Date): [Route]!
     routeGeometry(routeId: String!, direction: Direction!, date: Date!): RouteGeometry
     routeSegments(routeId: String!, direction: Direction!, date: Date!): [RouteSegment]!
     lines(filter: LineFilterInput, date: Date, includeLinesWithoutRoutes: Boolean = false): [Line]!
     departures(filter: DepartureFilterInput, stopId: String!, date: Date!): [Departure]!
+    exceptionDays(year: String!): [ExceptionDay]!
     journey(
       routeId: String!
       direction: Direction!

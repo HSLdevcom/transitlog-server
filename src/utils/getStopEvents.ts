@@ -3,7 +3,10 @@ import { Vehicles } from '../types/generated/hfp-types'
 
 export const getStopEvents = (events: Vehicles[], stopId: string) => {
   const stopEvents = events.filter((pos) => pos.next_stop_id === stopId)
-  const maxDiff = 60
+
+  // The stop events can be no more than 5 minutes apart, otherwise they are not valid.
+  // This is to mitigate situations when the next_stop_id is faulty and changes later.
+  const maxDiff = 5 * 60
   const validEvents: Vehicles[] = []
 
   for (const event of stopEvents) {

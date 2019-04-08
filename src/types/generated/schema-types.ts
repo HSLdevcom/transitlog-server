@@ -95,9 +95,9 @@ export interface Query {
 
   stop?: Maybe<Stop>
 
-  stops: Array<Maybe<Stop>>
+  stops: Array<Maybe<SimpleStop>>
 
-  stopsByBbox: Array<Maybe<Stop>>
+  stopsByBbox: Array<Maybe<SimpleStop>>
 
   route?: Maybe<Route>
 
@@ -110,6 +110,8 @@ export interface Query {
   lines: Array<Maybe<Line>>
 
   departures: Array<Maybe<Departure>>
+
+  exceptionDays: Array<Maybe<ExceptionDay>>
 
   journey?: Maybe<Journey>
 
@@ -164,8 +166,6 @@ export interface Stop extends Position {
   modes: Array<Maybe<string>>
 
   routes: Array<Maybe<StopRoute>>
-
-  _matchScore?: Maybe<number>
 }
 
 export interface StopRoute {
@@ -180,6 +180,28 @@ export interface StopRoute {
   direction: Direction
 
   isTimingStop: boolean
+
+  mode?: Maybe<string>
+}
+
+export interface SimpleStop extends Position {
+  id: string
+
+  stopId: string
+
+  shortId: string
+
+  lat: number
+
+  lng: number
+
+  name?: Maybe<string>
+
+  radius?: Maybe<number>
+
+  modes: Array<Maybe<string>>
+
+  _matchScore?: Maybe<number>
 }
 
 export interface Route {
@@ -414,6 +436,26 @@ export interface ObservedDeparture {
   departureTimeDifference: number
 }
 
+export interface ExceptionDay {
+  id: string
+
+  exceptionDate: Date
+
+  effectiveDayTypes: string[]
+
+  dayType: string
+
+  modeScope?: Maybe<string>
+
+  description?: Maybe<string>
+
+  exclusive: boolean
+
+  startTime?: Maybe<Time>
+
+  endTime?: Maybe<Time>
+}
+
 export interface Journey {
   id: string
 
@@ -575,6 +617,9 @@ export interface DeparturesQueryArgs {
   stopId: string
 
   date: Date
+}
+export interface ExceptionDaysQueryArgs {
+  year: string
 }
 export interface JourneyQueryArgs {
   routeId: string

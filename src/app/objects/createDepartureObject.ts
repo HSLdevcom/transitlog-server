@@ -1,4 +1,9 @@
-import { Departure as JoreDeparture } from '../../types/generated/jore-types'
+import {
+  JoreDeparture,
+  JoreDepartureWithOrigin,
+  JoreOriginDeparture,
+  JoreRouteDepartureData,
+} from '../../types/Jore'
 import {
   DepartureJourney,
   PlannedArrival,
@@ -9,15 +14,15 @@ import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../.
 import moment from 'moment-timezone'
 import { PlannedDeparture as PlannedDepartureObject } from '../../types/PlannedDeparture'
 import { TZ } from '../../constants'
-import { get } from 'lodash'
 import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
+import { get } from 'lodash'
 
 export function createDepartureId(departure) {
-  return `${departure.routeId}_${departure.direction}_${departure.hours}_${departure.minutes}_${
-    departure.stopId
-  }_${departure.dayType}_${departure.extraDeparture}`
+  return `${departure.route_id}_${departure.direction}_${departure.hours}_${departure.minutes}_${
+    departure.stop_id
+  }_${departure.day_type}_${departure.extra_departure}`
 }
 
 export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): PlannedArrival {
@@ -29,20 +34,24 @@ export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): 
     arrivalDate: date,
     arrivalTime,
     arrivalDateTime: moment.tz(getDateFromDateTime(date, arrivalTime), TZ).toISOString(true),
-    isNextDay: departure.isNextDay,
+    isNextDay: departure.arrival_is_next_day,
   }
 }
 
-export function createPlannedDepartureTimeObject(departure: JoreDeparture, date): PlannedDeparture {
+export function createPlannedDepartureTimeObject(
+  departure: JoreDeparture | JoreOriginDeparture,
+  date: string
+): PlannedDeparture {
   const departureTime = getDepartureTime(departure)
   const departureId = createDepartureId(departure)
+  const departureDateTime = getDateFromDateTime(date, departureTime).toISOString(true)
 
   return {
     id: `pdt_${departureId}_${departureTime}`, // pdt = Planned Departure Time
     departureDate: date,
     departureTime,
-    departureDateTime: moment.tz(getDateFromDateTime(date, departureTime), TZ).toISOString(true),
-    isNextDay: departure.isNextDay,
+    departureDateTime,
+    isNextDay: departure.is_next_day,
   }
 }
 
@@ -67,7 +76,7 @@ export function createDepartureJourneyObject(
 }
 
 export function createPlannedDepartureObject(
-  departure: JoreDeparture,
+  departure: JoreRouteDepartureData | JoreDepartureWithOrigin,
   stop: RouteSegment | null,
   departureDate: string
 ): PlannedDepartureObject {
@@ -75,25 +84,25 @@ export function createPlannedDepartureObject(
 
   return {
     id: departureId,
-    stopId: departure.stopId,
-    dayType: departure.dayType,
-    equipmentType: departure.equipmentType,
-    equipmentIsRequired: !!departure.equipmentRequired,
-    equipmentColor: departure.trunkColorRequired ? 'HSL-orans' : '',
-    operatorId: departure.operatorId,
-    routeId: departure.routeId,
+    stopId: departure.stop_id,
+    dayType: departure.day_type,
+    equipmentType: departure.equipment_type,
+    equipmentIsRequired: !!departure.equipment_required,
+    equipmentColor: departure.trunk_color_required ? 'HSL-orans' : '',
+    operatorId: departure.operator_id,
+    routeId: departure.route_id,
     direction: departure.direction,
-    terminalTime: departure.terminalTime,
-    recoveryTime: departure.recoveryTime,
-    departureId: departure.departureId,
-    extraDeparture: departure.extraDeparture,
-    isNextDay: departure.isNextDay,
-    isTimingStop: get(stop, 'isTimingStop', false),
-    index: get(stop, 'stopIndex', 0),
+    terminalTime: departure.terminal_time,
+    recoveryTime: departure.recovery_time,
+    departureId: departure.departure_id,
+    extraDeparture: departure.extra_departure,
+    isNextDay: departure.is_next_day,
+    isTimingStop: !!get(departure, 'timing_stop_type', false) || false,
+    index: get(departure, 'stop_index', 0),
     stop,
     journey: null,
-    originDepartureTime: departure.originDeparture
-      ? createPlannedDepartureTimeObject(departure.originDeparture, departureDate)
+    originDepartureTime: departure.origin_departure
+      ? createPlannedDepartureTimeObject(departure.origin_departure, departureDate)
       : null,
     plannedArrivalTime: createPlannedArrivalTimeObject(departure, departureDate),
     plannedDepartureTime: createPlannedDepartureTimeObject(departure, departureDate),

@@ -29,7 +29,6 @@ function createBboxObject(value: unknown, round = true): BBox | null {
   }
 
   if (!minLat || !maxLat || minLat > maxLat) {
-    console.log(minLat, maxLat)
     throw new UserInputError(
       'Validation failed: The BBox scalar type expects a string formatted like minLng,minLat,maxLng,maxLat. Lat props not found, or they were invalid.'
     )
@@ -63,9 +62,9 @@ export const BBoxScalar = new GraphQLScalarType({
 
     return createBBoxString(createBboxObject(value, true))
   },
-  parseLiteral(ast): StringOrNull {
+  parseLiteral(ast): BBox | null {
     if (ast.kind === Kind.STRING) {
-      return createBBoxString(createBboxObject(ast.value, true))
+      return createBboxObject(ast.value, true)
     }
     return null
   },
@@ -85,9 +84,9 @@ export const PreciseBBoxScalar = new GraphQLScalarType({
 
     return createBBoxString(createBboxObject(value, false))
   },
-  parseLiteral(ast): StringOrNull {
+  parseLiteral(ast): BBox | null {
     if (ast.kind === Kind.STRING) {
-      return createBBoxString(createBboxObject(ast.value, false))
+      return createBboxObject(ast.value, false)
     }
     return null
   },

@@ -13,6 +13,7 @@ RUN yarn
 
 # Bundle app source
 COPY . ${WORK}
+COPY .env.production ${WORK}/.env
 
 EXPOSE 4000
 

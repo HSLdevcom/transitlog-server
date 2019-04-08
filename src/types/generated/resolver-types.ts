@@ -120,9 +120,9 @@ export namespace QueryResolvers {
 
     stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
 
-    stops?: StopsResolver<Array<Maybe<Stop>>, TypeParent, TContext>
+    stops?: StopsResolver<Array<Maybe<SimpleStop>>, TypeParent, TContext>
 
-    stopsByBbox?: StopsByBboxResolver<Array<Maybe<Stop>>, TypeParent, TContext>
+    stopsByBbox?: StopsByBboxResolver<Array<Maybe<SimpleStop>>, TypeParent, TContext>
 
     route?: RouteResolver<Maybe<Route>, TypeParent, TContext>
 
@@ -135,6 +135,8 @@ export namespace QueryResolvers {
     lines?: LinesResolver<Array<Maybe<Line>>, TypeParent, TContext>
 
     departures?: DeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
+
+    exceptionDays?: ExceptionDaysResolver<Array<Maybe<ExceptionDay>>, TypeParent, TContext>
 
     journey?: JourneyResolver<Maybe<Journey>, TypeParent, TContext>
 
@@ -169,7 +171,7 @@ export namespace QueryResolvers {
     date: Date
   }
 
-  export type StopsResolver<R = Array<Maybe<Stop>>, Parent = {}, TContext = {}> = Resolver<
+  export type StopsResolver<R = Array<Maybe<SimpleStop>>, Parent = {}, TContext = {}> = Resolver<
     R,
     Parent,
     TContext,
@@ -179,12 +181,11 @@ export namespace QueryResolvers {
     filter?: Maybe<StopFilterInput>
   }
 
-  export type StopsByBboxResolver<R = Array<Maybe<Stop>>, Parent = {}, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext,
-    StopsByBboxArgs
-  >
+  export type StopsByBboxResolver<
+    R = Array<Maybe<SimpleStop>>,
+    Parent = {},
+    TContext = {}
+  > = Resolver<R, Parent, TContext, StopsByBboxArgs>
   export interface StopsByBboxArgs {
     filter?: Maybe<StopFilterInput>
 
@@ -270,6 +271,15 @@ export namespace QueryResolvers {
     stopId: string
 
     date: Date
+  }
+
+  export type ExceptionDaysResolver<
+    R = Array<Maybe<ExceptionDay>>,
+    Parent = {},
+    TContext = {}
+  > = Resolver<R, Parent, TContext, ExceptionDaysArgs>
+  export interface ExceptionDaysArgs {
+    year: string
   }
 
   export type JourneyResolver<R = Maybe<Journey>, Parent = {}, TContext = {}> = Resolver<
@@ -441,8 +451,6 @@ export namespace StopResolvers {
     modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
 
     routes?: RoutesResolver<Array<Maybe<StopRoute>>, TypeParent, TContext>
-
-    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Stop, TContext = {}> = Resolver<R, Parent, TContext>
@@ -478,11 +486,6 @@ export namespace StopResolvers {
     Parent,
     TContext
   >
-  export type _MatchScoreResolver<R = Maybe<number>, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
 }
 
 export namespace StopRouteResolvers {
@@ -498,6 +501,8 @@ export namespace StopRouteResolvers {
     direction?: DirectionResolver<Direction, TypeParent, TContext>
 
     isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
+
+    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = StopRoute, TContext = {}> = Resolver<
@@ -526,6 +531,79 @@ export namespace StopRouteResolvers {
     TContext
   >
   export type IsTimingStopResolver<R = boolean, Parent = StopRoute, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ModeResolver<R = Maybe<string>, Parent = StopRoute, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
+export namespace SimpleStopResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = SimpleStop> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    stopId?: StopIdResolver<string, TypeParent, TContext>
+
+    shortId?: ShortIdResolver<string, TypeParent, TContext>
+
+    lat?: LatResolver<number, TypeParent, TContext>
+
+    lng?: LngResolver<number, TypeParent, TContext>
+
+    name?: NameResolver<Maybe<string>, TypeParent, TContext>
+
+    radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
+
+    modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
+
+    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
+  }
+
+  export type IdResolver<R = string, Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type StopIdResolver<R = string, Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ShortIdResolver<R = string, Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type LatResolver<R = number, Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type LngResolver<R = number, Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type NameResolver<R = Maybe<string>, Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type RadiusResolver<R = Maybe<number>, Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ModesResolver<
+    R = Array<Maybe<string>>,
+    Parent = SimpleStop,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type _MatchScoreResolver<R = Maybe<number>, Parent = SimpleStop, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -1320,6 +1398,74 @@ export namespace ObservedDepartureResolvers {
   > = Resolver<R, Parent, TContext>
 }
 
+export namespace ExceptionDayResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = ExceptionDay> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    exceptionDate?: ExceptionDateResolver<Date, TypeParent, TContext>
+
+    effectiveDayTypes?: EffectiveDayTypesResolver<string[], TypeParent, TContext>
+
+    dayType?: DayTypeResolver<string, TypeParent, TContext>
+
+    modeScope?: ModeScopeResolver<Maybe<string>, TypeParent, TContext>
+
+    description?: DescriptionResolver<Maybe<string>, TypeParent, TContext>
+
+    exclusive?: ExclusiveResolver<boolean, TypeParent, TContext>
+
+    startTime?: StartTimeResolver<Maybe<Time>, TypeParent, TContext>
+
+    endTime?: EndTimeResolver<Maybe<Time>, TypeParent, TContext>
+  }
+
+  export type IdResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ExceptionDateResolver<R = Date, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type EffectiveDayTypesResolver<
+    R = string[],
+    Parent = ExceptionDay,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DayTypeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ModeScopeResolver<R = Maybe<string>, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DescriptionResolver<
+    R = Maybe<string>,
+    Parent = ExceptionDay,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type ExclusiveResolver<R = boolean, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type StartTimeResolver<R = Maybe<Time>, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type EndTimeResolver<R = Maybe<Time>, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
 export namespace JourneyResolvers {
   export interface Resolvers<TContext = {}, TypeParent = Journey> {
     id?: IdResolver<string, TypeParent, TContext>
@@ -1663,8 +1809,8 @@ export namespace PositionResolvers {
     __resolveType: ResolveType
   }
   export type ResolveType<
-    R = 'Stop' | 'RouteGeometryPoint' | 'RouteSegment' | 'JourneyEvent',
-    Parent = Stop | RouteGeometryPoint | RouteSegment | JourneyEvent,
+    R = 'Stop' | 'SimpleStop' | 'RouteGeometryPoint' | 'RouteSegment' | 'JourneyEvent',
+    Parent = Stop | SimpleStop | RouteGeometryPoint | RouteSegment | JourneyEvent,
     TContext = {}
   > = TypeResolveFn<R, Parent, TContext>
 }
@@ -1735,6 +1881,7 @@ export type IResolvers<TContext = {}> = {
   Equipment?: EquipmentResolvers.Resolvers<TContext>
   Stop?: StopResolvers.Resolvers<TContext>
   StopRoute?: StopRouteResolvers.Resolvers<TContext>
+  SimpleStop?: SimpleStopResolvers.Resolvers<TContext>
   Route?: RouteResolvers.Resolvers<TContext>
   RouteGeometry?: RouteGeometryResolvers.Resolvers<TContext>
   RouteGeometryPoint?: RouteGeometryPointResolvers.Resolvers<TContext>
@@ -1747,6 +1894,7 @@ export type IResolvers<TContext = {}> = {
   JourneyEvent?: JourneyEventResolvers.Resolvers<TContext>
   PlannedDeparture?: PlannedDepartureResolvers.Resolvers<TContext>
   ObservedDeparture?: ObservedDepartureResolvers.Resolvers<TContext>
+  ExceptionDay?: ExceptionDayResolvers.Resolvers<TContext>
   Journey?: JourneyResolvers.Resolvers<TContext>
   VehicleJourney?: VehicleJourneyResolvers.Resolvers<TContext>
   AreaJourney?: AreaJourneyResolvers.Resolvers<TContext>
