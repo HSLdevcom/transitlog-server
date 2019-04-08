@@ -98,22 +98,8 @@ const journey = (
 }
 
 const journeys = (root, { routeId, direction, departureDate }, { dataSources }) => {
-  const getRoute = () => dataSources.JoreAPI.getRoute(routeId, direction)
-
-  const getJourneyList = () =>
-    dataSources.HFPAPI.listJourneysForRoute(routeId, direction, departureDate)
-
-  const getJourney = (journeyRouteId, journeyDirection, departureTime) =>
-    dataSources.HFPAPI.getJourneyEvents(routeId, direction, departureDate, departureTime)
-
-  return createRouteJourneysResponse(
-    getRoute,
-    getJourneyList,
-    getJourney,
-    routeId,
-    direction,
-    departureDate
-  )
+  const getJourney = () => dataSources.HFPAPI.getRouteJourneys(routeId, direction, departureDate)
+  return createRouteJourneysResponse(getJourney, routeId, direction, departureDate)
 }
 
 const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources }) => {

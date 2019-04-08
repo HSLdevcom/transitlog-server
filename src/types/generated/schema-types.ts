@@ -323,6 +323,8 @@ export interface Departure {
 
   index?: Maybe<number>
 
+  mode?: Maybe<string>
+
   stop?: Maybe<RouteSegment>
 
   journey?: Maybe<DepartureJourney>
@@ -353,7 +355,37 @@ export interface DepartureJourney {
 
   uniqueVehicleId?: Maybe<VehicleId>
 
+  mode?: Maybe<string>
+
+  events?: Maybe<JourneyEvent[]>
+
   _numInstance?: Maybe<number>
+}
+
+export interface JourneyEvent extends Position {
+  id: string
+
+  receivedAt: DateTime
+
+  recordedAt: DateTime
+
+  recordedAtUnix: number
+
+  recordedTime: Time
+
+  nextStopId?: Maybe<string>
+
+  lat?: Maybe<number>
+
+  lng?: Maybe<number>
+
+  doorStatus?: Maybe<boolean>
+
+  velocity?: Maybe<number>
+
+  delay?: Maybe<number>
+
+  heading?: Maybe<number>
 }
 
 export interface PlannedArrival {
@@ -382,32 +414,6 @@ export interface ObservedArrival {
   arrivalTimeDifference: number
 
   doorDidOpen: boolean
-}
-
-export interface JourneyEvent extends Position {
-  id: string
-
-  receivedAt: DateTime
-
-  recordedAt: DateTime
-
-  recordedAtUnix: number
-
-  recordedTime: Time
-
-  nextStopId?: Maybe<string>
-
-  lat?: Maybe<number>
-
-  lng?: Maybe<number>
-
-  doorStatus?: Maybe<boolean>
-
-  velocity?: Maybe<number>
-
-  delay?: Maybe<number>
-
-  heading?: Maybe<number>
 }
 
 export interface PlannedDeparture {

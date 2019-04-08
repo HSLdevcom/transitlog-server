@@ -4,7 +4,7 @@ import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, sortBy, last, uniqBy } from 'lodash'
+import { get, groupBy, last, uniqBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -13,7 +13,6 @@ import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { createRouteObject } from './objects/createRouteObject'
-import { differenceInSeconds } from 'date-fns'
 import { getStopEvents } from '../utils/getStopEvents'
 import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
@@ -158,18 +157,12 @@ export async function createJourneyResponse(
 
     if (uniqueVehicleId) {
       journeyKey = createJourneyId({
-        routeId,
-        direction,
-        departureDate,
-        departureTime,
+        ...journeyKeyParts,
         uniqueVehicleId,
       })
     } else if (events.length !== 0) {
       journeyKey = createJourneyId({
-        routeId,
-        direction,
-        departureDate,
-        departureTime,
+        ...journeyKeyParts,
         uniqueVehicleId: get(events, '[0].unique_vehicle_id'),
       })
     } else {

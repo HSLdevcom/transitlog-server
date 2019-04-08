@@ -91,6 +91,7 @@ export const ROUTE_JOURNEY_EVENTS_QUERY = gql`
         oday: { _eq: $departureDate }
         route_id: { _eq: $routeId }
         direction_id: { _eq: $direction }
+        geohash_level: { _lte: 3 }
       }
     ) {
       ...JourneyFieldsFragment

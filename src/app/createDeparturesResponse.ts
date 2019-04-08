@@ -1,14 +1,7 @@
 import { CachedFetcher } from '../types/CachedFetcher'
 import { flatten, get, groupBy, orderBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import {
-  JoreDeparture,
-  JoreDepartureWithOrigin,
-  JoreRouteDepartureData,
-  JoreRouteSegment,
-  JoreStop,
-  JoreStopSegment,
-} from '../types/Jore'
+import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import { Departure, DepartureFilterInput, RouteSegment } from '../types/generated/schema-types'
 import { Vehicles } from '../types/generated/hfp-types'
 import { cacheFetch } from './cache'
@@ -70,6 +63,7 @@ export async function createDeparturesResponse(
         originStopId: get(segment, 'originstop_id', ''),
         routeId: segment.route_id,
         direction: getDirection(segment.direction),
+        mode: stop.modes[0],
         ...stop,
       }
     })
@@ -208,7 +202,8 @@ export async function createDeparturesResponse(
         events[0],
         departureIsNextDay,
         firstStopId,
-        instances.length > 1 ? index + 1 : 0
+        instances.length > 1 ? index + 1 : 0,
+        get(departure, 'mode', Mode.Bus) as Mode
       )
 
       return {
