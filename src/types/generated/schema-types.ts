@@ -178,6 +178,8 @@ export interface StopRoute {
   direction: Direction
 
   isTimingStop: boolean
+
+  mode?: Maybe<string>
 }
 
 export interface SimpleStop extends Position {

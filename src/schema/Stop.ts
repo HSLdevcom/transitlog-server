@@ -8,6 +8,7 @@ export const Stop = gql`
     routeId: String!
     direction: Direction!
     isTimingStop: Boolean!
+    mode: String
   }
 
   type SimpleStop implements Position {

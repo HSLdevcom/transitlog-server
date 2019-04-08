@@ -17,12 +17,11 @@ import {
   createDepartureJourneyObject,
   createPlannedDepartureObject,
 } from './objects/createDepartureObject'
-import { createSimpleStopObject, createStopObject } from './objects/createStopObject'
+import { createSimpleStopObject } from './objects/createStopObject'
 import { getDirection } from '../utils/getDirection'
 import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { filterDepartures } from './filters/filterDepartures'
-import { isToday } from 'date-fns'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { Dictionary } from '../types/Dictionary'

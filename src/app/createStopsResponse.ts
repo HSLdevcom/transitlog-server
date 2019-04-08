@@ -42,14 +42,17 @@ export async function createStopResponse(
       return false
     }
 
-    let stopRoutes = validStops.reduce((routes: StopRoute[], stop: JoreCombinedStop) => {
+    let stopRoutes = validStops.reduce((routes: StopRoute[], stopRouteData: JoreCombinedStop) => {
       const stopRoute: StopRoute = {
-        id: `stop_route_${stop.route_id}_${stop.direction}_${stop.date_begin}_${stop.date_end}`,
-        lineId: stop.line_id,
-        direction: getDirection(stop.direction),
-        routeId: stop.route_id,
-        isTimingStop: !!stop.timing_stop_type,
-        originStopId: stop.originstop_id,
+        id: `stop_route_${stopRouteData.route_id}_${stopRouteData.direction}_${
+          stopRouteData.date_begin
+        }_${stopRouteData.date_end}`,
+        lineId: stopRouteData.line_id,
+        direction: getDirection(stopRouteData.direction),
+        routeId: stopRouteData.route_id,
+        isTimingStop: !!stopRouteData.timing_stop_type,
+        originStopId: stopRouteData.originstop_id,
+        mode: stopRouteData.mode || 'BUS',
       }
 
       routes.push(stopRoute)
@@ -57,6 +60,9 @@ export async function createStopResponse(
     }, [])
 
     stopRoutes = orderBy(stopRoutes, 'route_id')
+
+    console.log(validStops)
+
     return createStopObject(validStops[0], stopRoutes)
   }
 
@@ -82,7 +88,9 @@ export async function createStopsResponse(
       return false
     }
 
-    return fetchedStops.map((stop) => createSimpleStopObject(stop))
+    return fetchedStops.map((stop) => {
+      return createSimpleStopObject(stop)
+    })
   }
 
   // Create a separate cache key for bbox queries.

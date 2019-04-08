@@ -158,7 +158,8 @@ export type JoreRouteDepartureData = JoreRoute &
   JoreStop &
   JoreDeparture & { departure_date_begin?: string; departure_date_end?: string }
 
-export type JoreStopSegment = JoreRouteSegment & JoreStop & { originstop_id: string }
+export type JoreStopSegment = JoreRouteSegment &
+  JoreStop & { originstop_id: string; mode: Maybe<string> }
 
 interface JoreOriginDepartureProps {
   origin_stop_id?: string

@@ -485,6 +485,8 @@ export namespace StopRouteResolvers {
     direction?: DirectionResolver<Direction, TypeParent, TContext>
 
     isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
+
+    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = StopRoute, TContext = {}> = Resolver<
@@ -513,6 +515,11 @@ export namespace StopRouteResolvers {
     TContext
   >
   export type IsTimingStopResolver<R = boolean, Parent = StopRoute, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ModeResolver<R = Maybe<string>, Parent = StopRoute, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

@@ -52,9 +52,26 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getRoutes(): Promise<JoreRoute[]> {
-    const query = this.db
-      .select()
-      .from(this.db.raw(`:schema:.route, :schema:.route_line(route)`, { schema: SCHEMA }))
+    const query = this.db.raw(
+      `
+      SELECT
+        route.route_id,
+        line.line_id,
+        route.direction,
+        route.destination_fi,
+        route.destinationstop_id,
+        route.origin_fi,
+        route.originstop_id,
+        route.name_fi,
+        route.date_begin,
+        route.date_end,
+        mode.mode
+      FROM :schema:.route route,
+           :schema:.route_mode(route) mode,
+           :schema:.route_line(route) line;
+    `,
+      { schema: SCHEMA }
+    )
 
     return this.getBatched(query)
   }
@@ -66,8 +83,8 @@ export class JoreDataSource extends SQLDataSource {
   ): Promise<JoreRoute[]> {
     const query = this.db.raw(
       `SELECT route.date_begin, route.date_end, geometry.geometry
-from :schema:.route as route,
-     :schema:.route_geometries(route, :date) as geometry
+from :schema:.route route,
+     :schema:.route_geometries(route, :date) geometry
 where route_id = :routeId
   and direction = :direction`,
       { schema: SCHEMA, routeId, direction: direction + '', date }
@@ -78,12 +95,27 @@ where route_id = :routeId
 
   async getStopSegments(stopId: string, date: string): Promise<JoreStop[]> {
     const query = this.db.raw(
-      `SELECT *
-FROM :schema:.stop as stop,
-     :schema:.stop_route_segments_for_date(stop, :date) as route_segment,
-     :schema:.route_segment_line(route_segment) as line,
-     :schema:.route_segment_route(route_segment, :date) as route
-where stop.stop_id = :stopId;`,
+      `SELECT route.route_id,
+       route.direction,
+       route.originstop_id,
+       line.line_id,
+       mode.mode,
+       route_segment.date_begin,
+       route_segment.date_end,
+       route_segment.timing_stop_type,
+       route_segment.stop_index,
+       stop.lat,
+       stop.lon,
+       stop.stop_id,
+       stop.short_id,
+       stop.name_fi,
+       stop.stop_radius
+FROM :schema:.stop stop,
+     :schema:.stop_route_segments_for_date(stop, :date) route_segment,
+     :schema:.route_segment_line(route_segment) line,
+     :schema:.route_segment_route(route_segment, :date) route,
+     :schema:.route_mode(route) as mode
+WHERE stop.stop_id = :stopId;`,
       { schema: SCHEMA, stopId, date }
     )
 
@@ -91,20 +123,40 @@ where stop.stop_id = :stopId;`,
   }
 
   async getStops(): Promise<JoreStop[]> {
-    const query = this.db
-      .withSchema(SCHEMA)
-      .select()
-      .from('stop')
+    const query = this.db.raw(
+      `
+      SELECT stop.stop_id,
+             stop.short_id,
+             stop.lat,
+             stop.lon,
+             stop.name_fi,
+             stop.stop_radius,
+             modes.modes
+      FROM :schema:.stop stop, :schema:.stop_modes(stop, null) modes;
+    `,
+      { schema: SCHEMA }
+    )
 
     return this.getBatched(query)
   }
 
   async getStopsByBBox(bbox): Promise<JoreStop[]> {
-    const query = this.db.select().from(
-      this.db.raw(`:schema:.stops_by_bbox(:minLat, :minLng, :maxLat, :maxLng)`, {
+    const query = this.db.raw(
+      `
+      SELECT stop.stop_id,
+             stop.short_id,
+             stop.lat,
+             stop.lon,
+             stop.name_fi,
+             stop.stop_radius,
+             modes.modes
+      FROM :schema:.stops_by_bbox(:minLat, :minLng, :maxLat, :maxLng) stop,
+           :schema:.stop_modes(stop, null) modes;
+      `,
+      {
         schema: SCHEMA,
         ...bbox,
-      })
+      }
     )
 
     return this.getBatched(query)
@@ -146,6 +198,7 @@ where stop.stop_id = :stopId;`,
        route.origin_fi,
        route.destinationstop_id,
        route.originstop_id,
+       mode.mode,
        line.line_id,
        route_segment.next_stop_id,
        route_segment.date_begin,
@@ -163,6 +216,7 @@ where stop.stop_id = :stopId;`,
        stop.name_fi,
        stop.stop_radius
 FROM :schema:.route route,
+     :schema:.route_mode(route) mode,
      :schema:.route_line(route) line,
      :schema:.route_route_segments(route) route_segment
 LEFT OUTER JOIN :schema:.stop stop ON stop.stop_id = route_segment.stop_id
@@ -192,8 +246,11 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
         route.originstop_id,
         route.name_fi,
         route.date_begin,
-        route.date_end
-      FROM :schema:.route route, :schema:.route_line(route) line
+        route.date_end,
+        mode.mode
+      FROM :schema:.route route,
+           :schema:.route_mode(route) mode,
+           :schema:.route_line(route) line
       WHERE route.route_id = :routeId
         AND route.direction = :direction;
       `,
@@ -337,10 +394,12 @@ SELECT stop.stop_id,
        route_segment.next_stop_id,
        route_segment.timing_stop_type,
        route.originstop_id,
-       line.line_id
+       line.line_id,
+       mode.mode
 FROM :schema:.stop stop
      LEFT OUTER JOIN :schema:.route_segment route_segment USING (stop_id),
      :schema:.route_segment_route(route_segment, null) route,
+     :schema:.route_mode(route) mode,
      :schema:.route_line(route) line
 WHERE stop.stop_id = :stopId;`,
       { schema: SCHEMA, stopId }
