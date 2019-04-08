@@ -244,6 +244,7 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
         route.destination_fi,
         route.origin_fi,
         route.originstop_id,
+        route.destinationstop_id,
         route.name_fi,
         route.date_begin,
         route.date_end,

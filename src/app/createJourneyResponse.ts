@@ -61,6 +61,9 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
     return false
   }
 
+  const journeyRouteObject = createRouteObject(journeyRoute.route)
+  console.log(journeyRouteObject)
+
   const departures: JoreRouteDepartureData[] = get(journeyRoute, 'departures', []) || []
 
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(
@@ -77,7 +80,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
     ) || null
 
   if (!originDeparture) {
-    return false
+    return { route: journeyRouteObject, departures: [] }
   }
 
   const journeyDepartures = validDepartures.filter(
@@ -92,7 +95,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
-  return { route: createRouteObject(journeyRoute.route), departures: stopDepartures }
+  return { route: journeyRouteObject, departures: stopDepartures }
 }
 
 /**
@@ -175,10 +178,14 @@ export async function createJourneyResponse(
     // Return only the events if no departures were found.
     if (
       !routeAndDepartures ||
-      !routeAndDepartures.route ||
-      routeAndDepartures.departures.length === 0
+      (!routeAndDepartures.route && routeAndDepartures.departures.length === 0)
     ) {
-      return createJourneyObject(events, null, [], null)
+      return createJourneyObject(
+        events,
+        get(routeAndDepartures, 'route', null),
+        get(routeAndDepartures, 'departures', []),
+        null
+      )
     }
 
     const { route, departures } = routeAndDepartures
