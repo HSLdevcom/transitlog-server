@@ -1,17 +1,14 @@
 import { QueryResolvers } from '../types/generated/resolver-types'
 import { createLinesResponse } from '../app/createLinesResponse'
-import { createRouteResponse, createRoutesResponse } from '../app/createRoutesResponse'
+import { createRoutesResponse } from '../app/createRoutesResponse'
 import { createStopResponse, createStopsResponse } from '../app/createStopsResponse'
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
-import { createDeparturesResponse } from '../app/createDepartureResponse'
-import { getNormalTime } from '../utils/time'
+import { createDeparturesResponse } from '../app/createDeparturesResponse'
 import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
-import { createExceptionDaysResponse } from '../app/createExceptionDaysResponse'
-import { getExceptions } from '../utils/getExceptions'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -30,13 +27,14 @@ const stopsByBbox = (root, { filter, bbox }, { dataSources }) => {
 }
 
 const stop = (root, { stopId, date }, { dataSources }) => {
-  const getStop = () => dataSources.JoreAPI.getStop(stopId)
-  return createStopResponse(getStop, date, stopId)
+  const getStopSegments = () => dataSources.JoreAPI.getStopSegments(stopId, date)
+  return createStopResponse(getStopSegments, date, stopId)
 }
 
 const route = async (root, { routeId, direction, date }, { dataSources }) => {
-  const getRoute = () => dataSources.JoreAPI.getRoute(routeId, direction)
-  return createRouteResponse(getRoute, date, routeId, direction)
+  const getRoutes = () => dataSources.JoreAPI.getRoutes()
+  const routes = await createRoutesResponse(getRoutes, date, undefined, { routeId, direction })
+  return routes[0]
 }
 
 const routes = async (root, { filter, line, date }, { dataSources }) => {
@@ -45,7 +43,7 @@ const routes = async (root, { filter, line, date }, { dataSources }) => {
 }
 
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
-  const getRouteGeometry = () => dataSources.JoreAPI.getRouteGeometry(routeId, direction)
+  const getRouteGeometry = () => dataSources.JoreAPI.getRouteGeometry(routeId, direction, date)
   return createRouteGeometryResponse(getRouteGeometry, date, routeId, direction)
 }
 
@@ -72,7 +70,7 @@ const journey = (
   { routeId, direction, departureTime, departureDate, uniqueVehicleId },
   { dataSources }
 ) => {
-  const getRouteData = () => dataSources.JoreAPI.getFullRoute(routeId, direction, departureDate)
+  const getRouteData = () => dataSources.JoreAPI.getDepartureData(routeId, direction, departureDate)
 
   const getJourneyEvents = () =>
     dataSources.HFPAPI.getJourneyEvents(
@@ -108,8 +106,9 @@ const eventsByBbox = (root, { minTime, maxTime, bbox, date, filters }, { dataSou
   return createAreaJourneysResponse(getAreaJourneys, minTime, maxTime, bbox, date, filters)
 }
 
-const exceptionDays = (root, { year }) => {
-  return getExceptions(year)
+const exceptionDays = (root, { year }, { dataSources }) => {
+  // The full resolver is in the Jore datasource because we need it for other queries too.
+  return dataSources.JoreAPI.getExceptions(year)
 }
 
 export const queryResolvers: QueryResolvers.Resolvers = {

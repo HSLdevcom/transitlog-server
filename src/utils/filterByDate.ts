@@ -6,6 +6,6 @@ export function filterByDate<ItemType extends ValidityRange>(
   date: string
 ): ItemType[] {
   return items.filter((item) => {
-    return isWithinRange(date, item.dateBegin, item.dateEnd)
+    return isWithinRange(date, item.date_begin, item.date_end)
   })
 }

@@ -1,4 +1,4 @@
-import { Equipment as JoreEquipment } from '../types/generated/jore-types'
+import { JoreEquipment } from '../types/Jore'
 import { Equipment, EquipmentFilterInput } from '../types/generated/schema-types'
 import { cacheFetch } from './cache'
 import { createEquipmentObject } from './objects/createEquipmentObject'

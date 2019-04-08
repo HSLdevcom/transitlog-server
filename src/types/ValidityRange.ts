@@ -1,4 +1,4 @@
 export interface ValidityRange {
-  dateBegin: string
-  dateEnd: string
+  date_begin: string
+  date_end: string
 }

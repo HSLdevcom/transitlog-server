@@ -1,34 +1,31 @@
 import { getDirection } from '../../utils/getDirection'
-import { createStopObject } from './createStopObject'
+import { createSimpleStopObject } from './createStopObject'
 import { get } from 'lodash'
 import { RouteSegment } from '../../types/generated/schema-types'
-import {
-  RouteSegment as JoreRouteSegment,
-  Route as JoreRoute,
-} from '../../types/generated/jore-types'
+import { JoreRoute, JoreRouteData } from '../../types/Jore'
 
-export function createSegmentId(segment) {
-  return `${segment.routeId}_${segment.direction}_${segment.stopIndex}_${segment.dateBegin}_${
-    segment.dateEnd
-  }`
+export function createSegmentId(routeSegment) {
+  return `${routeSegment.route_id}_${routeSegment.direction}_${routeSegment.stop_index}_${
+    routeSegment.date_begin
+  }_${routeSegment.date_end}`
 }
 
 export const createRouteSegmentObject = (
-  routeSegment: JoreRouteSegment,
-  route: JoreRoute
+  routeSegment: JoreRouteData,
+  route?: JoreRoute | null
 ): RouteSegment => {
   return {
-    ...createStopObject(get(routeSegment, 'stop', {})),
-    id: createSegmentId(routeSegment),
-    lineId: get(route, 'line.nodes[0].lineId', ''),
-    routeId: routeSegment.routeId,
+    ...createSimpleStopObject(routeSegment),
+    id: createSegmentId({ ...route, ...routeSegment }),
+    lineId: get(routeSegment, 'line_id', get(route, 'line_id', '')),
+    routeId: routeSegment.route_id,
     direction: getDirection(routeSegment.direction),
-    originStopId: route.originstopId,
-    destination: routeSegment.destinationFi || '',
-    distanceFromPrevious: routeSegment.distanceFromPrevious,
-    distanceFromStart: routeSegment.distanceFromStart,
+    originStopId: get(routeSegment, 'originstop_id', get(route, 'originstop_id', '')),
+    destination: get(routeSegment, 'destination_fi', get(route, 'destination_fi', '')) || '',
+    distanceFromPrevious: routeSegment.distance_from_previous,
+    distanceFromStart: routeSegment.distance_from_start,
     duration: routeSegment.duration,
-    stopIndex: routeSegment.stopIndex,
-    isTimingStop: !!routeSegment.timingStopType,
+    stopIndex: routeSegment.stop_index,
+    isTimingStop: !!routeSegment.timing_stop_type,
   }
 }

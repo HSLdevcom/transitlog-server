@@ -22,6 +22,10 @@ export const resolvers: StringIndexed<any> = {
         return 'JourneyEvent'
       }
 
+      if (obj.stopId && !obj.routeId && !obj.routes) {
+        return 'SimpleStop'
+      }
+
       if (obj.stopId && !obj.routeId) {
         return 'Stop'
       }
