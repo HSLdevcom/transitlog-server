@@ -269,11 +269,11 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
     date: string
   ): Promise<JoreRouteDepartureData[] | null> {
     const dayTypes = await this.getDayTypesForDate(date)
+    console.log(routeId, direction, dateBegin, dateEnd, dayTypes)
 
     const query = this.db.raw(
       `
-    SELECT
-       route_segment.next_stop_id,
+    SELECT route_segment.next_stop_id,
        route_segment.duration,
        route_segment.stop_index,
        route_segment.distance_from_previous,
@@ -311,18 +311,16 @@ FROM :schema:.route route
                         AND route.direction = route_segment.direction
                         AND route.date_begin <= route_segment.date_end
                         AND route.date_end >= route_segment.date_begin
-    LEFT OUTER JOIN (
-                        SELECT DISTINCT ON (departure.hours, departure.minutes) *
-                        FROM :schema:.departure
+    LEFT OUTER JOIN LATERAL (
+                        SELECT *
+                        FROM :schema:.departure departure
                         WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+                          AND route_segment.route_id = departure.route_id
+                          AND route_segment.direction = departure.direction
                         ORDER BY departure.hours ASC,
                                  departure.minutes ASC
                     ) departure
-                    ON route_segment.route_id = departure.route_id
-                        AND route_segment.direction = departure.direction
-                        AND route_segment.stop_id = departure.stop_id
-                        AND route_segment.date_begin <= departure.date_end
-                        AND route_segment.date_end >= departure.date_begin
+                        ON route_segment.stop_id = departure.stop_id
     LEFT OUTER JOIN :schema:.stop stop
                     ON departure.stop_id = stop.stop_id
     WHERE route.route_id = :routeId

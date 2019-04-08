@@ -4,7 +4,7 @@ import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy } from 'lodash'
+import { get, groupBy, uniqBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -62,22 +62,25 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   }
 
   const journeyRouteObject = createRouteObject(journeyRoute.route)
-  console.log(journeyRouteObject)
-
   const departures: JoreRouteDepartureData[] = get(journeyRoute, 'departures', []) || []
 
-  const validDepartures = filterByDateChains<JoreRouteDepartureData>(
+  let validDepartures = filterByDateChains<JoreRouteDepartureData>(
     groupBy(departures, ({ stop_index, departure_id }) => `${stop_index}${departure_id}`),
     date
   )
+
+  validDepartures = uniqBy(validDepartures, ({ hours, minutes }) => hours + ':' + minutes)
 
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
   const originDeparture =
-    validDepartures.find(
-      (departure) => departure.stop_index === 1 && getDepartureTime(departure) === time
-    ) || null
+    validDepartures.find((departure) => {
+      if (departure.stop_index !== 1) {
+        return false
+      }
+      return getDepartureTime(departure) === time
+    }) || null
 
   if (!originDeparture) {
     return { route: journeyRouteObject, departures: [] }
