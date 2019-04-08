@@ -269,7 +269,6 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
     date: string
   ): Promise<JoreRouteDepartureData[] | null> {
     const dayTypes = await this.getDayTypesForDate(date)
-    console.log(routeId, direction, dateBegin, dateEnd, dayTypes)
 
     const query = this.db.raw(
       `

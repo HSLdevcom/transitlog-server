@@ -60,9 +60,6 @@ export async function createStopResponse(
     }, [])
 
     stopRoutes = orderBy(stopRoutes, 'route_id')
-
-    console.log(validStops)
-
     return createStopObject(validStops[0], stopRoutes)
   }
 
