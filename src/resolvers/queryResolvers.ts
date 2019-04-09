@@ -9,6 +9,7 @@ import { createDeparturesResponse } from '../app/createDeparturesResponse'
 import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
+import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -96,6 +97,11 @@ const journey = (
   )
 }
 
+const journeys = (root, { routeId, direction, departureDate }, { dataSources }) => {
+  const getJourney = () => dataSources.HFPAPI.getRouteJourneys(routeId, direction, departureDate)
+  return createRouteJourneysResponse(getJourney, routeId, direction, departureDate)
+}
+
 const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources }) => {
   const getVehicleJourneys = () => dataSources.HFPAPI.getJourneysForVehicle(uniqueVehicleId, date)
   return createVehicleJourneysResponse(getVehicleJourneys, uniqueVehicleId, date)
@@ -124,6 +130,7 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   departures,
   journey,
   vehicleJourneys,
+  journeys,
   eventsByBbox,
   exceptionDays,
 }

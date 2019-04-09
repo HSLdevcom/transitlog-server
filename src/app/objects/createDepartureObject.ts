@@ -3,6 +3,7 @@ import {
   JoreDepartureWithOrigin,
   JoreOriginDeparture,
   JoreRouteDepartureData,
+  Mode,
 } from '../../types/Jore'
 import {
   DepartureJourney,
@@ -56,11 +57,13 @@ export function createPlannedDepartureTimeObject(
 }
 
 export function createDepartureJourneyObject(
-  event: Vehicles,
+  events: Vehicles | Vehicles[],
   departureIsNextDay: boolean,
   originStopId: string,
-  instanceIndex: number = 0
+  instanceIndex: number = 0,
+  mode = Mode.Bus
 ): DepartureJourney {
+  const event = events[0] || events
   const id = createJourneyId(event)
 
   return {
@@ -71,6 +74,8 @@ export function createDepartureJourneyObject(
     departureDate: event.oday,
     departureTime: getJourneyStartTime(event, departureIsNextDay),
     uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
+    mode: mode || null,
+    events: Array.isArray(events) ? events : [event],
     _numInstance: instanceIndex,
   }
 }

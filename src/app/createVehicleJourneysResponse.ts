@@ -29,7 +29,7 @@ export const createVehicleJourneysResponse = async (
     return journeyEvents.map(createVehicleJourneyObject)
   }
 
-  // Cache events for the current day for 60 seconds, otherwise 24 hours.
+  // Cache events for the current day for 5 seconds, otherwise 24 hours.
   const cacheTTL: number = isToday(date) ? 5 : 24 * 60 * 60
 
   const cacheKey = `vehicle_journeys_${uniqueVehicleId}_${date}`

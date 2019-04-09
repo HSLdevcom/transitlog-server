@@ -40,6 +40,7 @@ export const Schema = gql`
       departureDate: Date!
       uniqueVehicleId: VehicleId
     ): Journey
+    journeys(routeId: String!, direction: Direction!, departureDate: Date!): [Journey]!
     vehicleJourneys(uniqueVehicleId: VehicleId!, date: Date!): [VehicleJourney]!
     eventsByBbox(
       minTime: DateTime!

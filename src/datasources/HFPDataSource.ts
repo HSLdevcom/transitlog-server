@@ -7,6 +7,8 @@ import { AVAILABLE_VEHICLES_QUERY } from '../queries/vehicleQueries'
 import {
   AREA_EVENTS_QUERY,
   JOURNEY_EVENTS_QUERY,
+  ROUTE_JOURNEY_EVENTS_QUERY,
+  ROUTE_JOURNEY_LIST_QUERY,
   VEHICLE_JOURNEYS_QUERY,
 } from '../queries/journeyQueries'
 import { DEPARTURE_EVENTS_QUERY } from '../queries/departureQueries'
@@ -38,6 +40,18 @@ export class HFPDataSource extends GraphQLDataSource {
       variables: {
         date,
         uniqueVehicleId: `${operatorId}/${vehicleId}`,
+      },
+    })
+
+    return get(response, 'data.vehicles', [])
+  }
+
+  async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
+    const response = await this.query(ROUTE_JOURNEY_EVENTS_QUERY, {
+      variables: {
+        routeId,
+        direction,
+        departureDate: date,
       },
     })
 

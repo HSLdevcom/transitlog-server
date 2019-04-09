@@ -115,6 +115,8 @@ export interface Query {
 
   journey?: Maybe<Journey>
 
+  journeys: Array<Maybe<Journey>>
+
   vehicleJourneys: Array<Maybe<VehicleJourney>>
 
   eventsByBbox: Array<Maybe<AreaJourney>>
@@ -321,6 +323,8 @@ export interface Departure {
 
   index?: Maybe<number>
 
+  mode?: Maybe<string>
+
   stop?: Maybe<RouteSegment>
 
   journey?: Maybe<DepartureJourney>
@@ -351,7 +355,37 @@ export interface DepartureJourney {
 
   uniqueVehicleId?: Maybe<VehicleId>
 
+  mode?: Maybe<string>
+
+  events?: Maybe<JourneyEvent[]>
+
   _numInstance?: Maybe<number>
+}
+
+export interface JourneyEvent extends Position {
+  id: string
+
+  receivedAt: DateTime
+
+  recordedAt: DateTime
+
+  recordedAtUnix: number
+
+  recordedTime: Time
+
+  nextStopId?: Maybe<string>
+
+  lat?: Maybe<number>
+
+  lng?: Maybe<number>
+
+  doorStatus?: Maybe<boolean>
+
+  velocity?: Maybe<number>
+
+  delay?: Maybe<number>
+
+  heading?: Maybe<number>
 }
 
 export interface PlannedArrival {
@@ -380,32 +414,6 @@ export interface ObservedArrival {
   arrivalTimeDifference: number
 
   doorDidOpen: boolean
-}
-
-export interface JourneyEvent extends Position {
-  id: string
-
-  receivedAt: DateTime
-
-  recordedAt: DateTime
-
-  recordedAtUnix: number
-
-  recordedTime: Time
-
-  nextStopId?: Maybe<string>
-
-  lat?: Maybe<number>
-
-  lng?: Maybe<number>
-
-  doorStatus?: Maybe<boolean>
-
-  velocity?: Maybe<number>
-
-  delay?: Maybe<number>
-
-  heading?: Maybe<number>
 }
 
 export interface PlannedDeparture {
@@ -483,9 +491,9 @@ export interface Journey {
 
   equipment?: Maybe<Equipment>
 
-  events: Array<Maybe<JourneyEvent>>
+  events?: Maybe<JourneyEvent[]>
 
-  departures: Array<Maybe<Departure>>
+  departures?: Maybe<Departure[]>
 }
 
 export interface VehicleJourney {
@@ -629,6 +637,13 @@ export interface JourneyQueryArgs {
   departureDate: Date
 
   uniqueVehicleId?: Maybe<VehicleId>
+}
+export interface JourneysQueryArgs {
+  routeId: string
+
+  direction: Direction
+
+  departureDate: Date
 }
 export interface VehicleJourneysQueryArgs {
   uniqueVehicleId: VehicleId
