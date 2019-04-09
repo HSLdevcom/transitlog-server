@@ -10,6 +10,7 @@ import { cacheFetch } from './cache'
 import { groupBy, map } from 'lodash'
 import { createAreaJourneyObject } from './objects/createAreaJourneyObject'
 import { createBBoxString } from '../utils/createBBoxString'
+import { createJourneyId } from '../utils/createJourneyId'
 
 export const createAreaJourneysResponse = async (
   getAreaJourneys: () => Promise<Vehicles[] | null>,
@@ -26,7 +27,7 @@ export const createAreaJourneysResponse = async (
       return false
     }
 
-    return map(groupBy(areaJourneys, 'journey_start_time'), createAreaJourneyObject)
+    return map(groupBy(areaJourneys, createJourneyId), createAreaJourneyObject)
   }
 
   const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}`

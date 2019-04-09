@@ -3,8 +3,9 @@ import { getDirection } from './getDirection'
 import { createValidVehicleId } from './createUniqueVehicleId'
 import { getJourneyStartTime } from './time'
 import { Journey } from '../types/Journey'
+import { Vehicles } from '../types/generated/hfp-types'
 
-export const createJourneyId = (journeyObject: Journey | null) => {
+export const createJourneyId = (journeyObject: Journey | Vehicles | null) => {
   if (!journeyObject) {
     return ''
   }

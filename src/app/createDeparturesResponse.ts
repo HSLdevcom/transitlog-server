@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { flatten, get, groupBy, orderBy } from 'lodash'
+import { flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import { Departure, DepartureFilterInput, RouteSegment } from '../types/generated/schema-types'
@@ -18,6 +18,7 @@ import { filterDepartures } from './filters/filterDepartures'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { Dictionary } from '../types/Dictionary'
+import { isToday } from 'date-fns'
 
 export async function createDeparturesResponse(
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
@@ -89,7 +90,8 @@ export async function createDeparturesResponse(
       createDepartureId
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
-    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
+    let validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
+    validDepartures = uniqBy(validDepartures, ({ hours, minutes }) => `${hours}:${minutes}`)
 
     return validDepartures.map((departure) => {
       // Find a relevant stop segment and use it in the departure response.
@@ -132,7 +134,7 @@ export async function createDeparturesResponse(
   const departures = await cacheFetch<Departure[]>(
     departuresCacheKey,
     fetchDepartures,
-    1 // 30 * 24 * 60 * 60
+    30 * 24 * 60 * 60
   )
 
   if (!departures || departures.length === 0) {
@@ -141,7 +143,7 @@ export async function createDeparturesResponse(
 
   // Cache events for the current day for 10 seconds only.
   // Older dates can be cached for longer.
-  const journeyTTL: number = 1 // isToday(date) ? 10 : 30 * 24 * 60 * 60
+  const journeyTTL: number = isToday(date) ? 10 : 30 * 24 * 60 * 60
 
   const eventsCacheKey = `departure_events_${stopId}_${date}`
   const departureEvents = await cacheFetch<Vehicles[]>(eventsCacheKey, fetchEvents, journeyTTL)
