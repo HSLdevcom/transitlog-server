@@ -85,11 +85,16 @@ export const AREA_EVENTS_QUERY = gql`
     vehicles(
       order_by: { tsi: asc }
       where: {
-        geohash_level: { _lte: 3 }
-        oday: { _eq: $date }
-        tst: { _lte: $maxTime, _gte: $minTime }
-        lat: { _lte: $maxLat, _gte: $minLat }
-        long: { _lte: $maxLng, _gte: $minLng }
+        _and: [
+          { geohash_level: { _lte: 3 } }
+          { oday: { _eq: $date } }
+          { tst: { _lte: $maxTime } }
+          { tst: { _gte: $minTime } }
+          { lat: { _lte: $maxLat } }
+          { lat: { _gte: $minLat } }
+          { long: { _lte: $maxLng } }
+          { long: { _gte: $minLng } }
+        ]
       }
     ) {
       ...JourneyFieldsFragment
