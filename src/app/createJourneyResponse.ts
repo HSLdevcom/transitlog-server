@@ -67,33 +67,36 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(
     groupBy(
       departures,
-      ({ stop_id, departure_id, hours, minutes, day_type, extra_departure }) =>
-        '' + stop_id + departure_id + hours + minutes + day_type + extra_departure
+      ({ stop_id, stop_index, departure_id, hours, minutes, day_type, extra_departure }) =>
+        '' + stop_id + stop_index + departure_id + hours + minutes + day_type + extra_departure
     ),
     date
   )
 
-  // TODO: Filter out duplicate day type departures
-
-  // validDepartures = uniqBy(validDepartures, ({ hours, minutes }) => hours + ':' + minutes)
-
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
-  const originDeparture =
-    validDepartures.find((departure) => {
+  const originDepartures =
+    validDepartures.filter((departure) => {
       if (departure.stop_index !== 1) {
         return false
       }
       return getDepartureTime(departure) === time
-    }) || null
+    }) || []
 
-  if (!originDeparture) {
+  if (originDepartures.length === 0) {
     return { route: journeyRouteObject, departures: [] }
   }
 
-  const journeyDepartures = validDepartures.filter(
-    (departure) => departure.departure_id === originDeparture.departure_id
+  const originStartTimes = originDepartures.map(({ departure_id }) => departure_id)
+
+  let journeyDepartures = validDepartures.filter((departure) =>
+    originStartTimes.includes(departure.departure_id)
+  )
+
+  journeyDepartures = uniqBy(
+    journeyDepartures,
+    ({ hours, minutes, stop_id }) => hours + minutes + stop_id
   )
 
   const stopDepartures = journeyDepartures.map((departure) => {

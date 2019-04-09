@@ -305,16 +305,17 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
        departure.date_end,
        departure.departure_id
 FROM
-    :schema:.route route,
-    :schema:.route_route_segments(route) route_segment
-    LEFT OUTER JOIN :schema:.stop stop ON stop.stop_id = route_segment.stop_id
+    :schema:.route route
     LEFT OUTER JOIN (
         SELECT *
         FROM :schema:.departure departure
         WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-          AND departure.route_id = :routeId
-          AND departure.direction = :direction
-    ) departure ON departure.stop_id = stop.stop_id
+    ) departure USING (route_id, direction)
+    LEFT OUTER JOIN :schema:.route_route_segments(route) route_segment
+           ON route_segment.stop_id = departure.stop_id
+          AND route_segment.date_begin <= departure.date_end
+          AND route_segment.date_end >= departure.date_begin
+    LEFT OUTER JOIN :schema:.stop stop ON stop.stop_id = route_segment.stop_id
     WHERE route.route_id = :routeId
       AND route.direction = :direction
       AND route.date_begin = :dateBegin
@@ -416,7 +417,7 @@ WHERE stop.stop_id = :stopId;`,
     }
 
     if (dayTypes.length === 0) {
-      dayTypes = [getDayTypeFromDate(date)]
+      dayTypes = [getDayTypeFromDate(date), 'Ti']
     }
 
     return dayTypes
