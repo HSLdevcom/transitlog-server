@@ -7,7 +7,6 @@ interface IAuthRequest {
 
 interface IAuthResponse {
   isOk: boolean
-  hasWriteAccess: boolean
   email?: string
 }
 
@@ -23,20 +22,17 @@ const authorize = async (req: express.Request, res: express.Response) => {
   if (req.session && tokenResponse.access_token) {
     req.session.accessToken = tokenResponse.access_token
     const userInfo = await AuthService.requestUserInfo(req.session.accessToken)
-    req.session.hasWriteAccess = userInfo.hasWriteAccess
     req.session.email = userInfo.email
 
     const response: IAuthResponse = {
       isOk: true,
       email: userInfo.email,
-      hasWriteAccess: userInfo.hasWriteAccess,
     }
     res.status(200).json(response)
   } else {
     console.log('No access token: ', tokenResponse)
     const response: IAuthResponse = {
       isOk: false,
-      hasWriteAccess: false,
     }
     res.status(401).send(response)
   }
@@ -47,7 +43,6 @@ const checkExistingSession = async (req: express.Request, res: express.Response)
     const response: IAuthResponse = {
       isOk: true,
       email: req.session.email,
-      hasWriteAccess: req.session.hasWriteAccess,
     }
     res.status(200).json(response)
     return
@@ -56,7 +51,6 @@ const checkExistingSession = async (req: express.Request, res: express.Response)
   console.log('No existing session')
   const response: IAuthResponse = {
     isOk: false,
-    hasWriteAccess: false,
   }
   res.status(200).send(response)
 }
