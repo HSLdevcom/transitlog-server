@@ -417,7 +417,7 @@ WHERE stop.stop_id = :stopId;`,
     }
 
     if (dayTypes.length === 0) {
-      dayTypes = [getDayTypeFromDate(date), 'Ti']
+      dayTypes = [getDayTypeFromDate(date)]
     }
 
     return dayTypes
