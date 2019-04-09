@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { flatten, get, groupBy, orderBy } from 'lodash'
+import { flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import {
   JoreDeparture,
@@ -95,7 +95,8 @@ export async function createDeparturesResponse(
       createDepartureId
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
-    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
+    let validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
+    validDepartures = uniqBy(validDepartures, ({ hours, minutes }) => `${hours}:${minutes}`)
 
     return validDepartures.map((departure) => {
       // Find a relevant stop segment and use it in the departure response.

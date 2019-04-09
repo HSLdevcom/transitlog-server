@@ -433,8 +433,7 @@ WHERE stop.stop_id = :stopId;`,
     const dayTypes = await this.getDayTypesForDate(date)
     const query = this.db.raw(
       `
-SELECT DISTINCT ON (departure.hours, departure.minutes) 
-       departure.route_id,
+SELECT departure.route_id,
        departure.direction,
        departure.stop_id,
        departure.hours,
