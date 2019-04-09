@@ -86,7 +86,7 @@ export const AREA_EVENTS_QUERY = gql`
       order_by: { tsi: asc }
       where: {
         _and: [
-          { geohash_level: { _lte: 3 } }
+          { geohash_level: { _lte: 4 } }
           { oday: { _eq: $date } }
           { tst: { _lte: $maxTime } }
           { tst: { _gte: $minTime } }
