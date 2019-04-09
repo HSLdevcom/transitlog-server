@@ -1,11 +1,13 @@
 import * as express from 'express'
 import nodeFetch from 'node-fetch'
-// import {CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, LOGIN_PROVIDER_URI} from '../constants';
+import { CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, LOGIN_PROVIDER_URI } from '../constants'
 
-const CLIENT_ID = '1424368089733870'
-const CLIENT_SECRET = 'cUGcWzTEAvzID856Iukhu5ioMa7TSJbI'
-const REDIRECT_URI = 'http://localhost:3000'
-const LOGIN_PROVIDER_URI = 'https://hslid-uat.cinfra.fi'
+console.log(CLIENT_ID)
+console.log(CLIENT_SECRET)
+// const CLIENT_ID = '1424368089733870';
+// const CLIENT_SECRET = 'cUGcWzTEAvzID856Iukhu5ioMa7TSJbI';
+// const REDIRECT_URI = 'http://localhost:3000';
+// const LOGIN_PROVIDER_URI = 'https://hslid-uat.cinfra.fi';
 
 interface IAccessToken {
   access_token: string

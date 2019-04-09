@@ -47,7 +47,6 @@ const checkExistingSession = async (req: express.Request, res: express.Response)
     res.status(200).json(response)
     return
   }
-  // TODO: remove when auth works
   console.log('No existing session')
   const response: IAuthResponse = {
     isOk: false,
