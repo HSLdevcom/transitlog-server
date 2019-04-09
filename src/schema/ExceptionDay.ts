@@ -4,11 +4,10 @@ export const ExceptionDays = gql`
   type ExceptionDay {
     id: ID!
     exceptionDate: Date!
-    newDayType: String!
+    effectiveDayTypes: [String!]!
     dayType: String!
     modeScope: String
     description: String
-    type: String!
     exclusive: Boolean!
     startTime: Time
     endTime: Time

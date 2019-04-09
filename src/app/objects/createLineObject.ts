@@ -1,17 +1,15 @@
 import { Line } from '../../types/generated/schema-types'
-import { Line as JoreLine } from '../../types/generated/jore-types'
-import get from 'lodash/get'
+import { JoreLine } from '../../types/Jore'
 
 function createLineId(line: JoreLine): string {
-  return `${line.lineId}_${line.dateBegin}_${line.dateEnd}`
+  return `${line.line_id}_${line.date_begin}_${line.date_end}`
 }
 
 export function createLineObject(line: JoreLine): Line {
   return {
     id: createLineId(line),
-    lineId: line.lineId,
-    name: line.nameFi,
-    routesCount: get(line, 'routes.totalCount', 0),
+    lineId: line.line_id,
+    name: line.name_fi,
     // @ts-ignore
     _matchScore: line._matchScore,
   }

@@ -61,7 +61,13 @@ export async function cacheFetch<DataType = any>(
     }
   }
 
-  const data = await fetchData()
+  let data
+
+  try {
+    data = await fetchData()
+  } catch (err) {
+    console.log(err)
+  }
 
   if (!data) {
     return null

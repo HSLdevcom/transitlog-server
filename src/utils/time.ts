@@ -137,13 +137,12 @@ export function getJourneyEventTime(event: Vehicles) {
   return getTimeString(hours, minutes, seconds)
 }
 
-type JoreDepartureTime = {
-  isNextDay: boolean
+interface JoreDepartureTime {
+  is_next_day: boolean
   hours: number
   minutes: number
-  arrivalHours?: number
-  arrivalMinutes?: number
-  [index: string]: any
+  arrival_hours?: number
+  arrival_minutes?: number
 }
 
 // Custom type guard
@@ -153,14 +152,14 @@ function isJoreDeparture(departure): departure is JoreDepartureTime {
 
 // Return the departure time as a 24h+ time string
 export function getDepartureTime(departure: JoreDepartureTime, useArrival = false): string {
-  let { isNextDay, hours, minutes } = departure
+  let { is_next_day, hours, minutes } = departure
 
-  if (useArrival && departure.arrivalHours && departure.arrivalMinutes) {
-    hours = departure.arrivalHours
-    minutes = departure.arrivalMinutes
+  if (useArrival && departure.arrival_hours && departure.arrival_minutes) {
+    hours = departure.arrival_hours
+    minutes = departure.arrival_minutes
   }
 
-  const hour = isNextDay ? hours + 24 : hours
+  const hour = is_next_day ? hours + 24 : hours
   return getTimeString(hour, minutes)
 }
 

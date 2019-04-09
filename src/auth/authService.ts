@@ -16,7 +16,6 @@ interface IAccessToken {
 }
 
 interface IUserInfo {
-  hasWriteAccess: boolean
   userId: string
   email: string
   emailVerified: string
@@ -50,11 +49,8 @@ const requestUserInfo = async (accessToken: string): Promise<IUserInfo> => {
     },
   })
   const responseJson = await response.json()
-  const groups = responseJson['https://oneportal.trivore.com/claims/groups']
-  const hasWriteAccess = groups.some((g: any) => g === 'joremapui_hasWriteAccess')
 
   return {
-    hasWriteAccess,
     userId: responseJson.sub,
     email: responseJson.email,
     emailVerified: responseJson.email_verified,

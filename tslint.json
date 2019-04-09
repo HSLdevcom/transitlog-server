@@ -19,6 +19,7 @@
     "no-debugger": true,
     "no-duplicate-variable": true,
     "no-eval": true,
+    "no-var-requires": false,
     "curly": true,
     "no-unused-expression": false,
     "jsx-no-lambda": false,

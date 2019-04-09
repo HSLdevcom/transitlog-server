@@ -7,12 +7,14 @@ import { TZ } from './constants'
 // Set the default timezone for the app
 moment.tz.setDefault(TZ)
 
+import { types } from 'pg'
+types.setTypeParser(1082, (val) => val)
+
 import schema from './schema'
 import { ApolloServer } from 'apollo-server-express'
 import { resolvers } from './resolvers/'
 import { JoreDataSource } from './datasources/JoreDataSource'
 import { HFPDataSource } from './datasources/HFPDataSource'
-import { ExceptionDataSource } from './datasources/ExceptionDataSource'
 import authEndpoints from './auth/authEndpoints'
 
 const server = new ApolloServer({
@@ -21,7 +23,6 @@ const server = new ApolloServer({
   dataSources: () => ({
     JoreAPI: new JoreDataSource(),
     HFPAPI: new HFPDataSource(),
-    ExceptionAPI: new ExceptionDataSource(),
   }),
 })
 

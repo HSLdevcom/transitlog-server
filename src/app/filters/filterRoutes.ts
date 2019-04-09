@@ -1,4 +1,4 @@
-import { Route as JoreRoute } from '../../types/generated/jore-types'
+import { JoreRoute } from '../../types/Jore'
 import { get } from 'lodash'
 import { RouteFilterInput } from '../../types/generated/schema-types'
 import { search } from './search'
@@ -6,7 +6,7 @@ import { getDirection } from '../../utils/getDirection'
 
 export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteFilterInput) {
   if (line) {
-    return routes.filter((route) => get(route, 'line.nodes[0].lineId', '') === line)
+    return routes.filter((route) => get(route, 'line_id', '') === line)
   }
 
   const routeIdFilter = get(filter, 'routeId', '')
@@ -15,7 +15,7 @@ export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteF
   if (routeIdFilter && directionFilter) {
     return routes.filter(
       (route) =>
-        route.routeId === routeIdFilter && getDirection(route.direction) === directionFilter
+        route.route_id === routeIdFilter && getDirection(route.direction) === directionFilter
     )
   }
 
@@ -31,12 +31,12 @@ export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteF
   }
 
   const getSearchTermsForItem = ({
-    routeId,
+    route_id,
     direction,
-    nameFi,
-    originstopId,
-    destinationstopId,
-  }: JoreRoute) => [routeId, direction, nameFi, originstopId, destinationstopId]
+    name_fi,
+    originstop_id,
+    destinationstop_id,
+  }: JoreRoute) => [route_id, direction, name_fi, originstop_id, destinationstop_id]
 
   return search<JoreRoute>(routes, searchFilter, getSearchTermsForItem)
 }
