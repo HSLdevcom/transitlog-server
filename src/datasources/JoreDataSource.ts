@@ -304,24 +304,17 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
        departure.date_begin,
        departure.date_end,
        departure.departure_id
-FROM :schema:.route route
-    LEFT OUTER JOIN :schema:.route_segment route_segment
-                    ON route.route_id = route_segment.route_id
-                        AND route.direction = route_segment.direction
-                        AND route.date_begin <= route_segment.date_end
-                        AND route.date_end >= route_segment.date_begin
-    LEFT OUTER JOIN LATERAL (
-                        SELECT *
-                        FROM :schema:.departure departure
-                        WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-                          AND route_segment.route_id = departure.route_id
-                          AND route_segment.direction = departure.direction
-                        ORDER BY departure.hours ASC,
-                                 departure.minutes ASC
-                    ) departure
-                        ON route_segment.stop_id = departure.stop_id
-    LEFT OUTER JOIN :schema:.stop stop
-                    ON departure.stop_id = stop.stop_id
+FROM
+    :schema:.route route,
+    :schema:.route_route_segments(route) route_segment
+    LEFT OUTER JOIN :schema:.stop stop ON stop.stop_id = route_segment.stop_id
+    LEFT OUTER JOIN (
+        SELECT *
+        FROM :schema:.departure departure
+        WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+          AND departure.route_id = :routeId
+          AND departure.direction = :direction
+    ) departure ON departure.stop_id = stop.stop_id
     WHERE route.route_id = :routeId
       AND route.direction = :direction
       AND route.date_begin = :dateBegin

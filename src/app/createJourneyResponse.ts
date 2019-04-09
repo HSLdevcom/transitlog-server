@@ -64,12 +64,18 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   const journeyRouteObject = createRouteObject(journeyRoute.route)
   const departures: JoreRouteDepartureData[] = get(journeyRoute, 'departures', []) || []
 
-  let validDepartures = filterByDateChains<JoreRouteDepartureData>(
-    groupBy(departures, ({ stop_index, departure_id }) => `${stop_index}${departure_id}`),
+  const validDepartures = filterByDateChains<JoreRouteDepartureData>(
+    groupBy(
+      departures,
+      ({ stop_id, departure_id, hours, minutes, day_type, extra_departure }) =>
+        '' + stop_id + departure_id + hours + minutes + day_type + extra_departure
+    ),
     date
   )
 
-  validDepartures = uniqBy(validDepartures, ({ hours, minutes }) => hours + ':' + minutes)
+  // TODO: Filter out duplicate day type departures
+
+  // validDepartures = uniqBy(validDepartures, ({ hours, minutes }) => hours + ':' + minutes)
 
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
@@ -267,7 +273,7 @@ export async function createJourneyResponse(
   }
 
   // Note that the journey is cached but cannot be retrieved from the cache
-  // if createJourneyResponse was called without a uniqueVehicleId.
+  // if createJourneyResponse was called without uniqueVehicleId.
   const getJourneyCacheKey = (data?: Journey) => {
     let journeyKey: false | string = false
 
