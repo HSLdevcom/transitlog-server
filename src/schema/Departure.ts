@@ -45,6 +45,8 @@ export const Departure = gql`
     departureDate: Date!
     departureTime: Time!
     uniqueVehicleId: VehicleId
+    mode: String
+    events: [JourneyEvent!]
     _numInstance: Int
   }
 
@@ -65,6 +67,7 @@ export const Departure = gql`
     isNextDay: Boolean
     isTimingStop: Boolean
     index: Int
+    mode: String
     stop: RouteSegment
     journey: DepartureJourney
     plannedArrivalTime: PlannedArrival

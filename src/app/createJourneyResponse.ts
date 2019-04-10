@@ -4,7 +4,7 @@ import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, uniqBy } from 'lodash'
+import { get, groupBy, last, uniqBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -13,11 +13,11 @@ import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { createRouteObject } from './objects/createRouteObject'
-import { differenceInSeconds } from 'date-fns'
 import { getStopEvents } from '../utils/getStopEvents'
 import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { createValidVehicleId } from '../utils/createUniqueVehicleId'
+import { journeyInProgress } from '../utils/journeyInProgress'
 
 type JourneyRoute = {
   route: Route
@@ -35,14 +35,30 @@ export type JourneyRouteData = {
  * @param fetcher async function that fetches the journey events
  * @returns Promise<Vehicles[]> the filtered events
  */
-const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
+const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher, uniqueVehicleId) => {
   const events = await fetcher()
 
   if (events.length === 0) {
     return false
   }
 
-  return events.filter((pos) => !!pos.journey_start_time)
+  // There could have been many vehicles operating this journey. Separate them by
+  // vehicle ID and use the instance argument to select the set of events.
+  const vehicleGroups = groupEventsByInstances(events || [])
+  let journeyEvents
+
+  if (uniqueVehicleId) {
+    const selectedVehicleGroups = vehicleGroups.find(
+      ([groupId]) => groupId === createValidVehicleId(uniqueVehicleId)
+    )
+
+    journeyEvents = selectedVehicleGroups ? selectedVehicleGroups[1] : []
+  } else {
+    const instanceGroup = vehicleGroups[0]
+    journeyEvents = instanceGroup[1]
+  }
+
+  return journeyEvents.filter((pos) => !!pos.journey_start_time)
 }
 
 /**
@@ -135,15 +151,10 @@ export async function createJourneyResponse(
   departureTime: string,
   uniqueVehicleId: VehicleId
 ): Promise<Journey | null> {
-  // Fetch events, route and departures, and match events to departures.
-  // Return the full journey data.
-  const fetchAndProcessJourney: CachedFetcher<Journey> = async () => {
-    let journeyEvents = await fetchValidJourneyEvents(fetchJourneyEvents)
+  // Return the cache key without needing the data if htere is a uniqueVehicleId provided.
+  // If not, it needs to the data to get the vehicle ID.
+  function getJourneyEventsKey(events: Vehicles[] = []) {
     let journeyKey
-
-    // There could have been many vehicles operating this journey. Separate them by
-    // vehicle ID and use the instance argument to select the set of events.
-    const vehicleGroups = groupEventsByInstances(journeyEvents || [])
 
     const journeyKeyParts = {
       routeId,
@@ -154,23 +165,45 @@ export async function createJourneyResponse(
     }
 
     if (uniqueVehicleId) {
-      const selectedVehicleGroups = vehicleGroups.find(
-        ([groupId]) => groupId === createValidVehicleId(uniqueVehicleId)
-      )
-
-      journeyEvents = selectedVehicleGroups ? selectedVehicleGroups[1] : []
-      journeyKey = createJourneyId({ ...journeyKeyParts, uniqueVehicleId })
-    } else if (vehicleGroups.length !== 0) {
-      const instanceGroup = vehicleGroups[0]
-      journeyEvents = instanceGroup[1] // 0 is vehicle ID, 1 is the events
-
       journeyKey = createJourneyId({
         ...journeyKeyParts,
-        uniqueVehicleId: instanceGroup[0],
+        uniqueVehicleId,
+      })
+    } else if (events.length !== 0) {
+      journeyKey = createJourneyId({
+        ...journeyKeyParts,
+        uniqueVehicleId: get(events, '[0].unique_vehicle_id'),
       })
     } else {
       journeyKey = createJourneyId(journeyKeyParts)
     }
+
+    return journeyKey
+  }
+
+  // Fetch events, route and departures, and match events to departures.
+  // Return the full journey data.
+  const fetchAndProcessJourney: CachedFetcher<Journey> = async () => {
+    const journeyEvents = await cacheFetch(
+      (fetchedEvents) => {
+        const key = getJourneyEventsKey(fetchedEvents)
+        return `journey_events_${key}`
+      },
+      () => fetchValidJourneyEvents(fetchJourneyEvents),
+      (data) => {
+        if (journeyInProgress(data)) {
+          return 2
+        }
+
+        return 5 * 60
+      }
+    )
+
+    if (!journeyEvents || journeyEvents.length === 0) {
+      return false
+    }
+
+    const journeyKey = getJourneyEventsKey(journeyEvents)
 
     // Fetch the planned departures and the route.
     const routeCacheKey = `journey_route_departures_${journeyKey}`
@@ -179,11 +212,6 @@ export async function createJourneyResponse(
       () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
       24 * 60 * 60
     )
-
-    // Note that we fetch and cache the route and the departures before bailing.
-    if (!journeyEvents || journeyEvents.length === 0) {
-      return false
-    }
 
     const events: Vehicles[] = journeyEvents
 
@@ -251,20 +279,12 @@ export async function createJourneyResponse(
 
   // Decide a suitable TTL for the cached journey based on if the journey is completed or not.
   const getJourneyTTL = (data: Journey) => {
-    const lastDeparture = data.departures[data.departures.length - 1]
+    const lastDeparture = last(data.departures)
 
     // If the last departure has observed data, we know the journey is near its end.
-    if (
-      lastDeparture &&
-      (lastDeparture.observedArrivalTime || lastDeparture.observedDepartureTime)
-    ) {
-      const eventsLength = data.events.length
-      const lastEventTime = get(data, `events[{${eventsLength - 1}].recordedAt`, 1)
-      // Check the time since the last event
-      const eventsEndNowDiff = differenceInSeconds(new Date(), lastEventTime)
-
-      // If the time is more than 5 minutes, we can safely say that the journey has concluded.
-      if (eventsEndNowDiff > 5 * 60) {
+    if (lastDeparture && lastDeparture.observedArrivalTime) {
+      // @ts-ignore
+      if (!journeyInProgress(data.events)) {
         return 30 * 24 * 60 * 60 // Cache for a month.
       }
 
