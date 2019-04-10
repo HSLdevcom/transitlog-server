@@ -34,7 +34,7 @@ export const createRouteJourneysResponse = async (
     return map(routeGroups, (events) => createJourneyObject(events, null, [], null))
   }
 
-  const journeysTTL: number = isToday(date) ? 10 * 60 : 24 * 60 * 60
+  const journeysTTL: number = isToday(date) ? 5 * 60 : 24 * 60 * 60
   const journeysKey = `route_journeys_${routeId}_${direction}_${date}`
 
   const journeys = await cacheFetch<Journey[]>(journeysKey, fetchAllJourneys, journeysTTL)

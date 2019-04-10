@@ -1,5 +1,5 @@
 import { GraphQLDataSource } from '../utils/GraphQLDataSource'
-import { get, groupBy } from 'lodash'
+import { get } from 'lodash'
 import moment from 'moment-timezone'
 import { HFP_URL, TZ } from '../constants'
 import { Vehicles } from '../types/generated/hfp-types'
@@ -8,7 +8,6 @@ import {
   AREA_EVENTS_QUERY,
   JOURNEY_EVENTS_QUERY,
   ROUTE_JOURNEY_EVENTS_QUERY,
-  ROUTE_JOURNEY_LIST_QUERY,
   VEHICLE_JOURNEYS_QUERY,
 } from '../queries/journeyQueries'
 import { DEPARTURE_EVENTS_QUERY } from '../queries/departureQueries'
