@@ -491,9 +491,9 @@ export interface Journey {
 
   equipment?: Maybe<Equipment>
 
-  events?: Maybe<JourneyEvent[]>
+  events: JourneyEvent[]
 
-  departures?: Maybe<Departure[]>
+  departures: Departure[]
 }
 
 export interface VehicleJourney {

@@ -1517,9 +1517,9 @@ export namespace JourneyResolvers {
 
     equipment?: EquipmentResolver<Maybe<Equipment>, TypeParent, TContext>
 
-    events?: EventsResolver<Maybe<JourneyEvent[]>, TypeParent, TContext>
+    events?: EventsResolver<JourneyEvent[], TypeParent, TContext>
 
-    departures?: DeparturesResolver<Maybe<Departure[]>, TypeParent, TContext>
+    departures?: DeparturesResolver<Departure[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
@@ -1592,16 +1592,16 @@ export namespace JourneyResolvers {
     Parent,
     TContext
   >
-  export type EventsResolver<R = Maybe<JourneyEvent[]>, Parent = Journey, TContext = {}> = Resolver<
+  export type EventsResolver<R = JourneyEvent[], Parent = Journey, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
   >
-  export type DeparturesResolver<
-    R = Maybe<Departure[]>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
+  export type DeparturesResolver<R = Departure[], Parent = Journey, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace VehicleJourneyResolvers {
