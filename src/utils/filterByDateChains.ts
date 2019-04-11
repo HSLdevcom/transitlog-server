@@ -103,9 +103,7 @@ export function filterByDateChains<ItemType extends ValidityRange>(
         return chain
       }
 
-      // Find the valid endDates and use them to build competing chains.
-      // If there is only one of the max endDates among the items
-      // it won't be much of a competition.
+      // Build competing chains starting from each item.
       const chains = dateEndOrdered.map(createChain)
 
       // The lack of chains is not very useful, so bail here in that case.

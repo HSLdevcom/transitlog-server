@@ -22,7 +22,7 @@ import { isToday } from 'date-fns'
 
 export async function createDeparturesResponse(
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
-  getStop: () => Promise<JoreStopSegment[] | null>,
+  getStops: () => Promise<JoreStopSegment[] | null>,
   getEvents: () => Promise<Vehicles[]>,
   stopId: string,
   date: string,
@@ -31,7 +31,7 @@ export async function createDeparturesResponse(
   // Fetch the stop which the departures are requested from.
   // Combines the stop data with route segments to end up with stop objects with route data.
   const fetchStops: CachedFetcher<RouteSegment[]> = async () => {
-    const stops = await getStop()
+    const stops = await getStops()
 
     // Return false to skip caching an empty value
     if (!stops || stops.length === 0) {
@@ -42,7 +42,7 @@ export async function createDeparturesResponse(
     // according to date chain logic.
     const groupedRouteSegments = groupBy(
       stops,
-      (stopSegment) => stopSegment.route_id + stopSegment.direction
+      (stopSegment) => stopSegment.route_id + stopSegment.direction + stopSegment.stop_index
     )
 
     // Validate by date chains and return only segments valid during the requested date.
@@ -94,7 +94,7 @@ export async function createDeparturesResponse(
     validDepartures = uniqBy(
       validDepartures,
       ({ route_id, direction, extra_departure, stop_id, hours, minutes }) =>
-        `${route_id}${direction}${extra_departure}${stop_id}${hours}:${minutes}`
+        `${route_id}_${direction}_${extra_departure}_${stop_id}_${hours}:${minutes}`
     )
 
     return validDepartures.map((departure) => {
@@ -138,7 +138,7 @@ export async function createDeparturesResponse(
   const departures = await cacheFetch<Departure[]>(
     departuresCacheKey,
     fetchDepartures,
-    30 * 24 * 60 * 60
+    24 * 60 * 60
   )
 
   if (!departures || departures.length === 0) {
@@ -178,13 +178,13 @@ export async function createDeparturesResponse(
     // the 24h+ time of the event.
     const departureIsNextDay = get(departure, 'originDepartureTime.isNextDay', false)
     const routeId = get(departure, 'routeId', '')
-    const direction = parseInt(get(departure, 'direction', '0'), 10)
+    const direction = getDirection(get(departure, 'direction'))
 
     // Match events to departures
     const eventsForDeparture = departureEvents.filter(
       (event) =>
         event.route_id === routeId &&
-        event.direction_id === direction &&
+        getDirection(event.direction_id) === direction &&
         // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
         // for the event to match it with the 24h+ time of the origin departure.
         getJourneyStartTime(event, departureIsNextDay) === originDepartureTime

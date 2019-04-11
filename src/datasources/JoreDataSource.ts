@@ -7,6 +7,7 @@ import {
   JoreRouteDepartureData,
   JoreDepartureWithOrigin,
   JoreExceptionDay,
+  JoreStopSegment,
 } from '../types/Jore'
 import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
@@ -362,9 +363,9 @@ ORDER BY route_segment.stop_index ASC,
     return { route, departures }
   }
 
-  async getDepartureStop(stopId): Promise<JoreStop | null> {
+  async getDepartureStops(stopId, date): Promise<JoreStopSegment[] | null> {
     if (!stopId) {
-      return null
+      return []
     }
 
     const query = this.db.raw(
@@ -387,16 +388,35 @@ SELECT stop.stop_id,
        route_segment.stop_index,
        route_segment.next_stop_id,
        route_segment.timing_stop_type,
-       route.originstop_id,
-       line.line_id,
-       mode.mode
-FROM :schema:.stop stop
-     LEFT OUTER JOIN :schema:.route_segment route_segment USING (stop_id),
-     :schema:.route_segment_route(route_segment, null) route,
-     :schema:.route_mode(route) mode,
-     :schema:.route_line(route) line
+       route_segment.originstop_id,
+       route_segment.line_id,
+       route_segment.mode
+FROM :schema:.stop stop,
+     LATERAL (
+       SELECT
+          route_segment.date_begin,
+          route_segment.date_end,
+          route_segment.destination_fi,
+          route_segment.distance_from_previous,
+          route_segment.distance_from_start,
+          route_segment.duration,
+          route_segment.route_id,
+          route_segment.direction,
+          route_segment.stop_index,
+          route_segment.next_stop_id,
+          route_segment.timing_stop_type,
+          route.originstop_id,
+          line.line_id,
+          mode.mode
+       FROM
+         :schema:.route_segment route_segment,
+         :schema:.route_segment_route(route_segment, :date) route,
+         :schema:.route_mode(route) mode,
+         :schema:.route_line(route) line
+       WHERE route_segment.stop_id = stop.stop_id
+     ) route_segment
 WHERE stop.stop_id = :stopId;`,
-      { schema: SCHEMA, stopId }
+      { schema: SCHEMA, stopId, date }
     )
 
     return this.getBatched(query)
