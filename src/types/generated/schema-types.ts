@@ -231,6 +231,8 @@ export interface Route {
 export interface RouteGeometry {
   id: string
 
+  mode?: Maybe<string>
+
   coordinates: RouteGeometryPoint[]
 }
 

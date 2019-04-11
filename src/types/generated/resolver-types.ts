@@ -692,10 +692,17 @@ export namespace RouteGeometryResolvers {
   export interface Resolvers<TContext = {}, TypeParent = RouteGeometry> {
     id?: IdResolver<string, TypeParent, TContext>
 
+    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
+
     coordinates?: CoordinatesResolver<RouteGeometryPoint[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = RouteGeometry, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ModeResolver<R = Maybe<string>, Parent = RouteGeometry, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

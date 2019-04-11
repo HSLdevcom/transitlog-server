@@ -4,6 +4,7 @@ import { JoreRoute } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Direction, RouteGeometry } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
+import { getMode } from '../utils/getMode'
 
 export async function createRouteGeometryResponse(
   getRouteGeometry: () => Promise<JoreRoute[]>,
@@ -32,6 +33,7 @@ export async function createRouteGeometryResponse(
       id: `route_geometry_${routeId}_${direction}_${selectedRoute.date_begin}_${
         selectedRoute.date_end
       }`,
+      mode: selectedRoute.mode,
       coordinates,
     }
   }

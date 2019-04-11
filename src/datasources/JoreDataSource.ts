@@ -82,8 +82,9 @@ export class JoreDataSource extends SQLDataSource {
     date: string
   ): Promise<JoreRoute[]> {
     const query = this.db.raw(
-      `SELECT route.date_begin, route.date_end, geometry.geometry
+      `SELECT route.date_begin, route.date_end, mode.mode, geometry.geometry
 from :schema:.route route,
+     :schema:.route_mode(route) mode,
      :schema:.route_geometries(route, :date) geometry
 where route_id = :routeId
   and direction = :direction`,
