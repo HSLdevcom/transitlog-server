@@ -91,7 +91,11 @@ export async function createDeparturesResponse(
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
     let validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
-    validDepartures = uniqBy(validDepartures, ({ hours, minutes }) => `${hours}:${minutes}`)
+    validDepartures = uniqBy(
+      validDepartures,
+      ({ route_id, direction, extra_departure, stop_id, hours, minutes }) =>
+        `${route_id}${direction}${extra_departure}${stop_id}${hours}:${minutes}`
+    )
 
     return validDepartures.map((departure) => {
       // Find a relevant stop segment and use it in the departure response.
