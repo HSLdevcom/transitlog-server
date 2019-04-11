@@ -89,7 +89,7 @@ export function createPlannedDepartureObject(
 
   return {
     id: departureId,
-    stopId: departure.stop_id,
+    stopId: get(departure, 'stop_id', get(stop, 'stop_id', '')),
     dayType: departure.day_type,
     equipmentType: departure.equipment_type,
     equipmentIsRequired: !!departure.equipment_required,

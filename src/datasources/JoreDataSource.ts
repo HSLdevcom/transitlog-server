@@ -320,6 +320,7 @@ FROM
       AND route.direction = :direction
       AND route.date_begin = :dateBegin
       AND route.date_end = :dateEnd
+      AND stop.stop_id IS NOT NULL
 ORDER BY route_segment.stop_index ASC,
          departure.hours ASC,
          departure.minutes ASC,
