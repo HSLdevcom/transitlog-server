@@ -18,7 +18,7 @@ export function filterDepartures(departures: Departure[], filter?: DepartureFilt
     const directionFilterTerm = getDirection(direction)
 
     // Filter by route id if filter is set.
-    if (routeFilter && routeIdFilterTerm !== routeFilter) {
+    if (routeFilter && !routeIdFilterTerm.includes(routeFilter)) {
       return false
     }
 
