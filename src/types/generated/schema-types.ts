@@ -111,8 +111,6 @@ export interface Query {
 
   departures: Array<Maybe<Departure>>
 
-  routeDepartures: Array<Maybe<Departure>>
-
   exceptionDays: Array<Maybe<ExceptionDay>>
 
   journey?: Maybe<Journey>
@@ -625,15 +623,6 @@ export interface DeparturesQueryArgs {
   filter?: Maybe<DepartureFilterInput>
 
   stopId: string
-
-  date: Date
-}
-export interface RouteDeparturesQueryArgs {
-  stopId: string
-
-  routeId: string
-
-  direction: Direction
 
   date: Date
 }

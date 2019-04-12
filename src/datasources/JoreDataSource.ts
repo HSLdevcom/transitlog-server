@@ -475,31 +475,6 @@ ORDER BY departure.hours ASC,
     return this.getBatched(query)
   }
 
-  async getDeparturesForRoute(
-    stopId,
-    routeId,
-    direction,
-    date
-  ): Promise<JoreDepartureWithOrigin[]> {
-    const dayTypes = await this.getDayTypesForDate(date)
-
-    const query = this.db.raw(
-      `
-SELECT ${this.departureFields}
-FROM :schema:.departure departure
-    LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
-WHERE departure.stop_id = :stopId
-  AND departure.route_id = :routeId
-  AND departure.direction = :direction
-  AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-ORDER BY departure.hours ASC,
-         departure.minutes ASC;`,
-      { schema: SCHEMA, stopId, routeId, direction: direction + '' }
-    )
-
-    return this.getBatched(query)
-  }
-
   async getExceptionDaysForYear(year): Promise<JoreExceptionDay[] | null> {
     if (!year) {
       return null

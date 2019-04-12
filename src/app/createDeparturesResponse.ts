@@ -38,8 +38,8 @@ export async function createDeparturesResponse(
       return false
     }
 
-    // Group route segments for validation. The segments will be validated within their groups
-    // according to date chain logic.
+    // Group route segments for validation. The segments will be validated
+    // within their groups using date chain logic.
     const groupedRouteSegments = groupBy(
       stops,
       ({ route_id, direction, stop_index }) => route_id + direction + stop_index
