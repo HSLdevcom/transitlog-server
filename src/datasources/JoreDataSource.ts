@@ -363,7 +363,7 @@ ORDER BY route_segment.stop_index ASC,
     return { route, departures }
   }
 
-  async getDepartureStops(stopId, date): Promise<JoreStopSegment[] | null> {
+  async getDepartureStops(stopId, date): Promise<JoreStopSegment[]> {
     if (!stopId) {
       return []
     }
@@ -458,6 +458,7 @@ WHERE stop.stop_id = :stopId;`,
 
   async getDeparturesForStop(stopId, date): Promise<JoreDepartureWithOrigin[]> {
     const dayTypes = await this.getDayTypesForDate(date)
+
     const query = this.db.raw(
       `
 SELECT ${this.departureFields}

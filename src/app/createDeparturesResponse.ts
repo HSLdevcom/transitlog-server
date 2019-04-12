@@ -72,15 +72,18 @@ export async function createDeparturesResponse(
 
   // Fetches the departures and stop data for the stop and validates them.
   const fetchDepartures: CachedFetcher<Departure[]> = async () => {
+    const stopsCacheKey = `departure_stops_${stopId}_${date}`
+
     // Do NOT await these yet as we can fetch them in parallel.
-    const stopsPromise = fetchStops()
+    const stopsPromise = cacheFetch<RouteSegment[]>(stopsCacheKey, fetchStops, 24 * 60 * 60)
     const departuresPromise = getDepartures()
 
     // Fetch stops and departures in parallel
     const [stops, departures] = await Promise.all([stopsPromise, departuresPromise])
 
     // If either of these fail, we've got nothing of value.
-    if (!stops || !departures) {
+    // Be aware that `stops` can be falsy.
+    if (!stops || stops.length === 0 || departures.length === 0) {
       return false
     }
 
