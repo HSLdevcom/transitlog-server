@@ -2,13 +2,6 @@ import * as express from 'express'
 import nodeFetch from 'node-fetch'
 import { CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, LOGIN_PROVIDER_URI } from '../constants'
 
-console.log(CLIENT_ID)
-console.log(CLIENT_SECRET)
-// const CLIENT_ID = '1424368089733870';
-// const CLIENT_SECRET = 'cUGcWzTEAvzID856Iukhu5ioMa7TSJbI';
-// const REDIRECT_URI = 'http://localhost:3000';
-// const LOGIN_PROVIDER_URI = 'https://hslid-uat.cinfra.fi';
-
 interface IAccessToken {
   access_token: string
   token_type: string
@@ -21,6 +14,7 @@ interface IUserInfo {
   userId: string
   email: string
   emailVerified: string
+  groups: string[]
 }
 
 const checkAccessMiddleware = (
@@ -56,6 +50,7 @@ const requestUserInfo = async (accessToken: string): Promise<IUserInfo> => {
     userId: responseJson.sub,
     email: responseJson.email,
     emailVerified: responseJson.email_verified,
+    groups: responseJson['https://oneportal.trivore.com/claims/groups'],
   }
 }
 

@@ -8,6 +8,7 @@ interface IAuthRequest {
 interface IAuthResponse {
   isOk: boolean
   email?: string
+  groups?: string[]
 }
 
 const authorize = async (req: express.Request, res: express.Response) => {
@@ -23,6 +24,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
     req.session.accessToken = tokenResponse.access_token
     const userInfo = await AuthService.requestUserInfo(req.session.accessToken)
     req.session.email = userInfo.email
+    req.session.groups = userInfo.groups
 
     const response: IAuthResponse = {
       isOk: true,
@@ -44,6 +46,7 @@ const checkExistingSession = async (req: express.Request, res: express.Response)
       isOk: true,
       email: req.session.email,
     }
+    console.log(req.session)
     res.status(200).json(response)
     return
   }
