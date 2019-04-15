@@ -5,14 +5,13 @@ import { createStopResponse, createStopsResponse } from '../app/createStopsRespo
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
-import {
-  createDeparturesResponse,
-  createRouteDeparturesResponse,
-} from '../app/createDeparturesResponse'
+import { createDeparturesResponse } from '../app/createDeparturesResponse'
 import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
 import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
+import { createWeekDeparturesResponse } from '../app/createWeekDeparturesResponse'
+import { createRouteDeparturesResponse } from '../app/createRouteDeparturesResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -87,6 +86,23 @@ const routeDepartures = (root, { routeId, direction, stopId, date }, { dataSourc
   )
 }
 
+const weeklyDepartures = (root, { routeId, direction, stopId, date }, { dataSources }) => {
+  const getDepartures = () => dataSources.JoreAPI.getWeeklyDepartures(stopId, routeId, direction)
+  const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
+  const getDepartureEvents = () =>
+    dataSources.HFPAPI.getWeeklyDepartureEvents(stopId, date, routeId, direction)
+
+  return createWeekDeparturesResponse(
+    getDepartures,
+    getStops,
+    getDepartureEvents,
+    stopId,
+    routeId,
+    direction,
+    date
+  )
+}
+
 const journey = (
   root,
   { routeId, direction, departureTime, departureDate, uniqueVehicleId },
@@ -150,6 +166,7 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   lines,
   departures,
   routeDepartures,
+  weeklyDepartures,
   journey,
   vehicleJourneys,
   journeys,

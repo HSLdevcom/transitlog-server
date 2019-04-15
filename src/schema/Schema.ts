@@ -38,6 +38,12 @@ export const Schema = gql`
       direction: Direction!
       date: Date!
     ): [Departure]!
+    weeklyDepartures(
+      stopId: String!
+      routeId: String!
+      direction: Direction!
+      date: Date!
+    ): [Departure]!
     exceptionDays(year: String!): [ExceptionDay]!
     journey(
       routeId: String!

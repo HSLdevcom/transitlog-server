@@ -128,4 +128,26 @@ export class HFPDataSource extends GraphQLDataSource {
 
     return get(response, 'data.vehicles', [])
   }
+
+  async getWeeklyDepartureEvents(
+    stopId: string,
+    date: string,
+    routeId: string,
+    direction: Direction
+  ) {
+    const minDateMoment = moment.tz(date, TZ).startOf('week')
+    const maxDateMoment = minDateMoment.clone().endOf('week')
+
+    const response = await this.query(ROUTE_DEPARTURES_EVENTS_QUERY, {
+      variables: {
+        stopId,
+        minDate: minDateMoment.format('YYYY-MM-DD'),
+        maxDate: maxDateMoment.format('YYYY-MM-DD'),
+        routeId,
+        direction,
+      },
+    })
+
+    return get(response, 'data.vehicles', [])
+  }
 }

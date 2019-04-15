@@ -8,6 +8,7 @@ import {
   JoreDepartureWithOrigin,
   JoreExceptionDay,
   JoreStopSegment,
+  JoreDeparture,
 } from '../types/Jore'
 import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
@@ -20,6 +21,8 @@ import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'da
 import { cacheFetch } from '../app/cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
+import moment from 'moment-timezone'
+import { TZ } from '../constants'
 
 const knex: Knex = Knex({
   dialect: 'postgres',
@@ -495,6 +498,46 @@ WHERE departure.stop_id = :stopId
 ORDER BY departure.hours ASC,
          departure.minutes ASC;`,
       { schema: SCHEMA, stopId, routeId, direction: direction + '' }
+    )
+
+    return this.getBatched(query)
+  }
+
+  async getWeeklyDepartures(stopId, routeId, direction): Promise<JoreDeparture[]> {
+    const query = this.db.raw(
+      `
+SELECT departure.route_id,
+       departure.direction,
+       departure.stop_id,
+       departure.hours,
+       departure.minutes,
+       departure.day_type,
+       departure.extra_departure,
+       departure.is_next_day,
+       departure.arrival_is_next_day,
+       departure.arrival_hours,
+       departure.arrival_minutes,
+       departure.terminal_time,
+       departure.recovery_time,
+       departure.equipment_type,
+       departure.equipment_required,
+       departure.operator_id,
+       departure.trunk_color_required,
+       departure.date_begin,
+       departure.date_end,
+       departure.departure_id
+FROM :schema:.departure departure
+WHERE departure.stop_id = :stopId
+  AND departure.route_id = :routeId
+  AND departure.direction = :direction
+ORDER BY departure.hours ASC,
+         departure.minutes ASC;`,
+      {
+        schema: SCHEMA,
+        stopId,
+        routeId,
+        direction: direction + '',
+      }
     )
 
     return this.getBatched(query)
