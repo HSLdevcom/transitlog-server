@@ -1,5 +1,5 @@
 import { groupBy, orderBy, uniqBy } from 'lodash'
-import { JoreDepartureWithOrigin, JoreStopSegment } from '../types/Jore'
+import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, RouteSegment } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -7,12 +7,99 @@ import { cacheFetch } from './cache'
 import { Dictionary } from '../types/Dictionary'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { isToday } from 'date-fns'
+import { fetchEvents, fetchStops } from './createDeparturesResponse'
+import { PlannedDeparture } from '../types/PlannedDeparture'
+import { getDirection } from '../utils/getDirection'
 import {
-  combineDeparturesAndEvents,
-  combineDeparturesAndStops,
-  fetchEvents,
-  fetchStops,
-} from './createDeparturesResponse'
+  createDepartureJourneyObject,
+  createPlannedDepartureObject,
+} from './objects/createDepartureObject'
+import { getJourneyStartTime } from '../utils/time'
+import { groupEventsByInstances } from '../utils/groupEventsByInstances'
+import { getStopArrivalData } from '../utils/getStopArrivalData'
+import { getStopDepartureData } from '../utils/getStopDepartureData'
+import { get, flatten } from 'lodash'
+
+export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
+  // Link observed events to departures. Events are ultimately grouped by vehicle ID
+  // to separate the "instances" of the journey.
+  const departuresWithEvents: Departure[][] = departures.map((departure) => {
+    const plannedDepartureTime = get(departure, 'plannedDepartureTime.departureTime', null)
+
+    // The departures are matched to events through the "journey start time", ie the time that
+    // the vehicle is planned to depart from the first stop. Thus we need the departure time
+    // from the first stop for the journey that this departure belongs to in order to match
+    // it with an event. If we don't have the origin departure time, we can't match the
+    // departure to an event.
+    if (!plannedDepartureTime) {
+      return [departure]
+    }
+
+    // We can use info that the departure happened during "the next day" when calculating
+    // the 24h+ time of the event.
+    const departureIsNextDay = get(departure, 'plannedDepartureTime.isNextDay', false)
+    const routeId = get(departure, 'routeId', '')
+    const direction = getDirection(get(departure, 'direction'))
+
+    // Match events to departures
+    const eventsForDeparture = events.filter(
+      (event) =>
+        event.route_id === routeId &&
+        getDirection(event.direction_id) === direction &&
+        // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
+        // for the event to match it with the 24h+ time of the origin departure.
+        getJourneyStartTime(event, departureIsNextDay) === plannedDepartureTime
+    )
+
+    if (!eventsForDeparture || eventsForDeparture.length === 0) {
+      return [departure]
+    }
+
+    const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
+      ([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc')
+    )
+
+    const firstStopId = get(departure, 'stop.originStopId', '')
+
+    return eventsPerVehicleJourney.map((events, index, instances) => {
+      const stopArrival = departure ? getStopArrivalData(events, departure, date) : null
+      const stopDeparture = departure ? getStopDepartureData(events, departure, date) : null
+
+      const departureJourney = createDepartureJourneyObject(
+        events[0],
+        departureIsNextDay,
+        firstStopId,
+        instances.length > 1 ? index + 1 : 0,
+        get(departure, 'mode', Mode.Bus) as Mode
+      )
+
+      return {
+        ...departure,
+        id: departure.id.slice(0, -1) + index,
+        journey: departureJourney,
+        observedArrivalTime: stopArrival,
+        observedDepartureTime: stopDeparture,
+      }
+    })
+  })
+
+  return orderBy(flatten(departuresWithEvents), 'plannedDepartureTime.departureTime')
+}
+
+// Combines departures and stops into PlannedDepartures.
+export const combineDeparturesAndStops = (departures, stops, date): PlannedDeparture[] => {
+  return departures.map((departure) => {
+    // Find a relevant stop segment and use it in the departure response.
+    const stop = stops.find((stopSegment) => {
+      return (
+        stopSegment.routeId === departure.route_id &&
+        stopSegment.direction === getDirection(departure.direction)
+      )
+    })
+
+    return createPlannedDepartureObject(departure, stop || null, date)
+  })
+}
 
 /*
   Departures fetched with a route identifier. The difference is in cache keys, group keys

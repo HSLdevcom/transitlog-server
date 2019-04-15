@@ -148,7 +148,7 @@ export const createWeekDeparturesResponse = async (
   }
 
   const createDepartures: CachedFetcher<Departure[]> = async () => {
-    const departuresCacheKey = `departures_${stopId}_${routeId}_${direction}_${date}`
+    const departuresCacheKey = `week_departures_${stopId}_${routeId}_${direction}_${date}`
     const departures = await cacheFetch<Departure[]>(
       departuresCacheKey,
       fetchDepartures,

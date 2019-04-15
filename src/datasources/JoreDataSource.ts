@@ -488,7 +488,26 @@ ORDER BY departure.hours ASC,
 
     const query = this.db.raw(
       `
-SELECT ${this.departureFields}
+SELECT departure.route_id,
+    departure.direction,
+    departure.stop_id,
+    departure.hours,
+    departure.minutes,
+    departure.day_type,
+    departure.extra_departure,
+    departure.is_next_day,
+    departure.arrival_is_next_day,
+    departure.arrival_hours,
+    departure.arrival_minutes,
+    departure.terminal_time,
+    departure.recovery_time,
+    departure.equipment_type,
+    departure.equipment_required,
+    departure.operator_id,
+    departure.trunk_color_required,
+    departure.date_begin,
+    departure.date_end,
+    departure.departure_id
 FROM :schema:.departure departure
     LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
 WHERE departure.stop_id = :stopId
