@@ -10,8 +10,9 @@ import {
   ROUTE_JOURNEY_EVENTS_QUERY,
   VEHICLE_JOURNEYS_QUERY,
 } from '../queries/journeyQueries'
-import { DEPARTURE_EVENTS_QUERY } from '../queries/departureQueries'
+import { DEPARTURE_EVENTS_QUERY, ROUTE_DEPARTURES_EVENTS_QUERY } from '../queries/departureQueries'
 import { getNormalTime, isNextDay } from '../utils/time'
+import { Direction } from '../types/generated/schema-types'
 
 export class HFPDataSource extends GraphQLDataSource {
   baseURL = HFP_URL
@@ -104,6 +105,24 @@ export class HFPDataSource extends GraphQLDataSource {
       variables: {
         stopId,
         date,
+      },
+    })
+
+    return get(response, 'data.vehicles', [])
+  }
+
+  async getRouteDepartureEvents(
+    stopId: string,
+    date: string,
+    routeId: string,
+    direction: Direction
+  ) {
+    const response = await this.query(ROUTE_DEPARTURES_EVENTS_QUERY, {
+      variables: {
+        stopId,
+        date,
+        routeId,
+        direction,
       },
     })
 
