@@ -21,26 +21,16 @@ import { fetchEvents, fetchStops } from './createDeparturesResponse'
 import { PlannedDeparture } from '../types/PlannedDeparture'
 
 const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
-  // Link observed events to departures. Events are ultimately grouped by vehicle ID
-  // to separate the "instances" of the journey.
+  // Link observed events to departures.
   const departuresWithEvents: Departure[] = departures.map((departure) => {
     const departureTime = get(departure, 'plannedDepartureTime.departureTime', null)
-
-    // The departures are matched to events through the "journey start time", ie the time that
-    // the vehicle is planned to depart from the first stop. Thus we need the departure time
-    // from the first stop for the journey that this departure belongs to in order to match
-    // it with an event. If we don't have the origin departure time, we can't match the
-    // departure to an event.
-    if (!departureTime) {
-      return departure
-    }
 
     // We can use info that the departure happened during "the next day" when calculating
     // the 24h+ time of the event.
     const departureIsNextDay = get(departure, 'plannedDepartureTime.isNextDay', false)
     const routeId = get(departure, 'routeId', '')
     const direction = getDirection(get(departure, 'direction'))
-    const dayType = departure.dayType
+    const dayType = get(departure, 'dayType', '')
 
     // Match events to departures
     const eventsForDeparture = events.filter(
@@ -57,19 +47,13 @@ const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
       return departure
     }
 
-    const firstJourneyEvent: Vehicles = groupEventsByInstances(eventsForDeparture).map(
-      ([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc')
-    )[0][0]
-
-    console.log(firstJourneyEvent)
-
     const firstStopId = get(departure, 'stop.originStopId', '')
-
-    const stopArrival = departure ? getStopArrivalData(events, departure, date) : null
-    const stopDeparture = departure ? getStopDepartureData(events, departure, date) : null
+    const stopDeparture = departure
+      ? getStopDepartureData(eventsForDeparture, departure, date)
+      : null
 
     const departureJourney = createDepartureJourneyObject(
-      firstJourneyEvent,
+      orderBy(eventsForDeparture, 'tsi')[0],
       departureIsNextDay,
       firstStopId,
       0,
@@ -79,7 +63,7 @@ const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
     return {
       ...departure,
       journey: departureJourney,
-      observedArrivalTime: stopArrival,
+      observedArrivalTime: null,
       observedDepartureTime: stopDeparture,
     }
   })

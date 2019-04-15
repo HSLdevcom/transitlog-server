@@ -139,8 +139,8 @@ export class HFPDataSource extends GraphQLDataSource {
     routeId: string,
     direction: Direction
   ) {
-    const minDateMoment = moment.tz(date, TZ).startOf('week')
-    const maxDateMoment = minDateMoment.clone().endOf('week')
+    const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
+    const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
 
     const response = await this.query(ROUTE_WEEK_DEPARTURES_EVENTS_QUERY, {
       variables: {
