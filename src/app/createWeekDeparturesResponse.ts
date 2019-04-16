@@ -89,13 +89,11 @@ export const combineDeparturesAndStops = (
       .format('YYYY-MM-DD')
 
     // Find a relevant stop segment and use it in the departure response.
-    const stop = stops.find((stopSegment) => {
-      return (
+    const stop = stops.find(
+      (stopSegment) =>
         stopSegment.routeId === departure.route_id &&
         stopSegment.direction === getDirection(departure.direction)
-      )
-    })
-
+    )
     return createPlannedDepartureObject(departure, stop || null, departureDate)
   })
 }
