@@ -2,27 +2,22 @@ import { orderBy } from 'lodash'
 import { Vehicles } from '../types/generated/hfp-types'
 
 export const getStopEvents = (events: Vehicles[], stopId: string) => {
-  const stopEvents = events.filter((pos) => pos.next_stop_id === stopId)
+  const stopEvents: Vehicles[] = []
 
-  // The stop events can be no more than 5 minutes apart, otherwise they are not valid.
-  // This is to mitigate situations when the next_stop_id is faulty and changes later.
-  const maxDiff = 5 * 60
-  const validEvents: Vehicles[] = []
-
-  for (const event of stopEvents) {
-    const prevEvent = validEvents[validEvents.length - 1]
-
-    if (!prevEvent) {
-      validEvents.push(event)
+  // Collect all events that match the stopId, but break the loop as soon
+  // as another stopId is seen since the events stop being valid at that point.
+  // This prevents cases where the the start of another journey is falsely logged
+  // at the end of a previous journey, giving the impression of the vehicle
+  // teleporting to the start when the journey is concluded. This depends on
+  // the events being ordered in ascending order by the time, which they should be.
+  for (const pos of events) {
+    if (pos.next_stop_id === stopId) {
+      stopEvents.push(pos)
       continue
     }
 
-    const diff = Math.abs(parseInt(event.tsi, 10) - parseInt(prevEvent.tsi, 10))
-
-    if (diff <= maxDiff) {
-      validEvents.push(event)
-    }
+    break
   }
 
-  return orderBy(validEvents, 'tsi', 'desc')
+  return orderBy(stopEvents, 'tsi', 'desc')
 }

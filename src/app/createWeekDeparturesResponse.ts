@@ -177,7 +177,8 @@ export const createWeekDeparturesResponse = async (
     return combineDeparturesAndEvents(departures, departureEvents)
   }
 
-  const departuresTTL: number = isToday(date) ? 5 * 60 : 30 * 24 * 60 * 60
+  // Cache for 5 minutes
+  const departuresTTL: number = 5 * 60
   const cacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}`
   const routeDepartures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
 

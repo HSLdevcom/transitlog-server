@@ -194,7 +194,6 @@ export async function createJourneyResponse(
         if (journeyInProgress(data)) {
           return 2
         }
-
         return 5 * 60
       }
     )
