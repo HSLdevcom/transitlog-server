@@ -19,6 +19,7 @@ import { fetchEvents, fetchStops } from './createDeparturesResponse'
 import { PlannedDeparture } from '../types/PlannedDeparture'
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
+import { getStopArrivalData } from '../utils/getStopArrivalData'
 
 const combineDeparturesAndEvents = (departures, events): Departure[] => {
   // Link observed events to departures.
@@ -49,6 +50,7 @@ const combineDeparturesAndEvents = (departures, events): Departure[] => {
     }
 
     const firstStopId = get(departure, 'stop.originStopId', '')
+    const stopArrival = departure ? getStopArrivalData(events, departure, departureDate) : null
     const stopDeparture = departure
       ? getStopDepartureData(eventsForDeparture, departure, departureDate)
       : null
@@ -64,7 +66,7 @@ const combineDeparturesAndEvents = (departures, events): Departure[] => {
     return {
       ...departure,
       journey: departureJourney,
-      observedArrivalTime: null,
+      observedArrivalTime: stopArrival,
       observedDepartureTime: stopDeparture,
     }
   })
