@@ -1,4 +1,4 @@
-import { groupBy, orderBy, uniqBy } from 'lodash'
+import { flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, RouteSegment } from '../types/generated/schema-types'
@@ -16,9 +16,7 @@ import {
 } from './objects/createDepartureObject'
 import { getJourneyStartTime } from '../utils/time'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
-import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
-import { get, flatten } from 'lodash'
 
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
@@ -62,7 +60,6 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     const firstStopId = get(departure, 'stop.originStopId', '')
 
     return eventsPerVehicleJourney.map((events, index, instances) => {
-      const stopArrival = departure ? getStopArrivalData(events, departure, date) : null
       const stopDeparture = departure ? getStopDepartureData(events, departure, date) : null
 
       const departureJourney = createDepartureJourneyObject(
@@ -77,7 +74,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
         ...departure,
         id: departure.id.slice(0, -1) + index,
         journey: departureJourney,
-        observedArrivalTime: stopArrival,
+        observedArrivalTime: null,
         observedDepartureTime: stopDeparture,
       }
     })

@@ -10,13 +10,19 @@ export const getStopEvents = (events: Vehicles[], stopId: string) => {
   // at the end of a previous journey, giving the impression of the vehicle
   // teleporting to the start when the journey is concluded. This depends on
   // the events being ordered in ascending order by the time, which they should be.
+  let didFindStop = false
+
   for (const pos of events) {
     if (pos.next_stop_id === stopId) {
+      didFindStop = true
       stopEvents.push(pos)
       continue
     }
 
-    break
+    // Break only if it already found a stop. Otherwise only the origin stop will work.
+    if (didFindStop) {
+      break
+    }
   }
 
   return orderBy(stopEvents, 'tsi', 'desc')
