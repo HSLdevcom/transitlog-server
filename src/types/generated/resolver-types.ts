@@ -136,6 +136,10 @@ export namespace QueryResolvers {
 
     departures?: DeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
 
+    routeDepartures?: RouteDeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
+
+    weeklyDepartures?: WeeklyDeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
+
     exceptionDays?: ExceptionDaysResolver<Array<Maybe<ExceptionDay>>, TypeParent, TContext>
 
     journey?: JourneyResolver<Maybe<Journey>, TypeParent, TContext>
@@ -269,6 +273,36 @@ export namespace QueryResolvers {
     filter?: Maybe<DepartureFilterInput>
 
     stopId: string
+
+    date: Date
+  }
+
+  export type RouteDeparturesResolver<
+    R = Array<Maybe<Departure>>,
+    Parent = {},
+    TContext = {}
+  > = Resolver<R, Parent, TContext, RouteDeparturesArgs>
+  export interface RouteDeparturesArgs {
+    stopId: string
+
+    routeId: string
+
+    direction: Direction
+
+    date: Date
+  }
+
+  export type WeeklyDeparturesResolver<
+    R = Array<Maybe<Departure>>,
+    Parent = {},
+    TContext = {}
+  > = Resolver<R, Parent, TContext, WeeklyDeparturesArgs>
+  export interface WeeklyDeparturesArgs {
+    stopId: string
+
+    routeId: string
+
+    direction: Direction
 
     date: Date
   }

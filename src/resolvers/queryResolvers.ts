@@ -10,6 +10,8 @@ import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
 import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
+import { createWeekDeparturesResponse } from '../app/createWeekDeparturesResponse'
+import { createRouteDeparturesResponse } from '../app/createRouteDeparturesResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -62,7 +64,43 @@ const departures = (root, { filter, stopId, date }, { dataSources }) => {
   const getDepartures = () => dataSources.JoreAPI.getDeparturesForStop(stopId, date)
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
   const getDepartureEvents = () => dataSources.HFPAPI.getDepartureEvents(stopId, date)
+
   return createDeparturesResponse(getDepartures, getStops, getDepartureEvents, stopId, date, filter)
+}
+
+const routeDepartures = (root, { routeId, direction, stopId, date }, { dataSources }) => {
+  const getDepartures = () =>
+    dataSources.JoreAPI.getDeparturesForRoute(stopId, routeId, direction, date)
+  const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
+  const getDepartureEvents = () =>
+    dataSources.HFPAPI.getRouteDepartureEvents(stopId, date, routeId, direction)
+
+  return createRouteDeparturesResponse(
+    getDepartures,
+    getStops,
+    getDepartureEvents,
+    stopId,
+    routeId,
+    direction,
+    date
+  )
+}
+
+const weeklyDepartures = (root, { routeId, direction, stopId, date }, { dataSources }) => {
+  const getDepartures = () => dataSources.JoreAPI.getWeeklyDepartures(stopId, routeId, direction)
+  const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
+  const getDepartureEvents = () =>
+    dataSources.HFPAPI.getWeeklyDepartureEvents(stopId, date, routeId, direction)
+
+  return createWeekDeparturesResponse(
+    getDepartures,
+    getStops,
+    getDepartureEvents,
+    stopId,
+    routeId,
+    direction,
+    date
+  )
 }
 
 const journey = (
@@ -127,6 +165,8 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   routeSegments,
   lines,
   departures,
+  routeDepartures,
+  weeklyDepartures,
   journey,
   vehicleJourneys,
   journeys,
