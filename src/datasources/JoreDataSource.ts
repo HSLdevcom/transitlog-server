@@ -11,7 +11,7 @@ import {
   JoreDeparture,
 } from '../types/Jore'
 import { Direction, ExceptionDay } from '../types/generated/schema-types'
-import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
+import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import Knex from 'knex'
 import { orderBy, uniq } from 'lodash'
@@ -549,6 +549,7 @@ FROM :schema:.departure departure
 WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
+  AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
 ORDER BY departure.hours ASC,
          departure.minutes ASC;`,
       {

@@ -1,7 +1,7 @@
 import { CachedFetcher } from '../types/CachedFetcher'
 import { Departure, RouteSegment } from '../types/generated/schema-types'
 import { cacheFetch } from './cache'
-import { JoreDepartureWithOrigin, Mode } from '../types/Jore'
+import { JoreDeparture, JoreDepartureWithOrigin, Mode } from '../types/Jore'
 import { Dictionary } from '../types/Dictionary'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { getISOWeek, isToday } from 'date-fns'
@@ -12,18 +12,19 @@ import {
   createPlannedDepartureObject,
 } from './objects/createDepartureObject'
 import { getJourneyStartTime } from '../utils/time'
-import { groupEventsByInstances } from '../utils/groupEventsByInstances'
-import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { get, groupBy, orderBy } from 'lodash'
-import { getDayTypeFromDate } from '../utils/getDayTypeFromDate'
+import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { fetchEvents, fetchStops } from './createDeparturesResponse'
 import { PlannedDeparture } from '../types/PlannedDeparture'
+import { TZ } from '../constants'
+import moment from 'moment-timezone'
 
-const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
+const combineDeparturesAndEvents = (departures, events): Departure[] => {
   // Link observed events to departures.
   const departuresWithEvents: Departure[] = departures.map((departure) => {
     const departureTime = get(departure, 'plannedDepartureTime.departureTime', null)
+    const departureDate = get(departure, 'plannedDepartureTime.departureDate', null)
 
     // We can use info that the departure happened during "the next day" when calculating
     // the 24h+ time of the event.
@@ -49,7 +50,7 @@ const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
 
     const firstStopId = get(departure, 'stop.originStopId', '')
     const stopDeparture = departure
-      ? getStopDepartureData(eventsForDeparture, departure, date)
+      ? getStopDepartureData(eventsForDeparture, departure, departureDate)
       : null
 
     const departureJourney = createDepartureJourneyObject(
@@ -71,8 +72,22 @@ const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   return orderBy(departuresWithEvents, 'plannedDepartureTime.departureTime')
 }
 
-export const combineDeparturesAndStops = (departures, stops, date): PlannedDeparture[] => {
+export const combineDeparturesAndStops = (
+  departures: JoreDeparture[],
+  stops,
+  date
+): PlannedDeparture[] => {
+  const weekStart = moment.tz(date, TZ).startOf('isoWeek')
+
   return departures.map((departure) => {
+    // Get the real date of this departure from within the selected week.
+    const weekDayIndex = dayTypes.indexOf(departure.day_type)
+
+    const departureDate = weekStart
+      .clone()
+      .add(weekDayIndex, 'days')
+      .format('YYYY-MM-DD')
+
     // Find a relevant stop segment and use it in the departure response.
     const stop = stops.find((stopSegment) => {
       return (
@@ -81,7 +96,7 @@ export const combineDeparturesAndStops = (departures, stops, date): PlannedDepar
       )
     })
 
-    return createPlannedDepartureObject(departure, stop || null, date)
+    return createPlannedDepartureObject(departure, stop || null, departureDate)
   })
 }
 
@@ -159,10 +174,10 @@ export const createWeekDeparturesResponse = async (
       return orderBy(departures, 'plannedDepartureTime.departureTime')
     }
 
-    return combineDeparturesAndEvents(departures, departureEvents, date)
+    return combineDeparturesAndEvents(departures, departureEvents)
   }
 
-  const departuresTTL: number = 1 // isToday(date) ? 5 * 60 : 30 * 24 * 60 * 60
+  const departuresTTL: number = isToday(date) ? 5 * 60 : 30 * 24 * 60 * 60
   const cacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}`
   const routeDepartures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
 
