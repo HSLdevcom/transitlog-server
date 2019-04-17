@@ -168,10 +168,7 @@ export const createWeekDeparturesResponse = async (
       return []
     }
 
-    // Cache events for the current day for 10 seconds only.
-    // Older dates can be cached for longer.
-    const journeyTTL: number = isToday(date) ? 10 : 30 * 24 * 60 * 60
-
+    const journeyTTL: number = 60
     const eventsCacheKey = `departure_events_${stopId}_${weekNumber}_${routeId}_${direction}`
     const departureEvents = await cacheFetch<Vehicles[]>(
       eventsCacheKey,
