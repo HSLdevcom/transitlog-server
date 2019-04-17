@@ -83,8 +83,17 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(
     groupBy(
       departures,
-      ({ stop_id, stop_index, departure_id, hours, minutes, day_type, extra_departure }) =>
-        '' + stop_id + stop_index + departure_id + hours + minutes + day_type + extra_departure
+      ({
+        stop_id,
+        stop_index,
+        departure_id,
+        hours,
+        minutes,
+        day_type,
+        is_next_day,
+        extra_departure,
+      }) =>
+        `${is_next_day}_${stop_id}_${stop_index}_${departure_id}_${hours}_${minutes}_${day_type}_${extra_departure}`
     ),
     date
   )
@@ -93,12 +102,9 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
   const originDepartures =
-    validDepartures.filter((departure) => {
-      if (departure.stop_index !== 1) {
-        return false
-      }
-      return getDepartureTime(departure) === time
-    }) || []
+    validDepartures.filter(
+      (departure) => getDepartureTime(departure) === time && departure.stop_index === 1
+    ) || []
 
   if (originDepartures.length === 0) {
     return { route: journeyRouteObject, departures: [] }

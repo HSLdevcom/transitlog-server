@@ -21,8 +21,6 @@ import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'da
 import { cacheFetch } from '../app/cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
-import moment from 'moment-timezone'
-import { TZ } from '../constants'
 
 const knex: Knex = Knex({
   dialect: 'postgres',
@@ -35,6 +33,7 @@ const knex: Knex = Knex({
 })
 
 const SCHEMA = 'jore'
+const ONE_DAY = 24 * 60 * 60
 
 // install postgis functions in knex.postgis;
 const st = require('knex-postgis')(knex)
@@ -77,7 +76,7 @@ export class JoreDataSource extends SQLDataSource {
       { schema: SCHEMA }
     )
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getRouteGeometry(
@@ -95,7 +94,7 @@ where route_id = :routeId
       { schema: SCHEMA, routeId, direction: direction + '', date }
     )
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getStopSegments(stopId: string, date: string): Promise<JoreStop[]> {
@@ -124,7 +123,7 @@ WHERE stop.stop_id = :stopId;`,
       { schema: SCHEMA, stopId, date }
     )
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getStops(): Promise<JoreStop[]> {
@@ -142,7 +141,7 @@ WHERE stop.stop_id = :stopId;`,
       { schema: SCHEMA }
     )
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getStopsByBBox(bbox): Promise<JoreStop[]> {
@@ -173,7 +172,7 @@ WHERE stop.stop_id = :stopId;`,
       .select()
       .from('equipment')
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getEquipmentById(vehicleId: string | number, operatorId: string): Promise<JoreEquipment[]> {
@@ -186,7 +185,7 @@ WHERE stop.stop_id = :stopId;`,
       .from('equipment')
       .where({ vehicle_id: joreVehicleId, operator_id: joreOperatorId })
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getRouteSegments(
@@ -236,7 +235,7 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
       { schema: SCHEMA, routeId, direction: direction + '' }
     )
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, 60)
   }
 
   async getRouteIndex(routeId: string, direction: Direction): Promise<JoreRoute[]> {
@@ -263,7 +262,7 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
       { schema: SCHEMA, routeId, direction: direction + '' }
     )
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getJourneyDepartures(
@@ -359,7 +358,7 @@ ORDER BY route_segment.stop_index ASC,
       date
     )
 
-    if (!departures) {
+    if (departures.length === 0) {
       return { route, departures: [] }
     }
 
@@ -403,7 +402,7 @@ WHERE stop.stop_id = :stopId;`,
       { schema: SCHEMA, stopId, date }
     )
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getDayTypesForDate(date): Promise<string[]> {
@@ -475,7 +474,7 @@ ORDER BY departure.hours ASC,
       { schema: SCHEMA, stopId }
     )
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getDeparturesForRoute(
@@ -557,7 +556,7 @@ ORDER BY date_in_effect ASC;
       { schema: SCHEMA, startDate, endDate }
     )
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getExceptions(date): Promise<ExceptionDay[]> {

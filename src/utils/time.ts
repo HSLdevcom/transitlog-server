@@ -109,11 +109,11 @@ export function getJourneyStartTime(event: JourneyType, isNextDay: boolean = fal
     added to them if the event happens after midnight. Not good.
 
     The diff check should be under 24 to also allow event times that are before the
-    planned start times for journeys that teeter in the edge of midnight.
+    planned start times for journeys that teeter on the edge of midnight.
    */
 
-  if (intHours <= 19 && (isNextDay || Math.floor(diff / 60 / 60) >= 23)) {
-    intHours = intHours + Math.max(1, Math.floor(diff / 24)) * 24
+  if (intHours <= 19 && Math.floor(diff / 60 / 60) >= 23) {
+    intHours = intHours + Math.max(1, Math.min(24, Math.floor(diff / 60 / 60)))
   }
 
   return getTimeString(intHours, minutes, seconds)

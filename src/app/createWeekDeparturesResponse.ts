@@ -19,7 +19,6 @@ import { fetchEvents, fetchStops } from './createDeparturesResponse'
 import { PlannedDeparture } from '../types/PlannedDeparture'
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
-import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 
 const combineDeparturesAndEvents = (departures, events): Departure[] => {
@@ -157,7 +156,7 @@ export const createWeekDeparturesResponse = async (
   }
 
   const createDepartures: CachedFetcher<Departure[]> = async () => {
-    const departuresCacheKey = `week_departures_${stopId}_${routeId}_${direction}_${date}`
+    const departuresCacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}`
     const departures = await cacheFetch<Departure[]>(
       departuresCacheKey,
       fetchDepartures,
