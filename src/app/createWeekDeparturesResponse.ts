@@ -20,6 +20,7 @@ import { PlannedDeparture } from '../types/PlannedDeparture'
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
+import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 
 const combineDeparturesAndEvents = (departures, events): Departure[] => {
   // Link observed events to departures.
@@ -49,14 +50,23 @@ const combineDeparturesAndEvents = (departures, events): Departure[] => {
       return departure
     }
 
+    const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
+      ([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc')
+    )
+
     const firstStopId = get(departure, 'stop.originStopId', '')
-    const stopArrival = departure ? getStopArrivalData(events, departure, departureDate) : null
+    const firstInstanceEvents = eventsPerVehicleJourney[0]
+
+    if (firstInstanceEvents.length === 0) {
+      return departure
+    }
+
     const stopDeparture = departure
-      ? getStopDepartureData(eventsForDeparture, departure, departureDate)
+      ? getStopDepartureData(firstInstanceEvents, departure, departureDate)
       : null
 
     const departureJourney = createDepartureJourneyObject(
-      orderBy(eventsForDeparture, 'tsi')[0],
+      firstInstanceEvents,
       departureIsNextDay,
       firstStopId,
       0,
@@ -66,7 +76,7 @@ const combineDeparturesAndEvents = (departures, events): Departure[] => {
     return {
       ...departure,
       journey: departureJourney,
-      observedArrivalTime: stopArrival,
+      observedArrivalTime: null,
       observedDepartureTime: stopDeparture,
     }
   })

@@ -63,8 +63,13 @@ export const ROUTE_WEEK_DEPARTURES_EVENTS_QUERY = gql`
     $direction: smallint!
   ) {
     vehicles(
-      distinct_on: [journey_start_time, unique_vehicle_id]
-      order_by: [{ journey_start_time: asc }, { unique_vehicle_id: asc }, { tst: desc }]
+      distinct_on: [oday, journey_start_time, unique_vehicle_id]
+      order_by: [
+        { oday: asc }
+        { journey_start_time: asc }
+        { unique_vehicle_id: asc }
+        { tst: desc }
+      ]
       where: {
         _and: [
           { next_stop_id: { _eq: $stopId } }
