@@ -159,7 +159,7 @@ export function getDepartureTime(departure: JoreDepartureTime, useArrival = fals
     minutes = departure.arrival_minutes
   }
 
-  const hour = is_next_day ? hours + 24 : hours
+  const hour = is_next_day && hours < 24 ? hours + 24 : hours
   return getTimeString(hour, minutes)
 }
 

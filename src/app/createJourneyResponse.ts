@@ -84,8 +84,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(
     groupBy(
       departures,
-      ({ stop_id, departure_id, hours, minutes, day_type, is_next_day, extra_departure }) =>
-        `${is_next_day}_${stop_id}_${departure_id}_${hours}_${minutes}_${day_type}_${extra_departure}`
+      ({ stop_id, hours, minutes, day_type, is_next_day, extra_departure }) =>
+        `${is_next_day}_${stop_id}_${hours}_${minutes}_${day_type}_${extra_departure}`
     ),
     date
   )
