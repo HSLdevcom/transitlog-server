@@ -218,7 +218,7 @@ export async function createJourneyResponse(
     const routeAndDepartures = await cacheFetch<JourneyRoute>(
       routeCacheKey,
       () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
-      1 // 24 * 60 * 60
+      24 * 60 * 60
     )
 
     const events: Vehicles[] = journeyEvents
@@ -326,7 +326,7 @@ export async function createJourneyResponse(
   const journey = await cacheFetch<Journey>(
     getJourneyCacheKey,
     fetchAndProcessJourney,
-    1 // getJourneyTTL
+    getJourneyTTL
   )
 
   if (!journey) {
