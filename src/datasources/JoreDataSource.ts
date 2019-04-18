@@ -9,18 +9,20 @@ import {
   JoreExceptionDay,
   JoreStopSegment,
   JoreDeparture,
+  JoreRouteSegment,
 } from '../types/Jore'
 import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import Knex from 'knex'
-import { orderBy, uniq } from 'lodash'
+import { orderBy, uniq, groupBy } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
 import { JourneyRouteData } from '../app/createJourneyResponse'
 import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'date-fns'
 import { cacheFetch } from '../app/cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
+import { Dictionary } from '../types/Dictionary'
 
 const knex: Knex = Knex({
   dialect: 'postgres',
@@ -268,8 +270,6 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
   async getJourneyDepartures(
     routeId: string,
     direction: Direction,
-    dateBegin: string,
-    dateEnd: string,
     date: string
   ): Promise<JoreRouteDepartureData[]> {
     const dayTypes = await this.getDayTypesForDate(date)
@@ -296,21 +296,16 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
        departure.date_begin,
        departure.date_end,
        departure.departure_id
-FROM
-    :schema:.route route
-    LEFT OUTER JOIN (
-        SELECT *
-        FROM :schema:.departure departure
-        WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-    ) departure USING (route_id, direction)
-    WHERE route.route_id = :routeId
-      AND route.direction = :direction
-      AND route.date_begin = :dateBegin
-      AND route.date_end = :dateEnd
+FROM :schema:.departure departure
+    WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+      AND departure.route_id = :routeId
+      AND departure.direction = :direction
+      AND departure.date_begin <= :date
+      AND departure.date_end >= :date
 ORDER BY departure.departure_id ASC,
          departure.hours ASC,
          departure.minutes ASC;`,
-      { schema: SCHEMA, routeId, direction: direction + '', dateBegin, dateEnd }
+      { schema: SCHEMA, routeId, direction: direction + '', date }
     )
 
     return this.getBatched(query)
@@ -342,6 +337,9 @@ SELECT stop.stop_id,
        route_segment.next_stop_id,
        route_segment.timing_stop_type,
        route.originstop_id,
+       route.destination_fi,
+       route.origin_fi,
+       route.name_fi,
        line.line_id,
        mode.mode
 FROM :schema:.stop stop
@@ -349,41 +347,28 @@ FROM :schema:.stop stop
      :schema:.route_segment_route(route_segment, :date) route,
      :schema:.route_mode(route) mode,
      :schema:.route_line(route) line
-WHERE stop.stop_id = :stopId;`,
-      { schema: SCHEMA, stopId, date }
+WHERE route_segment.route_id = :routeId
+  AND route_segment.direction = :direction;`,
+      { schema: SCHEMA, routeId, direction: direction + '', date }
     )
 
     return this.getCachedAndBatched(query, ONE_DAY)
   }
 
   async getDepartureData(routeId, direction, date): Promise<JourneyRouteData> {
-    const availableRoutes = await this.getRouteIndex(routeId, direction)
+    const stops = await this.getJourneyStops(routeId, direction, date)
 
-    if (!availableRoutes || availableRoutes.length === 0) {
-      return { route: null, departures: [] }
+    if (!stops || stops.length === 0) {
+      return { stops: [], departures: [] }
     }
 
-    const validRoutes = filterByDateChains<JoreRoute>([availableRoutes], date)
-
-    if (validRoutes.length === 0) {
-      return { route: null, departures: [] }
-    }
-
-    const route = validRoutes[0]
-
-    const departures = await this.getJourneyDepartures(
-      route.route_id,
-      route.direction,
-      route.date_begin,
-      route.date_end,
-      date
-    )
+    const departures = await this.getJourneyDepartures(routeId, direction, date)
 
     if (departures.length === 0) {
-      return { route, departures: [] }
+      return { stops, departures: [] }
     }
 
-    return { route, departures }
+    return { stops, departures }
   }
 
   async getDepartureStops(stopId, date): Promise<JoreStopSegment[]> {
