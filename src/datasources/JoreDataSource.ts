@@ -240,33 +240,6 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
     return this.getCachedAndBatched(query, 60)
   }
 
-  async getRouteIndex(routeId: string, direction: Direction): Promise<JoreRoute[]> {
-    const query = this.db.raw(
-      `
-      SELECT
-        route.route_id,
-        line.line_id,
-        route.direction,
-        route.destination_fi,
-        route.origin_fi,
-        route.originstop_id,
-        route.destinationstop_id,
-        route.name_fi,
-        route.date_begin,
-        route.date_end,
-        mode.mode
-      FROM :schema:.route route,
-           :schema:.route_mode(route) mode,
-           :schema:.route_line(route) line
-      WHERE route.route_id = :routeId
-        AND route.direction = :direction;
-      `,
-      { schema: SCHEMA, routeId, direction: direction + '' }
-    )
-
-    return this.getCachedAndBatched(query, ONE_DAY)
-  }
-
   async getJourneyDepartures(
     routeId: string,
     direction: Direction,

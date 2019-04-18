@@ -13,7 +13,7 @@ export function filterByDate<ItemType extends ValidityRange>(
   }
 
   const newestItem = first(
-    orderBy<ItemType>(validItems, ['date_begin', 'date_end'], ['desc', 'desc'])
+    orderBy<ItemType>(validItems, ['date_begin', 'date_end'], ['desc', 'asc'])
   )
 
   return newestItem ? [newestItem] : []

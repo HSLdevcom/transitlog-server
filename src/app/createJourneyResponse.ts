@@ -87,8 +87,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(
     groupBy(
       departures,
-      ({ stop_id, departure_id, hours, minutes, day_type, is_next_day, extra_departure }) =>
-        `${is_next_day}_${departure_id}_${stop_id}_${hours}_${minutes}_${day_type}_${extra_departure}`
+      ({ departure_id, stop_id, day_type, extra_departure }) =>
+        `${departure_id}_${stop_id}_${day_type}_${extra_departure}`
     ),
     date
   )
@@ -96,12 +96,12 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
-  const originDepartures = validDepartures.filter(
+  const originDeparture = validDepartures.find(
     (departure) =>
       getDepartureTime(departure) === time && departure.stop_id === journeyRouteObject.originStopId
   )
 
-  if (originDepartures.length === 0) {
+  if (!originDeparture) {
     return { route: journeyRouteObject, departures: [] }
   }
 
@@ -112,19 +112,11 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
     return { route: journeyRouteObject, departures: [] }
   }
 
-  let journeyDepartures = validDepartures.filter((departure) =>
-    originDepartures.some(
-      ({ day_type, departure_id }) =>
-        departure.departure_id === departure_id && departure.day_type === day_type
-    )
+  const journeyDepartures = validDepartures.filter(
+    (departure) =>
+      originDeparture.day_type === departure.day_type &&
+      originDeparture.departure_id === departure.departure_id
   )
-
-  journeyDepartures = uniqBy(
-    journeyDepartures,
-    ({ hours, minutes, stop_id }) => `${hours}_${minutes}_${stop_id}`
-  )
-
-  console.log(journeyDepartures.length)
 
   const stopDepartures = journeyDepartures.map((departure) => {
     const stopSegment = validStops.find(
@@ -134,7 +126,6 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
         getDirection(stopSegment.direction) === getDirection(departure.direction)
     )
 
-    // The departures are then converted to objects native to this domain.
     const stop = stopSegment ? createRouteSegmentObject(stopSegment) : null
     return createPlannedDepartureObject(departure, stop, date)
   })

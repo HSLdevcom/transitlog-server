@@ -144,11 +144,11 @@ export const createWeekDeparturesResponse = async (
     // Group and validate departures with date chains.
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
       departures,
-      ({ hours, minutes, extra_departure, day_type }) =>
+      ({ departure_id, extra_departure, day_type }) =>
         // Careful with this group key. You want to group departures that are the same but have different
         // validity times without including any items that shouldn't be included or excluding any items
         // that should be included.
-        `${hours}:${minutes}_${extra_departure}_${day_type}`
+        `${departure_id}_${extra_departure}_${day_type}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
     const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
