@@ -33,6 +33,7 @@ export type JourneyRouteData = {
  * Fetch the journey events and filter out the invalid ones.
  * The value from this function is not cached, but it could be.
  * @param fetcher async function that fetches the journey events
+ * @param uniqueVehicleId string that identifies the requested vehicle
  * @returns Promise<Vehicles[]> the filtered events
  */
 const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher, uniqueVehicleId) => {
@@ -83,17 +84,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(
     groupBy(
       departures,
-      ({
-        stop_id,
-        stop_index,
-        departure_id,
-        hours,
-        minutes,
-        day_type,
-        is_next_day,
-        extra_departure,
-      }) =>
-        `${is_next_day}_${stop_id}_${stop_index}_${departure_id}_${hours}_${minutes}_${day_type}_${extra_departure}`
+      ({ stop_id, departure_id, hours, minutes, day_type, is_next_day, extra_departure }) =>
+        `${is_next_day}_${stop_id}_${departure_id}_${hours}_${minutes}_${day_type}_${extra_departure}`
     ),
     date
   )
@@ -110,10 +102,10 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
     return { route: journeyRouteObject, departures: [] }
   }
 
-  const originStartTimes = originDepartures.map(({ departure_id }) => departure_id)
+  const originDepartureIds = originDepartures.map(({ departure_id }) => departure_id)
 
   let journeyDepartures = validDepartures.filter((departure) =>
-    originStartTimes.includes(departure.departure_id)
+    originDepartureIds.includes(departure.departure_id)
   )
 
   journeyDepartures = uniqBy(
