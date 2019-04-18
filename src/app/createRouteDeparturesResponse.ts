@@ -72,7 +72,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
 
       return {
         ...departure,
-        id: departure.id.slice(0, -1) + index,
+        id: index > 0 ? departure.id + '_' + index : departure.id,
         journey: departureJourney,
         observedArrivalTime: null,
         observedDepartureTime: stopDeparture,
@@ -135,11 +135,8 @@ export async function createRouteDeparturesResponse(
     // Group and validate departures with date chains.
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
       departures,
-      ({ hours, minutes, extra_departure, day_type }) =>
-        // Careful with this group key. You want to group departures that are the same but have different
-        // validity times without including any items that shouldn't be included or excluding any items
-        // that should be included.
-        `${hours}:${minutes}_${extra_departure}_${day_type}`
+      ({ departure_id, day_type, extra_departure }) =>
+        `${departure_id}_${day_type}_${extra_departure}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
     let validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
