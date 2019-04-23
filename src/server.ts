@@ -18,6 +18,9 @@ import { HFPDataSource } from './datasources/HFPDataSource'
 import authEndpoints from './auth/authEndpoints'
 import { checkAccessMiddleware } from './auth/authService'
 
+const ORIGIN = process.env.REDIRECT_URI
+const SECURE_COOKIE = process.env.SECURE_COOKIE === 'true'
+
 const server = new ApolloServer({
   typeDefs: schema,
   resolvers,
@@ -32,7 +35,7 @@ const app = express()
 app.use(
   cors({
     credentials: true,
-    origin: 'http://localhost:3000',
+    origin: ORIGIN,
   })
 )
 
@@ -44,7 +47,7 @@ app.use(
     resave: true,
     saveUninitialized: true,
     cookie: {
-      secure: false, // TODO: set true when on https
+      secure: SECURE_COOKIE, // TODO: set true when on https
       maxAge: 3600000,
       sameSite: true,
     },
@@ -52,8 +55,7 @@ app.use(
 )
 
 app.use(checkAccessMiddleware)
-
-server.applyMiddleware({ app })
+server.applyMiddleware({ app, cors: { credentials: true, origin: ORIGIN } })
 
 app.post('/login', function(req, res) {
   authEndpoints.authorize(req, res)
