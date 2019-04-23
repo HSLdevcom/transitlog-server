@@ -312,7 +312,6 @@ SELECT stop.stop_id,
        route.originstop_id,
        route.destination_fi,
        route.origin_fi,
-       route.name_fi,
        line.line_id,
        mode.mode
 FROM :schema:.stop stop
