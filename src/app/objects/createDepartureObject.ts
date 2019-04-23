@@ -91,7 +91,7 @@ export function createPlannedDepartureObject(
 
   return {
     id: departureId,
-    stopId: get(departure, 'stop_id', get(stop, 'stop_id', '')),
+    stopId: get(departure, 'stop_id', get(stop, 'stopId', '')),
     dayType: departure.day_type,
     equipmentType: departure.equipment_type,
     equipmentIsRequired: !!departure.equipment_required,
@@ -104,8 +104,8 @@ export function createPlannedDepartureObject(
     departureId: departure.departure_id,
     extraDeparture: departure.extra_departure,
     isNextDay: departure.is_next_day,
-    isTimingStop: !!get(departure, 'timing_stop_type', false) || false,
-    index: get(departure, 'stop_index', 0),
+    isTimingStop: !!get(stop, 'isTimingStop', false) || false,
+    index: get(departure, 'stopIndex', 0),
     mode: get(stop, 'modes[0]', Mode.Bus),
     stop,
     journey: null,
