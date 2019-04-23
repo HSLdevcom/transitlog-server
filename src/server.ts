@@ -16,6 +16,7 @@ import { resolvers } from './resolvers/'
 import { JoreDataSource } from './datasources/JoreDataSource'
 import { HFPDataSource } from './datasources/HFPDataSource'
 import authEndpoints from './auth/authEndpoints'
+import { checkAccessMiddleware } from './auth/authService'
 
 const server = new ApolloServer({
   typeDefs: schema,
@@ -44,11 +45,13 @@ app.use(
     saveUninitialized: true,
     cookie: {
       secure: false, // TODO: set true when on https
-      maxAge: 3600000, // ms
-      sameSite: true, // Needed for keeping session as the same when receiving new requests
+      maxAge: 3600000,
+      sameSite: true,
     },
   })
 )
+
+app.use(checkAccessMiddleware)
 
 server.applyMiddleware({ app })
 
@@ -56,7 +59,7 @@ app.post('/login', function(req, res) {
   authEndpoints.authorize(req, res)
 })
 
-app.get('/existingSession', function(req, res) {
+app.get('/session', function(req, res) {
   authEndpoints.checkExistingSession(req, res)
 })
 

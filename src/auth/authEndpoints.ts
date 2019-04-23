@@ -46,11 +46,9 @@ const checkExistingSession = async (req: express.Request, res: express.Response)
       isOk: true,
       email: req.session.email,
     }
-    console.log(req.session)
     res.status(200).json(response)
     return
   }
-  console.log('No existing session')
   const response: IAuthResponse = {
     isOk: false,
   }
