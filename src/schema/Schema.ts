@@ -61,5 +61,6 @@ export const Schema = gql`
       date: Date!
       filters: AreaEventsFilterInput
     ): [AreaJourney]!
+    disruptions: [Disruption]!
   }
 `

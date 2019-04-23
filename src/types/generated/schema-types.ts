@@ -124,6 +124,8 @@ export interface Query {
   vehicleJourneys: Array<Maybe<VehicleJourney>>
 
   eventsByBbox: Array<Maybe<AreaJourney>>
+
+  disruptions: Array<Maybe<Disruption>>
 }
 
 export interface Equipment {
@@ -564,6 +566,38 @@ export interface AreaJourney {
   mode?: Maybe<string>
 
   events: Array<Maybe<JourneyEvent>>
+}
+
+export interface Disruption {
+  id: string
+
+  affectedType: string
+
+  affectedId: string
+
+  direction?: Maybe<Direction>
+
+  startDateTime: DateTime
+
+  endDateTime: DateTime
+
+  title: string
+
+  description: string
+}
+
+export interface Cancellation {
+  id: string
+
+  routeId: string
+
+  direction: Direction
+
+  departureDate: Date
+
+  journeyStartTime: Time
+
+  reason?: Maybe<string>
 }
 
 // ====================================================

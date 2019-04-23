@@ -149,6 +149,8 @@ export namespace QueryResolvers {
     vehicleJourneys?: VehicleJourneysResolver<Array<Maybe<VehicleJourney>>, TypeParent, TContext>
 
     eventsByBbox?: EventsByBboxResolver<Array<Maybe<AreaJourney>>, TypeParent, TContext>
+
+    disruptions?: DisruptionsResolver<Array<Maybe<Disruption>>, TypeParent, TContext>
   }
 
   export type EquipmentResolver<R = Array<Maybe<Equipment>>, Parent = {}, TContext = {}> = Resolver<
@@ -375,6 +377,12 @@ export namespace QueryResolvers {
 
     filters?: Maybe<AreaEventsFilterInput>
   }
+
+  export type DisruptionsResolver<
+    R = Array<Maybe<Disruption>>,
+    Parent = {},
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 export namespace EquipmentResolvers {
@@ -1865,6 +1873,114 @@ export namespace AreaJourneyResolvers {
   > = Resolver<R, Parent, TContext>
 }
 
+export namespace DisruptionResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = Disruption> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    affectedType?: AffectedTypeResolver<string, TypeParent, TContext>
+
+    affectedId?: AffectedIdResolver<string, TypeParent, TContext>
+
+    direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
+
+    startDateTime?: StartDateTimeResolver<DateTime, TypeParent, TContext>
+
+    endDateTime?: EndDateTimeResolver<DateTime, TypeParent, TContext>
+
+    title?: TitleResolver<string, TypeParent, TContext>
+
+    description?: DescriptionResolver<string, TypeParent, TContext>
+  }
+
+  export type IdResolver<R = string, Parent = Disruption, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type AffectedTypeResolver<R = string, Parent = Disruption, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type AffectedIdResolver<R = string, Parent = Disruption, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DirectionResolver<
+    R = Maybe<Direction>,
+    Parent = Disruption,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type StartDateTimeResolver<R = DateTime, Parent = Disruption, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type EndDateTimeResolver<R = DateTime, Parent = Disruption, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type TitleResolver<R = string, Parent = Disruption, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DescriptionResolver<R = string, Parent = Disruption, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
+export namespace CancellationResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = Cancellation> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    routeId?: RouteIdResolver<string, TypeParent, TContext>
+
+    direction?: DirectionResolver<Direction, TypeParent, TContext>
+
+    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
+
+    journeyStartTime?: JourneyStartTimeResolver<Time, TypeParent, TContext>
+
+    reason?: ReasonResolver<Maybe<string>, TypeParent, TContext>
+  }
+
+  export type IdResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type RouteIdResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DirectionResolver<R = Direction, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DepartureDateResolver<R = Date, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type JourneyStartTimeResolver<R = Time, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ReasonResolver<R = Maybe<string>, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
 /** Any object that describes something with a position implements this interface. */
 export namespace PositionResolvers {
   export interface Resolvers {
@@ -1960,6 +2076,8 @@ export type IResolvers<TContext = {}> = {
   Journey?: JourneyResolvers.Resolvers<TContext>
   VehicleJourney?: VehicleJourneyResolvers.Resolvers<TContext>
   AreaJourney?: AreaJourneyResolvers.Resolvers<TContext>
+  Disruption?: DisruptionResolvers.Resolvers<TContext>
+  Cancellation?: CancellationResolvers.Resolvers<TContext>
   Position?: PositionResolvers.Resolvers
   Date?: GraphQLScalarType
   Direction?: GraphQLScalarType
