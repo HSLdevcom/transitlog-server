@@ -19,7 +19,7 @@ class SQLDataSource extends DataSource {
 
     if (DEBUG && !hasLogger) {
       hasLogger = true // Prevent duplicate loggers
-      // knexTinyLogger(this.db) // Add a logging utility for debugging
+      knexTinyLogger(this.db) // Add a logging utility for debugging
     }
 
     this.sqlCache = new SQLCache(config.cache, this.knex)
