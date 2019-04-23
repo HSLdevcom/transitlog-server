@@ -35,8 +35,8 @@ export const Journey = gql`
     name: String
     mode: String
     equipment: Equipment
-    events: [JourneyEvent!]
-    departures: [Departure!]
+    events: [JourneyEvent!]!
+    departures: [Departure!]!
   }
 
   type VehicleJourney {

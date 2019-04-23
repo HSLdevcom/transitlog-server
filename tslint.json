@@ -25,10 +25,11 @@
     "jsx-no-lambda": false,
     "jsx-no-multiline-js": false,
     "jsx-boolean-value": false,
-    "no-shadowed-variable": true,
+    "no-shadowed-variable": false,
     "no-empty": false,
     "prefer-conditional-expression": false,
     "prefer-const": [true, { "destructuring": "all" }],
+    "member-ordering": false,
     "prettier": [true, ".prettierrc"]
   }
 }

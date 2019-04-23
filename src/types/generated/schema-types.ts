@@ -111,6 +111,10 @@ export interface Query {
 
   departures: Array<Maybe<Departure>>
 
+  routeDepartures: Array<Maybe<Departure>>
+
+  weeklyDepartures: Array<Maybe<Departure>>
+
   exceptionDays: Array<Maybe<ExceptionDay>>
 
   journey?: Maybe<Journey>
@@ -230,6 +234,8 @@ export interface Route {
 
 export interface RouteGeometry {
   id: string
+
+  mode?: Maybe<string>
 
   coordinates: RouteGeometryPoint[]
 }
@@ -491,9 +497,9 @@ export interface Journey {
 
   equipment?: Maybe<Equipment>
 
-  events?: Maybe<JourneyEvent[]>
+  events: JourneyEvent[]
 
-  departures?: Maybe<Departure[]>
+  departures: Departure[]
 }
 
 export interface VehicleJourney {
@@ -621,6 +627,24 @@ export interface DeparturesQueryArgs {
   filter?: Maybe<DepartureFilterInput>
 
   stopId: string
+
+  date: Date
+}
+export interface RouteDeparturesQueryArgs {
+  stopId: string
+
+  routeId: string
+
+  direction: Direction
+
+  date: Date
+}
+export interface WeeklyDeparturesQueryArgs {
+  stopId: string
+
+  routeId: string
+
+  direction: Direction
 
   date: Date
 }

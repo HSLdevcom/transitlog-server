@@ -24,6 +24,7 @@ export interface PlannedDeparture {
   isNextDay?: Maybe<boolean>
   isTimingStop?: Maybe<boolean>
   index?: Maybe<number>
+  mode?: Maybe<string>
   stop: RouteSegment | null
   journey: DepartureJourney | null
   originDepartureTime?: PlannedDepartureTime | null

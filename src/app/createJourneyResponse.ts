@@ -1,4 +1,4 @@
-import { JoreRouteDepartureData, JoreEquipment, JoreRoute } from '../types/Jore'
+import { JoreRouteDepartureData, JoreEquipment, JoreRoute, JoreStopSegment } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
@@ -18,6 +18,7 @@ import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 import { journeyInProgress } from '../utils/journeyInProgress'
+import { getDirection } from '../utils/getDirection'
 
 type JourneyRoute = {
   route: Route
@@ -25,14 +26,15 @@ type JourneyRoute = {
 }
 
 export type JourneyRouteData = {
-  route: JoreRoute | null
   departures: JoreRouteDepartureData[]
+  stops: JoreStopSegment[]
 }
 
 /**
  * Fetch the journey events and filter out the invalid ones.
  * The value from this function is not cached, but it could be.
  * @param fetcher async function that fetches the journey events
+ * @param uniqueVehicleId string that identifies the requested vehicle
  * @returns Promise<Vehicles[]> the filtered events
  */
 const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher, uniqueVehicleId) => {
@@ -73,18 +75,20 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher, uniqu
 const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date, time) => {
   const journeyRoute: JourneyRouteData = await fetcher()
 
-  if (!journeyRoute.route || journeyRoute.departures.length === 0) {
+  if (journeyRoute.departures.length === 0 || journeyRoute.stops.length === 0) {
     return false
   }
 
-  const journeyRouteObject = createRouteObject(journeyRoute.route)
   const departures: JoreRouteDepartureData[] = get(journeyRoute, 'departures', []) || []
+  const stops: JoreStopSegment[] = get(journeyRoute, 'stops', []) || []
+  // A stop segment contains all necessary info for the route
+  const journeyRouteObject = createRouteObject(stops[0])
 
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(
     groupBy(
       departures,
-      ({ stop_id, stop_index, departure_id, hours, minutes, day_type, extra_departure }) =>
-        '' + stop_id + stop_index + departure_id + hours + minutes + day_type + extra_departure
+      ({ departure_id, stop_id, day_type, extra_departure }) =>
+        `${departure_id}_${stop_id}_${day_type}_${extra_departure}`
     ),
     date
   )
@@ -92,32 +96,37 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
-  const originDepartures =
-    validDepartures.filter((departure) => {
-      if (departure.stop_index !== 1) {
-        return false
-      }
-      return getDepartureTime(departure) === time
-    }) || []
+  const originDeparture = validDepartures.find(
+    (departure) =>
+      getDepartureTime(departure) === time && departure.stop_id === journeyRouteObject.originStopId
+  )
 
-  if (originDepartures.length === 0) {
+  if (!originDeparture) {
     return { route: journeyRouteObject, departures: [] }
   }
 
-  const originStartTimes = originDepartures.map(({ departure_id }) => departure_id)
+  const stopSegmentGroups = groupBy(stops, 'stop_index')
+  const validStops = filterByDateChains<JoreStopSegment>(stopSegmentGroups, date)
 
-  let journeyDepartures = validDepartures.filter((departure) =>
-    originStartTimes.includes(departure.departure_id)
-  )
+  if (validStops.length === 0) {
+    return { route: journeyRouteObject, departures: [] }
+  }
 
-  journeyDepartures = uniqBy(
-    journeyDepartures,
-    ({ hours, minutes, stop_id }) => hours + minutes + stop_id
+  const journeyDepartures = validDepartures.filter(
+    (departure) =>
+      originDeparture.day_type === departure.day_type &&
+      originDeparture.departure_id === departure.departure_id
   )
 
   const stopDepartures = journeyDepartures.map((departure) => {
-    // The departures are then converted to objects native to this domain.
-    const stop = createRouteSegmentObject(departure, journeyRoute.route)
+    const stopSegment = validStops.find(
+      (stopSegment) =>
+        stopSegment.stop_id === departure.stop_id &&
+        stopSegment.route_id === departure.route_id &&
+        getDirection(stopSegment.direction) === getDirection(departure.direction)
+    )
+
+    const stop = stopSegment ? createRouteSegmentObject(stopSegment) : null
     return createPlannedDepartureObject(departure, stop, date)
   })
 
@@ -194,7 +203,6 @@ export async function createJourneyResponse(
         if (journeyInProgress(data)) {
           return 2
         }
-
         return 5 * 60
       }
     )

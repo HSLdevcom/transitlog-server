@@ -1,12 +1,31 @@
 import { get } from 'lodash'
 import { Departure, DepartureFilterInput } from '../../types/generated/schema-types'
+import { getDirection } from '../../utils/getDirection'
 
 export function filterDepartures(departures: Departure[], filter?: DepartureFilterInput) {
-  const routeFilter = get(filter, 'routeId', '')
+  const routeFilter =
+    (get(filter, 'routeId', '') || '').replace(/^0+/, '').toLowerCase() || undefined
+  const directionFilter = getDirection(get(filter, 'direction')) || undefined
   const min: number = get(filter, 'minHour', -1) || -1
   const max: number = get(filter, 'maxHour', -1) || -1
 
-  return departures.filter(({ routeId, plannedDepartureTime }) => {
+  if (min === -1 && max === -1 && !routeFilter && !directionFilter) {
+    return departures
+  }
+
+  return departures.filter(({ routeId, direction, plannedDepartureTime }) => {
+    const routeIdFilterTerm = routeId.replace(/^0+/, '').toLowerCase()
+    const directionFilterTerm = getDirection(direction)
+
+    // Filter by route id if filter is set.
+    if (routeFilter && routeIdFilterTerm !== routeFilter) {
+      return false
+    }
+
+    if (directionFilter && directionFilterTerm !== directionFilter) {
+      return false
+    }
+
     const departureTime = get(plannedDepartureTime, 'departureTime', '')
     const hours = parseInt(departureTime.split(':')[0], 10)
 
@@ -16,13 +35,6 @@ export function filterDepartures(departures: Departure[], filter?: DepartureFilt
       if ((min > -1 && hours < min) || (max > -1 && hours > max)) {
         return false
       }
-    }
-
-    const routeIdFilterTerm = routeId.replace(/^0+/, '').toLowerCase()
-
-    // Filer by route id if filter is set.
-    if (routeFilter && !routeIdFilterTerm.includes(routeFilter.toLowerCase())) {
-      return false
     }
 
     return true

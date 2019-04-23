@@ -10,8 +10,13 @@ import {
   ROUTE_JOURNEY_EVENTS_QUERY,
   VEHICLE_JOURNEYS_QUERY,
 } from '../queries/journeyQueries'
-import { DEPARTURE_EVENTS_QUERY } from '../queries/departureQueries'
+import {
+  DEPARTURE_EVENTS_QUERY,
+  ROUTE_DEPARTURES_EVENTS_QUERY,
+  ROUTE_WEEK_DEPARTURES_EVENTS_QUERY,
+} from '../queries/departureQueries'
 import { getNormalTime, isNextDay } from '../utils/time'
+import { Direction } from '../types/generated/schema-types'
 
 export class HFPDataSource extends GraphQLDataSource {
   baseURL = HFP_URL
@@ -104,6 +109,46 @@ export class HFPDataSource extends GraphQLDataSource {
       variables: {
         stopId,
         date,
+      },
+    })
+
+    return get(response, 'data.vehicles', [])
+  }
+
+  async getRouteDepartureEvents(
+    stopId: string,
+    date: string,
+    routeId: string,
+    direction: Direction
+  ) {
+    const response = await this.query(ROUTE_DEPARTURES_EVENTS_QUERY, {
+      variables: {
+        stopId,
+        date,
+        routeId,
+        direction,
+      },
+    })
+
+    return get(response, 'data.vehicles', [])
+  }
+
+  async getWeeklyDepartureEvents(
+    stopId: string,
+    date: string,
+    routeId: string,
+    direction: Direction
+  ) {
+    const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
+    const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
+
+    const response = await this.query(ROUTE_WEEK_DEPARTURES_EVENTS_QUERY, {
+      variables: {
+        stopId,
+        minDate: minDateMoment.format('YYYY-MM-DD'),
+        maxDate: maxDateMoment.format('YYYY-MM-DD'),
+        routeId,
+        direction,
       },
     })
 

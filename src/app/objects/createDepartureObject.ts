@@ -23,7 +23,9 @@ import { get } from 'lodash'
 export function createDepartureId(departure) {
   return `${departure.route_id}_${departure.direction}_${departure.hours}_${departure.minutes}_${
     departure.stop_id
-  }_${departure.day_type}_${departure.extra_departure}`
+  }_${departure.day_type}_${departure.extra_departure}_${departure.date_begin}_${
+    departure.date_end
+  }`
 }
 
 export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): PlannedArrival {
@@ -89,7 +91,7 @@ export function createPlannedDepartureObject(
 
   return {
     id: departureId,
-    stopId: departure.stop_id,
+    stopId: get(departure, 'stop_id', get(stop, 'stop_id', '')),
     dayType: departure.day_type,
     equipmentType: departure.equipment_type,
     equipmentIsRequired: !!departure.equipment_required,
@@ -104,6 +106,7 @@ export function createPlannedDepartureObject(
     isNextDay: departure.is_next_day,
     isTimingStop: !!get(departure, 'timing_stop_type', false) || false,
     index: get(departure, 'stop_index', 0),
+    mode: get(stop, 'modes[0]', Mode.Bus),
     stop,
     journey: null,
     originDepartureTime: departure.origin_departure
