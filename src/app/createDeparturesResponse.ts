@@ -1,12 +1,11 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
+import { flatten, get, groupBy, orderBy, uniqBy, compact } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import { Departure, DepartureFilterInput, RouteSegment } from '../types/generated/schema-types'
 import { Vehicles } from '../types/generated/hfp-types'
 import { cacheFetch } from './cache'
 import {
-  createDepartureId,
   createDepartureJourneyObject,
   createPlannedDepartureObject,
 } from './objects/createDepartureObject'
@@ -19,7 +18,6 @@ import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { Dictionary } from '../types/Dictionary'
 import { isToday } from 'date-fns'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 
 /*
   Common functions for route departures and stop departures.
@@ -79,9 +77,9 @@ export const fetchEvents: CachedFetcher<Vehicles[]> = async (getEvents) => {
   return events
 }
 
-// Combines departures and stops into PlannedDepartures.
-export const combineDeparturesAndStops = (departures, stops, date): PlannedDeparture[] => {
-  return departures.map((departure) => {
+// Combines departures and stops into Departures.
+export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
+  const departuresWithStops = departures.map((departure) => {
     // Find a relevant stop segment and use it in the departure response.
     const stop = stops.find((stopSegment) => {
       return (
@@ -89,6 +87,10 @@ export const combineDeparturesAndStops = (departures, stops, date): PlannedDepar
         stopSegment.direction === getDirection(departure.direction)
       )
     })
+
+    if (!stop) {
+      return null
+    }
 
     departure.origin_departure = {
       hours: departure.origin_hours || 0,
@@ -102,8 +104,10 @@ export const combineDeparturesAndStops = (departures, stops, date): PlannedDepar
       direction: departure.direction,
     }
 
-    return createPlannedDepartureObject(departure, stop || null, date)
+    return createPlannedDepartureObject(departure, stop, date)
   })
+
+  return compact(departuresWithStops)
 }
 
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {

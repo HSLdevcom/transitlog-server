@@ -13,10 +13,9 @@ import {
 } from './objects/createDepartureObject'
 import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
-import { get, groupBy, orderBy } from 'lodash'
+import { get, groupBy, orderBy, compact } from 'lodash'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { fetchEvents, fetchStops } from './createDeparturesResponse'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
@@ -87,10 +86,21 @@ export const combineDeparturesAndStops = (
   departures: JoreDeparture[],
   stops,
   date
-): PlannedDeparture[] => {
+): Departure[] => {
   const weekStart = moment.tz(date, TZ).startOf('isoWeek')
 
-  return departures.map((departure) => {
+  const departuresWithStops = departures.map((departure) => {
+    // Find a relevant stop segment and use it in the departure response.
+    const stop = stops.find(
+      (stopSegment) =>
+        stopSegment.routeId === departure.route_id &&
+        stopSegment.direction === getDirection(departure.direction)
+    )
+
+    if (!stop) {
+      return null
+    }
+
     // Get the real date of this departure from within the selected week.
     const weekDayIndex = dayTypes.indexOf(departure.day_type)
 
@@ -99,14 +109,10 @@ export const combineDeparturesAndStops = (
       .add(weekDayIndex, 'days')
       .format('YYYY-MM-DD')
 
-    // Find a relevant stop segment and use it in the departure response.
-    const stop = stops.find(
-      (stopSegment) =>
-        stopSegment.routeId === departure.route_id &&
-        stopSegment.direction === getDirection(departure.direction)
-    )
-    return createPlannedDepartureObject(departure, stop || null, departureDate)
+    return createPlannedDepartureObject(departure, stop, departureDate)
   })
+
+  return compact(departuresWithStops)
 }
 
 export const createWeekDeparturesResponse = async (

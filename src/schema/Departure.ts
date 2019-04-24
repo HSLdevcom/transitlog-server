@@ -62,17 +62,18 @@ export const Departure = gql`
     direction: Direction!
     terminalTime: Int
     recoveryTime: Int
-    departureId: Int
-    extraDeparture: String
-    isNextDay: Boolean
-    isTimingStop: Boolean
+    departureId: Int!
+    extraDeparture: String!
+    isNextDay: Boolean!
+    isTimingStop: Boolean!
     index: Int
-    mode: String
-    stop: RouteSegment
+    mode: String!
+    stop: RouteSegment!
     journey: DepartureJourney
-    plannedArrivalTime: PlannedArrival
+    originDepartureTime: PlannedDeparture
+    plannedArrivalTime: PlannedArrival!
     observedArrivalTime: ObservedArrival
-    plannedDepartureTime: PlannedDeparture
+    plannedDepartureTime: PlannedDeparture!
     observedDepartureTime: ObservedDeparture
   }
 

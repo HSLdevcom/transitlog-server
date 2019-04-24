@@ -1,15 +1,14 @@
-import { JoreRouteDepartureData, JoreEquipment, JoreRoute, JoreStopSegment } from '../types/Jore'
+import { JoreRouteDepartureData, JoreEquipment, JoreStopSegment } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, last, uniqBy } from 'lodash'
+import { get, groupBy, last, compact } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createPlannedDepartureObject } from './objects/createDepartureObject'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { createRouteObject } from './objects/createRouteObject'
@@ -22,7 +21,7 @@ import { getDirection } from '../utils/getDirection'
 
 type JourneyRoute = {
   route: Route
-  departures: PlannedDeparture[]
+  departures: Departure[]
 }
 
 export type JourneyRouteData = {
@@ -126,13 +125,17 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
         getDirection(stopSegment.direction) === getDirection(departure.direction)
     )
 
-    const stop = stopSegment ? createRouteSegmentObject(stopSegment) : null
+    if (!stopSegment) {
+      return null
+    }
+
+    const stop = createRouteSegmentObject(stopSegment)
     return createPlannedDepartureObject(departure, stop, date)
   })
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
-  return { route: journeyRouteObject, departures: stopDepartures }
+  return { route: journeyRouteObject, departures: compact(stopDepartures) }
 }
 
 /**
@@ -241,7 +244,7 @@ export async function createJourneyResponse(
     // Add observed data to the departures. Each stop is given a pile of events from which
     // arrival and departure times for the stop is parsed.
     const observedDepartures: Departure[] = departures.map(
-      (departure: PlannedDeparture): Departure => {
+      (departure: Departure): Departure => {
         // To get the events for a stop, first get all events with the next_stop_id matching
         // the current stop ID and sort by the timestamp in descending order. The departure
         // event will then be the first element in the array.

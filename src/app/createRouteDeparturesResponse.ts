@@ -1,4 +1,4 @@
-import { flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
+import { flatten, get, groupBy, orderBy, uniqBy, compact } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, RouteSegment } from '../types/generated/schema-types'
@@ -8,7 +8,6 @@ import { Dictionary } from '../types/Dictionary'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { isToday } from 'date-fns'
 import { fetchEvents, fetchStops } from './createDeparturesResponse'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getDirection } from '../utils/getDirection'
 import {
   createDepartureJourneyObject,
@@ -84,8 +83,8 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
 }
 
 // Combines departures and stops into PlannedDepartures.
-export const combineDeparturesAndStops = (departures, stops, date): PlannedDeparture[] => {
-  return departures.map((departure) => {
+export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
+  const departuresAndStops = departures.map((departure) => {
     // Find a relevant stop segment and use it in the departure response.
     const stop = stops.find((stopSegment) => {
       return (
@@ -94,8 +93,14 @@ export const combineDeparturesAndStops = (departures, stops, date): PlannedDepar
       )
     })
 
-    return createPlannedDepartureObject(departure, stop || null, date)
+    if (!stop) {
+      return null
+    }
+
+    return createPlannedDepartureObject(departure, stop, date)
   })
+
+  return compact(departuresAndStops)
 }
 
 /*

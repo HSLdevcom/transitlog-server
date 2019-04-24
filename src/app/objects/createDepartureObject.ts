@@ -6,6 +6,7 @@ import {
   Mode,
 } from '../../types/Jore'
 import {
+  Departure,
   DepartureJourney,
   PlannedArrival,
   PlannedDeparture,
@@ -13,7 +14,6 @@ import {
 } from '../../types/generated/schema-types'
 import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../../utils/time'
 import moment from 'moment-timezone'
-import { PlannedDeparture as PlannedDepartureObject } from '../../types/PlannedDeparture'
 import { TZ } from '../../constants'
 import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
@@ -84,9 +84,9 @@ export function createDepartureJourneyObject(
 
 export function createPlannedDepartureObject(
   departure: JoreRouteDepartureData | JoreDepartureWithOrigin,
-  stop: RouteSegment | null,
+  stop: RouteSegment,
   departureDate: string
-): PlannedDepartureObject {
+): Departure {
   const departureId = createDepartureId(departure)
 
   return {
