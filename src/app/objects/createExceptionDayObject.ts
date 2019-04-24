@@ -9,7 +9,9 @@ export const createExceptionDayObject = (config: JoreExceptionDay | null): Excep
   }
 
   return {
-    id: `exception_day_${config.day_type}_${config.date_in_effect}`,
+    id: `exception_day_${config.day_type}_${
+      config.date_in_effect
+    }_${config.effective_day_types.join('_')}`,
     dayType: config.day_type,
     description: config.description || '',
     exceptionDate: config.date_in_effect,

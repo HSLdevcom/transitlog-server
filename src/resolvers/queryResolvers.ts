@@ -12,6 +12,9 @@ import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
 import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
 import { createWeekDeparturesResponse } from '../app/createWeekDeparturesResponse'
 import { createRouteDeparturesResponse } from '../app/createRouteDeparturesResponse'
+import { addDays, format, startOfISOWeek } from 'date-fns'
+import { flatten, compact } from 'lodash'
+import { getWeekDates } from '../utils/getWeekDates'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -86,8 +89,23 @@ const routeDepartures = (root, { routeId, direction, stopId, date }, { dataSourc
   )
 }
 
-const weeklyDepartures = (root, { routeId, direction, stopId, date }, { dataSources }) => {
-  const getDepartures = () => dataSources.JoreAPI.getWeeklyDepartures(stopId, routeId, direction)
+const weeklyDepartures = async (root, { routeId, direction, stopId, date }, { dataSources }) => {
+  const weekDates = getWeekDates(date)
+
+  const exceptionPromises = weekDates.map((date) =>
+    dataSources.JoreAPI.getExceptions(format(date, 'YYYY-MM-DD'))
+  )
+
+  let exceptionsForWeek = await Promise.all(exceptionPromises)
+  exceptionsForWeek = flatten(exceptionsForWeek)
+
+  const exceptionDayTypes = compact(
+    exceptionsForWeek.map(({ effectiveDayTypes }) => effectiveDayTypes)
+  )
+
+  const getDepartures = () =>
+    dataSources.JoreAPI.getWeeklyDepartures(stopId, routeId, direction, exceptionDayTypes)
+
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
   const getDepartureEvents = () =>
     dataSources.HFPAPI.getWeeklyDepartureEvents(stopId, date, routeId, direction)
@@ -96,6 +114,7 @@ const weeklyDepartures = (root, { routeId, direction, stopId, date }, { dataSour
     getDepartures,
     getStops,
     getDepartureEvents,
+    exceptionsForWeek,
     stopId,
     routeId,
     direction,

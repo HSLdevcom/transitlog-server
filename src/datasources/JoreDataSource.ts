@@ -468,7 +468,14 @@ ORDER BY departure.hours ASC,
     return this.getBatched(query)
   }
 
-  async getWeeklyDepartures(stopId, routeId, direction): Promise<JoreDeparture[]> {
+  async getWeeklyDepartures(
+    stopId,
+    routeId,
+    direction,
+    exceptionDayTypes: string[] = []
+  ): Promise<JoreDeparture[]> {
+    const queryDayTypes = uniq(dayTypes.concat(exceptionDayTypes))
+
     const query = this.db.raw(
       `
 SELECT ${this.departureFields}
@@ -476,7 +483,7 @@ FROM :schema:.departure departure
 WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
-  AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+  AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
 ORDER BY departure.hours ASC,
          departure.minutes ASC;`,
       {
@@ -507,11 +514,7 @@ SELECT ex_day.date_in_effect,
    rep_day.scope,
    rep_day.time_begin,
    rep_day.time_end,
-   CASE
-       WHEN rep_day.replacing_day_type != NULL THEN ARRAY [rep_day.replacing_day_type]
-       WHEN ex_day.exception_day_type != NULL THEN ARRAY [ex_day.exception_day_type]
-       ELSE ARRAY [ex_day.day_type]
-       END effective_day_types
+   ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type] effective_day_types
 FROM :schema:.exception_days_calendar ex_day
      LEFT OUTER JOIN :schema:.exception_days ex_desc
                      ON ex_day.exception_day_type = ex_desc.exception_day_type

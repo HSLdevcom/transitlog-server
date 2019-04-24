@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { Departure, RouteSegment } from '../types/generated/schema-types'
+import { Departure, ExceptionDay, RouteSegment } from '../types/generated/schema-types'
 import { cacheFetch } from './cache'
 import { JoreDeparture, JoreDepartureWithOrigin, Mode } from '../types/Jore'
 import { Dictionary } from '../types/Dictionary'
@@ -13,12 +13,13 @@ import {
 } from './objects/createDepartureObject'
 import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
-import { get, groupBy, orderBy, compact } from 'lodash'
+import { get, groupBy, orderBy, compact, uniq, flatten } from 'lodash'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { fetchEvents, fetchStops } from './createDeparturesResponse'
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
+import { filterByExceptions } from '../utils/filterByExceptions'
 
 const combineDeparturesAndEvents = (departures, events): Departure[] => {
   // Link observed events to departures.
@@ -85,6 +86,7 @@ const combineDeparturesAndEvents = (departures, events): Departure[] => {
 export const combineDeparturesAndStops = (
   departures: JoreDeparture[],
   stops,
+  exceptions: ExceptionDay[],
   date
 ): Departure[] => {
   const weekStart = moment.tz(date, TZ).startOf('isoWeek')
@@ -98,27 +100,42 @@ export const combineDeparturesAndStops = (
     )
 
     if (!stop) {
-      return null
+      return [null]
     }
 
     // Get the real date of this departure from within the selected week.
     const weekDayIndex = dayTypes.indexOf(departure.day_type)
+    let departureDates: string[] = []
 
-    const departureDate = weekStart
-      .clone()
-      .add(weekDayIndex, 'days')
-      .format('YYYY-MM-DD')
+    if (weekDayIndex !== -1) {
+      departureDates.push(
+        weekStart
+          .clone()
+          .add(weekDayIndex, 'days')
+          .format('YYYY-MM-DD')
+      )
+    }
 
-    return createPlannedDepartureObject(departure, stop, departureDate)
+    const exceptionDates = exceptions
+      .filter(({ effectiveDayTypes }) => effectiveDayTypes.includes(departure.day_type))
+      .map(({ exceptionDate }) => exceptionDate)
+
+    departureDates = uniq(departureDates.concat(exceptionDates))
+
+    return departureDates.map((departureDate) =>
+      createPlannedDepartureObject(departure, stop, departureDate)
+    )
   })
 
-  return compact(departuresWithStops)
+  const allDepartures = compact(flatten(departuresWithStops))
+  return filterByExceptions(allDepartures, exceptions)
 }
 
 export const createWeekDeparturesResponse = async (
   getDepartures,
   getStops,
   getEvents,
+  exceptions,
   stopId,
   routeId,
   direction,
@@ -158,7 +175,7 @@ export const createWeekDeparturesResponse = async (
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
     const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
-    return combineDeparturesAndStops(validDepartures, stops, date)
+    return combineDeparturesAndStops(validDepartures, stops, exceptions, date)
   }
 
   const createDepartures: CachedFetcher<Departure[]> = async () => {
