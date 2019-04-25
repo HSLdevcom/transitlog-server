@@ -5,14 +5,17 @@ import { createStopResponse, createStopsResponse } from '../app/createStopsRespo
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
-import { createDeparturesResponse } from '../app/createDeparturesResponse'
+import {
+  combineDeparturesAndStops,
+  createDeparturesResponse,
+} from '../app/createDeparturesResponse'
 import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
 import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
 import { createWeekDeparturesResponse } from '../app/createWeekDeparturesResponse'
 import { createRouteDeparturesResponse } from '../app/createRouteDeparturesResponse'
-import { addDays, format, startOfISOWeek } from 'date-fns'
+import { format } from 'date-fns'
 import { flatten, compact } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
 
@@ -63,16 +66,25 @@ const lines = async (root, { filter, date }, { dataSources }) => {
   return createLinesResponse(getLines, date, filter)
 }
 
-const departures = (root, { filter, stopId, date }, { dataSources }) => {
+const departures = async (root, { filter, stopId, date }, { dataSources }) => {
+  const exceptions = await dataSources.JoreAPI.getExceptions(date)
   const getDepartures = () => dataSources.JoreAPI.getDeparturesForStop(stopId, date)
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
   const getDepartureEvents = () => dataSources.HFPAPI.getDepartureEvents(stopId, date)
 
-  return createDeparturesResponse(getDepartures, getStops, getDepartureEvents, stopId, date, filter)
+  return createDeparturesResponse(
+    getDepartures,
+    getStops,
+    getDepartureEvents,
+    exceptions,
+    stopId,
+    date,
+    filter
+  )
 }
 
 const routeDepartures = async (root, { routeId, direction, stopId, date }, { dataSources }) => {
-  const exceptions = await dataSources.JoreAPI.getExceptions(format(date, 'YYYY-MM-DD'))
+  const exceptions = await dataSources.JoreAPI.getExceptions(date)
 
   const getDepartures = () =>
     dataSources.JoreAPI.getDeparturesForRoute(stopId, routeId, direction, date)
@@ -130,6 +142,7 @@ const journey = async (
   { routeId, direction, departureTime, departureDate, uniqueVehicleId },
   { dataSources }
 ) => {
+  const exceptions = await dataSources.JoreAPI.getExceptions(departureDate)
   const getRouteData = () => dataSources.JoreAPI.getDepartureData(routeId, direction, departureDate)
 
   const getJourneyEvents = () =>
@@ -148,6 +161,7 @@ const journey = async (
     getRouteData,
     getJourneyEvents,
     getJourneyEquipment,
+    exceptions,
     routeId,
     direction,
     departureDate,

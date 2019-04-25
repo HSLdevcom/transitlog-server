@@ -1,7 +1,14 @@
 import { JoreRouteDepartureData, JoreEquipment, JoreStopSegment } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
-import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
+import {
+  Departure,
+  Direction,
+  ExceptionDay,
+  Journey,
+  Route,
+  VehicleId,
+} from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { get, groupBy, last, compact, orderBy } from 'lodash'
@@ -18,6 +25,7 @@ import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 import { journeyInProgress } from '../utils/journeyInProgress'
 import { getDirection } from '../utils/getDirection'
+import { filterByExceptions } from '../utils/filterByExceptions'
 
 type JourneyRoute = {
   route: Route
@@ -71,7 +79,12 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher, uniqu
  * @param time The time of the planned departure from the first stop.
  * @returns Promise<JourneyRoute> Includes the route data and the departures.
  */
-const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date, time) => {
+const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
+  fetcher,
+  date,
+  time,
+  exceptions
+) => {
   const journeyRoute: JourneyRouteData = await fetcher()
 
   if (journeyRoute.departures.length === 0 || journeyRoute.stops.length === 0) {
@@ -135,7 +148,10 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
-  return { route: journeyRouteObject, departures: compact(stopDepartures) }
+  return {
+    route: journeyRouteObject,
+    departures: filterByExceptions(compact(stopDepartures), exceptions),
+  }
 }
 
 /**
@@ -144,6 +160,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
  * @param fetchRouteData Async function that fetches the route and departures from Jore
  * @param fetchJourneyEvents Async function that fetches the HFP events
  * @param fetchJourneyEquipment Async function that fetches the equipment that operated this journey.
+ * @param exceptions Exceptions in effect during departureDate
  * @param routeId The route ID of the requested journey
  * @param direction The direction of the requested journey
  * @param departureDate The operation date of the journey
@@ -157,6 +174,7 @@ export async function createJourneyResponse(
     vehicleId: string | number,
     operatorId: string
   ) => Promise<JoreEquipment[]>,
+  exceptions: ExceptionDay[],
   routeId: string,
   direction: Direction,
   departureDate: string,
@@ -220,7 +238,7 @@ export async function createJourneyResponse(
     const routeCacheKey = `journey_route_departures_${journeyKey}`
     const routeAndDepartures = await cacheFetch<JourneyRoute>(
       routeCacheKey,
-      () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
+      () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime, exceptions),
       24 * 60 * 60
     )
 

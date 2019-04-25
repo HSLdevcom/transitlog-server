@@ -2,7 +2,12 @@ import { CachedFetcher } from '../types/CachedFetcher'
 import { flatten, get, groupBy, orderBy, uniqBy, compact } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
-import { Departure, DepartureFilterInput, RouteSegment } from '../types/generated/schema-types'
+import {
+  Departure,
+  DepartureFilterInput,
+  ExceptionDay,
+  RouteSegment,
+} from '../types/generated/schema-types'
 import { Vehicles } from '../types/generated/hfp-types'
 import { cacheFetch } from './cache'
 import {
@@ -18,6 +23,7 @@ import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { Dictionary } from '../types/Dictionary'
 import { isToday } from 'date-fns'
+import { filterByExceptions } from '../utils/filterByExceptions'
 
 /*
   Common functions for route departures and stop departures.
@@ -186,6 +192,7 @@ export async function createDeparturesResponse(
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
   getEvents: () => Promise<Vehicles[]>,
+  exceptions: ExceptionDay[],
   stopId: string,
   date: string,
   filters: DepartureFilterInput
@@ -226,7 +233,7 @@ export async function createDeparturesResponse(
         `${route_id}_${direction}_${extra_departure}_${stop_id}_${hours}:${minutes}`
     )
 
-    return combineDeparturesAndStops(validDepartures, stops, date)
+    return filterByExceptions(combineDeparturesAndStops(validDepartures, stops, date), exceptions)
   }
 
   const createDepartures = async () => {
