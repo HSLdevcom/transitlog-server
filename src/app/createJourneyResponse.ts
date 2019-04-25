@@ -77,6 +77,7 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher, uniqu
  * @param fetcher The async function that fetches the full route data
  * @param date The date during which that the route and departures should be valid.
  * @param time The time of the planned departure from the first stop.
+ * @param exceptions
  * @returns Promise<JourneyRoute> Includes the route data and the departures.
  */
 const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
@@ -150,7 +151,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   // Note that the route is also returned as a domain object.
   return {
     route: journeyRouteObject,
-    departures: filterByExceptions(compact(stopDepartures), exceptions),
+    departures: filterByExceptions(orderBy(compact(stopDepartures), 'index'), exceptions),
   }
 }
 
