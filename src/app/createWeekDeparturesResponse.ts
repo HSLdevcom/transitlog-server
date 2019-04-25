@@ -107,25 +107,36 @@ export const combineDeparturesAndStops = (
       .filter(({ effectiveDayTypes }) => effectiveDayTypes.includes(departure.day_type))
       .map(({ exceptionDate }) => exceptionDate)
 
-    // Get the real date of this departure from within the selected week.
-    const weekDayIndex = dayTypes.indexOf(departure.day_type)
+    const dayTypeHasException = exceptions
+      .map(({ dayType }) => dayType)
+      .includes(departure.day_type)
 
-    if (weekDayIndex !== -1) {
-      const normalDayTypeDate = weekStart
-        .clone()
-        .add(weekDayIndex, 'days')
-        .format('YYYY-MM-DD')
-
-      departureDates.push(normalDayTypeDate)
+    if (departureDates.length === 0 && dayTypeHasException) {
+      return [null]
     }
 
-    return uniq(departureDates).map((departureDate) =>
-      createPlannedDepartureObject(departure, stop, departureDate)
-    )
+    if (!dayTypeHasException) {
+      // Get the real date of this departure from within the selected week.
+      const weekDayIndex = dayTypes.indexOf(departure.day_type)
+
+      if (weekDayIndex !== -1) {
+        const normalDayTypeDate = weekStart
+          .clone()
+          .add(weekDayIndex, 'days')
+          .format('YYYY-MM-DD')
+
+        departureDates.push(normalDayTypeDate)
+      }
+    }
+
+    return uniq(departureDates).map((departureDate) => {
+      return createPlannedDepartureObject(departure, stop, departureDate)
+    })
   })
 
   const allDepartures = compact(flatten(departuresWithStops))
-  return filterByExceptions(allDepartures, exceptions)
+  const filteredDepartures = filterByExceptions(allDepartures, exceptions)
+  return filteredDepartures
 }
 
 export const createWeekDeparturesResponse = async (
