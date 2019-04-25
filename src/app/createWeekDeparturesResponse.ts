@@ -180,7 +180,7 @@ export const createWeekDeparturesResponse = async (
     const departures = await cacheFetch<Departure[]>(
       departuresCacheKey,
       fetchDepartures,
-      1 // 24 * 60 * 60
+      24 * 60 * 60
     )
 
     if (!departures || departures.length === 0) {
@@ -204,7 +204,7 @@ export const createWeekDeparturesResponse = async (
   }
 
   // Cache for 5 minutes
-  const departuresTTL: number = 1 // 5 * 60
+  const departuresTTL: number = 5 * 60
   const cacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}`
   const routeDepartures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
 
