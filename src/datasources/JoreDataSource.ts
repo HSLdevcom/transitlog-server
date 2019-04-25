@@ -474,7 +474,7 @@ ORDER BY departure.hours ASC,
     direction,
     exceptionDayTypes: string[] = []
   ): Promise<JoreDeparture[]> {
-    const queryDayTypes = uniq(dayTypes.concat(exceptionDayTypes))
+    const queryDayTypes = uniq(exceptionDayTypes.concat(dayTypes))
 
     const query = this.db.raw(
       `

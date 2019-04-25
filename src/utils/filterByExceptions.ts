@@ -18,7 +18,7 @@ export const filterByExceptions = (
   const exceptionsByDayType = groupBy(exceptions, 'dayType')
 
   for (const [dayType, dayDepartures] of Object.entries(departuresByDayType)) {
-    // IF there are exceptions for the day type, we can be confident that other departures than
+    // If there are exceptions for the day type, we can be confident that other departures than
     // the normal weekday departures are in effect.
     if (exceptionsByDayType[dayType]) {
       // Figure out which exception or replacing day types are in effect for this dayType.

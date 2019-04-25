@@ -13,17 +13,15 @@ import {
   RouteSegment,
 } from '../../types/generated/schema-types'
 import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../../utils/time'
-import moment from 'moment-timezone'
-import { TZ } from '../../constants'
 import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
 import { get } from 'lodash'
 
-export function createDepartureId(departure) {
+export function createDepartureId(departure, date = '') {
   return `${departure.route_id}_${departure.direction}_${departure.hours}_${departure.minutes}_${
     departure.stop_id
-  }_${departure.day_type}_${departure.extra_departure}_${departure.date_begin}_${
+  }_${departure.day_type}_${departure.extra_departure}_${date}_${departure.date_begin}_${
     departure.date_end
   }`
 }
@@ -33,10 +31,10 @@ export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): 
   const departureId = createDepartureId(departure)
 
   return {
-    id: `pat_${departureId}_${arrivalTime}`, // pat = Planned Arrival Time
+    id: `pat_${departureId}_${arrivalTime}_${date}`, // pat = Planned Arrival Time
     arrivalDate: date,
     arrivalTime,
-    arrivalDateTime: moment.tz(getDateFromDateTime(date, arrivalTime), TZ).toISOString(true),
+    arrivalDateTime: getDateFromDateTime(date, arrivalTime).toISOString(true),
     isNextDay: departure.arrival_is_next_day,
   }
 }
@@ -50,7 +48,7 @@ export function createPlannedDepartureTimeObject(
   const departureDateTime = getDateFromDateTime(date, departureTime).toISOString(true)
 
   return {
-    id: `pdt_${departureId}_${departureTime}`, // pdt = Planned Departure Time
+    id: `pdt_${departureId}_${departureTime}_${date}`, // pdt = Planned Departure Time
     departureDate: date,
     departureTime,
     departureDateTime,
@@ -87,7 +85,7 @@ export function createPlannedDepartureObject(
   stop: RouteSegment,
   departureDate: string
 ): Departure {
-  const departureId = createDepartureId(departure)
+  const departureId = createDepartureId(departure, departureDate)
 
   return {
     id: departureId,

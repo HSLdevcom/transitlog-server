@@ -100,7 +100,7 @@ const weeklyDepartures = async (root, { routeId, direction, stopId, date }, { da
   exceptionsForWeek = flatten(exceptionsForWeek)
 
   const exceptionDayTypes = compact(
-    exceptionsForWeek.map(({ effectiveDayTypes }) => effectiveDayTypes)
+    flatten(exceptionsForWeek.map(({ effectiveDayTypes }) => effectiveDayTypes))
   )
 
   const getDepartures = () =>

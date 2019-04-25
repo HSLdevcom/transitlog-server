@@ -13,7 +13,7 @@ import {
 } from './objects/createDepartureObject'
 import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
-import { get, groupBy, orderBy, compact, uniq, flatten } from 'lodash'
+import { get, groupBy, orderBy, compact, uniq, flatten, difference } from 'lodash'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { fetchEvents, fetchStops } from './createDeparturesResponse'
 import { TZ } from '../constants'
@@ -103,26 +103,23 @@ export const combineDeparturesAndStops = (
       return [null]
     }
 
-    // Get the real date of this departure from within the selected week.
-    const weekDayIndex = dayTypes.indexOf(departure.day_type)
-    let departureDates: string[] = []
-
-    if (weekDayIndex !== -1) {
-      departureDates.push(
-        weekStart
-          .clone()
-          .add(weekDayIndex, 'days')
-          .format('YYYY-MM-DD')
-      )
-    }
-
-    const exceptionDates = exceptions
+    const departureDates = exceptions
       .filter(({ effectiveDayTypes }) => effectiveDayTypes.includes(departure.day_type))
       .map(({ exceptionDate }) => exceptionDate)
 
-    departureDates = uniq(departureDates.concat(exceptionDates))
+    // Get the real date of this departure from within the selected week.
+    const weekDayIndex = dayTypes.indexOf(departure.day_type)
 
-    return departureDates.map((departureDate) =>
+    if (weekDayIndex !== -1) {
+      const normalDayTypeDate = weekStart
+        .clone()
+        .add(weekDayIndex, 'days')
+        .format('YYYY-MM-DD')
+
+      departureDates.push(normalDayTypeDate)
+    }
+
+    return uniq(departureDates).map((departureDate) =>
       createPlannedDepartureObject(departure, stop, departureDate)
     )
   })
@@ -183,7 +180,7 @@ export const createWeekDeparturesResponse = async (
     const departures = await cacheFetch<Departure[]>(
       departuresCacheKey,
       fetchDepartures,
-      24 * 60 * 60
+      1 // 24 * 60 * 60
     )
 
     if (!departures || departures.length === 0) {
@@ -207,7 +204,7 @@ export const createWeekDeparturesResponse = async (
   }
 
   // Cache for 5 minutes
-  const departuresTTL: number = 5 * 60
+  const departuresTTL: number = 1 // 5 * 60
   const cacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}`
   const routeDepartures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
 
