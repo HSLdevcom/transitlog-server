@@ -2,17 +2,17 @@ overwrite: true
 documents: null
 generates:
   src/types/generated/schema-types.ts:
-    schema: 'http://localhost:4000'
+    schema: 'http://localhost:4000/graphql'
     plugins:
       - 'typescript-common'
       - 'typescript-server'
   src/types/generated/resolver-types.ts:
-    schema: 'http://localhost:4000'
+    schema: 'http://localhost:4000/graphql'
     plugins:
       - 'typescript-common'
       - 'typescript-resolvers'
   ./graphql.schema.json:
-    schema: 'http://localhost:4000'
+    schema: 'http://localhost:4000/graphql'
     plugins:
       - 'introspection'
   src/types/generated/hfp-types.ts:

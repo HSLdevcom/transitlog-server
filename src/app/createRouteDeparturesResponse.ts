@@ -1,14 +1,13 @@
-import { flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
+import { flatten, get, groupBy, orderBy, uniqBy, compact } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import { Vehicles } from '../types/generated/hfp-types'
-import { Departure, Direction, RouteSegment } from '../types/generated/schema-types'
+import { Departure, Direction, ExceptionDay, RouteSegment } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from './cache'
 import { Dictionary } from '../types/Dictionary'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { isToday } from 'date-fns'
 import { fetchEvents, fetchStops } from './createDeparturesResponse'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getDirection } from '../utils/getDirection'
 import {
   createDepartureJourneyObject,
@@ -17,6 +16,7 @@ import {
 import { getJourneyStartTime } from '../utils/time'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
+import { filterByExceptions } from '../utils/filterByExceptions'
 
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
@@ -84,8 +84,8 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
 }
 
 // Combines departures and stops into PlannedDepartures.
-export const combineDeparturesAndStops = (departures, stops, date): PlannedDeparture[] => {
-  return departures.map((departure) => {
+export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
+  const departuresAndStops = departures.map((departure) => {
     // Find a relevant stop segment and use it in the departure response.
     const stop = stops.find((stopSegment) => {
       return (
@@ -94,8 +94,14 @@ export const combineDeparturesAndStops = (departures, stops, date): PlannedDepar
       )
     })
 
-    return createPlannedDepartureObject(departure, stop || null, date)
+    if (!stop) {
+      return null
+    }
+
+    return createPlannedDepartureObject(departure, stop, date)
   })
+
+  return compact(departuresAndStops)
 }
 
 /*
@@ -107,6 +113,7 @@ export async function createRouteDeparturesResponse(
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
   getEvents: () => Promise<Vehicles[]>,
+  exceptions: ExceptionDay[],
   stopId: string,
   routeId: string,
   direction: Direction,
@@ -149,7 +156,8 @@ export async function createRouteDeparturesResponse(
       ({ extra_departure, hours, minutes }) => `${hours}_${minutes}_${extra_departure}`
     )
 
-    return combineDeparturesAndStops(validDepartures, stops, date)
+    const routeDepartures = combineDeparturesAndStops(validDepartures, stops, date)
+    return filterByExceptions(routeDepartures, exceptions)
   }
 
   const createDepartures: CachedFetcher<Departure[]> = async () => {

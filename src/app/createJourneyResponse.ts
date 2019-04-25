@@ -1,15 +1,21 @@
-import { JoreRouteDepartureData, JoreEquipment, JoreRoute, JoreStopSegment } from '../types/Jore'
+import { JoreRouteDepartureData, JoreEquipment, JoreStopSegment } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
-import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
+import {
+  Departure,
+  Direction,
+  ExceptionDay,
+  Journey,
+  Route,
+  VehicleId,
+} from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, last, uniqBy } from 'lodash'
+import { get, groupBy, last, compact, orderBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createPlannedDepartureObject } from './objects/createDepartureObject'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { createRouteObject } from './objects/createRouteObject'
@@ -19,10 +25,11 @@ import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 import { journeyInProgress } from '../utils/journeyInProgress'
 import { getDirection } from '../utils/getDirection'
+import { filterByExceptions } from '../utils/filterByExceptions'
 
 type JourneyRoute = {
   route: Route
-  departures: PlannedDeparture[]
+  departures: Departure[]
 }
 
 export type JourneyRouteData = {
@@ -72,7 +79,12 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher, uniqu
  * @param time The time of the planned departure from the first stop.
  * @returns Promise<JourneyRoute> Includes the route data and the departures.
  */
-const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date, time) => {
+const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
+  fetcher,
+  date,
+  time,
+  exceptions
+) => {
   const journeyRoute: JourneyRouteData = await fetcher()
 
   if (journeyRoute.departures.length === 0 || journeyRoute.stops.length === 0) {
@@ -126,13 +138,20 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
         getDirection(stopSegment.direction) === getDirection(departure.direction)
     )
 
-    const stop = stopSegment ? createRouteSegmentObject(stopSegment) : null
+    if (!stopSegment) {
+      return null
+    }
+
+    const stop = createRouteSegmentObject(stopSegment)
     return createPlannedDepartureObject(departure, stop, date)
   })
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
-  return { route: journeyRouteObject, departures: stopDepartures }
+  return {
+    route: journeyRouteObject,
+    departures: filterByExceptions(compact(stopDepartures), exceptions),
+  }
 }
 
 /**
@@ -141,6 +160,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
  * @param fetchRouteData Async function that fetches the route and departures from Jore
  * @param fetchJourneyEvents Async function that fetches the HFP events
  * @param fetchJourneyEquipment Async function that fetches the equipment that operated this journey.
+ * @param exceptions Exceptions in effect during departureDate
  * @param routeId The route ID of the requested journey
  * @param direction The direction of the requested journey
  * @param departureDate The operation date of the journey
@@ -154,6 +174,7 @@ export async function createJourneyResponse(
     vehicleId: string | number,
     operatorId: string
   ) => Promise<JoreEquipment[]>,
+  exceptions: ExceptionDay[],
   routeId: string,
   direction: Direction,
   departureDate: string,
@@ -217,7 +238,7 @@ export async function createJourneyResponse(
     const routeCacheKey = `journey_route_departures_${journeyKey}`
     const routeAndDepartures = await cacheFetch<JourneyRoute>(
       routeCacheKey,
-      () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
+      () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime, exceptions),
       24 * 60 * 60
     )
 
@@ -241,7 +262,7 @@ export async function createJourneyResponse(
     // Add observed data to the departures. Each stop is given a pile of events from which
     // arrival and departure times for the stop is parsed.
     const observedDepartures: Departure[] = departures.map(
-      (departure: PlannedDeparture): Departure => {
+      (departure: Departure): Departure => {
         // To get the events for a stop, first get all events with the next_stop_id matching
         // the current stop ID and sort by the timestamp in descending order. The departure
         // event will then be the first element in the array.
@@ -297,9 +318,9 @@ export async function createJourneyResponse(
       }
 
       // If the last stop has observed data but the event stream hasn't finished yet, cache for 5 seconds.
-      return 5
+      return 10
     } else {
-      return 1 // Cache ongoing journeys for 1 second.
+      return 2 // Cache ongoing journeys for 2 seconds.
     }
   }
 

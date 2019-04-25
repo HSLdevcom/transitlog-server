@@ -5,7 +5,6 @@ import { Vehicles } from '../types/generated/hfp-types'
 import { get } from 'lodash'
 import { Departure } from '../types/generated/schema-types'
 import { Journey as JourneyType } from '../types/Journey'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 import { TZ } from '../constants'
 import { Moment } from 'moment'
 
@@ -165,7 +164,7 @@ export function getDepartureTime(departure: JoreDepartureTime, useArrival = fals
 
 // Return the real time of the departure as a Date
 export function getRealDepartureDate(
-  departure: JoreDepartureTime | PlannedDeparture | Departure,
+  departure: JoreDepartureTime | Departure,
   date,
   useArrival
 ): Moment {

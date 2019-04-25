@@ -1,7 +1,6 @@
 import moment from 'moment-timezone'
 import { diffDepartureJourney } from './diffDepartureJourney'
 import { Vehicles } from '../types/generated/hfp-types'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 import parse from 'date-fns/parse'
 import format from 'date-fns/format'
 import { DATE_FORMAT, TIME_FORMAT, TZ } from '../constants'
@@ -13,7 +12,7 @@ import { createDepartureId } from '../app/objects/createDepartureObject'
 
 export function getStopArrivalData(
   stopEvents: Vehicles[] = [],
-  stopDeparture: PlannedDeparture | Departure,
+  stopDeparture: Departure,
   date: string
 ): ObservedArrival | null {
   // The stopEvents are sorted by recorded-at time in descending order,
