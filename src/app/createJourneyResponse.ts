@@ -4,7 +4,7 @@ import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, last, compact } from 'lodash'
+import { get, groupBy, last, compact, orderBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -300,9 +300,9 @@ export async function createJourneyResponse(
       }
 
       // If the last stop has observed data but the event stream hasn't finished yet, cache for 5 seconds.
-      return 5
+      return 10
     } else {
-      return 1 // Cache ongoing journeys for 1 second.
+      return 2 // Cache ongoing journeys for 2 seconds.
     }
   }
 

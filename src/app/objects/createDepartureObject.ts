@@ -103,7 +103,7 @@ export function createPlannedDepartureObject(
     extraDeparture: departure.extra_departure,
     isNextDay: departure.is_next_day,
     isTimingStop: !!get(stop, 'isTimingStop', false) || false,
-    index: get(departure, 'stopIndex', 0),
+    index: get(stop, 'stopIndex', 0),
     mode: get(stop, 'modes[0]', Mode.Bus),
     stop,
     journey: null,
