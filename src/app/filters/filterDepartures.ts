@@ -4,7 +4,7 @@ import { getDirection } from '../../utils/getDirection'
 import { getLineNumberFromRoute } from '../../utils/getLineNumberFromRoute'
 
 export function filterDepartures(departures: Departure[], filter?: DepartureFilterInput) {
-  const routeFilter = get(filter, 'routeId') || undefined
+  const routeFilter = (get(filter, 'routeId', '') || '').replace(/\s/g, '') || undefined
   const directionFilter = getDirection(get(filter, 'direction')) || undefined
   const min: number = get(filter, 'minHour', -1) || -1
   const max: number = get(filter, 'maxHour', -1) || -1
@@ -18,7 +18,10 @@ export function filterDepartures(departures: Departure[], filter?: DepartureFilt
     const directionFilterTerm = getDirection(direction)
 
     // Filter by route id if filter is set.
-    if (routeFilter && routeIdFilterTerm !== routeFilter) {
+    if (
+      routeFilter &&
+      !(routeIdFilterTerm.startsWith(routeFilter) || routeIdFilterTerm.endsWith(routeFilter))
+    ) {
       return false
     }
 
