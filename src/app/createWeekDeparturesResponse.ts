@@ -13,7 +13,7 @@ import {
 } from './objects/createDepartureObject'
 import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
-import { get, groupBy, orderBy, compact, uniq, flatten, difference } from 'lodash'
+import { get, groupBy, orderBy, compact, uniq, flatten } from 'lodash'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { fetchEvents, fetchStops } from './createDeparturesResponse'
 import { TZ } from '../constants'
@@ -42,7 +42,7 @@ const combineDeparturesAndEvents = (departures, events): Departure[] => {
         // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
         // for the event to match it with the 24h+ time of the origin departure.
         getJourneyStartTime(event, departureIsNextDay) === departureTime &&
-        getDayTypeFromDate(event.oday) === dayType
+        (getDayTypeFromDate(event.oday) === dayType || event.oday === departureDate)
     )
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
@@ -115,28 +115,25 @@ export const combineDeparturesAndStops = (
       return [null]
     }
 
-    if (!dayTypeHasException) {
-      // Get the real date of this departure from within the selected week.
-      const weekDayIndex = dayTypes.indexOf(departure.day_type)
+    // Get the real date of this departure from within the selected week.
+    const weekDayIndex = dayTypes.indexOf(departure.day_type)
 
-      if (weekDayIndex !== -1) {
-        const normalDayTypeDate = weekStart
-          .clone()
-          .add(weekDayIndex, 'days')
-          .format('YYYY-MM-DD')
+    if (weekDayIndex !== -1) {
+      const normalDayTypeDate = weekStart
+        .clone()
+        .add(weekDayIndex, 'days')
+        .format('YYYY-MM-DD')
 
-        departureDates.push(normalDayTypeDate)
-      }
+      departureDates.push(normalDayTypeDate)
     }
 
-    return uniq(departureDates).map((departureDate) => {
-      return createPlannedDepartureObject(departure, stop, departureDate)
-    })
+    return uniq(departureDates).map((departureDate) =>
+      createPlannedDepartureObject(departure, stop, departureDate, 'weekly')
+    )
   })
 
   const allDepartures = compact(flatten(departuresWithStops))
-  const filteredDepartures = filterByExceptions(allDepartures, exceptions)
-  return filteredDepartures
+  return filterByExceptions(allDepartures, exceptions)
 }
 
 export const createWeekDeparturesResponse = async (
@@ -153,7 +150,7 @@ export const createWeekDeparturesResponse = async (
 
   // Fetches the departures and stop data for the stop and validates them.
   const fetchDepartures: CachedFetcher<Departure[]> = async () => {
-    const stopsCacheKey = `departure_stop_${stopId}_${date}`
+    const stopsCacheKey = `departure_stops_${stopId}_${date}`
 
     // Do NOT await these yet as we can fetch them in parallel.
     const stopsPromise = cacheFetch<RouteSegment[]>(

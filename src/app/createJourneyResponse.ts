@@ -144,7 +144,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     }
 
     const stop = createRouteSegmentObject(stopSegment)
-    return createPlannedDepartureObject(departure, stop, date)
+    return createPlannedDepartureObject(departure, stop, date, 'journey')
   })
 
   // Return both the route and the departures that we put so much work into parsing.
