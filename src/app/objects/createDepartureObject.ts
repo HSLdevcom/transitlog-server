@@ -83,12 +83,13 @@ export function createDepartureJourneyObject(
 export function createPlannedDepartureObject(
   departure: JoreRouteDepartureData | JoreDepartureWithOrigin,
   stop: RouteSegment,
-  departureDate: string
+  departureDate: string,
+  prefix = ''
 ): Departure {
   const departureId = createDepartureId(departure, departureDate)
 
   return {
-    id: departureId,
+    id: prefix + '/' + departureId,
     stopId: get(departure, 'stop_id', get(stop, 'stopId', '')),
     dayType: departure.day_type,
     equipmentType: departure.equipment_type,

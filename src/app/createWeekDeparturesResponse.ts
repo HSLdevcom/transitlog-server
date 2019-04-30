@@ -129,14 +129,13 @@ export const combineDeparturesAndStops = (
       }
     }
 
-    return uniq(departureDates).map((departureDate) => {
-      return createPlannedDepartureObject(departure, stop, departureDate)
-    })
+    return uniq(departureDates).map((departureDate) =>
+      createPlannedDepartureObject(departure, stop, departureDate, 'weekly')
+    )
   })
 
   const allDepartures = compact(flatten(departuresWithStops))
-  const filteredDepartures = filterByExceptions(allDepartures, exceptions)
-  return filteredDepartures
+  return filterByExceptions(allDepartures, exceptions)
 }
 
 export const createWeekDeparturesResponse = async (
