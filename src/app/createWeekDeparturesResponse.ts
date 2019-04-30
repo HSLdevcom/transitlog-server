@@ -42,7 +42,7 @@ const combineDeparturesAndEvents = (departures, events): Departure[] => {
         // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
         // for the event to match it with the 24h+ time of the origin departure.
         getJourneyStartTime(event, departureIsNextDay) === departureTime &&
-        getDayTypeFromDate(event.oday) === dayType
+        (getDayTypeFromDate(event.oday) === dayType || event.oday === departureDate)
     )
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
