@@ -28,6 +28,10 @@ const server = new ApolloServer({
     JoreAPI: new JoreDataSource(),
     HFPAPI: new HFPDataSource(),
   }),
+  context: ({ req }) => {
+    const { email = '', groups = [], accessToken = '' } = req.session || {}
+    return { user: { email, groups, accessToken } }
+  },
 })
 
 const app = express()
