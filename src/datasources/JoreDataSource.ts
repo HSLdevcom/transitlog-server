@@ -460,7 +460,6 @@ ORDER BY departure.hours ASC,
       `
 SELECT ${this.departureFields}
 FROM :schema:.departure departure
-    LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
 WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
@@ -519,7 +518,10 @@ SELECT ex_day.date_in_effect,
    rep_day.scope,
    rep_day.time_begin,
    rep_day.time_end,
-   ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type] effective_day_types
+   CASE WHEN rep_day.replacing_day_type
+        IS NULL THEN ARRAY [ex_day.exception_day_type, ex_day.day_type]
+        ELSE ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type]
+   END effective_day_types
 FROM :schema:.exception_days_calendar ex_day
      LEFT OUTER JOIN :schema:.exception_days ex_desc
                      ON ex_day.exception_day_type = ex_desc.exception_day_type
@@ -571,7 +573,7 @@ ORDER BY ex_day.date_in_effect ASC;
       return []
     }
 
-    if (date.length > 4) {
+    if (date && date.length > 4) {
       return exceptionDays.filter(({ exceptionDate }) => isEqual(exceptionDate, date))
     }
 

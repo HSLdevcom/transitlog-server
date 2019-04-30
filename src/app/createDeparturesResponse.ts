@@ -225,14 +225,7 @@ export async function createDeparturesResponse(
         `${route_id}_${direction}_${departure_id}_${stop_id}_${day_type}_${extra_departure}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
-    let validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
-
-    validDepartures = uniqBy(
-      validDepartures,
-      ({ route_id, direction, extra_departure, stop_id, hours, minutes }) =>
-        `${route_id}_${direction}_${extra_departure}_${stop_id}_${hours}:${minutes}`
-    )
-
+    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
     return filterByExceptions(combineDeparturesAndStops(validDepartures, stops, date), exceptions)
   }
 

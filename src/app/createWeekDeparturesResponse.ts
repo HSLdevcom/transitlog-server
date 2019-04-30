@@ -13,7 +13,7 @@ import {
 } from './objects/createDepartureObject'
 import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
-import { get, groupBy, orderBy, compact, uniq, flatten, difference } from 'lodash'
+import { get, groupBy, orderBy, compact, uniq, flatten } from 'lodash'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { fetchEvents, fetchStops } from './createDeparturesResponse'
 import { TZ } from '../constants'
@@ -115,18 +115,16 @@ export const combineDeparturesAndStops = (
       return [null]
     }
 
-    if (!dayTypeHasException) {
-      // Get the real date of this departure from within the selected week.
-      const weekDayIndex = dayTypes.indexOf(departure.day_type)
+    // Get the real date of this departure from within the selected week.
+    const weekDayIndex = dayTypes.indexOf(departure.day_type)
 
-      if (weekDayIndex !== -1) {
-        const normalDayTypeDate = weekStart
-          .clone()
-          .add(weekDayIndex, 'days')
-          .format('YYYY-MM-DD')
+    if (weekDayIndex !== -1) {
+      const normalDayTypeDate = weekStart
+        .clone()
+        .add(weekDayIndex, 'days')
+        .format('YYYY-MM-DD')
 
-        departureDates.push(normalDayTypeDate)
-      }
+      departureDates.push(normalDayTypeDate)
     }
 
     return uniq(departureDates).map((departureDate) =>
@@ -152,7 +150,7 @@ export const createWeekDeparturesResponse = async (
 
   // Fetches the departures and stop data for the stop and validates them.
   const fetchDepartures: CachedFetcher<Departure[]> = async () => {
-    const stopsCacheKey = `departure_stop_${stopId}_${date}`
+    const stopsCacheKey = `departure_stops_${stopId}_${date}`
 
     // Do NOT await these yet as we can fetch them in parallel.
     const stopsPromise = cacheFetch<RouteSegment[]>(

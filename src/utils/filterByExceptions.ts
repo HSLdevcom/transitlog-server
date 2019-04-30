@@ -19,18 +19,14 @@ export const filterByExceptions = (
   )
 
   for (const routeDepartures of routeGroups) {
-    const departuresByDayType = groupBy(routeDepartures, 'dayType')
+    const departuresByDate = groupBy(routeDepartures, 'plannedDepartureTime.departureDate')
 
-    for (const [dayType, dayDepartures] of Object.entries(departuresByDayType)) {
-      // If there are exceptions for the day type, we can be confident that other departures than
-      // the normal weekday departures are in effect.
-      const exception = exceptions.find(
-        ({ dayType: exceptionDayType }) => exceptionDayType === dayType
-      )
+    for (const [departureDate, dateDepartures] of Object.entries(departuresByDate)) {
+      const exception = exceptions.find(({ exceptionDate }) => exceptionDate === departureDate)
 
       if (exception) {
         // Collect all departures that are replacing the current dayType here.
-        let departuresForDay: Departure[] = []
+        let departuresForDate: Departure[] = []
 
         const exceptionDayTypes = orderBy(
           exception.effectiveDayTypes,
@@ -43,31 +39,29 @@ export const filterByExceptions = (
         // Go through each exception day type in order from exceptions to replacements and see if
         // there are actually departures scheduled for the new day type.
         for (const exceptionDayType of exceptionDayTypes) {
-          // See if we have departures for this special day type. Also make sure it does not equal
-          // dayType, since that wouldn't make the day exceptional at all.
-          if (exceptionDayType !== dayType && departuresByDayType[exceptionDayType]) {
-            departuresForDay = departuresByDayType[exceptionDayType]
+          const departuresForDayType = dateDepartures.filter(
+            ({ dayType: departureDayType }) => departureDayType === exceptionDayType
+          )
+
+          if (departuresForDayType.length !== 0) {
+            departuresForDate = departuresForDayType
             break
           }
         }
 
         // If there were no departures scheduled for any exception day types, just use the normal departures.
-        if (departuresForDay.length === 0) {
-          departuresForDay = dayDepartures
+        if (departuresForDate.length === 0) {
+          departuresForDate = dateDepartures
         }
 
         // Add the departures we got to the return array.
-        validDepartures = [...validDepartures, ...departuresForDay]
+        validDepartures = [...validDepartures, ...departuresForDate]
       }
 
       // We need to include special days that don't match an
       // exception by dayType but are exception departures
-      if (
-        !exception ||
-        flatten(exceptions.map(({ effectiveDayTypes }) => effectiveDayTypes)).includes(dayType)
-      ) {
-        // The dayType does not have an exception or replacement, so just go with the normal day departures.
-        validDepartures = [...validDepartures, ...dayDepartures]
+      if (!exception) {
+        validDepartures = [...validDepartures, ...dateDepartures]
       }
     }
   }
