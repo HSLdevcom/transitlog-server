@@ -93,6 +93,7 @@ export interface JoreRoute {
   direction: string
   name_fi: string
   name_se?: Maybe<string>
+  route_name: string
   type: string
   origin_fi: string
   origin_se?: Maybe<string>

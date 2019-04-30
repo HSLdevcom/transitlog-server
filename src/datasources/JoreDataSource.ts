@@ -65,6 +65,7 @@ export class JoreDataSource extends SQLDataSource {
         route.origin_fi,
         route.originstop_id,
         route.name_fi,
+        route.name_fi as route_name,
         route.date_begin,
         route.date_end,
         mode.mode
@@ -96,11 +97,12 @@ where route_id = :routeId
     return this.getCachedAndBatched(query, ONE_DAY)
   }
 
-  async getStopSegments(stopId: string, date: string): Promise<JoreStop[]> {
+  async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
     const query = this.db.raw(
       `SELECT route.route_id,
        route.direction,
        route.originstop_id,
+       route.name_fi as route_name,
        line.line_id,
        mode.mode,
        route_segment.date_begin,
@@ -197,6 +199,7 @@ WHERE stop.stop_id = :stopId;`,
       `select route.route_id,
        route.direction,
        route.name_fi,
+       route.name_fi as route_name,
        route.destination_fi,
        route.origin_fi,
        route.destinationstop_id,
@@ -309,6 +312,7 @@ SELECT stop.stop_id,
        route.originstop_id,
        route.destination_fi,
        route.origin_fi,
+       route.name_fi as route_name,
        line.line_id,
        mode.mode
 FROM :schema:.route_segment route_segment
@@ -357,6 +361,7 @@ SELECT stop.stop_id,
        route_segment.next_stop_id,
        route_segment.timing_stop_type,
        route.originstop_id,
+       route.name_fi as route_name,
        line.line_id,
        mode.mode
 FROM :schema:.stop stop
