@@ -18,6 +18,10 @@ import { createRouteDeparturesResponse } from '../app/createRouteDeparturesRespo
 import { format } from 'date-fns'
 import { flatten, compact } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
+import { requireUser } from '../auth/requireUser'
+import { AuthenticationError } from 'apollo-server-errors'
+import { getMode } from '../utils/getMode'
+import { getModeFromRoute } from '../utils/getModeFromRoute'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -140,7 +144,7 @@ const weeklyDepartures = async (root, { routeId, direction, stopId, date }, { da
 const journey = async (
   root,
   { routeId, direction, departureTime, departureDate, uniqueVehicleId },
-  { dataSources }
+  { dataSources, user }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(departureDate)
   const getRouteData = () => dataSources.JoreAPI.getDepartureData(routeId, direction, departureDate)
@@ -166,7 +170,8 @@ const journey = async (
     direction,
     departureDate,
     departureTime,
-    uniqueVehicleId
+    uniqueVehicleId,
+    user
   )
 }
 
