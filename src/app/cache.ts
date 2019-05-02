@@ -2,7 +2,7 @@ import Redis, { Redis as RedisType } from 'ioredis'
 
 let redisClient: RedisType | null = null
 
-async function getRedis() {
+export async function getRedis() {
   if (redisClient) {
     return redisClient
   }

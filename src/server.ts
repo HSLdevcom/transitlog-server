@@ -1,6 +1,5 @@
 import moment from 'moment-timezone'
 import express from 'express'
-import session from 'express-session'
 import cors from 'cors'
 import { json } from 'body-parser'
 import { TZ } from './constants'
@@ -17,6 +16,10 @@ import { JoreDataSource } from './datasources/JoreDataSource'
 import { HFPDataSource } from './datasources/HFPDataSource'
 import authEndpoints from './auth/authEndpoints'
 import { checkAccessMiddleware } from './auth/authService'
+import { getRedis } from './app/cache'
+
+const session = require('express-session')
+const RedisSession = require('connect-redis')(session)
 
 const ORIGIN = process.env.REDIRECT_URI
 const SECURE_COOKIE = process.env.SECURE_COOKIE === 'true'
@@ -30,59 +33,66 @@ type User = {
 type UserContext = {
   user: null | User
 }
-
-const server = new ApolloServer({
-  typeDefs: schema,
-  resolvers,
-  dataSources: () => ({
-    JoreAPI: new JoreDataSource(),
-    HFPAPI: new HFPDataSource(),
-  }),
-  context: ({ req }): UserContext => {
-    const { email = '', groups = [], accessToken = '' } = req.session || {}
-    return { user: !accessToken ? null : { email, groups, accessToken } }
-  },
-})
-
-const app = express()
-
-app.use(
-  cors({
-    credentials: true,
-    origin: ORIGIN,
-  })
-)
-
-app.use(json({ limit: '50mb' }))
-app.use(
-  session({
-    secret: 'very-much-secret',
-    rolling: true,
-    resave: true,
-    saveUninitialized: true,
-    cookie: {
-      secure: SECURE_COOKIE, // TODO: set true when on https
-      maxAge: 3600000,
-      sameSite: true,
+;(async () => {
+  const server = new ApolloServer({
+    typeDefs: schema,
+    resolvers,
+    dataSources: () => ({
+      JoreAPI: new JoreDataSource(),
+      HFPAPI: new HFPDataSource(),
+    }),
+    context: ({ req }): UserContext => {
+      const { email = '', groups = [], accessToken = '' } = req.session || {}
+      return { user: !accessToken ? null : { email, groups, accessToken } }
     },
   })
-)
 
-app.use(checkAccessMiddleware)
-server.applyMiddleware({ app, cors: { credentials: true, origin: ORIGIN } })
+  const app = express()
 
-app.post('/login', function(req, res) {
-  authEndpoints.authorize(req, res)
-})
+  app.use(
+    cors({
+      credentials: true,
+      origin: ORIGIN,
+    })
+  )
 
-app.get('/session', function(req, res) {
-  authEndpoints.checkExistingSession(req, res)
-})
+  app.use(json({ limit: '50mb' }))
 
-app.get('/logout', function(req, res) {
-  authEndpoints.logout(req, res)
-})
+  const redisClient = await getRedis()
 
-app.listen({ port: 4000 }, () =>
-  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
-)
+  app.use(
+    session({
+      store: new RedisSession({
+        client: redisClient,
+      }),
+      secret: 'very-much-secret',
+      rolling: true,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: SECURE_COOKIE, // TODO: set true when on https
+        maxAge: 3600000,
+        sameSite: true,
+      },
+    })
+  )
+
+  app.use(checkAccessMiddleware)
+  server.applyMiddleware({ app, cors: { credentials: true, origin: ORIGIN } })
+
+  app.post('/login', function(req, res) {
+    authEndpoints.authorize(req, res)
+  })
+
+  app.get('/session', function(req, res) {
+    authEndpoints.checkExistingSession(req, res)
+  })
+
+  app.get('/logout', function(req, res) {
+    authEndpoints.logout(req, res)
+  })
+
+  app.listen({ port: 4000 }, () =>
+    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+  )
+})()

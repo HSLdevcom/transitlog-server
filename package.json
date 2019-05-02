@@ -49,6 +49,7 @@
     "await-to-js": "^2.1.1",
     "body-parser": "^1.18.3",
     "boundingbox": "^1.1.0",
+    "connect-redis": "^3.4.1",
     "cors": "^2.8.5",
     "dataloader": "^1.4.0",
     "date-fns": "^1.30.1",
