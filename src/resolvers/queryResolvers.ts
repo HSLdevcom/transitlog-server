@@ -18,6 +18,8 @@ import { createRouteDeparturesResponse } from '../app/createRouteDeparturesRespo
 import { format } from 'date-fns'
 import { flatten, compact } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
+import { requireUser } from '../auth/requireUser'
+import { AuthenticationError } from 'apollo-server-errors'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -83,7 +85,15 @@ const departures = async (root, { filter, stopId, date }, { dataSources }) => {
   )
 }
 
-const routeDepartures = async (root, { routeId, direction, stopId, date }, { dataSources }) => {
+const routeDepartures = async (
+  root,
+  { routeId, direction, stopId, date },
+  { dataSources, user }
+) => {
+  if (routeId === '1006T' && !requireUser(user)) {
+    throw new AuthenticationError('You need to be logged in to see this!')
+  }
+
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
 
   const getDepartures = () =>

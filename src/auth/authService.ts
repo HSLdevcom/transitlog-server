@@ -46,6 +46,8 @@ const requestUserInfo = async (accessToken: string): Promise<IUserInfo> => {
   })
   const responseJson = await response.json()
 
+  console.log(responseJson)
+
   return {
     userId: responseJson.sub,
     email: responseJson.email,

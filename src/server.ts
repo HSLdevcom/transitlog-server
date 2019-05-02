@@ -21,6 +21,16 @@ import { checkAccessMiddleware } from './auth/authService'
 const ORIGIN = process.env.REDIRECT_URI
 const SECURE_COOKIE = process.env.SECURE_COOKIE === 'true'
 
+type User = {
+  email: string
+  groups: string[]
+  accessToken: string
+}
+
+type UserContext = {
+  user: null | User
+}
+
 const server = new ApolloServer({
   typeDefs: schema,
   resolvers,
@@ -28,9 +38,9 @@ const server = new ApolloServer({
     JoreAPI: new JoreDataSource(),
     HFPAPI: new HFPDataSource(),
   }),
-  context: ({ req }) => {
+  context: ({ req }): UserContext => {
     const { email = '', groups = [], accessToken = '' } = req.session || {}
-    return { user: { email, groups, accessToken } }
+    return { user: !accessToken ? null : { email, groups, accessToken } }
   },
 })
 
