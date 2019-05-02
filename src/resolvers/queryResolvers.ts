@@ -20,6 +20,8 @@ import { flatten, compact } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
 import { requireUser } from '../auth/requireUser'
 import { AuthenticationError } from 'apollo-server-errors'
+import { getMode } from '../utils/getMode'
+import { getModeFromRoute } from '../utils/getModeFromRoute'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -85,15 +87,7 @@ const departures = async (root, { filter, stopId, date }, { dataSources }) => {
   )
 }
 
-const routeDepartures = async (
-  root,
-  { routeId, direction, stopId, date },
-  { dataSources, user }
-) => {
-  if (routeId === '1006T' && !requireUser(user)) {
-    throw new AuthenticationError('You need to be logged in to see this!')
-  }
-
+const routeDepartures = async (root, { routeId, direction, stopId, date }, { dataSources }) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
 
   const getDepartures = () =>
@@ -150,7 +144,7 @@ const weeklyDepartures = async (root, { routeId, direction, stopId, date }, { da
 const journey = async (
   root,
   { routeId, direction, departureTime, departureDate, uniqueVehicleId },
-  { dataSources }
+  { dataSources, user }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(departureDate)
   const getRouteData = () => dataSources.JoreAPI.getDepartureData(routeId, direction, departureDate)
@@ -176,7 +170,8 @@ const journey = async (
     direction,
     departureDate,
     departureTime,
-    uniqueVehicleId
+    uniqueVehicleId,
+    user
   )
 }
 
