@@ -42,6 +42,19 @@ export interface AreaEventsFilterInput {
   direction?: Maybe<Direction>
 }
 
+export enum AlertDistribution {
+  Network = 'NETWORK',
+  Route = 'ROUTE',
+  Departure = 'DEPARTURE',
+  Stop = 'STOP',
+}
+
+export enum AlertLevel {
+  Notice = 'NOTICE',
+  Disruption = 'DISRUPTION',
+  Crisis = 'CRISIS',
+}
+
 export enum CacheControlScope {
   Public = 'PUBLIC',
   Private = 'PRIVATE',
@@ -125,7 +138,7 @@ export interface Query {
 
   eventsByBbox: Array<Maybe<AreaJourney>>
 
-  disruptions: Array<Maybe<Disruption>>
+  alerts: Array<Maybe<Alert>>
 }
 
 export interface Equipment {
@@ -570,14 +583,14 @@ export interface AreaJourney {
   events: Array<Maybe<JourneyEvent>>
 }
 
-export interface Disruption {
+export interface Alert {
   id: string
 
-  affectedType: string
+  alertLevel: AlertLevel
+
+  distribution: AlertDistribution
 
   affectedId: string
-
-  direction?: Maybe<Direction>
 
   startDateTime: DateTime
 
@@ -586,6 +599,8 @@ export interface Disruption {
   title: string
 
   description: string
+
+  url?: Maybe<string>
 }
 
 export interface Cancellation {
@@ -600,6 +615,8 @@ export interface Cancellation {
   journeyStartTime: Time
 
   reason?: Maybe<string>
+
+  isCancelled?: Maybe<boolean>
 }
 
 // ====================================================
@@ -720,4 +737,11 @@ export interface EventsByBboxQueryArgs {
   date: Date
 
   filters?: Maybe<AreaEventsFilterInput>
+}
+export interface AlertsQueryArgs {
+  time?: Maybe<Time>
+
+  queryId?: Maybe<string>
+
+  queryType?: Maybe<AlertDistribution>
 }

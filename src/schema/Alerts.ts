@@ -1,15 +1,29 @@
 import { gql } from 'apollo-server'
 
-export const Disruptions = gql`
-  type Disruption {
+export const Alerts = gql`
+  enum AlertDistribution {
+    NETWORK
+    ROUTE
+    DEPARTURE
+    STOP
+  }
+
+  enum AlertLevel {
+    NOTICE
+    DISRUPTION
+    CRISIS
+  }
+
+  type Alert {
     id: ID!
-    affectedType: String!
+    alertLevel: AlertLevel!
+    distribution: AlertDistribution!
     affectedId: String!
-    direction: Direction
     startDateTime: DateTime!
     endDateTime: DateTime!
     title: String!
     description: String!
+    url: String
   }
 
   type Cancellation {
@@ -19,5 +33,6 @@ export const Disruptions = gql`
     departureDate: Date!
     journeyStartTime: Time!
     reason: String
+    isCancelled: Boolean
   }
 `

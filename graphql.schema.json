@@ -705,16 +705,35 @@
             "deprecationReason": null
           },
           {
-            "name": "disruptions",
+            "name": "alerts",
             "description": "",
-            "args": [],
+            "args": [
+              {
+                "name": "time",
+                "description": "",
+                "type": { "kind": "SCALAR", "name": "Time", "ofType": null },
+                "defaultValue": null
+              },
+              {
+                "name": "queryId",
+                "description": "",
+                "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+                "defaultValue": null
+              },
+              {
+                "name": "queryType",
+                "description": "",
+                "type": { "kind": "ENUM", "name": "AlertDistribution", "ofType": null },
+                "defaultValue": null
+              }
+            ],
             "type": {
               "kind": "NON_NULL",
               "name": null,
               "ofType": {
                 "kind": "LIST",
                 "name": null,
-                "ofType": { "kind": "OBJECT", "name": "Disruption", "ofType": null }
+                "ofType": { "kind": "OBJECT", "name": "Alert", "ofType": null }
               }
             },
             "isDeprecated": false,
@@ -3408,8 +3427,33 @@
         "possibleTypes": null
       },
       {
+        "kind": "ENUM",
+        "name": "AlertDistribution",
+        "description": "",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "NETWORK",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          { "name": "ROUTE", "description": "", "isDeprecated": false, "deprecationReason": null },
+          {
+            "name": "DEPARTURE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          { "name": "STOP", "description": "", "isDeprecated": false, "deprecationReason": null }
+        ],
+        "possibleTypes": null
+      },
+      {
         "kind": "OBJECT",
-        "name": "Disruption",
+        "name": "Alert",
         "description": "",
         "fields": [
           {
@@ -3425,13 +3469,25 @@
             "deprecationReason": null
           },
           {
-            "name": "affectedType",
+            "name": "alertLevel",
             "description": "",
             "args": [],
             "type": {
               "kind": "NON_NULL",
               "name": null,
-              "ofType": { "kind": "SCALAR", "name": "String", "ofType": null }
+              "ofType": { "kind": "ENUM", "name": "AlertLevel", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "distribution",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "ENUM", "name": "AlertDistribution", "ofType": null }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -3445,14 +3501,6 @@
               "name": null,
               "ofType": { "kind": "SCALAR", "name": "String", "ofType": null }
             },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "direction",
-            "description": "",
-            "args": [],
-            "type": { "kind": "SCALAR", "name": "Direction", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -3503,11 +3551,38 @@
             },
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "url",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "inputFields": null,
         "interfaces": [],
         "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "AlertLevel",
+        "description": "",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          { "name": "NOTICE", "description": "", "isDeprecated": false, "deprecationReason": null },
+          {
+            "name": "DISRUPTION",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          { "name": "CRISIS", "description": "", "isDeprecated": false, "deprecationReason": null }
+        ],
         "possibleTypes": null
       },
       {
@@ -4253,6 +4328,14 @@
             "description": "",
             "args": [],
             "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "isCancelled",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           }
