@@ -9,20 +9,17 @@ import {
   JoreExceptionDay,
   JoreStopSegment,
   JoreDeparture,
-  JoreRouteSegment,
 } from '../types/Jore'
 import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
-import { filterByDateChains } from '../utils/filterByDateChains'
 import Knex from 'knex'
-import { orderBy, uniq, groupBy } from 'lodash'
+import { orderBy, uniq } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
 import { JourneyRouteData } from '../app/createJourneyResponse'
 import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'date-fns'
 import { cacheFetch } from '../app/cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
-import { Dictionary } from '../types/Dictionary'
 
 const knex: Knex = Knex({
   dialect: 'postgres',
@@ -68,6 +65,7 @@ export class JoreDataSource extends SQLDataSource {
         route.origin_fi,
         route.originstop_id,
         route.name_fi,
+        route.name_fi as route_name,
         route.date_begin,
         route.date_end,
         mode.mode
@@ -99,11 +97,12 @@ where route_id = :routeId
     return this.getCachedAndBatched(query, ONE_DAY)
   }
 
-  async getStopSegments(stopId: string, date: string): Promise<JoreStop[]> {
+  async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
     const query = this.db.raw(
       `SELECT route.route_id,
        route.direction,
        route.originstop_id,
+       route.name_fi as route_name,
        line.line_id,
        mode.mode,
        route_segment.date_begin,
@@ -200,6 +199,7 @@ WHERE stop.stop_id = :stopId;`,
       `select route.route_id,
        route.direction,
        route.name_fi,
+       route.name_fi as route_name,
        route.destination_fi,
        route.origin_fi,
        route.destinationstop_id,
@@ -312,11 +312,11 @@ SELECT stop.stop_id,
        route.originstop_id,
        route.destination_fi,
        route.origin_fi,
-       route.name_fi,
+       route.name_fi as route_name,
        line.line_id,
        mode.mode
-FROM :schema:.stop stop
-     LEFT OUTER JOIN :schema:.route_segment route_segment USING (stop_id),
+FROM :schema:.route_segment route_segment
+     LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
      :schema:.route_segment_route(route_segment, :date) route,
      :schema:.route_mode(route) mode,
      :schema:.route_line(route) line
@@ -329,18 +329,9 @@ WHERE route_segment.route_id = :routeId
   }
 
   async getDepartureData(routeId, direction, date): Promise<JourneyRouteData> {
-    const stops = await this.getJourneyStops(routeId, direction, date)
-
-    if (!stops || stops.length === 0) {
-      return { stops: [], departures: [] }
-    }
-
-    const departures = await this.getJourneyDepartures(routeId, direction, date)
-
-    if (departures.length === 0) {
-      return { stops, departures: [] }
-    }
-
+    const stopsPromise = this.getJourneyStops(routeId, direction, date)
+    const departuresPromise = this.getJourneyDepartures(routeId, direction, date)
+    const [stops = [], departures = []] = await Promise.all([stopsPromise, departuresPromise])
     return { stops, departures }
   }
 
@@ -370,6 +361,7 @@ SELECT stop.stop_id,
        route_segment.next_stop_id,
        route_segment.timing_stop_type,
        route.originstop_id,
+       route.name_fi as route_name,
        line.line_id,
        mode.mode
 FROM :schema:.stop stop
@@ -468,7 +460,6 @@ ORDER BY departure.hours ASC,
       `
 SELECT ${this.departureFields}
 FROM :schema:.departure departure
-    LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
 WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
@@ -481,7 +472,14 @@ ORDER BY departure.hours ASC,
     return this.getBatched(query)
   }
 
-  async getWeeklyDepartures(stopId, routeId, direction): Promise<JoreDeparture[]> {
+  async getWeeklyDepartures(
+    stopId,
+    routeId,
+    direction,
+    exceptionDayTypes: string[] = []
+  ): Promise<JoreDeparture[]> {
+    const queryDayTypes = uniq(exceptionDayTypes.concat(dayTypes))
+
     const query = this.db.raw(
       `
 SELECT ${this.departureFields}
@@ -489,7 +487,7 @@ FROM :schema:.departure departure
 WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
-  AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+  AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
 ORDER BY departure.hours ASC,
          departure.minutes ASC;`,
       {
@@ -520,17 +518,17 @@ SELECT ex_day.date_in_effect,
    rep_day.scope,
    rep_day.time_begin,
    rep_day.time_end,
-   CASE
-       WHEN ex_day.exclusive = 1 THEN ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type]
-       ELSE ARRAY [ex_day.day_type, ex_day.exception_day_type, rep_day.replacing_day_type]
-       END effective_day_types
+   CASE WHEN rep_day.replacing_day_type
+        IS NULL THEN ARRAY [ex_day.exception_day_type, ex_day.day_type]
+        ELSE ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type]
+   END effective_day_types
 FROM :schema:.exception_days_calendar ex_day
      LEFT OUTER JOIN :schema:.exception_days ex_desc
                      ON ex_day.exception_day_type = ex_desc.exception_day_type
      FULL OUTER JOIN :schema:.replacement_days_calendar rep_day USING (date_in_effect)
-WHERE date_in_effect >= :startDate AND
-      date_in_effect < :endDate
-ORDER BY date_in_effect ASC;
+WHERE ex_day.date_in_effect >= :startDate AND
+      ex_day.date_in_effect <= :endDate
+ORDER BY ex_day.date_in_effect ASC;
     `,
       { schema: SCHEMA, startDate, endDate }
     )
@@ -575,7 +573,7 @@ ORDER BY date_in_effect ASC;
       return []
     }
 
-    if (date.length > 4) {
+    if (date && date.length > 4) {
       return exceptionDays.filter(({ exceptionDate }) => isEqual(exceptionDate, date))
     }
 

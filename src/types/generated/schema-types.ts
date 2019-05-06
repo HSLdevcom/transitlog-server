@@ -321,27 +321,29 @@ export interface Departure {
 
   recoveryTime?: Maybe<number>
 
-  departureId?: Maybe<number>
+  departureId: number
 
-  extraDeparture?: Maybe<string>
+  extraDeparture: string
 
-  isNextDay?: Maybe<boolean>
+  isNextDay: boolean
 
-  isTimingStop?: Maybe<boolean>
+  isTimingStop: boolean
 
   index?: Maybe<number>
 
-  mode?: Maybe<string>
+  mode: string
 
-  stop?: Maybe<RouteSegment>
+  stop: RouteSegment
 
   journey?: Maybe<DepartureJourney>
 
-  plannedArrivalTime?: Maybe<PlannedArrival>
+  originDepartureTime?: Maybe<PlannedDeparture>
+
+  plannedArrivalTime: PlannedArrival
 
   observedArrivalTime?: Maybe<ObservedArrival>
 
-  plannedDepartureTime?: Maybe<PlannedDeparture>
+  plannedDepartureTime: PlannedDeparture
 
   observedDepartureTime?: Maybe<ObservedDeparture>
 }
@@ -396,6 +398,18 @@ export interface JourneyEvent extends Position {
   heading?: Maybe<number>
 }
 
+export interface PlannedDeparture {
+  id: string
+
+  departureDate: Date
+
+  departureTime: Time
+
+  departureDateTime: DateTime
+
+  isNextDay?: Maybe<boolean>
+}
+
 export interface PlannedArrival {
   id: string
 
@@ -422,18 +436,6 @@ export interface ObservedArrival {
   arrivalTimeDifference: number
 
   doorDidOpen: boolean
-}
-
-export interface PlannedDeparture {
-  id: string
-
-  departureDate: Date
-
-  departureTime: Time
-
-  departureDateTime: DateTime
-
-  isNextDay?: Maybe<boolean>
 }
 
 export interface ObservedDeparture {

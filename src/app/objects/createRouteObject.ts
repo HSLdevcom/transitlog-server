@@ -14,7 +14,7 @@ export function createRouteObject(route: JoreRoute): Route {
     direction: parseInt(route.direction, 10),
     origin: route.origin_fi,
     destination: route.destination_fi,
-    name: route.name_fi,
+    name: get(route, 'route_name', get(route, 'name_fi', '')) || '',
     destinationStopId: route.destinationstop_id,
     originStopId: route.originstop_id,
     mode: route.mode,

@@ -10,6 +10,5 @@ DOCKER_IMAGE_LATEST=$ORG/transitlog-server:latest
 
 docker build -t $DOCKER_IMAGE .
 
-docker push $DOCKER_IMAGE
 docker tag $DOCKER_IMAGE $DOCKER_IMAGE_LATEST
 docker push $DOCKER_IMAGE_LATEST

@@ -1,6 +1,5 @@
 import { diffDepartureJourney } from './diffDepartureJourney'
 import { Vehicles } from '../types/generated/hfp-types'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 import { Departure, ObservedDeparture } from '../types/generated/schema-types'
 import { createJourneyEventObject } from '../app/objects/createJourneyEventObject'
 import { TZ } from '../constants'
@@ -20,7 +19,7 @@ import { get } from 'lodash'
  */
 export const getStopDepartureData = (
   stopEvents: Vehicles[] = [],
-  stopDeparture: PlannedDeparture | Departure,
+  stopDeparture: Departure,
   date?: string
 ): ObservedDeparture | null => {
   // The stopEvents are sorted by recorded-at time in descending order,

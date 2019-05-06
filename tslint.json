@@ -10,7 +10,7 @@
     "no-any": false,
     "member-access": false,
     "no-arg": true,
-    "interface-name": [true, "never-prefix"],
+    "interface-name": false,
     "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
     "sort": false,
     "no-bitwise": true,

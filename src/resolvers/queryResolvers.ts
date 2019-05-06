@@ -12,6 +12,9 @@ import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
 import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
 import { createWeekDeparturesResponse } from '../app/createWeekDeparturesResponse'
 import { createRouteDeparturesResponse } from '../app/createRouteDeparturesResponse'
+import { format } from 'date-fns'
+import { flatten, compact } from 'lodash'
+import { getWeekDates } from '../utils/getWeekDates'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -60,15 +63,26 @@ const lines = async (root, { filter, date }, { dataSources }) => {
   return createLinesResponse(getLines, date, filter)
 }
 
-const departures = (root, { filter, stopId, date }, { dataSources }) => {
+const departures = async (root, { filter, stopId, date }, { dataSources }) => {
+  const exceptions = await dataSources.JoreAPI.getExceptions(date)
   const getDepartures = () => dataSources.JoreAPI.getDeparturesForStop(stopId, date)
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
   const getDepartureEvents = () => dataSources.HFPAPI.getDepartureEvents(stopId, date)
 
-  return createDeparturesResponse(getDepartures, getStops, getDepartureEvents, stopId, date, filter)
+  return createDeparturesResponse(
+    getDepartures,
+    getStops,
+    getDepartureEvents,
+    exceptions,
+    stopId,
+    date,
+    filter
+  )
 }
 
-const routeDepartures = (root, { routeId, direction, stopId, date }, { dataSources }) => {
+const routeDepartures = async (root, { routeId, direction, stopId, date }, { dataSources }) => {
+  const exceptions = await dataSources.JoreAPI.getExceptions(date)
+
   const getDepartures = () =>
     dataSources.JoreAPI.getDeparturesForRoute(stopId, routeId, direction, date)
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
@@ -79,6 +93,7 @@ const routeDepartures = (root, { routeId, direction, stopId, date }, { dataSourc
     getDepartures,
     getStops,
     getDepartureEvents,
+    exceptions,
     stopId,
     routeId,
     direction,
@@ -86,8 +101,23 @@ const routeDepartures = (root, { routeId, direction, stopId, date }, { dataSourc
   )
 }
 
-const weeklyDepartures = (root, { routeId, direction, stopId, date }, { dataSources }) => {
-  const getDepartures = () => dataSources.JoreAPI.getWeeklyDepartures(stopId, routeId, direction)
+const weeklyDepartures = async (root, { routeId, direction, stopId, date }, { dataSources }) => {
+  const weekDates = getWeekDates(date)
+
+  const exceptionPromises = weekDates.map((date) =>
+    dataSources.JoreAPI.getExceptions(format(date, 'YYYY-MM-DD'))
+  )
+
+  let exceptionsForWeek = await Promise.all(exceptionPromises)
+  exceptionsForWeek = flatten(exceptionsForWeek)
+
+  const exceptionDayTypes = compact(
+    flatten(exceptionsForWeek.map(({ effectiveDayTypes }) => effectiveDayTypes))
+  )
+
+  const getDepartures = () =>
+    dataSources.JoreAPI.getWeeklyDepartures(stopId, routeId, direction, exceptionDayTypes)
+
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
   const getDepartureEvents = () =>
     dataSources.HFPAPI.getWeeklyDepartureEvents(stopId, date, routeId, direction)
@@ -96,6 +126,7 @@ const weeklyDepartures = (root, { routeId, direction, stopId, date }, { dataSour
     getDepartures,
     getStops,
     getDepartureEvents,
+    exceptionsForWeek,
     stopId,
     routeId,
     direction,
@@ -103,11 +134,12 @@ const weeklyDepartures = (root, { routeId, direction, stopId, date }, { dataSour
   )
 }
 
-const journey = (
+const journey = async (
   root,
   { routeId, direction, departureTime, departureDate, uniqueVehicleId },
-  { dataSources }
+  { dataSources, user }
 ) => {
+  const exceptions = await dataSources.JoreAPI.getExceptions(departureDate)
   const getRouteData = () => dataSources.JoreAPI.getDepartureData(routeId, direction, departureDate)
 
   const getJourneyEvents = () =>
@@ -126,11 +158,13 @@ const journey = (
     getRouteData,
     getJourneyEvents,
     getJourneyEquipment,
+    exceptions,
     routeId,
     direction,
     departureDate,
     departureTime,
-    uniqueVehicleId
+    uniqueVehicleId,
+    user
   )
 }
 

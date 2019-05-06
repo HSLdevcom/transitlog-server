@@ -1,15 +1,21 @@
-import { JoreRouteDepartureData, JoreEquipment, JoreRoute, JoreStopSegment } from '../types/Jore'
+import { JoreRouteDepartureData, JoreEquipment, JoreStopSegment } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
-import { Departure, Direction, Journey, Route, VehicleId } from '../types/generated/schema-types'
+import {
+  Departure,
+  Direction,
+  ExceptionDay,
+  Journey,
+  Route,
+  VehicleId,
+} from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, last, uniqBy } from 'lodash'
+import { get, groupBy, last, compact, orderBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createPlannedDepartureObject } from './objects/createDepartureObject'
-import { PlannedDeparture } from '../types/PlannedDeparture'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { createRouteObject } from './objects/createRouteObject'
@@ -19,10 +25,14 @@ import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 import { journeyInProgress } from '../utils/journeyInProgress'
 import { getDirection } from '../utils/getDirection'
+import { filterByExceptions } from '../utils/filterByExceptions'
+import { requireUser } from '../auth/requireUser'
+import { AuthenticationError } from 'apollo-server-errors'
+import { AuthenticatedValue } from '../types/Authentication'
 
 type JourneyRoute = {
   route: Route
-  departures: PlannedDeparture[]
+  departures: Departure[]
 }
 
 export type JourneyRouteData = {
@@ -70,9 +80,15 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (fetcher, uniqu
  * @param fetcher The async function that fetches the full route data
  * @param date The date during which that the route and departures should be valid.
  * @param time The time of the planned departure from the first stop.
+ * @param exceptions
  * @returns Promise<JourneyRoute> Includes the route data and the departures.
  */
-const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date, time) => {
+const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
+  fetcher,
+  date,
+  time,
+  exceptions
+) => {
   const journeyRoute: JourneyRouteData = await fetcher()
 
   if (journeyRoute.departures.length === 0 || journeyRoute.stops.length === 0) {
@@ -126,13 +142,20 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
         getDirection(stopSegment.direction) === getDirection(departure.direction)
     )
 
-    const stop = stopSegment ? createRouteSegmentObject(stopSegment) : null
-    return createPlannedDepartureObject(departure, stop, date)
+    if (!stopSegment) {
+      return null
+    }
+
+    const stop = createRouteSegmentObject(stopSegment)
+    return createPlannedDepartureObject(departure, stop, date, 'journey')
   })
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
-  return { route: journeyRouteObject, departures: stopDepartures }
+  return {
+    route: journeyRouteObject,
+    departures: filterByExceptions(orderBy(compact(stopDepartures), 'index'), exceptions),
+  }
 }
 
 /**
@@ -141,6 +164,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (fetcher, date
  * @param fetchRouteData Async function that fetches the route and departures from Jore
  * @param fetchJourneyEvents Async function that fetches the HFP events
  * @param fetchJourneyEquipment Async function that fetches the equipment that operated this journey.
+ * @param exceptions Exceptions in effect during departureDate
  * @param routeId The route ID of the requested journey
  * @param direction The direction of the requested journey
  * @param departureDate The operation date of the journey
@@ -154,11 +178,13 @@ export async function createJourneyResponse(
     vehicleId: string | number,
     operatorId: string
   ) => Promise<JoreEquipment[]>,
+  exceptions: ExceptionDay[],
   routeId: string,
   direction: Direction,
   departureDate: string,
   departureTime: string,
-  uniqueVehicleId: VehicleId
+  uniqueVehicleId: VehicleId,
+  user
 ): Promise<Journey | null> {
   // Return the cache key without needing the data if htere is a uniqueVehicleId provided.
   // If not, it needs to the data to get the vehicle ID.
@@ -192,146 +218,93 @@ export async function createJourneyResponse(
 
   // Fetch events, route and departures, and match events to departures.
   // Return the full journey data.
-  const fetchAndProcessJourney: CachedFetcher<Journey> = async () => {
-    const journeyEvents = await cacheFetch(
-      (fetchedEvents) => {
-        const key = getJourneyEventsKey(fetchedEvents)
-        return `journey_events_${key}`
-      },
-      () => fetchValidJourneyEvents(fetchJourneyEvents),
-      (data) => {
-        if (journeyInProgress(data)) {
-          return 2
-        }
-        return 5 * 60
+  const journeyEvents = await cacheFetch(
+    (fetchedEvents) => {
+      const key = getJourneyEventsKey(fetchedEvents)
+      return `journey_events_${key}`
+    },
+    () => fetchValidJourneyEvents(fetchJourneyEvents),
+    (data) => {
+      if (journeyInProgress(data)) {
+        return 2
       }
-    )
-
-    if (!journeyEvents || journeyEvents.length === 0) {
-      return false
+      return 5 * 60
     }
-
-    const journeyKey = getJourneyEventsKey(journeyEvents)
-
-    // Fetch the planned departures and the route.
-    const routeCacheKey = `journey_route_departures_${journeyKey}`
-    const routeAndDepartures = await cacheFetch<JourneyRoute>(
-      routeCacheKey,
-      () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime),
-      24 * 60 * 60
-    )
-
-    const events: Vehicles[] = journeyEvents
-
-    // Return only the events if no departures were found.
-    if (
-      !routeAndDepartures ||
-      (!routeAndDepartures.route && routeAndDepartures.departures.length === 0)
-    ) {
-      return createJourneyObject(
-        events,
-        get(routeAndDepartures, 'route', null),
-        get(routeAndDepartures, 'departures', []),
-        null
-      )
-    }
-
-    const { route, departures } = routeAndDepartures
-
-    // Add observed data to the departures. Each stop is given a pile of events from which
-    // arrival and departure times for the stop is parsed.
-    const observedDepartures: Departure[] = departures.map(
-      (departure: PlannedDeparture): Departure => {
-        // To get the events for a stop, first get all events with the next_stop_id matching
-        // the current stop ID and sort by the timestamp in descending order. The departure
-        // event will then be the first element in the array.
-        const stopEvents = getStopEvents(events, departure.stopId)
-
-        // Although they have a similar signature, the arrival and departure filters do not
-        // work the same way. The arrival looks at door openings and the departure uses the
-        // desc-sorted events array.
-        const stopArrival = departure
-          ? getStopArrivalData(stopEvents, departure, departureDate)
-          : null
-
-        const stopDeparture = departure
-          ? getStopDepartureData(stopEvents, departure, departureDate)
-          : null
-
-        // Add the observed times and events to the planned departure data.
-        return {
-          ...departure,
-          observedDepartureTime: stopDeparture,
-          observedArrivalTime: stopArrival,
-        }
-      }
-    )
-
-    // Get the ID of the vehicle that actually operated this journey and fetch its data.
-    const { owner_operator_id, vehicle_number } = events[0]
-
-    const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
-
-    const journeyEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
-      fetchJourneyEquipment(vehicle_number, owner_operator_id)
-    )
-
-    // Everything is baked into a Journey domain object.
-    return createJourneyObject(
-      events,
-      route,
-      observedDepartures,
-      get(journeyEquipment, '[0]', null)
-    )
-  }
-
-  // Decide a suitable TTL for the cached journey based on if the journey is completed or not.
-  const getJourneyTTL = (data: Journey) => {
-    const lastDeparture = last(data.departures)
-
-    // If the last departure has observed data, we know the journey is near its end.
-    if (lastDeparture && lastDeparture.observedArrivalTime) {
-      // @ts-ignore
-      if (!journeyInProgress(data.events)) {
-        return 30 * 24 * 60 * 60 // Cache for a month.
-      }
-
-      // If the last stop has observed data but the event stream hasn't finished yet, cache for 5 seconds.
-      return 5
-    } else {
-      return 1 // Cache ongoing journeys for 1 second.
-    }
-  }
-
-  // Note that the journey is cached but cannot be retrieved from the cache
-  // if createJourneyResponse was called without uniqueVehicleId.
-  const getJourneyCacheKey = (data?: Journey) => {
-    let journeyKey: false | string = false
-
-    if (data && !uniqueVehicleId) {
-      journeyKey = data.id
-    } else if (uniqueVehicleId) {
-      journeyKey = createJourneyId({
-        routeId,
-        direction,
-        departureDate,
-        departureTime,
-        uniqueVehicleId,
-      })
-    }
-
-    return !journeyKey ? false : `journey_${journeyKey}`
-  }
-
-  const journey = await cacheFetch<Journey>(
-    getJourneyCacheKey,
-    fetchAndProcessJourney,
-    getJourneyTTL
   )
 
-  if (!journey) {
+  if (!journeyEvents || journeyEvents.length === 0) {
     return null
   }
 
-  return journey
+  const events: Vehicles[] = journeyEvents
+  let journeyEquipment: JoreEquipment | null = null
+
+  if (requireUser(user, 'HSL')) {
+    // Get the ID of the vehicle that actually operated this journey and fetch its data.
+    const { owner_operator_id, vehicle_number } = events[0]
+    const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
+
+    const fetchedEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
+      fetchJourneyEquipment(vehicle_number, owner_operator_id)
+    )
+
+    journeyEquipment = get(fetchedEquipment, '[0]', null) || null
+  }
+
+  const journeyKey = getJourneyEventsKey(journeyEvents)
+
+  // Fetch the planned departures and the route.
+  const routeCacheKey = `journey_route_departures_${journeyKey}`
+  const routeAndDepartures = await cacheFetch<JourneyRoute>(
+    routeCacheKey,
+    () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime, exceptions),
+    24 * 60 * 60
+  )
+
+  // Return only the events if no departures were found.
+  if (
+    !routeAndDepartures ||
+    (!routeAndDepartures.route && routeAndDepartures.departures.length === 0)
+  ) {
+    return createJourneyObject(
+      events,
+      get(routeAndDepartures, 'route', null),
+      get(routeAndDepartures, 'departures', []),
+      journeyEquipment
+    )
+  }
+
+  const { route, departures } = routeAndDepartures
+
+  // Add observed data to the departures. Each stop is given a pile of events from which
+  // arrival and departure times for the stop is parsed.
+  const observedDepartures: Departure[] = departures.map(
+    (departure: Departure): Departure => {
+      // To get the events for a stop, first get all events with the next_stop_id matching
+      // the current stop ID and sort by the timestamp in descending order. The departure
+      // event will then be the first element in the array.
+      const stopEvents = getStopEvents(events, departure.stopId)
+
+      // Although they have a similar signature, the arrival and departure filters do not
+      // work the same way. The arrival looks at door openings and the departure uses the
+      // desc-sorted events array.
+      const stopArrival = departure
+        ? getStopArrivalData(stopEvents, departure, departureDate)
+        : null
+
+      const stopDeparture = departure
+        ? getStopDepartureData(stopEvents, departure, departureDate)
+        : null
+
+      // Add the observed times and events to the planned departure data.
+      return {
+        ...departure,
+        observedDepartureTime: stopDeparture,
+        observedArrivalTime: stopArrival,
+      }
+    }
+  )
+
+  // Everything is baked into a Journey domain object.
+  return createJourneyObject(events, route, observedDepartures, journeyEquipment)
 }
