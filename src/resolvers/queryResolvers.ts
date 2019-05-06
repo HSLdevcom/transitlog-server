@@ -5,10 +5,7 @@ import { createStopResponse, createStopsResponse } from '../app/createStopsRespo
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
 import { createJourneyResponse } from '../app/createJourneyResponse'
-import {
-  combineDeparturesAndStops,
-  createDeparturesResponse,
-} from '../app/createDeparturesResponse'
+import { createDeparturesResponse } from '../app/createDeparturesResponse'
 import { createRouteSegmentsResponse } from '../app/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../app/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../app/createAreaJourneysResponse'
@@ -18,10 +15,6 @@ import { createRouteDeparturesResponse } from '../app/createRouteDeparturesRespo
 import { format } from 'date-fns'
 import { flatten, compact } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
-import { requireUser } from '../auth/requireUser'
-import { AuthenticationError } from 'apollo-server-errors'
-import { getMode } from '../utils/getMode'
-import { getModeFromRoute } from '../utils/getModeFromRoute'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
