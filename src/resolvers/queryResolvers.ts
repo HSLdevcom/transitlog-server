@@ -16,6 +16,7 @@ import { format } from 'date-fns'
 import { compact, flatten } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
 import { Alert, AlertDistribution, AlertLevel } from '../types/generated/schema-types'
+import { getAlerts } from '../app/getAlerts'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -190,30 +191,7 @@ const exceptionDays = (root, { year }, { dataSources }) => {
 }
 
 const alerts = (root, { time, queryId, queryType }, { dataSources }): Alert[] => {
-  return [
-    {
-      title: 'Route 2551 alien abduction',
-      affectedId: '2551',
-      id: '123',
-      alertLevel: AlertLevel.Disruption,
-      description: 'An alien abducted the driver.',
-      distribution: AlertDistribution.Route,
-      startDateTime: '2019-05-06T08:10:00+0300',
-      endDateTime: '2019-05-06T09:10:00+0300',
-      url: 'https://hsl.fi',
-    },
-    {
-      title: 'Herttoniemi sinkhole',
-      affectedId: '1058',
-      id: '456',
-      alertLevel: AlertLevel.Disruption,
-      description: "A sinkhole opened up in Herttoniemi and swallowed one of route 1058's buses.",
-      distribution: AlertDistribution.Route,
-      startDateTime: '2019-05-06T13:00:00+0300',
-      endDateTime: '2019-05-06T14:00:00+0300',
-      url: 'https://hsl.fi',
-    },
-  ]
+  return getAlerts(undefined, true, '2551', '1140447')
 }
 
 export const queryResolvers: QueryResolvers.Resolvers = {
