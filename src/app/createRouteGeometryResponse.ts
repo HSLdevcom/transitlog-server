@@ -4,7 +4,6 @@ import { JoreRoute } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Direction, RouteGeometry } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
-import { getMode } from '../utils/getMode'
 
 export async function createRouteGeometryResponse(
   getRouteGeometry: () => Promise<JoreRoute[]>,
