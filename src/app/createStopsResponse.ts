@@ -7,6 +7,7 @@ import { filterByDateChains } from '../utils/filterByDateChains'
 import { groupBy, uniqBy, orderBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
+import { getAlerts } from './getAlerts'
 
 function getSearchValue(item) {
   const { stopId = '', shortId = '', name = '' } = item
@@ -59,8 +60,11 @@ export async function createStopResponse(
       return routes
     }, [])
 
+    const stop = validStops[0]
     stopRoutes = orderBy(stopRoutes, 'route_id')
-    return createStopObject(validStops[0], stopRoutes)
+    const alerts = getAlerts(date, false, '', stop.stop_id)
+
+    return createStopObject(stop, stopRoutes, alerts)
   }
 
   const cacheKey = `stop_${date}_${stopId}`
@@ -86,7 +90,8 @@ export async function createStopsResponse(
     }
 
     return fetchedStops.map((stop) => {
-      return createSimpleStopObject(stop)
+      const alerts = getAlerts(undefined, false, '', stop.stop_id)
+      return createSimpleStopObject(stop, alerts)
     })
   }
 

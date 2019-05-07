@@ -42,17 +42,17 @@ export interface AreaEventsFilterInput {
   direction?: Maybe<Direction>
 }
 
+export enum AlertLevel {
+  Notice = 'NOTICE',
+  Disruption = 'DISRUPTION',
+  Crisis = 'CRISIS',
+}
+
 export enum AlertDistribution {
   Network = 'NETWORK',
   Route = 'ROUTE',
   Departure = 'DEPARTURE',
   Stop = 'STOP',
-}
-
-export enum AlertLevel {
-  Notice = 'NOTICE',
-  Disruption = 'DISRUPTION',
-  Crisis = 'CRISIS',
 }
 
 export enum CacheControlScope {
@@ -66,6 +66,9 @@ export type Date = any
 /** The direction of a route. An integer of either 1 or 2. */
 export type Direction = any
 
+/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
+export type DateTime = any
+
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
 export type BBox = any
 
@@ -74,9 +77,6 @@ export type Time = any
 
 /** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */
 export type VehicleId = any
-
-/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
-export type DateTime = any
 
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
 export type PreciseBBox = any
@@ -185,6 +185,8 @@ export interface Stop extends Position {
   modes: Array<Maybe<string>>
 
   routes: Array<Maybe<StopRoute>>
+
+  alerts: Alert[]
 }
 
 export interface StopRoute {
@@ -201,6 +203,26 @@ export interface StopRoute {
   isTimingStop: boolean
 
   mode?: Maybe<string>
+}
+
+export interface Alert {
+  id: string
+
+  alertLevel: AlertLevel
+
+  distribution: AlertDistribution
+
+  affectedId: string
+
+  startDateTime: DateTime
+
+  endDateTime: DateTime
+
+  title: string
+
+  description: string
+
+  url?: Maybe<string>
 }
 
 export interface SimpleStop extends Position {
@@ -221,6 +243,8 @@ export interface SimpleStop extends Position {
   modes: Array<Maybe<string>>
 
   _matchScore?: Maybe<number>
+
+  alerts: Alert[]
 }
 
 export interface Route {
@@ -243,6 +267,8 @@ export interface Route {
   originStopId: string
 
   mode?: Maybe<string>
+
+  alerts: Alert[]
 
   _matchScore?: Maybe<number>
 }
@@ -297,6 +323,8 @@ export interface RouteSegment extends Position {
   radius?: Maybe<number>
 
   modes: Array<Maybe<string>>
+
+  alerts: Alert[]
 }
 
 export interface Line {
@@ -581,26 +609,6 @@ export interface AreaJourney {
   mode?: Maybe<string>
 
   events: Array<Maybe<JourneyEvent>>
-}
-
-export interface Alert {
-  id: string
-
-  alertLevel: AlertLevel
-
-  distribution: AlertDistribution
-
-  affectedId: string
-
-  startDateTime: DateTime
-
-  endDateTime: DateTime
-
-  title: string
-
-  description: string
-
-  url?: Maybe<string>
 }
 
 export interface Cancellation {

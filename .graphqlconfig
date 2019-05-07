@@ -2,7 +2,7 @@
   "schemaPath": "schema.graphql",
   "extensions": {
     "endpoints": {
-      "Default Introspection Endpoint": {
+      "Hasura sandbox": {
         "url": "https://sandbox-1.hsldev.com/v1alpha1/graphql",
         "introspect": true,
         "headers": { "user-agent": "JS GraphQL" }

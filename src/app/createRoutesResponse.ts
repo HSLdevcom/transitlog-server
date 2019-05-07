@@ -6,6 +6,7 @@ import { Direction, Route, RouteFilterInput } from '../types/generated/schema-ty
 import { cacheFetch } from './cache'
 import { filterRoutes } from './filters/filterRoutes'
 import { CachedFetcher } from '../types/CachedFetcher'
+import { getAlerts } from './getAlerts'
 
 export async function createRoutesResponse(
   getRoutes: () => Promise<JoreRoute[]>,
@@ -32,5 +33,8 @@ export async function createRoutesResponse(
   }
 
   const filteredRoutes = filterRoutes(validRoutes, line, filter)
-  return filteredRoutes.map(createRouteObject)
+  return filteredRoutes.map((route) => {
+    const routeAlerts = getAlerts(date, false, route.route_id)
+    return createRouteObject(route, routeAlerts)
+  })
 }
