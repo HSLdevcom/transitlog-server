@@ -79,8 +79,6 @@ const devLogin = (req: express.Request, res: express.Response) => {
 }
 
 const checkExistingSession = async (req: express.Request, res: express.Response) => {
-  console.log(req.session)
-
   if (req.session && req.session.accessToken) {
     const response: IAuthResponse = {
       isOk: true,
