@@ -67,10 +67,10 @@ type UserContext = {
       }),
       secret: 'very-much-secret',
       rolling: true,
-      resave: true,
+      resave: false,
       saveUninitialized: true,
       cookie: {
-        secure: SECURE_COOKIE, // TODO: set true when on https
+        secure: SECURE_COOKIE,
         maxAge: 3600000,
         sameSite: true,
       },
@@ -80,15 +80,15 @@ type UserContext = {
   app.use(checkAccessMiddleware)
   server.applyMiddleware({ app, cors: { credentials: true, origin: ORIGIN } })
 
-  app.post('/login', function(req, res) {
+  app.post('/login', (req, res) => {
     authEndpoints.authorize(req, res)
   })
 
-  app.get('/session', function(req, res) {
+  app.get('/session', (req, res) => {
     authEndpoints.checkExistingSession(req, res)
   })
 
-  app.get('/logout', function(req, res) {
+  app.get('/logout', (req, res) => {
     authEndpoints.logout(req, res)
   })
 
