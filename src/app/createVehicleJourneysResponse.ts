@@ -6,6 +6,7 @@ import { createVehicleJourneyObject } from './objects/createVehicleJourneyObject
 import { groupBy, map, orderBy, compact } from 'lodash'
 import { findJourneyStartEvent } from '../utils/findJourneyStartEvent'
 import { isToday } from 'date-fns'
+import { getAlerts } from './getAlerts'
 
 export const createVehicleJourneysResponse = async (
   getVehicleJourneys: () => Promise<Vehicles[] | null>,
@@ -26,7 +27,10 @@ export const createVehicleJourneysResponse = async (
       )
     )
 
-    return journeyEvents.map(createVehicleJourneyObject)
+    return journeyEvents.map((journey) => {
+      const alerts = getAlerts(date, false, journey.route_id || '', journey.next_stop_id || '')
+      return createVehicleJourneyObject(journey, alerts)
+    })
   }
 
   // Cache events for the current day for 5 seconds, otherwise 24 hours.

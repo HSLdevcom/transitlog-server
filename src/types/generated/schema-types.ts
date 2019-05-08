@@ -649,6 +649,8 @@ export interface VehicleJourney {
   timeDifference: number
 
   nextStopId: string
+
+  alerts: Alert[]
 }
 
 export interface AreaJourney {

@@ -1,5 +1,5 @@
 import { Vehicles } from '../../types/generated/hfp-types'
-import { VehicleJourney } from '../../types/generated/schema-types'
+import { Alert, VehicleJourney } from '../../types/generated/schema-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { getDirection } from '../../utils/getDirection'
 import get from 'lodash/get'
@@ -8,7 +8,10 @@ import { TZ } from '../../constants'
 import { getDateFromDateTime, getJourneyEventTime, getJourneyStartTime } from '../../utils/time'
 import moment from 'moment-timezone'
 
-export const createVehicleJourneyObject = (event: Vehicles): VehicleJourney => {
+export const createVehicleJourneyObject = (
+  event: Vehicles,
+  alerts: Alert[] = []
+): VehicleJourney => {
   const observedDepartureTime = moment.tz(event.tst, TZ)
   const departureTime = getJourneyStartTime(event)
   const departureDate = get(event, 'oday')
@@ -34,5 +37,6 @@ export const createVehicleJourneyObject = (event: Vehicles): VehicleJourney => {
     recordedTime: getJourneyEventTime(event),
     timeDifference: departureDiff,
     nextStopId: get(event, 'next_stop_id', '') || '',
+    alerts,
   }
 }

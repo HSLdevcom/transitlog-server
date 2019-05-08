@@ -1892,6 +1892,8 @@ export namespace VehicleJourneyResolvers {
     timeDifference?: TimeDifferenceResolver<number, TypeParent, TContext>
 
     nextStopId?: NextStopIdResolver<string, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = VehicleJourney, TContext = {}> = Resolver<
@@ -1980,6 +1982,11 @@ export namespace VehicleJourneyResolvers {
     TContext
   >
   export type NextStopIdResolver<R = string, Parent = VehicleJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type AlertsResolver<R = Alert[], Parent = VehicleJourney, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

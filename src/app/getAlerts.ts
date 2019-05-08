@@ -36,7 +36,7 @@ export const getAlerts = (
       affectedId: route,
       id: '456',
       description: `A sinkhole opened up in Herttoniemi and swallowed one of route ${route}'s buses.`,
-      level: AlertLevel.Warning,
+      level: AlertLevel.Info,
       distribution: AlertDistribution.Route,
       category: AlertCategory.MisparkedVehicle,
       impact: AlertImpact.IrregularDepartures,

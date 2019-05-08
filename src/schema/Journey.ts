@@ -58,6 +58,7 @@ export const Journey = gql`
     recordedTime: Time!
     timeDifference: Int!
     nextStopId: String!
+    alerts: [Alert!]!
   }
 
   type AreaJourney {
