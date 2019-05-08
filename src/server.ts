@@ -67,8 +67,8 @@ type UserContext = {
       }),
       secret: 'very-much-secret',
       rolling: true,
-      resave: false,
-      saveUninitialized: false,
+      resave: true,
+      saveUninitialized: true,
       cookie: {
         secure: SECURE_COOKIE, // TODO: set true when on https
         maxAge: 3600000,

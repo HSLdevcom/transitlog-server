@@ -83,10 +83,12 @@ const checkExistingSession = async (req: express.Request, res: express.Response)
     res.status(200).json(response)
     return
   }
+
   const response: IAuthResponse = {
     isOk: false,
   }
-  res.status(200).send(response)
+
+  res.status(401).send(response)
 }
 
 const logout = async (req: express.Request, res: express.Response) => {
