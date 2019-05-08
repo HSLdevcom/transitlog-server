@@ -69,10 +69,11 @@ type UserContext = {
       rolling: true,
       resave: false,
       saveUninitialized: true,
+      name: 'transitlog-session',
       cookie: {
-        secure: SECURE_COOKIE,
+        secure: false, // TODO: Investigate why true will not work.
         maxAge: 3600000,
-        sameSite: true,
+        httpOnly: false,
       },
     })
   )

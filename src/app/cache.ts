@@ -13,14 +13,14 @@ export async function getRedis() {
     lazyConnect: true,
   })
 
+  redisClient = client
+
   try {
     await client.connect()
   } catch (err) {
-    console.error(err)
-    process.exit(1)
+    console.log(err.message)
   }
 
-  redisClient = client
   return redisClient
 }
 

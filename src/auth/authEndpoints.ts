@@ -61,6 +61,10 @@ const devLogin = (req: express.Request, res: express.Response) => {
     req.session.email = 'dev@hsl.fi'
     req.session.groups = ['HSL', 'Admin']
 
+    req.session.save(() => {
+      console.log('Session saved')
+    })
+
     const response: IAuthResponse = {
       isOk: true,
       email: req.session.email,
@@ -75,6 +79,8 @@ const devLogin = (req: express.Request, res: express.Response) => {
 }
 
 const checkExistingSession = async (req: express.Request, res: express.Response) => {
+  console.log(req.session)
+
   if (req.session && req.session.accessToken) {
     const response: IAuthResponse = {
       isOk: true,
