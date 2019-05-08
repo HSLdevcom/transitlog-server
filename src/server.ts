@@ -68,11 +68,12 @@ type UserContext = {
       secret: 'very-much-secret',
       rolling: true,
       resave: false,
-      saveUninitialized: false,
+      saveUninitialized: true,
+      name: 'transitlog-session',
       cookie: {
-        secure: SECURE_COOKIE, // TODO: set true when on https
+        secure: false, // TODO: Investigate why true will not work.
         maxAge: 3600000,
-        sameSite: true,
+        httpOnly: false,
       },
     })
   )
@@ -80,15 +81,15 @@ type UserContext = {
   app.use(checkAccessMiddleware)
   server.applyMiddleware({ app, cors: { credentials: true, origin: ORIGIN } })
 
-  app.post('/login', function(req, res) {
+  app.post('/login', (req, res) => {
     authEndpoints.authorize(req, res)
   })
 
-  app.get('/session', function(req, res) {
+  app.get('/session', (req, res) => {
     authEndpoints.checkExistingSession(req, res)
   })
 
-  app.get('/logout', function(req, res) {
+  app.get('/logout', (req, res) => {
     authEndpoints.logout(req, res)
   })
 
