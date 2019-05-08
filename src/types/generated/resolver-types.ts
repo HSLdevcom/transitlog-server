@@ -43,16 +43,74 @@ export interface AreaEventsFilterInput {
 }
 
 export enum AlertLevel {
-  Notice = 'NOTICE',
-  Disruption = 'DISRUPTION',
-  Crisis = 'CRISIS',
+  Info = 'INFO',
+  Warning = 'WARNING',
+  Severe = 'SEVERE',
+}
+
+export enum AlertCategory {
+  VehicleBreakdown = 'VEHICLE_BREAKDOWN',
+  Accident = 'ACCIDENT',
+  NoDriver = 'NO_DRIVER',
+  Assault = 'ASSAULT',
+  Weather = 'WEATHER',
+  VehicleOffTheRoad = 'VEHICLE_OFF_THE_ROAD',
+  Seizure = 'SEIZURE',
+  ItsSystemError = 'ITS_SYSTEM_ERROR',
+  OtherDriverError = 'OTHER_DRIVER_ERROR',
+  TooManyPassengers = 'TOO_MANY_PASSENGERS',
+  Strike = 'STRIKE',
+  Other = 'OTHER',
+  EarlierDisruption = 'EARLIER_DISRUPTION',
+  NoTrafficDisruption = 'NO_TRAFFIC_DISRUPTION',
+  TrackBlocked = 'TRACK_BLOCKED',
+  StaffDeficit = 'STAFF_DEFICIT',
+  Disturbance = 'DISTURBANCE',
+  VehicleDeficit = 'VEHICLE_DEFICIT',
+  RoadClosed = 'ROAD_CLOSED',
+  RoadTrench = 'ROAD_TRENCH',
+  TrackMaintenance = 'TRACK_MAINTENANCE',
+  TrafficAccident = 'TRAFFIC_ACCIDENT',
+  TrafficJam = 'TRAFFIC_JAM',
+  MedicalIncident = 'MEDICAL_INCIDENT',
+  WeatherConditions = 'WEATHER_CONDITIONS',
+  TechnicalFailure = 'TECHNICAL_FAILURE',
+  Test = 'TEST',
+  RoadMaintenance = 'ROAD_MAINTENANCE',
+  SwitchFailure = 'SWITCH_FAILURE',
+  StateVisit = 'STATE_VISIT',
+  PowerFailure = 'POWER_FAILURE',
+  MisparkedVehicle = 'MISPARKED_VEHICLE',
+  PublicEvent = 'PUBLIC_EVENT',
 }
 
 export enum AlertDistribution {
-  Network = 'NETWORK',
-  Route = 'ROUTE',
-  Departure = 'DEPARTURE',
   Stop = 'STOP',
+  AllStops = 'ALL_STOPS',
+  Route = 'ROUTE',
+  AllRoutes = 'ALL_ROUTES',
+  Network = 'NETWORK',
+}
+
+export enum AlertImpact {
+  Delayed = 'DELAYED',
+  PossiblyDelayed = 'POSSIBLY_DELAYED',
+  ReducedTransport = 'REDUCED_TRANSPORT',
+  Cancelled = 'CANCELLED',
+  PossibleDeviations = 'POSSIBLE_DEVIATIONS',
+  ReturningToNormal = 'RETURNING_TO_NORMAL',
+  DisruptionRoute = 'DISRUPTION_ROUTE',
+  DeviatingSchedule = 'DEVIATING_SCHEDULE',
+  IrregularDepartures = 'IRREGULAR_DEPARTURES',
+  IrregularDeparturesMax_15 = 'IRREGULAR_DEPARTURES_MAX_15',
+  IrregularDeparturesMax_30 = 'IRREGULAR_DEPARTURES_MAX_30',
+  VendingMachineOutOfOrder = 'VENDING_MACHINE_OUT_OF_ORDER',
+  BicycleStationOutOfOrder = 'BICYCLE_STATION_OUT_OF_ORDER',
+  BicycleSystemOutOfOrder = 'BICYCLE_SYSTEM_OUT_OF_ORDER',
+  ReducedBicycleParkCapacity = 'REDUCED_BICYCLE_PARK_CAPACITY',
+  Other = 'OTHER',
+  NoTrafficImpact = 'NO_TRAFFIC_IMPACT',
+  Unknown = 'UNKNOWN',
 }
 
 export enum CacheControlScope {
@@ -616,15 +674,23 @@ export namespace AlertResolvers {
   export interface Resolvers<TContext = {}, TypeParent = Alert> {
     id?: IdResolver<string, TypeParent, TContext>
 
-    alertLevel?: AlertLevelResolver<AlertLevel, TypeParent, TContext>
+    level?: LevelResolver<AlertLevel, TypeParent, TContext>
+
+    category?: CategoryResolver<AlertCategory, TypeParent, TContext>
 
     distribution?: DistributionResolver<AlertDistribution, TypeParent, TContext>
+
+    impact?: ImpactResolver<AlertImpact, TypeParent, TContext>
 
     affectedId?: AffectedIdResolver<string, TypeParent, TContext>
 
     startDateTime?: StartDateTimeResolver<DateTime, TypeParent, TContext>
 
     endDateTime?: EndDateTimeResolver<DateTime, TypeParent, TContext>
+
+    publishedDateTime?: PublishedDateTimeResolver<DateTime, TypeParent, TContext>
+
+    updatedDateTime?: UpdatedDateTimeResolver<Maybe<DateTime>, TypeParent, TContext>
 
     title?: TitleResolver<string, TypeParent, TContext>
 
@@ -634,12 +700,22 @@ export namespace AlertResolvers {
   }
 
   export type IdResolver<R = string, Parent = Alert, TContext = {}> = Resolver<R, Parent, TContext>
-  export type AlertLevelResolver<R = AlertLevel, Parent = Alert, TContext = {}> = Resolver<
+  export type LevelResolver<R = AlertLevel, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type CategoryResolver<R = AlertCategory, Parent = Alert, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
   >
   export type DistributionResolver<R = AlertDistribution, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ImpactResolver<R = AlertImpact, Parent = Alert, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -659,6 +735,16 @@ export namespace AlertResolvers {
     Parent,
     TContext
   >
+  export type PublishedDateTimeResolver<R = DateTime, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type UpdatedDateTimeResolver<
+    R = Maybe<DateTime>,
+    Parent = Alert,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type TitleResolver<R = string, Parent = Alert, TContext = {}> = Resolver<
     R,
     Parent,

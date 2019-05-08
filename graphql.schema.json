@@ -1260,13 +1260,25 @@
             "deprecationReason": null
           },
           {
-            "name": "alertLevel",
+            "name": "level",
             "description": "",
             "args": [],
             "type": {
               "kind": "NON_NULL",
               "name": null,
               "ofType": { "kind": "ENUM", "name": "AlertLevel", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "category",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "ENUM", "name": "AlertCategory", "ofType": null }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1279,6 +1291,18 @@
               "kind": "NON_NULL",
               "name": null,
               "ofType": { "kind": "ENUM", "name": "AlertDistribution", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "impact",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "ENUM", "name": "AlertImpact", "ofType": null }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1316,6 +1340,26 @@
               "name": null,
               "ofType": { "kind": "SCALAR", "name": "DateTime", "ofType": null }
             },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "publishedDateTime",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "SCALAR", "name": "DateTime", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "updatedDateTime",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "DateTime", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -1365,14 +1409,208 @@
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
-          { "name": "NOTICE", "description": "", "isDeprecated": false, "deprecationReason": null },
+          { "name": "INFO", "description": "", "isDeprecated": false, "deprecationReason": null },
           {
-            "name": "DISRUPTION",
+            "name": "WARNING",
             "description": "",
             "isDeprecated": false,
             "deprecationReason": null
           },
-          { "name": "CRISIS", "description": "", "isDeprecated": false, "deprecationReason": null }
+          { "name": "SEVERE", "description": "", "isDeprecated": false, "deprecationReason": null }
+        ],
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "AlertCategory",
+        "description": "",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "VEHICLE_BREAKDOWN",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "ACCIDENT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "NO_DRIVER",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "ASSAULT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "WEATHER",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "VEHICLE_OFF_THE_ROAD",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "SEIZURE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "ITS_SYSTEM_ERROR",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "OTHER_DRIVER_ERROR",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "TOO_MANY_PASSENGERS",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          { "name": "STRIKE", "description": "", "isDeprecated": false, "deprecationReason": null },
+          { "name": "OTHER", "description": "", "isDeprecated": false, "deprecationReason": null },
+          {
+            "name": "EARLIER_DISRUPTION",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "NO_TRAFFIC_DISRUPTION",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "TRACK_BLOCKED",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "STAFF_DEFICIT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "DISTURBANCE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "VEHICLE_DEFICIT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "ROAD_CLOSED",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "ROAD_TRENCH",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "TRACK_MAINTENANCE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "TRAFFIC_ACCIDENT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "TRAFFIC_JAM",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "MEDICAL_INCIDENT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "WEATHER_CONDITIONS",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "TECHNICAL_FAILURE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          { "name": "TEST", "description": "", "isDeprecated": false, "deprecationReason": null },
+          {
+            "name": "ROAD_MAINTENANCE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "SWITCH_FAILURE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "STATE_VISIT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "POWER_FAILURE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "MISPARKED_VEHICLE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "PUBLIC_EVENT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
         ],
         "possibleTypes": null
       },
@@ -1384,20 +1622,130 @@
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
+          { "name": "STOP", "description": "", "isDeprecated": false, "deprecationReason": null },
           {
-            "name": "NETWORK",
+            "name": "ALL_STOPS",
             "description": "",
             "isDeprecated": false,
             "deprecationReason": null
           },
           { "name": "ROUTE", "description": "", "isDeprecated": false, "deprecationReason": null },
           {
-            "name": "DEPARTURE",
+            "name": "ALL_ROUTES",
             "description": "",
             "isDeprecated": false,
             "deprecationReason": null
           },
-          { "name": "STOP", "description": "", "isDeprecated": false, "deprecationReason": null }
+          { "name": "NETWORK", "description": "", "isDeprecated": false, "deprecationReason": null }
+        ],
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "AlertImpact",
+        "description": "",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "DELAYED",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "POSSIBLY_DELAYED",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "REDUCED_TRANSPORT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "CANCELLED",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "POSSIBLE_DEVIATIONS",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "RETURNING_TO_NORMAL",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "DISRUPTION_ROUTE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "DEVIATING_SCHEDULE",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "IRREGULAR_DEPARTURES",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "IRREGULAR_DEPARTURES_MAX_15",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "IRREGULAR_DEPARTURES_MAX_30",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "VENDING_MACHINE_OUT_OF_ORDER",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "BICYCLE_STATION_OUT_OF_ORDER",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "BICYCLE_SYSTEM_OUT_OF_ORDER",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "REDUCED_BICYCLE_PARK_CAPACITY",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          { "name": "OTHER", "description": "", "isDeprecated": false, "deprecationReason": null },
+          {
+            "name": "NO_TRAFFIC_IMPACT",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          { "name": "UNKNOWN", "description": "", "isDeprecated": false, "deprecationReason": null }
         ],
         "possibleTypes": null
       },
