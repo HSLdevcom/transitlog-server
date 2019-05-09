@@ -42,6 +42,18 @@ export interface AreaEventsFilterInput {
   direction?: Maybe<Direction>
 }
 
+export interface AlertSearchInput {
+  network?: Maybe<boolean>
+
+  allRoutes?: Maybe<boolean>
+
+  allStops?: Maybe<boolean>
+
+  route?: Maybe<string>
+
+  stop?: Maybe<string>
+}
+
 export enum AlertLevel {
   Info = 'INFO',
   Warning = 'WARNING',
@@ -458,9 +470,7 @@ export namespace QueryResolvers {
   export interface AlertsArgs {
     time?: Maybe<Time>
 
-    queryId?: Maybe<string>
-
-    queryType?: Maybe<AlertDistribution>
+    alertSearch?: Maybe<AlertSearchInput>
   }
 }
 
@@ -571,7 +581,7 @@ export namespace StopResolvers {
 
     modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
 
-    routes?: RoutesResolver<Array<Maybe<StopRoute>>, TypeParent, TContext>
+    routes?: RoutesResolver<StopRoute[], TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
@@ -604,7 +614,7 @@ export namespace StopResolvers {
     Parent,
     TContext
   >
-  export type RoutesResolver<R = Array<Maybe<StopRoute>>, Parent = Stop, TContext = {}> = Resolver<
+  export type RoutesResolver<R = StopRoute[], Parent = Stop, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

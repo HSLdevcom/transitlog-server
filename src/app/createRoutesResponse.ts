@@ -10,7 +10,7 @@ import { getAlerts } from './getAlerts'
 
 export async function createRoutesResponse(
   getRoutes: () => Promise<JoreRoute[]>,
-  date?: string,
+  date: string,
   line?: string,
   filter?: RouteFilterInput
 ): Promise<Route[]> {
@@ -33,8 +33,9 @@ export async function createRoutesResponse(
   }
 
   const filteredRoutes = filterRoutes(validRoutes, line, filter)
+
   return filteredRoutes.map((route) => {
-    const routeAlerts = getAlerts(date, false, route.route_id)
+    const routeAlerts = getAlerts(date, { allRoutes: true, route: route.route_id })
     return createRouteObject(route, routeAlerts)
   })
 }

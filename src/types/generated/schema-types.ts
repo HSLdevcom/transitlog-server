@@ -42,6 +42,18 @@ export interface AreaEventsFilterInput {
   direction?: Maybe<Direction>
 }
 
+export interface AlertSearchInput {
+  network?: Maybe<boolean>
+
+  allRoutes?: Maybe<boolean>
+
+  allStops?: Maybe<boolean>
+
+  route?: Maybe<string>
+
+  stop?: Maybe<string>
+}
+
 export enum AlertLevel {
   Info = 'INFO',
   Warning = 'WARNING',
@@ -242,7 +254,7 @@ export interface Stop extends Position {
 
   modes: Array<Maybe<string>>
 
-  routes: Array<Maybe<StopRoute>>
+  routes: StopRoute[]
 
   alerts: Alert[]
 }
@@ -817,7 +829,5 @@ export interface EventsByBboxQueryArgs {
 export interface AlertsQueryArgs {
   time?: Maybe<Time>
 
-  queryId?: Maybe<string>
-
-  queryType?: Maybe<AlertDistribution>
+  alertSearch?: Maybe<AlertSearchInput>
 }

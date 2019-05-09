@@ -715,15 +715,9 @@
                 "defaultValue": null
               },
               {
-                "name": "queryId",
+                "name": "alertSearch",
                 "description": "",
-                "type": { "kind": "SCALAR", "name": "String", "ofType": null },
-                "defaultValue": null
-              },
-              {
-                "name": "queryType",
-                "description": "",
-                "type": { "kind": "ENUM", "name": "AlertDistribution", "ofType": null },
+                "type": { "kind": "INPUT_OBJECT", "name": "AlertSearchInput", "ofType": null },
                 "defaultValue": null
               }
             ],
@@ -1084,7 +1078,11 @@
               "ofType": {
                 "kind": "LIST",
                 "name": null,
-                "ofType": { "kind": "OBJECT", "name": "StopRoute", "ofType": null }
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": { "kind": "OBJECT", "name": "StopRoute", "ofType": null }
+                }
               }
             },
             "isDeprecated": false,
@@ -4030,6 +4028,47 @@
         ],
         "inputFields": null,
         "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "AlertSearchInput",
+        "description": "",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "network",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
+            "defaultValue": null
+          },
+          {
+            "name": "allRoutes",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
+            "defaultValue": null
+          },
+          {
+            "name": "allStops",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
+            "defaultValue": null
+          },
+          {
+            "name": "route",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "defaultValue": null
+          },
+          {
+            "name": "stop",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "defaultValue": null
+          }
+        ],
+        "interfaces": null,
         "enumValues": null,
         "possibleTypes": null
       },

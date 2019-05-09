@@ -190,8 +190,8 @@ const exceptionDays = (root, { year }, { dataSources }) => {
   return dataSources.JoreAPI.getExceptions(year)
 }
 
-const alerts = (root, { time, queryId, queryType }, { dataSources }): Alert[] => {
-  return getAlerts(undefined, true, '2551', '1140447')
+const alerts = (root, { time }, { dataSources }): Alert[] => {
+  return getAlerts(time, { network: true })
 }
 
 export const queryResolvers: QueryResolvers.Resolvers = {

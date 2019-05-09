@@ -97,4 +97,12 @@ export const Alerts = gql`
     reason: String
     isCancelled: Boolean
   }
+
+  input AlertSearchInput {
+    network: Boolean
+    allRoutes: Boolean
+    allStops: Boolean
+    route: String
+    stop: String
+  }
 `

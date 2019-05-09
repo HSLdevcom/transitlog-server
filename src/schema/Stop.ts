@@ -33,7 +33,7 @@ export const Stop = gql`
     name: String
     radius: Float
     modes: [String]!
-    routes: [StopRoute]!
+    routes: [StopRoute!]!
     alerts: [Alert!]!
   }
 

@@ -28,8 +28,7 @@ export const createVehicleJourneysResponse = async (
     )
 
     return journeyEvents.map((journey) => {
-      const alerts = getAlerts(date, false, journey.route_id || '', journey.next_stop_id || '')
-      return createVehicleJourneyObject(journey, alerts)
+      return createVehicleJourneyObject(journey)
     })
   }
 
@@ -43,5 +42,13 @@ export const createVehicleJourneysResponse = async (
     return []
   }
 
-  return journeys
+  return journeys.map((journey) => {
+    journey.alerts = getAlerts(journey.recordedAt, {
+      allRoutes: true,
+      route: journey.routeId,
+      stop: journey.nextStopId,
+    })
+
+    return journey
+  })
 }
