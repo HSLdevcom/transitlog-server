@@ -194,7 +194,7 @@ export async function createRouteDeparturesResponse(
   }
 
   const departuresWithAlerts = routeDepartures.map((departure) => {
-    departure.alerts = getAlerts(departure.plannedDepartureTime.departureDateTime, {
+    departure.alerts = getAlerts(get(departure, 'plannedDepartureTime.departureDateTime'), {
       allStops: true,
       allRoutes: true,
       route: departure.routeId,
@@ -202,12 +202,15 @@ export async function createRouteDeparturesResponse(
     })
 
     if (departure.journey) {
-      departure.journey.alerts = getAlerts(get(departure, 'journey.events[0].recordedAt'), {
-        allStops: true,
-        allRoutes: true,
-        route: departure.journey.routeId,
-        stop: departure.journey.originStopId || departure.stopId,
-      })
+      departure.journey.alerts = getAlerts(
+        get(departure, 'observedDepartureTime.departureDateTime'),
+        {
+          allStops: true,
+          allRoutes: true,
+          route: departure.journey.routeId,
+          stop: departure.journey.originStopId || departure.stopId,
+        }
+      )
     }
 
     return departure
