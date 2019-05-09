@@ -6,6 +6,7 @@ import {
   Mode,
 } from '../../types/Jore'
 import {
+  Alert,
   Departure,
   DepartureJourney,
   PlannedArrival,
@@ -17,6 +18,8 @@ import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
 import { get } from 'lodash'
+import moment from 'moment-timezone'
+import { TZ } from '../../constants'
 
 export function createDepartureId(departure, date = '') {
   return `${departure.route_id}_${departure.direction}_${departure.hours}_${departure.minutes}_${
@@ -61,7 +64,8 @@ export function createDepartureJourneyObject(
   departureIsNextDay: boolean,
   originStopId: string,
   instanceIndex: number = 0,
-  mode = Mode.Bus
+  mode = Mode.Bus,
+  alerts: Alert[] = []
 ): DepartureJourney {
   const event = events[0] || events
   const id = createJourneyId(event)
@@ -76,6 +80,7 @@ export function createDepartureJourneyObject(
     uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
     mode: mode || null,
     events: Array.isArray(events) ? events : [event],
+    alerts,
     _numInstance: instanceIndex,
   }
 }
@@ -84,7 +89,8 @@ export function createPlannedDepartureObject(
   departure: JoreRouteDepartureData | JoreDepartureWithOrigin,
   stop: RouteSegment,
   departureDate: string,
-  prefix = ''
+  prefix = '',
+  alerts: Alert[] = []
 ): Departure {
   const departureId = createDepartureId(departure, departureDate)
 
@@ -108,6 +114,7 @@ export function createPlannedDepartureObject(
     mode: get(stop, 'modes[0]', Mode.Bus),
     stop,
     journey: null,
+    alerts,
     originDepartureTime: departure.origin_departure
       ? createPlannedDepartureTimeObject(departure.origin_departure, departureDate)
       : null,

@@ -61,6 +61,6 @@ export const Schema = gql`
       date: Date!
       filters: AreaEventsFilterInput
     ): [AreaJourney]!
-    alerts(time: Time, alertSearch: AlertSearchInput): [Alert]!
+    alerts(time: DateTime, alertSearch: AlertSearchInput): [Alert]!
   }
 `

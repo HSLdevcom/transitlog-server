@@ -17,6 +17,7 @@ import { getJourneyStartTime } from '../utils/time'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { filterByExceptions } from '../utils/filterByExceptions'
+import { getAlerts } from './getAlerts'
 
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
@@ -192,5 +193,25 @@ export async function createRouteDeparturesResponse(
     return []
   }
 
-  return routeDepartures
+  const departuresWithAlerts = routeDepartures.map((departure) => {
+    departure.alerts = getAlerts(departure.plannedDepartureTime.departureDateTime, {
+      allStops: true,
+      allRoutes: true,
+      route: departure.routeId,
+      stop: departure.stopId,
+    })
+
+    if (departure.journey) {
+      departure.journey.alerts = getAlerts(get(departure, 'journey.events[0].recordedAt'), {
+        allStops: true,
+        allRoutes: true,
+        route: departure.journey.routeId,
+        stop: departure.journey.originStopId || departure.stopId,
+      })
+    }
+
+    return departure
+  })
+
+  return departuresWithAlerts
 }

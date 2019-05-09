@@ -47,6 +47,7 @@ export const Departure = gql`
     uniqueVehicleId: VehicleId
     mode: String
     events: [JourneyEvent!]
+    alerts: [Alert!]!
     _numInstance: Int
   }
 
@@ -70,6 +71,7 @@ export const Departure = gql`
     mode: String!
     stop: RouteSegment!
     journey: DepartureJourney
+    alerts: [Alert!]!
     originDepartureTime: PlannedDeparture
     plannedArrivalTime: PlannedArrival!
     observedArrivalTime: ObservedArrival

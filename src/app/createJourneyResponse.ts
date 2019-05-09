@@ -13,7 +13,7 @@ import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { get, groupBy, last, compact, orderBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
-import { getDepartureTime } from '../utils/time'
+import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createPlannedDepartureObject } from './objects/createDepartureObject'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
@@ -29,6 +29,7 @@ import { filterByExceptions } from '../utils/filterByExceptions'
 import { requireUser } from '../auth/requireUser'
 import { AuthenticationError } from 'apollo-server-errors'
 import { AuthenticatedValue } from '../types/Authentication'
+import { getAlerts } from './getAlerts'
 
 type JourneyRoute = {
   route: Route
@@ -305,6 +306,15 @@ export async function createJourneyResponse(
     }
   )
 
+  const departureDateTime = getDateFromDateTime(departureDate, departureTime)
+
+  const journeyAlerts = getAlerts(get(events, '[0].tst', departureDateTime), {
+    allRoutes: true,
+    allStops: true,
+    route: routeId,
+    stop: observedDepartures.map(({ stopId }) => stopId),
+  })
+
   // Everything is baked into a Journey domain object.
-  return createJourneyObject(events, route, observedDepartures, journeyEquipment)
+  return createJourneyObject(events, route, observedDepartures, journeyEquipment, journeyAlerts)
 }

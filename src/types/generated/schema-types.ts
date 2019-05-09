@@ -456,6 +456,8 @@ export interface Departure {
 
   journey?: Maybe<DepartureJourney>
 
+  alerts: Alert[]
+
   originDepartureTime?: Maybe<PlannedDeparture>
 
   plannedArrivalTime: PlannedArrival
@@ -487,6 +489,8 @@ export interface DepartureJourney {
   mode?: Maybe<string>
 
   events?: Maybe<JourneyEvent[]>
+
+  alerts: Alert[]
 
   _numInstance?: Maybe<number>
 }
@@ -623,6 +627,8 @@ export interface Journey {
   events: JourneyEvent[]
 
   departures: Departure[]
+
+  alerts: Alert[]
 }
 
 export interface VehicleJourney {
@@ -689,6 +695,8 @@ export interface AreaJourney {
   mode?: Maybe<string>
 
   events: Array<Maybe<JourneyEvent>>
+
+  alerts: Alert[]
 }
 
 export interface Cancellation {
@@ -827,7 +835,7 @@ export interface EventsByBboxQueryArgs {
   filters?: Maybe<AreaEventsFilterInput>
 }
 export interface AlertsQueryArgs {
-  time?: Maybe<Time>
+  time?: Maybe<DateTime>
 
   alertSearch?: Maybe<AlertSearchInput>
 }

@@ -27,7 +27,9 @@ export const createAreaJourneysResponse = async (
       return false
     }
 
-    return map(groupBy(areaJourneys, createJourneyId), createAreaJourneyObject)
+    return map(groupBy(areaJourneys, createJourneyId), (events: Vehicles[]) =>
+      createAreaJourneyObject(events)
+    )
   }
 
   const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}`

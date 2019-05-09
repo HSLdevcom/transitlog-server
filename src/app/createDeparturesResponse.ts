@@ -24,6 +24,7 @@ import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { Dictionary } from '../types/Dictionary'
 import { isToday } from 'date-fns'
 import { filterByExceptions } from '../utils/filterByExceptions'
+import { getAlerts } from './getAlerts'
 
 /*
   Common functions for route departures and stop departures.
@@ -268,5 +269,25 @@ export async function createDeparturesResponse(
     return []
   }
 
-  return filterDepartures(departures, filters)
+  const departuresWithAlerts = departures.map((departure) => {
+    departure.alerts = getAlerts(departure.plannedDepartureTime.departureDateTime, {
+      allStops: true,
+      allRoutes: true,
+      route: departure.routeId,
+      stop: departure.stopId,
+    })
+
+    if (departure.journey) {
+      departure.journey.alerts = getAlerts(get(departure, 'journey.events[0].recordedAt'), {
+        allStops: true,
+        allRoutes: true,
+        route: departure.journey.routeId,
+        stop: departure.journey.originStopId || departure.stopId,
+      })
+    }
+
+    return departure
+  })
+
+  return filterDepartures(departuresWithAlerts, filters)
 }

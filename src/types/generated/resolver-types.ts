@@ -468,7 +468,7 @@ export namespace QueryResolvers {
     AlertsArgs
   >
   export interface AlertsArgs {
-    time?: Maybe<Time>
+    time?: Maybe<DateTime>
 
     alertSearch?: Maybe<AlertSearchInput>
   }
@@ -1191,6 +1191,8 @@ export namespace DepartureResolvers {
 
     journey?: JourneyResolver<Maybe<DepartureJourney>, TypeParent, TContext>
 
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
+
     originDepartureTime?: OriginDepartureTimeResolver<Maybe<PlannedDeparture>, TypeParent, TContext>
 
     plannedArrivalTime?: PlannedArrivalTimeResolver<PlannedArrival, TypeParent, TContext>
@@ -1301,6 +1303,11 @@ export namespace DepartureResolvers {
     Parent = Departure,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type AlertsResolver<R = Alert[], Parent = Departure, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type OriginDepartureTimeResolver<
     R = Maybe<PlannedDeparture>,
     Parent = Departure,
@@ -1349,6 +1356,8 @@ export namespace DepartureJourneyResolvers {
     mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
 
     events?: EventsResolver<Maybe<JourneyEvent[]>, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
     _numInstance?: _NumInstanceResolver<Maybe<number>, TypeParent, TContext>
   }
@@ -1403,6 +1412,11 @@ export namespace DepartureJourneyResolvers {
     Parent = DepartureJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type AlertsResolver<R = Alert[], Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type _NumInstanceResolver<
     R = Maybe<number>,
     Parent = DepartureJourney,
@@ -1781,6 +1795,8 @@ export namespace JourneyResolvers {
     events?: EventsResolver<JourneyEvent[], TypeParent, TContext>
 
     departures?: DeparturesResolver<Departure[], TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
@@ -1859,6 +1875,11 @@ export namespace JourneyResolvers {
     TContext
   >
   export type DeparturesResolver<R = Departure[], Parent = Journey, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type AlertsResolver<R = Alert[], Parent = Journey, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -2028,6 +2049,8 @@ export namespace AreaJourneyResolvers {
     mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
 
     events?: EventsResolver<Array<Maybe<JourneyEvent>>, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = AreaJourney, TContext = {}> = Resolver<
@@ -2090,6 +2113,11 @@ export namespace AreaJourneyResolvers {
     Parent = AreaJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type AlertsResolver<R = Alert[], Parent = AreaJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace CancellationResolvers {
