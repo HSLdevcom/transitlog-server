@@ -73,7 +73,6 @@ export const Alerts = gql`
   }
 
   type Alert {
-    id: ID!
     level: AlertLevel!
     category: AlertCategory!
     distribution: AlertDistribution!

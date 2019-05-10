@@ -6,9 +6,10 @@ import {
   AlertLevel,
 } from '../types/generated/schema-types'
 import { getDateFromDateTime } from '../utils/time'
-import { Moment } from 'moment'
+import { isMoment, Moment } from 'moment'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
+import { mapValues } from 'lodash'
 
 // Needed only for mocks
 interface PartialAlert {
@@ -158,16 +159,9 @@ export const getAlerts = (dateTime: Moment | string, searchProps: AlertSearchPro
       )
     )
     .map(
-      (alert, idx): Alert => {
-        const alertId =
-          (alert.affectedId || 'network') +
-          alert.level +
-          alert.distribution +
-          alert.startDateTime.toISOString() +
-          alert.endDateTime.toISOString() +
-          idx
-
-        return { ...defaultAlertProps, ...alert, id: alertId }
+      (alert): Alert => {
+        const fullAlert: Alert = { ...defaultAlertProps, ...alert }
+        return mapValues(fullAlert, (val) => (isMoment(val) ? val.toISOString(true) : val)) as Alert
       }
     )
 

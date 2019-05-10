@@ -297,9 +297,17 @@ export async function createJourneyResponse(
         ? getStopDepartureData(stopEvents, departure, departureDate)
         : null
 
+      const departureAlerts = getAlerts(
+        stopDeparture
+          ? stopDeparture.departureDateTime
+          : departure.plannedDepartureTime.departureDateTime,
+        { allStops: true, allRoutes: true, stop: departure.stopId, route: departure.routeId }
+      )
+
       // Add the observed times and events to the planned departure data.
       return {
         ...departure,
+        alerts: departureAlerts,
         observedDepartureTime: stopDeparture,
         observedArrivalTime: stopArrival,
       }

@@ -276,8 +276,6 @@ export interface StopRoute {
 }
 
 export interface Alert {
-  id: string
-
   level: AlertLevel
 
   category: AlertCategory
@@ -835,7 +833,7 @@ export interface EventsByBboxQueryArgs {
   filters?: Maybe<AreaEventsFilterInput>
 }
 export interface AlertsQueryArgs {
-  time?: Maybe<DateTime>
+  time?: Maybe<string>
 
   alertSearch?: Maybe<AlertSearchInput>
 }

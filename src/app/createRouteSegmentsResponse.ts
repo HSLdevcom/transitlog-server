@@ -46,9 +46,7 @@ export async function createRouteSegmentsResponse(
 
   return validRouteSegments.map((routeSegment) => {
     routeSegment.alerts = getAlerts(date, {
-      allRoutes: true,
       allStops: true,
-      route: routeSegment.routeId,
       stop: routeSegment.stopId,
     })
 
