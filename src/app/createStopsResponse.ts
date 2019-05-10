@@ -4,7 +4,7 @@ import { cacheFetch } from './cache'
 import { createSimpleStopObject, createStopObject } from './objects/createStopObject'
 import { search } from './filters/search'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { groupBy, uniqBy, orderBy } from 'lodash'
+import { groupBy, orderBy, uniqBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { getAlerts } from './getAlerts'
@@ -115,10 +115,8 @@ export async function createStopsResponse(
 
   const currentTime = format(new Date(), 'YYYY-MM-DD')
 
-  const stopsWithAlerts = filteredStops.map((stop) => {
+  return filteredStops.map((stop) => {
     stop.alerts = getAlerts(currentTime, { allStops: true, stop: stop.stopId })
     return stop
   })
-
-  return stopsWithAlerts
 }

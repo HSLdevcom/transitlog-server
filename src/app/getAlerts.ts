@@ -71,6 +71,28 @@ const availableAlerts = (date): PartialAlert[] => [
     endDateTime: getDateFromDateTime(date, '12:15:00'),
   },
   {
+    title: 'C-zoner protest',
+    affectedId: '1050112',
+    description: `A protester from Myyrmäki has smashed stop 1050112 to bits as they were unhappy to be placed in Zone C.`,
+    distribution: AlertDistribution.Stop,
+    level: AlertLevel.Warning,
+    category: AlertCategory.Assault,
+    impact: AlertImpact.DisruptionRoute,
+    startDateTime: getDateFromDateTime(date, '08:00:00'),
+    endDateTime: getDateFromDateTime(date, '11:00:00'),
+  },
+  {
+    title: 'Stop is crowded',
+    affectedId: '1050112',
+    description: `There are too many people waiting at the stop.`,
+    distribution: AlertDistribution.Stop,
+    level: AlertLevel.Info,
+    category: AlertCategory.TooManyPassengers,
+    impact: AlertImpact.NoTrafficImpact,
+    startDateTime: getDateFromDateTime(date, '10:15:00'),
+    endDateTime: getDateFromDateTime(date, '12:15:00'),
+  },
+  {
     title: `No oil`,
     affectedId: '',
     description: 'The world ran out of oil so no buses are running today sorry.',
@@ -116,7 +138,7 @@ export const getAlerts = (dateTime: Moment | string, searchProps: AlertSearchPro
   // for this date regardless of time.
   const includeAllForDate = dateTime === date
 
-  const alerts: Alert[] = availableAlerts(date)
+  return availableAlerts(date)
     .filter((alert) => {
       if (searchProps.network && alert.distribution === AlertDistribution.Network) {
         return true
@@ -164,6 +186,4 @@ export const getAlerts = (dateTime: Moment | string, searchProps: AlertSearchPro
         return mapValues(fullAlert, (val) => (isMoment(val) ? val.toISOString(true) : val)) as Alert
       }
     )
-
-  return alerts
 }

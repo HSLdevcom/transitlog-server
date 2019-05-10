@@ -15,7 +15,7 @@ import { createRouteDeparturesResponse } from '../app/createRouteDeparturesRespo
 import { format } from 'date-fns'
 import { compact, flatten } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
-import { Alert, AlertDistribution, AlertLevel } from '../types/generated/schema-types'
+import { Alert } from '../types/generated/schema-types'
 import { getAlerts } from '../app/getAlerts'
 
 const equipment = (root, { filter, date }, { dataSources }) => {

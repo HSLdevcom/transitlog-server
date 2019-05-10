@@ -4,7 +4,7 @@ import { cacheFetch } from './cache'
 import { JoreDeparture, JoreDepartureWithOrigin, Mode } from '../types/Jore'
 import { Dictionary } from '../types/Dictionary'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { getISOWeek, isToday } from 'date-fns'
+import { getISOWeek } from 'date-fns'
 import { Vehicles } from '../types/generated/hfp-types'
 import { getDirection } from '../utils/getDirection'
 import {
@@ -13,7 +13,7 @@ import {
 } from './objects/createDepartureObject'
 import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
-import { get, groupBy, orderBy, compact, uniq, flatten } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy, uniq } from 'lodash'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { fetchEvents, fetchStops } from './createDeparturesResponse'
 import { TZ } from '../constants'
@@ -222,14 +222,12 @@ export const createWeekDeparturesResponse = async (
   }
 
   return routeDepartures.map((departure) => {
-    const departureAlerts = getAlerts(departure.plannedDepartureTime.departureDateTime, {
+    departure.alerts = getAlerts(departure.plannedDepartureTime.departureDateTime, {
       allRoutes: true,
       allStops: true,
       route: departure.routeId,
       stop: departure.stopId,
     })
-
-    departure.alerts = departureAlerts
     return departure
   })
 }
