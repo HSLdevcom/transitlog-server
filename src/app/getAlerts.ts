@@ -67,7 +67,7 @@ const availableAlerts = (date): PartialAlert[] => [
     level: AlertLevel.Info,
     category: AlertCategory.TooManyPassengers,
     impact: AlertImpact.NoTrafficImpact,
-    startDateTime: getDateFromDateTime(date, '10:15:00'),
+    startDateTime: getDateFromDateTime(date, '06:15:00'),
     endDateTime: getDateFromDateTime(date, '12:15:00'),
   },
   {
@@ -78,7 +78,7 @@ const availableAlerts = (date): PartialAlert[] => [
     level: AlertLevel.Warning,
     category: AlertCategory.Assault,
     impact: AlertImpact.DisruptionRoute,
-    startDateTime: getDateFromDateTime(date, '08:00:00'),
+    startDateTime: getDateFromDateTime(date, '05:00:00'),
     endDateTime: getDateFromDateTime(date, '11:00:00'),
   },
   {
@@ -89,8 +89,8 @@ const availableAlerts = (date): PartialAlert[] => [
     level: AlertLevel.Info,
     category: AlertCategory.TooManyPassengers,
     impact: AlertImpact.NoTrafficImpact,
-    startDateTime: getDateFromDateTime(date, '10:15:00'),
-    endDateTime: getDateFromDateTime(date, '12:15:00'),
+    startDateTime: getDateFromDateTime(date, '07:15:00'),
+    endDateTime: getDateFromDateTime(date, '19:15:00'),
   },
   {
     title: `No oil`,
