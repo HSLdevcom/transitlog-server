@@ -9,7 +9,7 @@ import { getDateFromDateTime } from '../utils/time'
 import { isMoment, Moment } from 'moment'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
-import { mapValues } from 'lodash'
+import { mapValues, orderBy } from 'lodash'
 
 // Needed only for mocks
 interface PartialAlert {
@@ -123,6 +123,7 @@ const defaultAlertProps = {
 }
 
 type AlertSearchProps = {
+  all?: boolean
   network?: boolean
   allRoutes?: boolean
   allStops?: boolean
@@ -138,9 +139,12 @@ export const getAlerts = (dateTime: Moment | string, searchProps: AlertSearchPro
   // for this date regardless of time.
   const includeAllForDate = dateTime === date
 
-  return availableAlerts(date)
+  const alerts = availableAlerts(date)
     .filter((alert) => {
-      if (searchProps.network && alert.distribution === AlertDistribution.Network) {
+      if (
+        searchProps.all ||
+        (searchProps.network && alert.distribution === AlertDistribution.Network)
+      ) {
         return true
       }
 
@@ -180,10 +184,11 @@ export const getAlerts = (dateTime: Moment | string, searchProps: AlertSearchPro
         '[]'
       )
     )
-    .map(
-      (alert): Alert => {
-        const fullAlert: Alert = { ...defaultAlertProps, ...alert }
-        return mapValues(fullAlert, (val) => (isMoment(val) ? val.toISOString(true) : val)) as Alert
-      }
-    )
+
+  return orderBy(alerts, ({ startDateTime }) => startDateTime.unix(), 'desc').map(
+    (alert): Alert => {
+      const fullAlert: Alert = { ...defaultAlertProps, ...alert }
+      return mapValues(fullAlert, (val) => (isMoment(val) ? val.toISOString(true) : val)) as Alert
+    }
+  )
 }

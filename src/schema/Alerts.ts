@@ -98,6 +98,7 @@ export const Alerts = gql`
   }
 
   input AlertSearchInput {
+    all: Boolean
     network: Boolean
     allRoutes: Boolean
     allStops: Boolean

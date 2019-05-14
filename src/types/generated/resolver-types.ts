@@ -43,6 +43,8 @@ export interface AreaEventsFilterInput {
 }
 
 export interface AlertSearchInput {
+  all?: Maybe<boolean>
+
   network?: Maybe<boolean>
 
   allRoutes?: Maybe<boolean>

@@ -4106,6 +4106,12 @@
         "fields": null,
         "inputFields": [
           {
+            "name": "all",
+            "description": "",
+            "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
+            "defaultValue": null
+          },
+          {
             "name": "network",
             "description": "",
             "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
