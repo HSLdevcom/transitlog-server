@@ -298,19 +298,18 @@ export async function createJourneyResponse(
 
       // TODO: Require authorization for showing alerts
 
-      const departureAlerts = getAlerts(
-        stopDeparture
-          ? stopDeparture.departureDateTime
-          : departure.plannedDepartureTime.departureDateTime,
-        { allStops: true, allRoutes: true, stop: departure.stopId, route: departure.routeId }
-      )
+      const alertTime = stopDeparture
+        ? stopDeparture.departureDateTime
+        : departure.plannedDepartureTime.departureDateTime
 
-      departure.stop.alerts = getAlerts(
-        stopDeparture
-          ? stopDeparture.departureDateTime
-          : departure.plannedDepartureTime.departureDateTime,
-        { allStops: true, route: departure.routeId }
-      )
+      const departureAlerts = getAlerts(alertTime, {
+        allStops: true,
+        allRoutes: true,
+        stop: departure.stopId,
+        route: departure.routeId,
+      })
+
+      departure.stop.alerts = getAlerts(alertTime, { allStops: true, stop: departure.stopId })
 
       // Add the observed times and events to the planned departure data.
       return {
