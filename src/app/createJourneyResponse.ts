@@ -1,4 +1,4 @@
-import { JoreRouteDepartureData, JoreEquipment, JoreStopSegment } from '../types/Jore'
+import { JoreEquipment, JoreRouteDepartureData, JoreStopSegment } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Vehicles } from '../types/generated/hfp-types'
 import {
@@ -11,7 +11,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { get, groupBy, last, compact, orderBy } from 'lodash'
+import { compact, get, groupBy, orderBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -27,8 +27,6 @@ import { journeyInProgress } from '../utils/journeyInProgress'
 import { getDirection } from '../utils/getDirection'
 import { filterByExceptions } from '../utils/filterByExceptions'
 import { requireUser } from '../auth/requireUser'
-import { AuthenticationError } from 'apollo-server-errors'
-import { AuthenticatedValue } from '../types/Authentication'
 import { getAlerts } from './getAlerts'
 
 type JourneyRoute = {
@@ -171,6 +169,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param departureDate The operation date of the journey
  * @param departureTime The journey's departure from the first stop.
  * @param uniqueVehicleId
+ * @param user
  */
 export async function createJourneyResponse(
   fetchRouteData: () => Promise<JourneyRouteData>,
@@ -297,11 +296,20 @@ export async function createJourneyResponse(
         ? getStopDepartureData(stopEvents, departure, departureDate)
         : null
 
+      // TODO: Require authorization for showing alerts
+
       const departureAlerts = getAlerts(
         stopDeparture
           ? stopDeparture.departureDateTime
           : departure.plannedDepartureTime.departureDateTime,
         { allStops: true, allRoutes: true, stop: departure.stopId, route: departure.routeId }
+      )
+
+      departure.stop.alerts = getAlerts(
+        stopDeparture
+          ? stopDeparture.departureDateTime
+          : departure.plannedDepartureTime.departureDateTime,
+        { allStops: true, route: departure.routeId }
       )
 
       // Add the observed times and events to the planned departure data.
@@ -323,6 +331,6 @@ export async function createJourneyResponse(
     stop: observedDepartures.map(({ stopId }) => stopId),
   })
 
-  // Everything is baked into a Journey domain object.
+  // Everything is baked into a Journey object.
   return createJourneyObject(events, route, observedDepartures, journeyEquipment, journeyAlerts)
 }
