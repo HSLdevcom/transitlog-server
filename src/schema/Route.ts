@@ -13,6 +13,7 @@ export const Route = gql`
     originStopId: String!
     mode: String
     alerts: [Alert!]!
+    cancellations: [Cancellation!]!
     _matchScore: Float
   }
 

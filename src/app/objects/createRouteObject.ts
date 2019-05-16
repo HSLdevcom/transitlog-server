@@ -1,4 +1,4 @@
-import { Alert, Route } from '../../types/generated/schema-types'
+import { Alert, Cancellation, Route } from '../../types/generated/schema-types'
 import { JoreRoute } from '../../types/Jore'
 import { get } from 'lodash'
 
@@ -6,7 +6,11 @@ function createRouteId(route: JoreRoute): string {
   return `${route.route_id}_${route.direction}_${route.date_begin}_${route.date_end}`
 }
 
-export function createRouteObject(route: JoreRoute, alerts?: Alert[]): Route {
+export function createRouteObject(
+  route: JoreRoute,
+  alerts?: Alert[],
+  cancellations?: Cancellation[]
+): Route {
   return {
     id: createRouteId(route),
     lineId: get(route, 'line_id', ''),
@@ -19,6 +23,7 @@ export function createRouteObject(route: JoreRoute, alerts?: Alert[]): Route {
     originStopId: route.originstop_id,
     mode: route.mode,
     alerts: alerts && alerts.length !== 0 ? alerts : [],
+    cancellations: cancellations && cancellations.length !== 0 ? cancellations : [],
     // @ts-ignore
     _matchScore: route._matchScore,
   }

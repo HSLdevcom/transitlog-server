@@ -7,6 +7,8 @@ import { cacheFetch } from './cache'
 import { filterRoutes } from './filters/filterRoutes'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { getAlerts } from './getAlerts'
+import { getCancellations } from './getCancellations'
+import { getDirection } from '../utils/getDirection'
 
 export async function createRoutesResponse(
   getRoutes: () => Promise<JoreRoute[]>,
@@ -36,6 +38,10 @@ export async function createRoutesResponse(
 
   return filteredRoutes.map((route) => {
     const routeAlerts = getAlerts(date, { allRoutes: true, route: route.route_id })
-    return createRouteObject(route, routeAlerts)
+    const routeCancellations = getCancellations(date, {
+      routeId: route.route_id,
+      direction: getDirection(route.direction) || undefined,
+    })
+    return createRouteObject(route, routeAlerts, routeCancellations)
   })
 }

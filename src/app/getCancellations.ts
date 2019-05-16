@@ -1,6 +1,7 @@
 import moment, { Moment } from 'moment-timezone'
 import { TZ } from '../constants'
 import {
+  Alert,
   AlertCategory,
   Cancellation,
   CancellationEffect,
@@ -8,6 +9,8 @@ import {
   CancellationType,
 } from '../types/generated/schema-types'
 import { getDateFromDateTime } from '../utils/time'
+import { orderBy, mapValues } from 'lodash'
+import { isMoment } from 'moment'
 
 // Mock alert data
 const availableCancellations = (date): Cancellation[] => [
@@ -23,7 +26,7 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: true,
-    publishedDateTime: getDateFromDateTime(date, '06:00:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '06:00:00'),
   },
   {
     title: `Route 1018 alien abduction`,
@@ -37,7 +40,7 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: false,
-    publishedDateTime: getDateFromDateTime(date, '06:02:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '06:02:00'),
   },
   {
     title: `Vandalism on route 1018`,
@@ -52,7 +55,7 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: true,
-    publishedDateTime: getDateFromDateTime(date, '07:36:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '07:36:00'),
   },
   {
     title: `Ruote 1018 road blocked`,
@@ -67,15 +70,15 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelStopsFromMiddle,
     isCancelled: true,
-    publishedDateTime: getDateFromDateTime(date, '08:14:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '08:14:00'),
   },
 ]
 
 type CancellationSearchProps = {
+  all?: boolean
   routeId?: string
   direction?: number
   departureTime?: string
-  cancelledCancellations?: boolean
 }
 
 export const getCancellations = (
@@ -86,9 +89,69 @@ export const getCancellations = (
   const time = moment.tz(dateTime, TZ)
   const date = time.format('YYYY-MM-DD')
 
-  // If this function was supplied only a date string, include all cancellations
-  // for this date regardless of time.
-  const includeAllForDate = dateTime === date
+  const selectedCancellations = availableCancellations(date)
+    .filter((cancellation) => {
+      if (cancellationSearchProps.all) {
+        return true
+      }
 
-  return []
+      if (cancellationSearchProps.routeId === cancellation.routeId) {
+        if (
+          cancellationSearchProps.direction &&
+          cancellationSearchProps.direction !== cancellation.direction
+        ) {
+          return false
+        }
+
+        if (
+          cancellationSearchProps.departureTime &&
+          cancellationSearchProps.departureTime !== cancellation.journeyStartTime
+        ) {
+          return false
+        }
+
+        return true
+      }
+
+      return false
+    })
+    .filter((cancellation) => cancellation.departureDate === date)
+
+  if (selectedCancellations.length === 0) {
+    return []
+  }
+
+  let returnCancellations: Cancellation[] = orderBy<Cancellation>(
+    selectedCancellations,
+    [({ lastModifiedDateTime }) => lastModifiedDateTime.unix(), 'journeyStartTime'],
+    ['desc', 'asc']
+  )
+
+  if (onlyLatestState) {
+    // If requested, only the latest info existing about a departure is returned.
+    returnCancellations = returnCancellations.reduce(
+      (latest: Cancellation[], cancellation, index, allCancellations: Cancellation[]) => {
+        const previousCancellation = allCancellations.find(
+          (c) =>
+            c.routeId === cancellation.routeId &&
+            c.direction === cancellation.direction &&
+            c.departureDate === cancellation.departureDate &&
+            c.journeyStartTime === cancellation.journeyStartTime &&
+            c.isCancelled !== cancellation.isCancelled &&
+            c.lastModifiedDateTime.isAfter(cancellation.lastModifiedDateTime)
+        )
+
+        if (!previousCancellation) {
+          latest.push(cancellation)
+        }
+
+        return latest
+      },
+      []
+    )
+  }
+
+  return returnCancellations.map((cancellation) =>
+    mapValues(cancellation, (val) => (isMoment(val) ? val.toISOString(true) : val))
+  )
 }

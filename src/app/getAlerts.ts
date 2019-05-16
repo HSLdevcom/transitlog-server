@@ -108,7 +108,7 @@ const availableAlerts = (date): PartialAlert[] => [
     affectedId: '',
     description: 'The central system controlling all stop displays has stopped working.',
     distribution: AlertDistribution.Network,
-    level: AlertLevel.Warning,
+    level: AlertLevel.Severe,
     category: AlertCategory.ItsSystemError,
     impact: AlertImpact.PossiblyDelayed,
     startDateTime: getDateFromDateTime(date, '06:00:00'),

@@ -168,8 +168,7 @@ export const Alerts = gql`
     isCancelled: Boolean!
     cancellationType: CancellationType!
     cancellationEffect: CancellationEffect!
-    publishedDateTime: DateTime!
-    updatedDateTime: DateTime
+    lastModifiedDateTime: DateTime!
   }
 
   input AlertSearchInput {

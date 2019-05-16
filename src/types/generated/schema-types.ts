@@ -127,11 +127,6 @@ export enum AlertImpact {
   Unknown = 'UNKNOWN',
 }
 
-export enum CacheControlScope {
-  Public = 'PUBLIC',
-  Private = 'PRIVATE',
-}
-
 export enum CancellationSubcategory {
   BreakMalfunction = 'BREAK_MALFUNCTION',
   OutOfFuel = 'OUT_OF_FUEL',
@@ -199,6 +194,11 @@ export enum CancellationEffect {
   CancelStopsFromStart = 'CANCEL_STOPS_FROM_START',
   CancelStopsFromMiddle = 'CANCEL_STOPS_FROM_MIDDLE',
   CancelStopsFromEnd = 'CANCEL_STOPS_FROM_END',
+}
+
+export enum CacheControlScope {
+  Public = 'PUBLIC',
+  Private = 'PRIVATE',
 }
 
 /** A Date string in YYYY-MM-DD format. The timezone is assumed to be Europe/Helsinki. */
@@ -417,7 +417,35 @@ export interface Route {
 
   alerts: Alert[]
 
+  cancellations: Cancellation[]
+
   _matchScore?: Maybe<number>
+}
+
+export interface Cancellation {
+  routeId: string
+
+  direction: Direction
+
+  departureDate: Date
+
+  journeyStartTime: Time
+
+  title: string
+
+  description: string
+
+  category: AlertCategory
+
+  subCategory: CancellationSubcategory
+
+  isCancelled: boolean
+
+  cancellationType: CancellationType
+
+  cancellationEffect: CancellationEffect
+
+  lastModifiedDateTime: DateTime
 }
 
 export interface RouteGeometry {
@@ -766,34 +794,6 @@ export interface AreaJourney {
   events: Array<Maybe<JourneyEvent>>
 
   alerts: Alert[]
-}
-
-export interface Cancellation {
-  routeId: string
-
-  direction: Direction
-
-  departureDate: Date
-
-  journeyStartTime: Time
-
-  title: string
-
-  description: string
-
-  category: AlertCategory
-
-  subCategory: CancellationSubcategory
-
-  isCancelled: boolean
-
-  cancellationType: CancellationType
-
-  cancellationEffect: CancellationEffect
-
-  publishedDateTime: DateTime
-
-  updatedDateTime?: Maybe<DateTime>
 }
 
 // ====================================================
