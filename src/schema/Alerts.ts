@@ -72,6 +72,75 @@ export const Alerts = gql`
     UNKNOWN
   }
 
+  enum CancellationSubcategory {
+    BREAK_MALFUNCTION
+    OUT_OF_FUEL
+    FLUID_LEAKAGE
+    ELECTRIC_MALFUNCTION
+    ENGINE_MALFUNCTION
+    OTHER_MALFUNCTION
+    OWN_FAULT
+    OPPOSITE_FAULT
+    FAULT_UNKNOWN
+    STAFF_SHORTAGE
+    ND_OPERATOR_PLANNING_ERROR
+    DRIVER_LATE
+    INSUFFICIENT_INSTRUCTIONS_BY_OPERATOR
+    INSUFFICIENT_INSTRUCTIONS_BY_AUTHORITY
+    NO_VEHICLE_AVAILABLE
+    ASSAULT_ON_DRIVER
+    ASSAULT_ON_PASSENGER
+    ASSAULT_ON_VEHICLE
+    PASSED_OUT_PASSENGER
+    OTHER_ASSAULT
+    UNDRIVEABLE_CONDITIONS
+    STUCK_CAUSED_BY_SLIPPERY
+    CONGESTION_CAUSED_BY_WEATHER
+    SLIPPERY_TRACK
+    ROAD_BLOCKED
+    VEHICLE_OFF_THE_ROAD_BY_DRIVER_ERROR
+    VEHICLE_OFF_THE_ROAD_BY_OTHER_REASON
+    MISSPARKED_VEHICLE
+    CONGESTION_REASON_UKNOWN
+    CONGESTION_CAUSED_BY_ACCIDENT
+    DRIVER_SEIZURE
+    PASSENGER_SEIZURE
+    PASSENGER_INJURED
+    OTHER_SEIZURE
+    DEVICE_ERROR
+    OPERATOR_DEVICE_ERROR
+    WRONG_INFORMATION_IN_DEVICE
+    ITS_SYSTEM_NOT_INSTALLED
+    USER_ERROR
+    FALSE_ALARM
+    OTHER_ITS_ERROR
+    DRIVER_ERROR
+    INSUFFICIENT_CAPASITY
+    OPERATOR_PERSONNEL_ON_STRIKE
+    OTHER_STRIKE
+    OTHER_OPERATOR_REASON
+    UNKNOWN_CAUSE
+  }
+
+  enum CancellationType {
+    CANCEL_DEPARTURE
+    DETOUR
+    SKIPPED_STOP_CALLS
+    EARLY_DEPARTURE
+    EARLY_DEPARTURE_FROM_TIMING_POINT
+    LATE_DEPARTURE
+    DEPARTURED_AFTER_NEXT_JOURNEY
+    BLOCK_FIRST_DEPARTURE_LATE
+    TIS_ERROR
+  }
+
+  enum CancellationEffect {
+    CANCEL_ENTIRE_DEPARTURE
+    CANCEL_STOPS_FROM_START
+    CANCEL_STOPS_FROM_MIDDLE
+    CANCEL_STOPS_FROM_END
+  }
+
   type Alert {
     level: AlertLevel!
     category: AlertCategory!
@@ -88,13 +157,19 @@ export const Alerts = gql`
   }
 
   type Cancellation {
-    id: ID!
     routeId: String!
     direction: Direction!
     departureDate: Date!
     journeyStartTime: Time!
-    reason: String
-    isCancelled: Boolean
+    title: String!
+    description: String!
+    category: AlertCategory!
+    subCategory: CancellationSubcategory!
+    isCancelled: Boolean!
+    cancellationType: CancellationType!
+    cancellationEffect: CancellationEffect!
+    publishedDateTime: DateTime!
+    updatedDateTime: DateTime
   }
 
   input AlertSearchInput {

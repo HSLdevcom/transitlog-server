@@ -132,6 +132,75 @@ export enum CacheControlScope {
   Private = 'PRIVATE',
 }
 
+export enum CancellationSubcategory {
+  BreakMalfunction = 'BREAK_MALFUNCTION',
+  OutOfFuel = 'OUT_OF_FUEL',
+  FluidLeakage = 'FLUID_LEAKAGE',
+  ElectricMalfunction = 'ELECTRIC_MALFUNCTION',
+  EngineMalfunction = 'ENGINE_MALFUNCTION',
+  OtherMalfunction = 'OTHER_MALFUNCTION',
+  OwnFault = 'OWN_FAULT',
+  OppositeFault = 'OPPOSITE_FAULT',
+  FaultUnknown = 'FAULT_UNKNOWN',
+  StaffShortage = 'STAFF_SHORTAGE',
+  NdOperatorPlanningError = 'ND_OPERATOR_PLANNING_ERROR',
+  DriverLate = 'DRIVER_LATE',
+  InsufficientInstructionsByOperator = 'INSUFFICIENT_INSTRUCTIONS_BY_OPERATOR',
+  InsufficientInstructionsByAuthority = 'INSUFFICIENT_INSTRUCTIONS_BY_AUTHORITY',
+  NoVehicleAvailable = 'NO_VEHICLE_AVAILABLE',
+  AssaultOnDriver = 'ASSAULT_ON_DRIVER',
+  AssaultOnPassenger = 'ASSAULT_ON_PASSENGER',
+  AssaultOnVehicle = 'ASSAULT_ON_VEHICLE',
+  PassedOutPassenger = 'PASSED_OUT_PASSENGER',
+  OtherAssault = 'OTHER_ASSAULT',
+  UndriveableConditions = 'UNDRIVEABLE_CONDITIONS',
+  StuckCausedBySlippery = 'STUCK_CAUSED_BY_SLIPPERY',
+  CongestionCausedByWeather = 'CONGESTION_CAUSED_BY_WEATHER',
+  SlipperyTrack = 'SLIPPERY_TRACK',
+  RoadBlocked = 'ROAD_BLOCKED',
+  VehicleOffTheRoadByDriverError = 'VEHICLE_OFF_THE_ROAD_BY_DRIVER_ERROR',
+  VehicleOffTheRoadByOtherReason = 'VEHICLE_OFF_THE_ROAD_BY_OTHER_REASON',
+  MissparkedVehicle = 'MISSPARKED_VEHICLE',
+  CongestionReasonUknown = 'CONGESTION_REASON_UKNOWN',
+  CongestionCausedByAccident = 'CONGESTION_CAUSED_BY_ACCIDENT',
+  DriverSeizure = 'DRIVER_SEIZURE',
+  PassengerSeizure = 'PASSENGER_SEIZURE',
+  PassengerInjured = 'PASSENGER_INJURED',
+  OtherSeizure = 'OTHER_SEIZURE',
+  DeviceError = 'DEVICE_ERROR',
+  OperatorDeviceError = 'OPERATOR_DEVICE_ERROR',
+  WrongInformationInDevice = 'WRONG_INFORMATION_IN_DEVICE',
+  ItsSystemNotInstalled = 'ITS_SYSTEM_NOT_INSTALLED',
+  UserError = 'USER_ERROR',
+  FalseAlarm = 'FALSE_ALARM',
+  OtherItsError = 'OTHER_ITS_ERROR',
+  DriverError = 'DRIVER_ERROR',
+  InsufficientCapasity = 'INSUFFICIENT_CAPASITY',
+  OperatorPersonnelOnStrike = 'OPERATOR_PERSONNEL_ON_STRIKE',
+  OtherStrike = 'OTHER_STRIKE',
+  OtherOperatorReason = 'OTHER_OPERATOR_REASON',
+  UnknownCause = 'UNKNOWN_CAUSE',
+}
+
+export enum CancellationType {
+  CancelDeparture = 'CANCEL_DEPARTURE',
+  Detour = 'DETOUR',
+  SkippedStopCalls = 'SKIPPED_STOP_CALLS',
+  EarlyDeparture = 'EARLY_DEPARTURE',
+  EarlyDepartureFromTimingPoint = 'EARLY_DEPARTURE_FROM_TIMING_POINT',
+  LateDeparture = 'LATE_DEPARTURE',
+  DeparturedAfterNextJourney = 'DEPARTURED_AFTER_NEXT_JOURNEY',
+  BlockFirstDepartureLate = 'BLOCK_FIRST_DEPARTURE_LATE',
+  TisError = 'TIS_ERROR',
+}
+
+export enum CancellationEffect {
+  CancelEntireDeparture = 'CANCEL_ENTIRE_DEPARTURE',
+  CancelStopsFromStart = 'CANCEL_STOPS_FROM_START',
+  CancelStopsFromMiddle = 'CANCEL_STOPS_FROM_MIDDLE',
+  CancelStopsFromEnd = 'CANCEL_STOPS_FROM_END',
+}
+
 /** A Date string in YYYY-MM-DD format. The timezone is assumed to be Europe/Helsinki. */
 export type Date = any
 
@@ -2121,8 +2190,6 @@ export namespace AreaJourneyResolvers {
 
 export namespace CancellationResolvers {
   export interface Resolvers<TContext = {}, TypeParent = Cancellation> {
-    id?: IdResolver<string, TypeParent, TContext>
-
     routeId?: RouteIdResolver<string, TypeParent, TContext>
 
     direction?: DirectionResolver<Direction, TypeParent, TContext>
@@ -2131,16 +2198,25 @@ export namespace CancellationResolvers {
 
     journeyStartTime?: JourneyStartTimeResolver<Time, TypeParent, TContext>
 
-    reason?: ReasonResolver<Maybe<string>, TypeParent, TContext>
+    title?: TitleResolver<string, TypeParent, TContext>
 
-    isCancelled?: IsCancelledResolver<Maybe<boolean>, TypeParent, TContext>
+    description?: DescriptionResolver<string, TypeParent, TContext>
+
+    category?: CategoryResolver<AlertCategory, TypeParent, TContext>
+
+    subCategory?: SubCategoryResolver<CancellationSubcategory, TypeParent, TContext>
+
+    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
+
+    cancellationType?: CancellationTypeResolver<CancellationType, TypeParent, TContext>
+
+    cancellationEffect?: CancellationEffectResolver<CancellationEffect, TypeParent, TContext>
+
+    publishedDateTime?: PublishedDateTimeResolver<DateTime, TypeParent, TContext>
+
+    updatedDateTime?: UpdatedDateTimeResolver<Maybe<DateTime>, TypeParent, TContext>
   }
 
-  export type IdResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
   export type RouteIdResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
     R,
     Parent,
@@ -2161,13 +2237,48 @@ export namespace CancellationResolvers {
     Parent,
     TContext
   >
-  export type ReasonResolver<R = Maybe<string>, Parent = Cancellation, TContext = {}> = Resolver<
+  export type TitleResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
   >
-  export type IsCancelledResolver<
-    R = Maybe<boolean>,
+  export type DescriptionResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type CategoryResolver<R = AlertCategory, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type SubCategoryResolver<
+    R = CancellationSubcategory,
+    Parent = Cancellation,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsCancelledResolver<R = boolean, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type CancellationTypeResolver<
+    R = CancellationType,
+    Parent = Cancellation,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type CancellationEffectResolver<
+    R = CancellationEffect,
+    Parent = Cancellation,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type PublishedDateTimeResolver<
+    R = DateTime,
+    Parent = Cancellation,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type UpdatedDateTimeResolver<
+    R = Maybe<DateTime>,
     Parent = Cancellation,
     TContext = {}
   > = Resolver<R, Parent, TContext>
