@@ -4,6 +4,7 @@ import { JoreRouteData } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Direction, RouteSegment } from '../types/generated/schema-types'
 import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
+import { getAlerts } from './getAlerts'
 
 export async function createRouteSegmentsResponse(
   getRouteSegments: () => Promise<JoreRouteData[]>,
@@ -31,7 +32,7 @@ export async function createRouteSegmentsResponse(
         // Merge the route segment and the stop data, picking what we need from the segment and
         // splatting the stop. What we really need from the segment is the timing stop type and
         // the stop index. The departures will later be matched with actually observed events.
-        return createRouteSegmentObject(routeSegment)
+        return createRouteSegmentObject(routeSegment, null)
       }
     )
   }
@@ -43,5 +44,12 @@ export async function createRouteSegmentsResponse(
     return []
   }
 
-  return validRouteSegments
+  return validRouteSegments.map((routeSegment) => {
+    routeSegment.alerts = getAlerts(date, {
+      allStops: true,
+      stop: routeSegment.stopId,
+    })
+
+    return routeSegment
+  })
 }

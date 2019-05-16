@@ -1,8 +1,11 @@
 import { JoreRouteDepartureData, JoreStop, JoreStopSegment, Mode } from '../../types/Jore'
-import { SimpleStop, Stop, StopRoute } from '../../types/generated/schema-types'
+import { Alert, SimpleStop, Stop, StopRoute } from '../../types/generated/schema-types'
 import { get, uniq, compact } from 'lodash'
 
-export function createSimpleStopObject(stop: JoreStop | JoreStopSegment): SimpleStop {
+export function createSimpleStopObject(
+  stop: JoreStop | JoreStopSegment,
+  alerts: Alert[] = []
+): SimpleStop {
   const mode = get(stop, 'modes', get(stop, 'mode', Mode.Bus))
 
   return {
@@ -14,6 +17,7 @@ export function createSimpleStopObject(stop: JoreStop | JoreStopSegment): Simple
     name: stop.name_fi,
     radius: stop.stop_radius,
     modes: mode ? [mode] : [Mode.Bus],
+    alerts,
     // @ts-ignore
     _matchScore: stop._matchScore,
   }
@@ -21,7 +25,8 @@ export function createSimpleStopObject(stop: JoreStop | JoreStopSegment): Simple
 
 export function createStopObject(
   stop: JoreStop | JoreRouteDepartureData,
-  stopRoutes: StopRoute[] = []
+  stopRoutes: StopRoute[] = [],
+  alerts: Alert[] = []
 ): Stop {
   const modes = uniq(compact(stopRoutes.map(({ mode }) => mode)))
 
@@ -39,5 +44,6 @@ export function createStopObject(
     radius: stop.stop_radius,
     modes,
     routes: stopRoutes,
+    alerts,
   }
 }

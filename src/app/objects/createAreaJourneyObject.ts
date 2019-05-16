@@ -1,5 +1,5 @@
 import { Vehicles } from '../../types/generated/hfp-types'
-import { AreaJourney } from '../../types/generated/schema-types'
+import { Alert, AreaJourney } from '../../types/generated/schema-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { getDirection } from '../../utils/getDirection'
 import get from 'lodash/get'
@@ -7,7 +7,7 @@ import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 import { getJourneyStartTime } from '../../utils/time'
 import { createJourneyEventObject } from './createJourneyEventObject'
 
-export const createAreaJourneyObject = (events: Vehicles[]): AreaJourney => {
+export const createAreaJourneyObject = (events: Vehicles[], alerts: Alert[] = []): AreaJourney => {
   const journey = events[0]
   const departureTime = getJourneyStartTime(journey)
   const departureDate = get(journey, 'oday')
@@ -25,5 +25,6 @@ export const createAreaJourneyObject = (events: Vehicles[]): AreaJourney => {
     headsign: get(journey, 'headsign', ''),
     mode: get(journey, 'mode', 'BUS'),
     events: events.map((event) => createJourneyEventObject(event, id)),
+    alerts,
   }
 }

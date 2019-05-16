@@ -12,6 +12,7 @@ export const Route = gql`
     destinationStopId: String
     originStopId: String!
     mode: String
+    alerts: [Alert!]!
     _matchScore: Float
   }
 
@@ -34,6 +35,7 @@ export const Route = gql`
     name: String
     radius: Float
     modes: [String]!
+    alerts: [Alert!]!
   }
 
   type RouteGeometryPoint implements Position {

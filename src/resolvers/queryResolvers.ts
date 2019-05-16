@@ -13,8 +13,10 @@ import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
 import { createWeekDeparturesResponse } from '../app/createWeekDeparturesResponse'
 import { createRouteDeparturesResponse } from '../app/createRouteDeparturesResponse'
 import { format } from 'date-fns'
-import { flatten, compact } from 'lodash'
+import { compact, flatten } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
+import { Alert } from '../types/generated/schema-types'
+import { getAlerts } from '../app/getAlerts'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -188,6 +190,10 @@ const exceptionDays = (root, { year }, { dataSources }) => {
   return dataSources.JoreAPI.getExceptions(year)
 }
 
+const alerts = (root, { time, alertSearch }, { dataSources }): Alert[] => {
+  return getAlerts(time, alertSearch)
+}
+
 export const queryResolvers: QueryResolvers.Resolvers = {
   equipment,
   stop,
@@ -206,4 +212,6 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   journeys,
   eventsByBbox,
   exceptionDays,
+  // @ts-ignore
+  alerts,
 }

@@ -21,6 +21,7 @@ export const Stop = gql`
     radius: Float
     modes: [String]!
     _matchScore: Float
+    alerts: [Alert!]!
   }
 
   type Stop implements Position {
@@ -32,7 +33,8 @@ export const Stop = gql`
     name: String
     radius: Float
     modes: [String]!
-    routes: [StopRoute]!
+    routes: [StopRoute!]!
+    alerts: [Alert!]!
   }
 
   input StopFilterInput {

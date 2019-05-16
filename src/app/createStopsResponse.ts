@@ -4,9 +4,11 @@ import { cacheFetch } from './cache'
 import { createSimpleStopObject, createStopObject } from './objects/createStopObject'
 import { search } from './filters/search'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { groupBy, uniqBy, orderBy } from 'lodash'
+import { groupBy, orderBy, uniqBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
+import { getAlerts } from './getAlerts'
+import format from 'date-fns/format'
 
 function getSearchValue(item) {
   const { stopId = '', shortId = '', name = '' } = item
@@ -59,8 +61,9 @@ export async function createStopResponse(
       return routes
     }, [])
 
+    const stop = validStops[0]
     stopRoutes = orderBy(stopRoutes, 'route_id')
-    return createStopObject(validStops[0], stopRoutes)
+    return createStopObject(stop, stopRoutes)
   }
 
   const cacheKey = `stop_${date}_${stopId}`
@@ -69,6 +72,13 @@ export async function createStopResponse(
   if (!stop) {
     return null
   }
+
+  stop.alerts = getAlerts(date, {
+    allStops: true,
+    stop: stop.stopId,
+    allRoutes: true,
+    route: stop.routes && stop.routes.length ? stop.routes.map(({ routeId }) => routeId) : '',
+  })
 
   return stop
 }
@@ -85,9 +95,7 @@ export async function createStopsResponse(
       return false
     }
 
-    return fetchedStops.map((stop) => {
-      return createSimpleStopObject(stop)
-    })
+    return fetchedStops.map((stop) => createSimpleStopObject(stop))
   }
 
   // Create a separate cache key for bbox queries.
@@ -105,5 +113,10 @@ export async function createStopsResponse(
     filteredStops = search<SimpleStop>(stops, filter.search, getSearchValue)
   }
 
-  return filteredStops
+  const currentTime = format(new Date(), 'YYYY-MM-DD')
+
+  return filteredStops.map((stop) => {
+    stop.alerts = getAlerts(currentTime, { allStops: true, stop: stop.stopId })
+    return stop
+  })
 }

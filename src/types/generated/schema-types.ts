@@ -42,6 +42,91 @@ export interface AreaEventsFilterInput {
   direction?: Maybe<Direction>
 }
 
+export interface AlertSearchInput {
+  all?: Maybe<boolean>
+
+  network?: Maybe<boolean>
+
+  allRoutes?: Maybe<boolean>
+
+  allStops?: Maybe<boolean>
+
+  route?: Maybe<string>
+
+  stop?: Maybe<string>
+}
+
+export enum AlertLevel {
+  Info = 'INFO',
+  Warning = 'WARNING',
+  Severe = 'SEVERE',
+}
+
+export enum AlertCategory {
+  VehicleBreakdown = 'VEHICLE_BREAKDOWN',
+  Accident = 'ACCIDENT',
+  NoDriver = 'NO_DRIVER',
+  Assault = 'ASSAULT',
+  Weather = 'WEATHER',
+  VehicleOffTheRoad = 'VEHICLE_OFF_THE_ROAD',
+  Seizure = 'SEIZURE',
+  ItsSystemError = 'ITS_SYSTEM_ERROR',
+  OtherDriverError = 'OTHER_DRIVER_ERROR',
+  TooManyPassengers = 'TOO_MANY_PASSENGERS',
+  Strike = 'STRIKE',
+  Other = 'OTHER',
+  EarlierDisruption = 'EARLIER_DISRUPTION',
+  NoTrafficDisruption = 'NO_TRAFFIC_DISRUPTION',
+  TrackBlocked = 'TRACK_BLOCKED',
+  StaffDeficit = 'STAFF_DEFICIT',
+  Disturbance = 'DISTURBANCE',
+  VehicleDeficit = 'VEHICLE_DEFICIT',
+  RoadClosed = 'ROAD_CLOSED',
+  RoadTrench = 'ROAD_TRENCH',
+  TrackMaintenance = 'TRACK_MAINTENANCE',
+  TrafficAccident = 'TRAFFIC_ACCIDENT',
+  TrafficJam = 'TRAFFIC_JAM',
+  MedicalIncident = 'MEDICAL_INCIDENT',
+  WeatherConditions = 'WEATHER_CONDITIONS',
+  TechnicalFailure = 'TECHNICAL_FAILURE',
+  Test = 'TEST',
+  RoadMaintenance = 'ROAD_MAINTENANCE',
+  SwitchFailure = 'SWITCH_FAILURE',
+  StateVisit = 'STATE_VISIT',
+  PowerFailure = 'POWER_FAILURE',
+  MisparkedVehicle = 'MISPARKED_VEHICLE',
+  PublicEvent = 'PUBLIC_EVENT',
+}
+
+export enum AlertDistribution {
+  Stop = 'STOP',
+  AllStops = 'ALL_STOPS',
+  Route = 'ROUTE',
+  AllRoutes = 'ALL_ROUTES',
+  Network = 'NETWORK',
+}
+
+export enum AlertImpact {
+  Delayed = 'DELAYED',
+  PossiblyDelayed = 'POSSIBLY_DELAYED',
+  ReducedTransport = 'REDUCED_TRANSPORT',
+  Cancelled = 'CANCELLED',
+  PossibleDeviations = 'POSSIBLE_DEVIATIONS',
+  ReturningToNormal = 'RETURNING_TO_NORMAL',
+  DisruptionRoute = 'DISRUPTION_ROUTE',
+  DeviatingSchedule = 'DEVIATING_SCHEDULE',
+  IrregularDepartures = 'IRREGULAR_DEPARTURES',
+  IrregularDeparturesMax_15 = 'IRREGULAR_DEPARTURES_MAX_15',
+  IrregularDeparturesMax_30 = 'IRREGULAR_DEPARTURES_MAX_30',
+  VendingMachineOutOfOrder = 'VENDING_MACHINE_OUT_OF_ORDER',
+  BicycleStationOutOfOrder = 'BICYCLE_STATION_OUT_OF_ORDER',
+  BicycleSystemOutOfOrder = 'BICYCLE_SYSTEM_OUT_OF_ORDER',
+  ReducedBicycleParkCapacity = 'REDUCED_BICYCLE_PARK_CAPACITY',
+  Other = 'OTHER',
+  NoTrafficImpact = 'NO_TRAFFIC_IMPACT',
+  Unknown = 'UNKNOWN',
+}
+
 export enum CacheControlScope {
   Public = 'PUBLIC',
   Private = 'PRIVATE',
@@ -53,6 +138,9 @@ export type Date = any
 /** The direction of a route. An integer of either 1 or 2. */
 export type Direction = any
 
+/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
+export type DateTime = any
+
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
 export type BBox = any
 
@@ -61,9 +149,6 @@ export type Time = any
 
 /** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */
 export type VehicleId = any
-
-/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
-export type DateTime = any
 
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
 export type PreciseBBox = any
@@ -124,6 +209,8 @@ export interface Query {
   vehicleJourneys: Array<Maybe<VehicleJourney>>
 
   eventsByBbox: Array<Maybe<AreaJourney>>
+
+  alerts: Array<Maybe<Alert>>
 }
 
 export interface Equipment {
@@ -169,7 +256,9 @@ export interface Stop extends Position {
 
   modes: Array<Maybe<string>>
 
-  routes: Array<Maybe<StopRoute>>
+  routes: StopRoute[]
+
+  alerts: Alert[]
 }
 
 export interface StopRoute {
@@ -186,6 +275,32 @@ export interface StopRoute {
   isTimingStop: boolean
 
   mode?: Maybe<string>
+}
+
+export interface Alert {
+  level: AlertLevel
+
+  category: AlertCategory
+
+  distribution: AlertDistribution
+
+  impact: AlertImpact
+
+  affectedId: string
+
+  startDateTime: DateTime
+
+  endDateTime: DateTime
+
+  publishedDateTime: DateTime
+
+  updatedDateTime?: Maybe<DateTime>
+
+  title: string
+
+  description: string
+
+  url?: Maybe<string>
 }
 
 export interface SimpleStop extends Position {
@@ -206,6 +321,8 @@ export interface SimpleStop extends Position {
   modes: Array<Maybe<string>>
 
   _matchScore?: Maybe<number>
+
+  alerts: Alert[]
 }
 
 export interface Route {
@@ -228,6 +345,8 @@ export interface Route {
   originStopId: string
 
   mode?: Maybe<string>
+
+  alerts: Alert[]
 
   _matchScore?: Maybe<number>
 }
@@ -282,6 +401,8 @@ export interface RouteSegment extends Position {
   radius?: Maybe<number>
 
   modes: Array<Maybe<string>>
+
+  alerts: Alert[]
 }
 
 export interface Line {
@@ -335,6 +456,8 @@ export interface Departure {
 
   journey?: Maybe<DepartureJourney>
 
+  alerts: Alert[]
+
   originDepartureTime?: Maybe<PlannedDeparture>
 
   plannedArrivalTime: PlannedArrival
@@ -366,6 +489,8 @@ export interface DepartureJourney {
   mode?: Maybe<string>
 
   events?: Maybe<JourneyEvent[]>
+
+  alerts: Alert[]
 
   _numInstance?: Maybe<number>
 }
@@ -502,6 +627,8 @@ export interface Journey {
   events: JourneyEvent[]
 
   departures: Departure[]
+
+  alerts: Alert[]
 }
 
 export interface VehicleJourney {
@@ -540,6 +667,8 @@ export interface VehicleJourney {
   timeDifference: number
 
   nextStopId: string
+
+  alerts: Alert[]
 }
 
 export interface AreaJourney {
@@ -566,6 +695,24 @@ export interface AreaJourney {
   mode?: Maybe<string>
 
   events: Array<Maybe<JourneyEvent>>
+
+  alerts: Alert[]
+}
+
+export interface Cancellation {
+  id: string
+
+  routeId: string
+
+  direction: Direction
+
+  departureDate: Date
+
+  journeyStartTime: Time
+
+  reason?: Maybe<string>
+
+  isCancelled?: Maybe<boolean>
 }
 
 // ====================================================
@@ -686,4 +833,9 @@ export interface EventsByBboxQueryArgs {
   date: Date
 
   filters?: Maybe<AreaEventsFilterInput>
+}
+export interface AlertsQueryArgs {
+  time?: Maybe<string>
+
+  alertSearch?: Maybe<AlertSearchInput>
 }

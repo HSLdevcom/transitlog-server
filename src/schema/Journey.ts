@@ -37,6 +37,7 @@ export const Journey = gql`
     equipment: Equipment
     events: [JourneyEvent!]!
     departures: [Departure!]!
+    alerts: [Alert!]!
   }
 
   type VehicleJourney {
@@ -58,6 +59,7 @@ export const Journey = gql`
     recordedTime: Time!
     timeDifference: Int!
     nextStopId: String!
+    alerts: [Alert!]!
   }
 
   type AreaJourney {
@@ -73,6 +75,7 @@ export const Journey = gql`
     headsign: String
     mode: String
     events: [JourneyEvent]!
+    alerts: [Alert!]!
   }
 
   input AreaEventsFilterInput {

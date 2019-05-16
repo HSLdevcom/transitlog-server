@@ -1,7 +1,7 @@
 import { createJourneyId } from '../../utils/createJourneyId'
 import { Vehicles } from '../../types/generated/hfp-types'
 import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
-import { Departure, Journey, Route } from '../../types/generated/schema-types'
+import { Alert, Departure, Journey, Route } from '../../types/generated/schema-types'
 import { createJourneyEventObject } from './createJourneyEventObject'
 import { get } from 'lodash'
 import { createEquipmentObject } from './createEquipmentObject'
@@ -12,7 +12,8 @@ export function createJourneyObject(
   journeyEvents: Vehicles[],
   journeyRoute?: Route | null,
   journeyDepartures: Departure[] = [],
-  journeyEquipment?: JoreEquipment | null
+  journeyEquipment?: JoreEquipment | null,
+  alerts: Alert[] = []
 ): Journey {
   const journey = journeyEvents[0]
   const firstDeparture = journeyDepartures[0]
@@ -36,5 +37,6 @@ export function createJourneyObject(
     equipment: journeyEquipment ? createEquipmentObject(journeyEquipment) : null,
     events: journeyEvents.map((event) => createJourneyEventObject(event, id)),
     departures: journeyDepartures,
+    alerts,
   }
 }

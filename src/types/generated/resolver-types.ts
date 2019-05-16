@@ -42,6 +42,91 @@ export interface AreaEventsFilterInput {
   direction?: Maybe<Direction>
 }
 
+export interface AlertSearchInput {
+  all?: Maybe<boolean>
+
+  network?: Maybe<boolean>
+
+  allRoutes?: Maybe<boolean>
+
+  allStops?: Maybe<boolean>
+
+  route?: Maybe<string>
+
+  stop?: Maybe<string>
+}
+
+export enum AlertLevel {
+  Info = 'INFO',
+  Warning = 'WARNING',
+  Severe = 'SEVERE',
+}
+
+export enum AlertCategory {
+  VehicleBreakdown = 'VEHICLE_BREAKDOWN',
+  Accident = 'ACCIDENT',
+  NoDriver = 'NO_DRIVER',
+  Assault = 'ASSAULT',
+  Weather = 'WEATHER',
+  VehicleOffTheRoad = 'VEHICLE_OFF_THE_ROAD',
+  Seizure = 'SEIZURE',
+  ItsSystemError = 'ITS_SYSTEM_ERROR',
+  OtherDriverError = 'OTHER_DRIVER_ERROR',
+  TooManyPassengers = 'TOO_MANY_PASSENGERS',
+  Strike = 'STRIKE',
+  Other = 'OTHER',
+  EarlierDisruption = 'EARLIER_DISRUPTION',
+  NoTrafficDisruption = 'NO_TRAFFIC_DISRUPTION',
+  TrackBlocked = 'TRACK_BLOCKED',
+  StaffDeficit = 'STAFF_DEFICIT',
+  Disturbance = 'DISTURBANCE',
+  VehicleDeficit = 'VEHICLE_DEFICIT',
+  RoadClosed = 'ROAD_CLOSED',
+  RoadTrench = 'ROAD_TRENCH',
+  TrackMaintenance = 'TRACK_MAINTENANCE',
+  TrafficAccident = 'TRAFFIC_ACCIDENT',
+  TrafficJam = 'TRAFFIC_JAM',
+  MedicalIncident = 'MEDICAL_INCIDENT',
+  WeatherConditions = 'WEATHER_CONDITIONS',
+  TechnicalFailure = 'TECHNICAL_FAILURE',
+  Test = 'TEST',
+  RoadMaintenance = 'ROAD_MAINTENANCE',
+  SwitchFailure = 'SWITCH_FAILURE',
+  StateVisit = 'STATE_VISIT',
+  PowerFailure = 'POWER_FAILURE',
+  MisparkedVehicle = 'MISPARKED_VEHICLE',
+  PublicEvent = 'PUBLIC_EVENT',
+}
+
+export enum AlertDistribution {
+  Stop = 'STOP',
+  AllStops = 'ALL_STOPS',
+  Route = 'ROUTE',
+  AllRoutes = 'ALL_ROUTES',
+  Network = 'NETWORK',
+}
+
+export enum AlertImpact {
+  Delayed = 'DELAYED',
+  PossiblyDelayed = 'POSSIBLY_DELAYED',
+  ReducedTransport = 'REDUCED_TRANSPORT',
+  Cancelled = 'CANCELLED',
+  PossibleDeviations = 'POSSIBLE_DEVIATIONS',
+  ReturningToNormal = 'RETURNING_TO_NORMAL',
+  DisruptionRoute = 'DISRUPTION_ROUTE',
+  DeviatingSchedule = 'DEVIATING_SCHEDULE',
+  IrregularDepartures = 'IRREGULAR_DEPARTURES',
+  IrregularDeparturesMax_15 = 'IRREGULAR_DEPARTURES_MAX_15',
+  IrregularDeparturesMax_30 = 'IRREGULAR_DEPARTURES_MAX_30',
+  VendingMachineOutOfOrder = 'VENDING_MACHINE_OUT_OF_ORDER',
+  BicycleStationOutOfOrder = 'BICYCLE_STATION_OUT_OF_ORDER',
+  BicycleSystemOutOfOrder = 'BICYCLE_SYSTEM_OUT_OF_ORDER',
+  ReducedBicycleParkCapacity = 'REDUCED_BICYCLE_PARK_CAPACITY',
+  Other = 'OTHER',
+  NoTrafficImpact = 'NO_TRAFFIC_IMPACT',
+  Unknown = 'UNKNOWN',
+}
+
 export enum CacheControlScope {
   Public = 'PUBLIC',
   Private = 'PRIVATE',
@@ -53,6 +138,9 @@ export type Date = any
 /** The direction of a route. An integer of either 1 or 2. */
 export type Direction = any
 
+/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
+export type DateTime = any
+
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
 export type BBox = any
 
@@ -61,9 +149,6 @@ export type Time = any
 
 /** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */
 export type VehicleId = any
-
-/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
-export type DateTime = any
 
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
 export type PreciseBBox = any
@@ -149,6 +234,8 @@ export namespace QueryResolvers {
     vehicleJourneys?: VehicleJourneysResolver<Array<Maybe<VehicleJourney>>, TypeParent, TContext>
 
     eventsByBbox?: EventsByBboxResolver<Array<Maybe<AreaJourney>>, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Array<Maybe<Alert>>, TypeParent, TContext>
   }
 
   export type EquipmentResolver<R = Array<Maybe<Equipment>>, Parent = {}, TContext = {}> = Resolver<
@@ -375,6 +462,18 @@ export namespace QueryResolvers {
 
     filters?: Maybe<AreaEventsFilterInput>
   }
+
+  export type AlertsResolver<R = Array<Maybe<Alert>>, Parent = {}, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext,
+    AlertsArgs
+  >
+  export interface AlertsArgs {
+    time?: Maybe<string>
+
+    alertSearch?: Maybe<AlertSearchInput>
+  }
 }
 
 export namespace EquipmentResolvers {
@@ -484,7 +583,9 @@ export namespace StopResolvers {
 
     modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
 
-    routes?: RoutesResolver<Array<Maybe<StopRoute>>, TypeParent, TContext>
+    routes?: RoutesResolver<StopRoute[], TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Stop, TContext = {}> = Resolver<R, Parent, TContext>
@@ -515,7 +616,12 @@ export namespace StopResolvers {
     Parent,
     TContext
   >
-  export type RoutesResolver<R = Array<Maybe<StopRoute>>, Parent = Stop, TContext = {}> = Resolver<
+  export type RoutesResolver<R = StopRoute[], Parent = Stop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type AlertsResolver<R = Alert[], Parent = Stop, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -576,6 +682,95 @@ export namespace StopRouteResolvers {
   >
 }
 
+export namespace AlertResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = Alert> {
+    level?: LevelResolver<AlertLevel, TypeParent, TContext>
+
+    category?: CategoryResolver<AlertCategory, TypeParent, TContext>
+
+    distribution?: DistributionResolver<AlertDistribution, TypeParent, TContext>
+
+    impact?: ImpactResolver<AlertImpact, TypeParent, TContext>
+
+    affectedId?: AffectedIdResolver<string, TypeParent, TContext>
+
+    startDateTime?: StartDateTimeResolver<DateTime, TypeParent, TContext>
+
+    endDateTime?: EndDateTimeResolver<DateTime, TypeParent, TContext>
+
+    publishedDateTime?: PublishedDateTimeResolver<DateTime, TypeParent, TContext>
+
+    updatedDateTime?: UpdatedDateTimeResolver<Maybe<DateTime>, TypeParent, TContext>
+
+    title?: TitleResolver<string, TypeParent, TContext>
+
+    description?: DescriptionResolver<string, TypeParent, TContext>
+
+    url?: UrlResolver<Maybe<string>, TypeParent, TContext>
+  }
+
+  export type LevelResolver<R = AlertLevel, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type CategoryResolver<R = AlertCategory, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DistributionResolver<R = AlertDistribution, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ImpactResolver<R = AlertImpact, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type AffectedIdResolver<R = string, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type StartDateTimeResolver<R = DateTime, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type EndDateTimeResolver<R = DateTime, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type PublishedDateTimeResolver<R = DateTime, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type UpdatedDateTimeResolver<
+    R = Maybe<DateTime>,
+    Parent = Alert,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type TitleResolver<R = string, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DescriptionResolver<R = string, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type UrlResolver<R = Maybe<string>, Parent = Alert, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
 export namespace SimpleStopResolvers {
   export interface Resolvers<TContext = {}, TypeParent = SimpleStop> {
     id?: IdResolver<string, TypeParent, TContext>
@@ -595,6 +790,8 @@ export namespace SimpleStopResolvers {
     modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
 
     _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = SimpleStop, TContext = {}> = Resolver<
@@ -642,6 +839,11 @@ export namespace SimpleStopResolvers {
     Parent,
     TContext
   >
+  export type AlertsResolver<R = Alert[], Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace RouteResolvers {
@@ -665,6 +867,8 @@ export namespace RouteResolvers {
     originStopId?: OriginStopIdResolver<string, TypeParent, TContext>
 
     mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
     _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
   }
@@ -711,6 +915,11 @@ export namespace RouteResolvers {
     TContext
   >
   export type ModeResolver<R = Maybe<string>, Parent = Route, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type AlertsResolver<R = Alert[], Parent = Route, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -804,6 +1013,8 @@ export namespace RouteSegmentResolvers {
     radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
 
     modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
@@ -896,6 +1107,11 @@ export namespace RouteSegmentResolvers {
     Parent = RouteSegment,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type AlertsResolver<R = Alert[], Parent = RouteSegment, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace LineResolvers {
@@ -973,6 +1189,8 @@ export namespace DepartureResolvers {
     stop?: StopResolver<RouteSegment, TypeParent, TContext>
 
     journey?: JourneyResolver<Maybe<DepartureJourney>, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
     originDepartureTime?: OriginDepartureTimeResolver<Maybe<PlannedDeparture>, TypeParent, TContext>
 
@@ -1084,6 +1302,11 @@ export namespace DepartureResolvers {
     Parent = Departure,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type AlertsResolver<R = Alert[], Parent = Departure, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type OriginDepartureTimeResolver<
     R = Maybe<PlannedDeparture>,
     Parent = Departure,
@@ -1132,6 +1355,8 @@ export namespace DepartureJourneyResolvers {
     mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
 
     events?: EventsResolver<Maybe<JourneyEvent[]>, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
     _numInstance?: _NumInstanceResolver<Maybe<number>, TypeParent, TContext>
   }
@@ -1186,6 +1411,11 @@ export namespace DepartureJourneyResolvers {
     Parent = DepartureJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type AlertsResolver<R = Alert[], Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type _NumInstanceResolver<
     R = Maybe<number>,
     Parent = DepartureJourney,
@@ -1564,6 +1794,8 @@ export namespace JourneyResolvers {
     events?: EventsResolver<JourneyEvent[], TypeParent, TContext>
 
     departures?: DeparturesResolver<Departure[], TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
@@ -1646,6 +1878,11 @@ export namespace JourneyResolvers {
     Parent,
     TContext
   >
+  export type AlertsResolver<R = Alert[], Parent = Journey, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace VehicleJourneyResolvers {
@@ -1685,6 +1922,8 @@ export namespace VehicleJourneyResolvers {
     timeDifference?: TimeDifferenceResolver<number, TypeParent, TContext>
 
     nextStopId?: NextStopIdResolver<string, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = VehicleJourney, TContext = {}> = Resolver<
@@ -1777,6 +2016,11 @@ export namespace VehicleJourneyResolvers {
     Parent,
     TContext
   >
+  export type AlertsResolver<R = Alert[], Parent = VehicleJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace AreaJourneyResolvers {
@@ -1804,6 +2048,8 @@ export namespace AreaJourneyResolvers {
     mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
 
     events?: EventsResolver<Array<Maybe<JourneyEvent>>, TypeParent, TContext>
+
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = AreaJourney, TContext = {}> = Resolver<
@@ -1866,6 +2112,65 @@ export namespace AreaJourneyResolvers {
     Parent = AreaJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type AlertsResolver<R = Alert[], Parent = AreaJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
+export namespace CancellationResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = Cancellation> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    routeId?: RouteIdResolver<string, TypeParent, TContext>
+
+    direction?: DirectionResolver<Direction, TypeParent, TContext>
+
+    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
+
+    journeyStartTime?: JourneyStartTimeResolver<Time, TypeParent, TContext>
+
+    reason?: ReasonResolver<Maybe<string>, TypeParent, TContext>
+
+    isCancelled?: IsCancelledResolver<Maybe<boolean>, TypeParent, TContext>
+  }
+
+  export type IdResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type RouteIdResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DirectionResolver<R = Direction, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DepartureDateResolver<R = Date, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type JourneyStartTimeResolver<R = Time, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ReasonResolver<R = Maybe<string>, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type IsCancelledResolver<
+    R = Maybe<boolean>,
+    Parent = Cancellation,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 /** Any object that describes something with a position implements this interface. */
@@ -1922,6 +2227,9 @@ export interface DateScalarConfig extends GraphQLScalarTypeConfig<Date, any> {
 export interface DirectionScalarConfig extends GraphQLScalarTypeConfig<Direction, any> {
   name: 'Direction'
 }
+export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<DateTime, any> {
+  name: 'DateTime'
+}
 export interface BBoxScalarConfig extends GraphQLScalarTypeConfig<BBox, any> {
   name: 'BBox'
 }
@@ -1930,9 +2238,6 @@ export interface TimeScalarConfig extends GraphQLScalarTypeConfig<Time, any> {
 }
 export interface VehicleIdScalarConfig extends GraphQLScalarTypeConfig<VehicleId, any> {
   name: 'VehicleId'
-}
-export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<DateTime, any> {
-  name: 'DateTime'
 }
 export interface PreciseBBoxScalarConfig extends GraphQLScalarTypeConfig<PreciseBBox, any> {
   name: 'PreciseBBox'
@@ -1946,6 +2251,7 @@ export type IResolvers<TContext = {}> = {
   Equipment?: EquipmentResolvers.Resolvers<TContext>
   Stop?: StopResolvers.Resolvers<TContext>
   StopRoute?: StopRouteResolvers.Resolvers<TContext>
+  Alert?: AlertResolvers.Resolvers<TContext>
   SimpleStop?: SimpleStopResolvers.Resolvers<TContext>
   Route?: RouteResolvers.Resolvers<TContext>
   RouteGeometry?: RouteGeometryResolvers.Resolvers<TContext>
@@ -1963,13 +2269,14 @@ export type IResolvers<TContext = {}> = {
   Journey?: JourneyResolvers.Resolvers<TContext>
   VehicleJourney?: VehicleJourneyResolvers.Resolvers<TContext>
   AreaJourney?: AreaJourneyResolvers.Resolvers<TContext>
+  Cancellation?: CancellationResolvers.Resolvers<TContext>
   Position?: PositionResolvers.Resolvers
   Date?: GraphQLScalarType
   Direction?: GraphQLScalarType
+  DateTime?: GraphQLScalarType
   BBox?: GraphQLScalarType
   Time?: GraphQLScalarType
   VehicleId?: GraphQLScalarType
-  DateTime?: GraphQLScalarType
   PreciseBBox?: GraphQLScalarType
   Upload?: GraphQLScalarType
 } & { [typeName: string]: never }
