@@ -555,6 +555,10 @@ export interface Departure {
 
   alerts: Alert[]
 
+  cancellations: Cancellation[]
+
+  isCancelled: boolean
+
   originDepartureTime?: Maybe<PlannedDeparture>
 
   plannedArrivalTime: PlannedArrival

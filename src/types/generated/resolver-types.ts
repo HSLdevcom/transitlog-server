@@ -1357,6 +1357,10 @@ export namespace DepartureResolvers {
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
+    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
+
+    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
+
     originDepartureTime?: OriginDepartureTimeResolver<Maybe<PlannedDeparture>, TypeParent, TContext>
 
     plannedArrivalTime?: PlannedArrivalTimeResolver<PlannedArrival, TypeParent, TContext>
@@ -1468,6 +1472,16 @@ export namespace DepartureResolvers {
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type AlertsResolver<R = Alert[], Parent = Departure, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type CancellationsResolver<
+    R = Cancellation[],
+    Parent = Departure,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsCancelledResolver<R = boolean, Parent = Departure, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

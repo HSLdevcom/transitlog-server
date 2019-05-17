@@ -72,6 +72,8 @@ export const Departure = gql`
     stop: RouteSegment!
     journey: DepartureJourney
     alerts: [Alert!]!
+    cancellations: [Cancellation!]!
+    isCancelled: Boolean!
     originDepartureTime: PlannedDeparture
     plannedArrivalTime: PlannedArrival!
     observedArrivalTime: ObservedArrival

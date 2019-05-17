@@ -7,6 +7,7 @@ import { get } from 'lodash'
 import { createEquipmentObject } from './createEquipmentObject'
 import { JoreEquipment } from '../../types/Jore'
 import { getJourneyStartTime } from '../../utils/time'
+import { getDirection } from '../../utils/getDirection'
 
 export function createJourneyObject(
   journeyEvents: Vehicles[],
@@ -25,7 +26,7 @@ export function createJourneyObject(
     lineId: get(journeyRoute, 'lineId', ''),
     routeId: get<Vehicles, any, string>(journey, 'route_id', get(journeyRoute, 'routeId', '')),
     originStopId: get(journeyRoute, 'originStopId', ''),
-    direction: journey.direction_id,
+    direction: getDirection(journey.direction_id),
     departureDate: journey.oday,
     departureTime,
     uniqueVehicleId: createUniqueVehicleId(journey.owner_operator_id, journey.vehicle_number),

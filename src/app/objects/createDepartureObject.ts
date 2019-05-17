@@ -20,6 +20,7 @@ import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
 import { get } from 'lodash'
 import moment from 'moment-timezone'
 import { TZ } from '../../constants'
+import { getDirection } from '../../utils/getDirection'
 
 export function createDepartureId(departure, date = '') {
   return `${departure.route_id}_${departure.direction}_${departure.hours}_${departure.minutes}_${
@@ -103,7 +104,7 @@ export function createPlannedDepartureObject(
     equipmentColor: departure.trunk_color_required ? 'HSL-orans' : '',
     operatorId: departure.operator_id,
     routeId: departure.route_id,
-    direction: departure.direction,
+    direction: getDirection(departure.direction),
     terminalTime: departure.terminal_time,
     recoveryTime: departure.recovery_time,
     departureId: departure.departure_id,
@@ -115,6 +116,8 @@ export function createPlannedDepartureObject(
     stop,
     journey: null,
     alerts,
+    cancellations: [],
+    isCancelled: false,
     originDepartureTime: departure.origin_departure
       ? createPlannedDepartureTimeObject(departure.origin_departure, departureDate)
       : null,

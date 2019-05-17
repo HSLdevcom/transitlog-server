@@ -11,6 +11,7 @@ import {
 import { getDateFromDateTime } from '../utils/time'
 import { orderBy, mapValues } from 'lodash'
 import { isMoment } from 'moment'
+import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 
 // Mock alert data
 const availableCancellations = (date): Cancellation[] => [
@@ -26,7 +27,7 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: true,
-    lastModifiedDateTime: getDateFromDateTime(date, '05:44:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '05:44'),
   },
   {
     title: `Route 1018 alien abduction`,
@@ -40,7 +41,7 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: false,
-    lastModifiedDateTime: getDateFromDateTime(date, '05:58:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '05:58'),
   },
   {
     title: `Route 1018 alien abduction`,
@@ -54,7 +55,7 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: true,
-    lastModifiedDateTime: getDateFromDateTime(date, '06:00:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '06:00'),
   },
   {
     title: `Route 1018 alien abduction`,
@@ -68,7 +69,7 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: false,
-    lastModifiedDateTime: getDateFromDateTime(date, '06:04:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '06:04'),
   },
   {
     title: `Vandalism on route 1018`,
@@ -77,13 +78,13 @@ const availableCancellations = (date): Cancellation[] => [
     description:
       'A vandal from Vantaa has punctured the tires of a vehicle that as supposed to drive this route as they were unhappy to be placed in Zone C.',
     departureDate: date,
-    journeyStartTime: '07:43',
+    journeyStartTime: '07:49',
     category: AlertCategory.Assault,
     subCategory: CancellationSubcategory.AssaultOnVehicle,
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: true,
-    lastModifiedDateTime: getDateFromDateTime(date, '07:36:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '07:36'),
   },
   {
     title: `Ruote 1018 road blocked`,
@@ -92,13 +93,13 @@ const availableCancellations = (date): Cancellation[] => [
     description:
       'Someone from Eira parked their big and expensive SUV in the middle of the road blocking all traffic.',
     departureDate: date,
-    journeyStartTime: '08:23',
+    journeyStartTime: '08:28',
     category: AlertCategory.MisparkedVehicle,
     subCategory: CancellationSubcategory.MissparkedVehicle,
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelStopsFromMiddle,
     isCancelled: true,
-    lastModifiedDateTime: getDateFromDateTime(date, '08:14:00'),
+    lastModifiedDateTime: getDateFromDateTime(date, '08:14'),
   },
 ]
 
@@ -125,15 +126,15 @@ export const getCancellations = (
 
       if (cancellationSearchProps.routeId === cancellation.routeId) {
         if (
-          cancellationSearchProps.direction &&
+          typeof cancellationSearchProps.direction !== 'undefined' &&
           cancellationSearchProps.direction !== cancellation.direction
         ) {
           return false
         }
 
         if (
-          cancellationSearchProps.departureTime &&
-          cancellationSearchProps.departureTime !== cancellation.journeyStartTime
+          typeof cancellationSearchProps.departureTime !== 'undefined' &&
+          !cancellationSearchProps.departureTime.startsWith(cancellation.journeyStartTime)
         ) {
           return false
         }
@@ -157,26 +158,7 @@ export const getCancellations = (
 
   if (onlyLatestState) {
     // If requested, only the latest info existing about a departure is returned.
-    returnCancellations = returnCancellations.reduce(
-      (latest: Cancellation[], cancellation, index, allCancellations: Cancellation[]) => {
-        const previousCancellation = allCancellations.find(
-          (c) =>
-            c.routeId === cancellation.routeId &&
-            c.direction === cancellation.direction &&
-            c.departureDate === cancellation.departureDate &&
-            c.journeyStartTime === cancellation.journeyStartTime &&
-            c.isCancelled !== cancellation.isCancelled &&
-            c.lastModifiedDateTime.isAfter(cancellation.lastModifiedDateTime)
-        )
-
-        if (!previousCancellation) {
-          latest.push(cancellation)
-        }
-
-        return latest
-      },
-      []
-    )
+    returnCancellations = getLatestCancellationState(returnCancellations)
   }
 
   return returnCancellations.map((cancellation) =>

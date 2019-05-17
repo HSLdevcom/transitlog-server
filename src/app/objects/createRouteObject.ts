@@ -1,6 +1,7 @@
 import { Alert, Cancellation, Route } from '../../types/generated/schema-types'
 import { JoreRoute } from '../../types/Jore'
 import { get } from 'lodash'
+import { getDirection } from '../../utils/getDirection'
 
 function createRouteId(route: JoreRoute): string {
   return `${route.route_id}_${route.direction}_${route.date_begin}_${route.date_end}`
@@ -15,7 +16,7 @@ export function createRouteObject(
     id: createRouteId(route),
     lineId: get(route, 'line_id', ''),
     routeId: route.route_id,
-    direction: parseInt(route.direction, 10),
+    direction: getDirection(route.direction),
     origin: route.origin_fi,
     destination: route.destination_fi,
     name: get(route, 'route_name', get(route, 'name_fi', '')) || '',
