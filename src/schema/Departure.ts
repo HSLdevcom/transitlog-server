@@ -48,6 +48,8 @@ export const Departure = gql`
     mode: String
     events: [JourneyEvent!]
     alerts: [Alert!]!
+    cancellations: [Cancellation!]!
+    isCancelled: Boolean!
     _numInstance: Int
   }
 

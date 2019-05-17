@@ -82,6 +82,8 @@ export function createDepartureJourneyObject(
     mode: mode || null,
     events: Array.isArray(events) ? events : [event],
     alerts,
+    cancellations: [],
+    isCancelled: false,
     _numInstance: instanceIndex,
   }
 }

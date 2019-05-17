@@ -500,6 +500,8 @@ export interface RouteSegment extends Position {
   modes: Array<Maybe<string>>
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
 }
 
 export interface Line {
@@ -592,6 +594,10 @@ export interface DepartureJourney {
   events?: Maybe<JourneyEvent[]>
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
+
+  isCancelled: boolean
 
   _numInstance?: Maybe<number>
 }
@@ -730,6 +736,10 @@ export interface Journey {
   departures: Departure[]
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
+
+  isCancelled: boolean
 }
 
 export interface VehicleJourney {
@@ -770,6 +780,10 @@ export interface VehicleJourney {
   nextStopId: string
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
+
+  isCancelled: boolean
 }
 
 export interface AreaJourney {
@@ -798,6 +812,10 @@ export interface AreaJourney {
   events: Array<Maybe<JourneyEvent>>
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
+
+  isCancelled: boolean
 }
 
 // ====================================================

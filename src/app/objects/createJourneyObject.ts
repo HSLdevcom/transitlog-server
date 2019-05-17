@@ -1,25 +1,30 @@
 import { createJourneyId } from '../../utils/createJourneyId'
 import { Vehicles } from '../../types/generated/hfp-types'
 import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
-import { Alert, Departure, Journey, Route } from '../../types/generated/schema-types'
+import { Alert, Cancellation, Departure, Journey, Route } from '../../types/generated/schema-types'
 import { createJourneyEventObject } from './createJourneyEventObject'
 import { get } from 'lodash'
 import { createEquipmentObject } from './createEquipmentObject'
 import { JoreEquipment } from '../../types/Jore'
 import { getJourneyStartTime } from '../../utils/time'
 import { getDirection } from '../../utils/getDirection'
+import { getLatestCancellationState } from '../../utils/getLatestCancellationState'
 
 export function createJourneyObject(
   journeyEvents: Vehicles[],
   journeyRoute?: Route | null,
   journeyDepartures: Departure[] = [],
   journeyEquipment?: JoreEquipment | null,
-  alerts: Alert[] = []
+  alerts: Alert[] = [],
+  cancellations: Cancellation[] = []
 ): Journey {
   const journey = journeyEvents[0]
   const firstDeparture = journeyDepartures[0]
   const departureTime = getJourneyStartTime(journey, get(firstDeparture, 'isNextDay') || undefined)
   const id = createJourneyId(journey)
+
+  const isCancelled =
+    cancellations.length !== 0 && getLatestCancellationState(cancellations)[0].isCancelled
 
   return {
     id,
@@ -39,5 +44,7 @@ export function createJourneyObject(
     events: journeyEvents.map((event) => createJourneyEventObject(event, id)),
     departures: journeyDepartures,
     alerts,
+    cancellations,
+    isCancelled,
   }
 }

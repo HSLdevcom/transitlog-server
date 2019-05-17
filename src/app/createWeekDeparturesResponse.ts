@@ -21,6 +21,12 @@ import moment from 'moment-timezone'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { filterByExceptions } from '../utils/filterByExceptions'
 import { getAlerts } from './getAlerts'
+import { getCancellations } from './getCancellations'
+import { getLatestCancellationState } from '../utils/getLatestCancellationState'
+import {
+  setAlertsOnDeparture,
+  setCancellationsOnDeparture,
+} from '../utils/setCancellationsAndAlertsOn'
 
 const combineDeparturesAndEvents = (departures, events): Departure[] => {
   // Link observed events to departures.
@@ -222,12 +228,8 @@ export const createWeekDeparturesResponse = async (
   }
 
   return routeDepartures.map((departure) => {
-    departure.alerts = getAlerts(departure.plannedDepartureTime.departureDateTime, {
-      allRoutes: true,
-      allStops: true,
-      route: departure.routeId,
-      stop: departure.stopId,
-    })
+    setAlertsOnDeparture(departure)
+    setCancellationsOnDeparture(departure)
     return departure
   })
 }

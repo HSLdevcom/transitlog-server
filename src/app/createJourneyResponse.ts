@@ -28,6 +28,12 @@ import { getDirection } from '../utils/getDirection'
 import { filterByExceptions } from '../utils/filterByExceptions'
 import { requireUser } from '../auth/requireUser'
 import { getAlerts } from './getAlerts'
+import { getCancellations } from './getCancellations'
+import { getLatestCancellationState } from '../utils/getLatestCancellationState'
+import {
+  setAlertsOnDeparture,
+  setCancellationsOnDeparture,
+} from '../utils/setCancellationsAndAlertsOn'
 
 type JourneyRoute = {
   route: Route
@@ -298,23 +304,12 @@ export async function createJourneyResponse(
 
       // TODO: Require authorization for showing alerts
 
-      const alertTime = stopDeparture
-        ? stopDeparture.departureDateTime
-        : departure.plannedDepartureTime.departureDateTime
-
-      const departureAlerts = getAlerts(alertTime, {
-        allStops: true,
-        allRoutes: true,
-        stop: departure.stopId,
-        route: departure.routeId,
-      })
-
-      departure.stop.alerts = getAlerts(alertTime, { allStops: true, stop: departure.stopId })
+      setAlertsOnDeparture(departure)
+      setCancellationsOnDeparture(departure)
 
       // Add the observed times and events to the planned departure data.
       return {
         ...departure,
-        alerts: departureAlerts,
         observedDepartureTime: stopDeparture,
         observedArrivalTime: stopArrival,
       }
@@ -330,6 +325,21 @@ export async function createJourneyResponse(
     stop: observedDepartures.map(({ stopId }) => stopId),
   })
 
+  const { route_id, direction_id } = events[0]
+
+  const journeyCancellations = getCancellations(departureDate, {
+    routeId: route_id || '',
+    direction: getDirection(direction_id) || 0,
+    departureTime,
+  })
+
   // Everything is baked into a Journey object.
-  return createJourneyObject(events, route, observedDepartures, journeyEquipment, journeyAlerts)
+  return createJourneyObject(
+    events,
+    route,
+    observedDepartures,
+    journeyEquipment,
+    journeyAlerts,
+    journeyCancellations
+  )
 }

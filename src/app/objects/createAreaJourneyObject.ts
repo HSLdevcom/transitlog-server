@@ -26,5 +26,7 @@ export const createAreaJourneyObject = (events: Vehicles[], alerts: Alert[] = []
     mode: get(journey, 'mode', 'BUS'),
     events: events.map((event) => createJourneyEventObject(event, id)),
     alerts,
+    cancellations: [],
+    isCancelled: false,
   }
 }

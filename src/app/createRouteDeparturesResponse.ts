@@ -20,6 +20,10 @@ import { filterByExceptions } from '../utils/filterByExceptions'
 import { getAlerts } from './getAlerts'
 import { getCancellations } from './getCancellations'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
+import {
+  setAlertsOnDeparture,
+  setCancellationsOnDeparture,
+} from '../utils/setCancellationsAndAlertsOn'
 
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
@@ -196,35 +200,8 @@ export async function createRouteDeparturesResponse(
   }
 
   const departuresWithAlerts = routeDepartures.map((departure) => {
-    departure.alerts = getAlerts(departure.plannedDepartureTime.departureDateTime, {
-      allStops: true,
-      allRoutes: true,
-      route: departure.routeId,
-      stop: departure.stopId,
-    })
-
-    const cancellations = getCancellations(departure.plannedDepartureTime.departureDateTime, {
-      routeId: departure.routeId,
-      direction: departure.direction,
-      departureTime: departure.plannedDepartureTime.departureTime.slice(0, 5),
-    })
-
-    departure.cancellations = cancellations
-
-    departure.isCancelled =
-      cancellations.length !== 0 && getLatestCancellationState(cancellations)[0].isCancelled
-
-    if (departure.journey) {
-      departure.journey.alerts = getAlerts(
-        get(departure, 'observedDepartureTime.departureDateTime'),
-        {
-          allStops: true,
-          allRoutes: true,
-          route: departure.journey.routeId,
-          stop: departure.journey.originStopId || departure.stopId,
-        }
-      )
-    }
+    setAlertsOnDeparture(departure)
+    setCancellationsOnDeparture(departure)
 
     return departure
   })

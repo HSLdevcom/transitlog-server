@@ -38,5 +38,7 @@ export const createVehicleJourneyObject = (
     timeDifference: departureDiff,
     nextStopId: get(event, 'next_stop_id', '') || '',
     alerts,
+    cancellations: [],
+    isCancelled: false,
   }
 }

@@ -1180,6 +1180,8 @@ export namespace RouteSegmentResolvers {
     modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
+
+    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
@@ -1277,6 +1279,11 @@ export namespace RouteSegmentResolvers {
     Parent,
     TContext
   >
+  export type CancellationsResolver<
+    R = Cancellation[],
+    Parent = RouteSegment,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 export namespace LineResolvers {
@@ -1537,6 +1544,10 @@ export namespace DepartureJourneyResolvers {
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
+    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
+
+    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
+
     _numInstance?: _NumInstanceResolver<Maybe<number>, TypeParent, TContext>
   }
 
@@ -1591,6 +1602,16 @@ export namespace DepartureJourneyResolvers {
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type AlertsResolver<R = Alert[], Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type CancellationsResolver<
+    R = Cancellation[],
+    Parent = DepartureJourney,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsCancelledResolver<R = boolean, Parent = DepartureJourney, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -1975,6 +1996,10 @@ export namespace JourneyResolvers {
     departures?: DeparturesResolver<Departure[], TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
+
+    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
+
+    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
@@ -2062,6 +2087,16 @@ export namespace JourneyResolvers {
     Parent,
     TContext
   >
+  export type CancellationsResolver<R = Cancellation[], Parent = Journey, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type IsCancelledResolver<R = boolean, Parent = Journey, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace VehicleJourneyResolvers {
@@ -2103,6 +2138,10 @@ export namespace VehicleJourneyResolvers {
     nextStopId?: NextStopIdResolver<string, TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
+
+    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
+
+    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = VehicleJourney, TContext = {}> = Resolver<
@@ -2200,6 +2239,16 @@ export namespace VehicleJourneyResolvers {
     Parent,
     TContext
   >
+  export type CancellationsResolver<
+    R = Cancellation[],
+    Parent = VehicleJourney,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsCancelledResolver<R = boolean, Parent = VehicleJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace AreaJourneyResolvers {
@@ -2229,6 +2278,10 @@ export namespace AreaJourneyResolvers {
     events?: EventsResolver<Array<Maybe<JourneyEvent>>, TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
+
+    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
+
+    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = AreaJourney, TContext = {}> = Resolver<
@@ -2292,6 +2345,16 @@ export namespace AreaJourneyResolvers {
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type AlertsResolver<R = Alert[], Parent = AreaJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type CancellationsResolver<
+    R = Cancellation[],
+    Parent = AreaJourney,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsCancelledResolver<R = boolean, Parent = AreaJourney, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

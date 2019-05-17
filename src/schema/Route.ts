@@ -37,6 +37,7 @@ export const Route = gql`
     radius: Float
     modes: [String]!
     alerts: [Alert!]!
+    cancellations: [Cancellation!]!
   }
 
   type RouteGeometryPoint implements Position {

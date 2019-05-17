@@ -5,6 +5,7 @@ import { cacheFetch } from './cache'
 import { Direction, RouteSegment } from '../types/generated/schema-types'
 import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
 import { getAlerts } from './getAlerts'
+import { getCancellations } from './getCancellations'
 
 export async function createRouteSegmentsResponse(
   getRouteSegments: () => Promise<JoreRouteData[]>,
@@ -48,6 +49,11 @@ export async function createRouteSegmentsResponse(
     routeSegment.alerts = getAlerts(date, {
       allStops: true,
       stop: routeSegment.stopId,
+    })
+
+    routeSegment.cancellations = getCancellations(date, {
+      routeId: routeSegment.routeId,
+      direction: routeSegment.direction,
     })
 
     return routeSegment
