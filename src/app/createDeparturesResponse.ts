@@ -274,6 +274,7 @@ export async function createDeparturesResponse(
   }
 
   const departuresWithAlerts = departures.map((departure) => {
+    // TODO: Get cancellations for the origin departure.
     setAlertsOnDeparture(departure)
     setCancellationsOnDeparture(departure)
 
