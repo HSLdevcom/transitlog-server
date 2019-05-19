@@ -5,10 +5,14 @@ import { getAlerts } from '../app/getAlerts'
 import { get } from 'lodash'
 
 export const setCancellationsOnDeparture = (departure: Departure) => {
+  const departureTime = departure.originDepartureTime
+    ? departure.originDepartureTime.departureTime
+    : departure.plannedDepartureTime.departureTime
+
   const cancellations = getCancellations(departure.plannedDepartureTime.departureDateTime, {
     routeId: departure.routeId,
     direction: departure.direction,
-    departureTime: departure.plannedDepartureTime.departureTime.slice(0, 5),
+    departureTime: departureTime.slice(0, 5),
   })
 
   const isCancelled =
