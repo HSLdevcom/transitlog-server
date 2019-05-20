@@ -18,16 +18,23 @@ import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
 import { get } from 'lodash'
-import moment from 'moment-timezone'
-import { TZ } from '../../constants'
 import { getDirection } from '../../utils/getDirection'
+import { doubleDigit } from '../../utils/doubleDigit'
+
+function createJoreDepartureId(departure: JoreDeparture, date) {
+  return `${departure.route_id}_${departure.direction}_${doubleDigit(
+    departure.hours
+  )}_${doubleDigit(departure.minutes)}_${departure.stop_id}_${departure.day_type}_${
+    departure.extra_departure
+  }_${date}_${departure.date_begin}_${departure.date_end}`
+}
 
 export function createDepartureId(departure, date = '') {
-  return `${departure.route_id}_${departure.direction}_${departure.hours}_${departure.minutes}_${
-    departure.stop_id
-  }_${departure.day_type}_${departure.extra_departure}_${date}_${departure.date_begin}_${
-    departure.date_end
-  }`
+  if (typeof departure.hours !== 'undefined') {
+    return createJoreDepartureId(departure, date)
+  }
+
+  return departure.id
 }
 
 export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): PlannedArrival {
@@ -77,7 +84,7 @@ export function createDepartureJourneyObject(
     direction: event.direction_id,
     originStopId,
     departureDate: event.oday,
-    departureTime: getJourneyStartTime(event, departureIsNextDay),
+    departureTime: getJourneyStartTime(event),
     uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
     mode: mode || null,
     events: Array.isArray(events) ? events : [event],

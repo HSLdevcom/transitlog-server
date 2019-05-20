@@ -53,7 +53,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
         getDirection(event.direction_id) === direction &&
         // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
         // for the event to match it with the 24h+ time of the origin departure.
-        getJourneyStartTime(event, departureIsNextDay) === plannedDepartureTime
+        getJourneyStartTime(event) === plannedDepartureTime
     )
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
