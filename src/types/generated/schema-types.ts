@@ -541,6 +541,10 @@ export interface Departure {
 
   departureId: number
 
+  departureTime: Time
+
+  departureDate: Date
+
   extraDeparture: string
 
   isNextDay: boolean

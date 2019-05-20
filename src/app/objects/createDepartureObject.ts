@@ -103,6 +103,7 @@ export function createPlannedDepartureObject(
   alerts: Alert[] = []
 ): Departure {
   const departureId = createDepartureId(departure, departureDate)
+  const plannedDepartureTime = createPlannedDepartureTimeObject(departure, departureDate)
 
   return {
     id: prefix + '/' + departureId,
@@ -117,6 +118,8 @@ export function createPlannedDepartureObject(
     terminalTime: departure.terminal_time,
     recoveryTime: departure.recovery_time,
     departureId: departure.departure_id,
+    departureTime: plannedDepartureTime.departureTime,
+    departureDate: plannedDepartureTime.departureDate,
     extraDeparture: departure.extra_departure,
     isNextDay: departure.is_next_day,
     isTimingStop: !!get(stop, 'isTimingStop', false) || false,
@@ -131,6 +134,6 @@ export function createPlannedDepartureObject(
       ? createPlannedDepartureTimeObject(departure.origin_departure, departureDate)
       : null,
     plannedArrivalTime: createPlannedArrivalTimeObject(departure, departureDate),
-    plannedDepartureTime: createPlannedDepartureTimeObject(departure, departureDate),
+    plannedDepartureTime,
   }
 }

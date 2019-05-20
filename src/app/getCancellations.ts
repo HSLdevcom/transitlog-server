@@ -84,7 +84,7 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationType: CancellationType.CancelDeparture,
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: true,
-    lastModifiedDateTime: getDateFromDateTime(date, '07:36'),
+    lastModifiedDateTime: getDateFromDateTime(date, '07:57'),
   },
   {
     title: `Ruote 1018 road blocked`,

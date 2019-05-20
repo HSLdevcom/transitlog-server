@@ -66,6 +66,8 @@ export const Departure = gql`
     terminalTime: Int
     recoveryTime: Int
     departureId: Int!
+    departureTime: Time!
+    departureDate: Date!
     extraDeparture: String!
     isNextDay: Boolean!
     isTimingStop: Boolean!

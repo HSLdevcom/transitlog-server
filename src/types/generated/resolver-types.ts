@@ -1348,6 +1348,10 @@ export namespace DepartureResolvers {
 
     departureId?: DepartureIdResolver<number, TypeParent, TContext>
 
+    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
+
+    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
+
     extraDeparture?: ExtraDepartureResolver<string, TypeParent, TContext>
 
     isNextDay?: IsNextDayResolver<boolean, TypeParent, TContext>
@@ -1439,6 +1443,16 @@ export namespace DepartureResolvers {
     TContext
   >
   export type DepartureIdResolver<R = number, Parent = Departure, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DepartureTimeResolver<R = Time, Parent = Departure, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DepartureDateResolver<R = Date, Parent = Departure, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
