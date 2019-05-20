@@ -1,4 +1,5 @@
 import { Cancellation } from '../types/generated/schema-types'
+import moment from 'moment-timezone'
 
 export const getLatestCancellationState = (cancellations) => {
   return cancellations.reduce(
@@ -10,7 +11,9 @@ export const getLatestCancellationState = (cancellations) => {
           c.departureDate === cancellation.departureDate &&
           c.journeyStartTime === cancellation.journeyStartTime &&
           c.isCancelled !== cancellation.isCancelled &&
-          c.lastModifiedDateTime.isAfter(cancellation.lastModifiedDateTime)
+          (c.lastModifiedDateTime &&
+            moment.isMoment(c.lastModifiedDateTime) &&
+            c.lastModifiedDateTime.isAfter(cancellation.lastModifiedDateTime))
       )
 
       if (!previousCancellation) {

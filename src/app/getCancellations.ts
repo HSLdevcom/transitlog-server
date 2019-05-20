@@ -57,7 +57,7 @@ const availableCancellations = (date): Cancellation[] => [
     isCancelled: true,
     lastModifiedDateTime: getDateFromDateTime(date, '06:00'),
   },
-  {
+  /*  {
     title: `Route 1018 alien abduction`,
     routeId: '1018',
     direction: 1,
@@ -70,7 +70,7 @@ const availableCancellations = (date): Cancellation[] => [
     cancellationEffect: CancellationEffect.CancelEntireDeparture,
     isCancelled: false,
     lastModifiedDateTime: getDateFromDateTime(date, '06:04'),
-  },
+  },*/
   {
     title: `Vandalism on route 1018`,
     routeId: '1018',

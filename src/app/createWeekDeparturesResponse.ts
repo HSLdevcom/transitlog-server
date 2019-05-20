@@ -26,7 +26,7 @@ import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlertsOn'
+} from '../utils/setCancellationsAndAlerts'
 
 const combineDeparturesAndEvents = (departures, events): Departure[] => {
   // Link observed events to departures.

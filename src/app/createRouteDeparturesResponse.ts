@@ -23,7 +23,7 @@ import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlertsOn'
+} from '../utils/setCancellationsAndAlerts'
 
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID

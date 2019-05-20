@@ -27,7 +27,7 @@ import { filterByExceptions } from '../utils/filterByExceptions'
 import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlertsOn'
+} from '../utils/setCancellationsAndAlerts'
 
 /*
   Common functions for route departures and stop departures.

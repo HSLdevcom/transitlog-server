@@ -33,7 +33,7 @@ import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlertsOn'
+} from '../utils/setCancellationsAndAlerts'
 
 type JourneyRoute = {
   route: Route
