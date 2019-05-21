@@ -99,7 +99,7 @@ export async function createStopsResponse(
     return fetchedStops.map((stop) => createSimpleStopObject(stop))
   }
 
-  const cacheKey = `stops`
+  const cacheKey = 'stops'
   const stops = await cacheFetch<SimpleStop[]>(cacheKey, fetchStops, 24 * 60 * 60)
 
   if (!stops) {
