@@ -222,8 +222,8 @@ export type Direction = any
 /** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
 export type DateTime = any
 
-/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
-export type BBox = any
+/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
+export type PreciseBBox = any
 
 /** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. The timezone is assumed to be Europe/Helsinki */
 export type Time = any
@@ -231,8 +231,8 @@ export type Time = any
 /** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */
 export type VehicleId = any
 
-/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
-export type PreciseBBox = any
+/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
+export type BBox = any
 
 /** The `Upload` scalar type represents a file upload. */
 export type Upload = any
@@ -856,7 +856,7 @@ export interface StopsQueryArgs {
 export interface StopsByBboxQueryArgs {
   filter?: Maybe<StopFilterInput>
 
-  bbox: BBox
+  bbox: PreciseBBox
 }
 export interface RouteQueryArgs {
   routeId: string

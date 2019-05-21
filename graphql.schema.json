@@ -106,7 +106,7 @@
                 "type": {
                   "kind": "NON_NULL",
                   "name": null,
-                  "ofType": { "kind": "SCALAR", "name": "BBox", "ofType": null }
+                  "ofType": { "kind": "SCALAR", "name": "PreciseBBox", "ofType": null }
                 },
                 "defaultValue": null
               }
@@ -1936,8 +1936,8 @@
       },
       {
         "kind": "SCALAR",
-        "name": "BBox",
-        "description": "A string that defines a bounding box. The coordinates should be in the format\n`minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's\nLatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use\nPreciseBBox if this is not desired.",
+        "name": "PreciseBBox",
+        "description": "A string that defines a bounding box. The coordinates should be in the format\n`minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's\nLatLngBounds.toBBoxString() returns. The precise bbox is not rounded.",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -4688,16 +4688,6 @@
         "possibleTypes": null
       },
       {
-        "kind": "SCALAR",
-        "name": "PreciseBBox",
-        "description": "A string that defines a bounding box. The coordinates should be in the format\n`minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's\nLatLngBounds.toBBoxString() returns. The precise bbox is not rounded.",
-        "fields": null,
-        "inputFields": null,
-        "interfaces": null,
-        "enumValues": null,
-        "possibleTypes": null
-      },
-      {
         "kind": "INPUT_OBJECT",
         "name": "AreaEventsFilterInput",
         "description": "",
@@ -5653,6 +5643,16 @@
             "deprecationReason": null
           }
         ],
+        "possibleTypes": null
+      },
+      {
+        "kind": "SCALAR",
+        "name": "BBox",
+        "description": "A string that defines a bounding box. The coordinates should be in the format\n`minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's\nLatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use\nPreciseBBox if this is not desired.",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": null,
         "possibleTypes": null
       },
       {
