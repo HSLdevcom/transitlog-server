@@ -34,10 +34,12 @@ import { filterByExceptions } from '../utils/filterByExceptions'
 import { requireUser } from '../auth/requireUser'
 import { getAlerts } from './getAlerts'
 import { getCancellations } from './getCancellations'
+import isBefore from 'date-fns/is_before'
 import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
+import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 
 type JourneyRoute = {
   route: Route | null
@@ -316,6 +318,8 @@ export async function createJourneyResponse(
     )
   }
 
+  const cancellationState = getLatestCancellationState(journeyCancellations)[0]
+
   // Add observed data to the departures. Each stop is given a pile of events from which
   // arrival and departure times for the stop is parsed.
   const observedDepartures: Departure[] = departures.map(
@@ -339,7 +343,15 @@ export async function createJourneyResponse(
       // TODO: Require authorization for showing alerts
 
       setAlertsOnDeparture(departure)
-      setCancellationsOnDeparture(departure)
+
+      const cancellationTime = cancellationState ? cancellationState.lastModifiedDateTime : null
+      const stopTime = stopDeparture
+        ? stopDeparture.departureDateTime
+        : departure.plannedDepartureTime.departureDateTime
+
+      if (cancellationTime && isBefore(cancellationTime, stopTime)) {
+        departure.isCancelled = cancellationState && cancellationState.isCancelled
+      }
 
       // Add the observed times and events to the planned departure data.
       return {
