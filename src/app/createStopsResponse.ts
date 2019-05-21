@@ -9,6 +9,7 @@ import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { getAlerts } from './getAlerts'
 import format from 'date-fns/format'
+import { filterStopsByBBox } from './filters/filterStopsByBBox'
 
 function getSearchValue(item) {
   const { stopId = '', shortId = '', name = '' } = item
@@ -98,16 +99,18 @@ export async function createStopsResponse(
     return fetchedStops.map((stop) => createSimpleStopObject(stop))
   }
 
-  // Create a separate cache key for bbox queries.
-  const bboxStr = Object.values(bbox).join(',')
-  const cacheKey = `stops${bbox ? `_bbox_${bboxStr}` : ''}`
-  const stops = await cacheFetch<SimpleStop[]>(cacheKey, fetchStops, bbox ? 5 * 60 : 24 * 60 * 60)
+  const cacheKey = `stops`
+  const stops = await cacheFetch<SimpleStop[]>(cacheKey, fetchStops, 24 * 60 * 60)
 
   if (!stops) {
     return []
   }
 
   let filteredStops = stops
+
+  if (bbox) {
+    filteredStops = filterStopsByBBox(filteredStops, bbox)
+  }
 
   if (filter && filter.search) {
     filteredStops = search<SimpleStop>(stops, filter.search, getSearchValue)

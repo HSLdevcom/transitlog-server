@@ -31,7 +31,7 @@ const stops = (root, { filter }, { dataSources }) => {
 }
 
 const stopsByBbox = (root, { filter, bbox }, { dataSources }) => {
-  const getStops = () => dataSources.JoreAPI.getStopsByBBox(bbox)
+  const getStops = () => dataSources.JoreAPI.getStops()
   return createStopsResponse(getStops, filter, bbox)
 }
 
