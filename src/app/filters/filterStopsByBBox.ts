@@ -10,8 +10,6 @@ export function filterStopsByBBox(stops: Array<Stop | SimpleStop>, bbox: BBox) {
     maxlon: bbox.maxLng,
   })
 
-  console.log(bounds)
-
   return stops.filter((stop) => {
     const stopPoint = new BoundingBox({ lat: stop.lat, lng: stop.lng })
     return stopPoint.within(bounds)
