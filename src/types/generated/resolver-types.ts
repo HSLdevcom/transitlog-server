@@ -64,6 +64,8 @@ export interface CancellationSearchInput {
   direction?: Maybe<number>
 
   departureTime?: Maybe<string>
+
+  latestOnly?: Maybe<boolean>
 }
 
 export enum AlertLevel {

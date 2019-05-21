@@ -185,5 +185,6 @@ export const Alerts = gql`
     routeId: String
     direction: Int
     departureTime: String
+    latestOnly: Boolean
   }
 `

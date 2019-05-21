@@ -108,12 +108,12 @@ type CancellationSearchProps = {
   routeId?: string
   direction?: number
   departureTime?: string
+  latestOnly?: boolean
 }
 
 export const getCancellations = (
   dateTime: Moment | string,
-  cancellationSearchProps: CancellationSearchProps,
-  onlyLatestState = false
+  cancellationSearchProps: CancellationSearchProps
 ) => {
   const time = moment.tz(dateTime, TZ)
   const date = time.format('YYYY-MM-DD')
@@ -156,7 +156,7 @@ export const getCancellations = (
     ['desc', 'asc']
   )
 
-  if (onlyLatestState) {
+  if (cancellationSearchProps.latestOnly) {
     // If requested, only the latest info existing about a departure is returned.
     returnCancellations = getLatestCancellationState(returnCancellations)
   }
