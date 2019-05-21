@@ -48,6 +48,8 @@ export const Departure = gql`
     mode: String
     events: [JourneyEvent!]
     alerts: [Alert!]!
+    cancellations: [Cancellation!]!
+    isCancelled: Boolean!
     _numInstance: Int
   }
 
@@ -64,6 +66,8 @@ export const Departure = gql`
     terminalTime: Int
     recoveryTime: Int
     departureId: Int!
+    departureTime: Time!
+    departureDate: Date!
     extraDeparture: String!
     isNextDay: Boolean!
     isTimingStop: Boolean!
@@ -72,6 +76,8 @@ export const Departure = gql`
     stop: RouteSegment!
     journey: DepartureJourney
     alerts: [Alert!]!
+    cancellations: [Cancellation!]!
+    isCancelled: Boolean!
     originDepartureTime: PlannedDeparture
     plannedArrivalTime: PlannedArrival!
     observedArrivalTime: ObservedArrival

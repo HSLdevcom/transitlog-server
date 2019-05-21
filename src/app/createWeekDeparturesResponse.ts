@@ -21,6 +21,12 @@ import moment from 'moment-timezone'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { filterByExceptions } from '../utils/filterByExceptions'
 import { getAlerts } from './getAlerts'
+import { getCancellations } from './getCancellations'
+import { getLatestCancellationState } from '../utils/getLatestCancellationState'
+import {
+  setAlertsOnDeparture,
+  setCancellationsOnDeparture,
+} from '../utils/setCancellationsAndAlerts'
 
 const combineDeparturesAndEvents = (departures, events): Departure[] => {
   // Link observed events to departures.
@@ -42,7 +48,7 @@ const combineDeparturesAndEvents = (departures, events): Departure[] => {
         getDirection(event.direction_id) === direction &&
         // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
         // for the event to match it with the 24h+ time of the origin departure.
-        getJourneyStartTime(event, departureIsNextDay) === departureTime &&
+        getJourneyStartTime(event) === departureTime &&
         (getDayTypeFromDate(event.oday) === dayType || event.oday === departureDate)
     )
 
@@ -222,12 +228,8 @@ export const createWeekDeparturesResponse = async (
   }
 
   return routeDepartures.map((departure) => {
-    departure.alerts = getAlerts(departure.plannedDepartureTime.departureDateTime, {
-      allRoutes: true,
-      allStops: true,
-      route: departure.routeId,
-      stop: departure.stopId,
-    })
+    setAlertsOnDeparture(departure)
+    setCancellationsOnDeparture(departure)
     return departure
   })
 }

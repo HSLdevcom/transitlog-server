@@ -1,4 +1,4 @@
-import { DepartureJourney, Direction, Journey, Route, Time } from '../types/generated/schema-types'
+import { Direction, Journey } from '../types/generated/schema-types'
 import { Vehicles } from '../types/generated/hfp-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from './cache'

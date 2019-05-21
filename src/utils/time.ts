@@ -86,7 +86,7 @@ export function getDateFromDateTime(date: string, time: string = '00:00:00'): Mo
 }
 
 // Get the (potentially) 24h+ time of the journey.
-export function getJourneyStartTime(event: JourneyType, isNextDay: boolean = false): string {
+export function getJourneyStartTime(event: JourneyType): string {
   const operationDay = get(event, 'oday', get(event, 'departureDate', false))
   const journeyStartTime = get(event, 'journey_start_time', get(event, 'departureTime', false))
   const recordedAtTimestamp = get(event, 'tst', get(event, 'events[0].recordedAt', 0))

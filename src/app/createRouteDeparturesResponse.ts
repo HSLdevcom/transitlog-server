@@ -18,6 +18,12 @@ import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { filterByExceptions } from '../utils/filterByExceptions'
 import { getAlerts } from './getAlerts'
+import { getCancellations } from './getCancellations'
+import { getLatestCancellationState } from '../utils/getLatestCancellationState'
+import {
+  setAlertsOnDeparture,
+  setCancellationsOnDeparture,
+} from '../utils/setCancellationsAndAlerts'
 
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
@@ -47,7 +53,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
         getDirection(event.direction_id) === direction &&
         // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
         // for the event to match it with the 24h+ time of the origin departure.
-        getJourneyStartTime(event, departureIsNextDay) === plannedDepartureTime
+        getJourneyStartTime(event) === plannedDepartureTime
     )
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
@@ -194,24 +200,8 @@ export async function createRouteDeparturesResponse(
   }
 
   const departuresWithAlerts = routeDepartures.map((departure) => {
-    departure.alerts = getAlerts(get(departure, 'plannedDepartureTime.departureDateTime'), {
-      allStops: true,
-      allRoutes: true,
-      route: departure.routeId,
-      stop: departure.stopId,
-    })
-
-    if (departure.journey) {
-      departure.journey.alerts = getAlerts(
-        get(departure, 'observedDepartureTime.departureDateTime'),
-        {
-          allStops: true,
-          allRoutes: true,
-          route: departure.journey.routeId,
-          stop: departure.journey.originStopId || departure.stopId,
-        }
-      )
-    }
+    setAlertsOnDeparture(departure)
+    setCancellationsOnDeparture(departure)
 
     return departure
   })

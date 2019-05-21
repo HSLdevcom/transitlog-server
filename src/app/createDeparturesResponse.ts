@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { flatten, get, groupBy, orderBy, uniqBy, compact } from 'lodash'
+import { flatten, get, groupBy, orderBy, compact } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import {
@@ -24,7 +24,10 @@ import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { Dictionary } from '../types/Dictionary'
 import { isToday } from 'date-fns'
 import { filterByExceptions } from '../utils/filterByExceptions'
-import { getAlerts } from './getAlerts'
+import {
+  setAlertsOnDeparture,
+  setCancellationsOnDeparture,
+} from '../utils/setCancellationsAndAlerts'
 
 /*
   Common functions for route departures and stop departures.
@@ -67,6 +70,7 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
       routeId: segment.route_id,
       direction: getDirection(segment.direction),
       mode: stop.modes[0],
+      cancellations: [],
       ...stop,
     }
   })
@@ -145,7 +149,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
         getDirection(event.direction_id) === direction &&
         // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
         // for the event to match it with the 24h+ time of the origin departure.
-        getJourneyStartTime(event, departureIsNextDay) === originDepartureTime
+        getJourneyStartTime(event) === originDepartureTime
     )
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
@@ -270,21 +274,9 @@ export async function createDeparturesResponse(
   }
 
   const departuresWithAlerts = departures.map((departure) => {
-    departure.alerts = getAlerts(departure.plannedDepartureTime.departureDateTime, {
-      allStops: true,
-      allRoutes: true,
-      route: departure.routeId,
-      stop: departure.stopId,
-    })
-
-    if (departure.journey) {
-      departure.journey.alerts = getAlerts(get(departure, 'journey.events[0].recordedAt'), {
-        allStops: true,
-        allRoutes: true,
-        route: departure.journey.routeId,
-        stop: departure.journey.originStopId || departure.stopId,
-      })
-    }
+    // TODO: Get cancellations for the origin departure.
+    setAlertsOnDeparture(departure)
+    setCancellationsOnDeparture(departure)
 
     return departure
   })

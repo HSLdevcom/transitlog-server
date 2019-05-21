@@ -15,8 +15,9 @@ import { createRouteDeparturesResponse } from '../app/createRouteDeparturesRespo
 import { format } from 'date-fns'
 import { compact, flatten } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
-import { Alert } from '../types/generated/schema-types'
+import { Alert, Cancellation } from '../types/generated/schema-types'
 import { getAlerts } from '../app/getAlerts'
+import { getCancellations } from '../app/getCancellations'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -194,6 +195,10 @@ const alerts = (root, { time, alertSearch }, { dataSources }): Alert[] => {
   return getAlerts(time, alertSearch)
 }
 
+const cancellations = (root, { time, cancellationSearch }, { dataSources }): Cancellation[] => {
+  return getCancellations(time, cancellationSearch)
+}
+
 export const queryResolvers: QueryResolvers.Resolvers = {
   equipment,
   stop,
@@ -212,6 +217,6 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   journeys,
   eventsByBbox,
   exceptionDays,
-  // @ts-ignore
   alerts,
+  cancellations,
 }

@@ -56,6 +56,18 @@ export interface AlertSearchInput {
   stop?: Maybe<string>
 }
 
+export interface CancellationSearchInput {
+  all?: Maybe<boolean>
+
+  routeId?: Maybe<string>
+
+  direction?: Maybe<number>
+
+  departureTime?: Maybe<string>
+
+  latestOnly?: Maybe<boolean>
+}
+
 export enum AlertLevel {
   Info = 'INFO',
   Warning = 'WARNING',
@@ -125,6 +137,75 @@ export enum AlertImpact {
   Other = 'OTHER',
   NoTrafficImpact = 'NO_TRAFFIC_IMPACT',
   Unknown = 'UNKNOWN',
+}
+
+export enum CancellationSubcategory {
+  BreakMalfunction = 'BREAK_MALFUNCTION',
+  OutOfFuel = 'OUT_OF_FUEL',
+  FluidLeakage = 'FLUID_LEAKAGE',
+  ElectricMalfunction = 'ELECTRIC_MALFUNCTION',
+  EngineMalfunction = 'ENGINE_MALFUNCTION',
+  OtherMalfunction = 'OTHER_MALFUNCTION',
+  OwnFault = 'OWN_FAULT',
+  OppositeFault = 'OPPOSITE_FAULT',
+  FaultUnknown = 'FAULT_UNKNOWN',
+  StaffShortage = 'STAFF_SHORTAGE',
+  NdOperatorPlanningError = 'ND_OPERATOR_PLANNING_ERROR',
+  DriverLate = 'DRIVER_LATE',
+  InsufficientInstructionsByOperator = 'INSUFFICIENT_INSTRUCTIONS_BY_OPERATOR',
+  InsufficientInstructionsByAuthority = 'INSUFFICIENT_INSTRUCTIONS_BY_AUTHORITY',
+  NoVehicleAvailable = 'NO_VEHICLE_AVAILABLE',
+  AssaultOnDriver = 'ASSAULT_ON_DRIVER',
+  AssaultOnPassenger = 'ASSAULT_ON_PASSENGER',
+  AssaultOnVehicle = 'ASSAULT_ON_VEHICLE',
+  PassedOutPassenger = 'PASSED_OUT_PASSENGER',
+  OtherAssault = 'OTHER_ASSAULT',
+  UndriveableConditions = 'UNDRIVEABLE_CONDITIONS',
+  StuckCausedBySlippery = 'STUCK_CAUSED_BY_SLIPPERY',
+  CongestionCausedByWeather = 'CONGESTION_CAUSED_BY_WEATHER',
+  SlipperyTrack = 'SLIPPERY_TRACK',
+  RoadBlocked = 'ROAD_BLOCKED',
+  VehicleOffTheRoadByDriverError = 'VEHICLE_OFF_THE_ROAD_BY_DRIVER_ERROR',
+  VehicleOffTheRoadByOtherReason = 'VEHICLE_OFF_THE_ROAD_BY_OTHER_REASON',
+  MissparkedVehicle = 'MISSPARKED_VEHICLE',
+  CongestionReasonUknown = 'CONGESTION_REASON_UKNOWN',
+  CongestionCausedByAccident = 'CONGESTION_CAUSED_BY_ACCIDENT',
+  DriverSeizure = 'DRIVER_SEIZURE',
+  PassengerSeizure = 'PASSENGER_SEIZURE',
+  PassengerInjured = 'PASSENGER_INJURED',
+  OtherSeizure = 'OTHER_SEIZURE',
+  DeviceError = 'DEVICE_ERROR',
+  OperatorDeviceError = 'OPERATOR_DEVICE_ERROR',
+  WrongInformationInDevice = 'WRONG_INFORMATION_IN_DEVICE',
+  ItsSystemNotInstalled = 'ITS_SYSTEM_NOT_INSTALLED',
+  UserError = 'USER_ERROR',
+  FalseAlarm = 'FALSE_ALARM',
+  OtherItsError = 'OTHER_ITS_ERROR',
+  DriverError = 'DRIVER_ERROR',
+  InsufficientCapasity = 'INSUFFICIENT_CAPASITY',
+  OperatorPersonnelOnStrike = 'OPERATOR_PERSONNEL_ON_STRIKE',
+  OtherStrike = 'OTHER_STRIKE',
+  OtherOperatorReason = 'OTHER_OPERATOR_REASON',
+  UnknownCause = 'UNKNOWN_CAUSE',
+}
+
+export enum CancellationType {
+  CancelDeparture = 'CANCEL_DEPARTURE',
+  Detour = 'DETOUR',
+  SkippedStopCalls = 'SKIPPED_STOP_CALLS',
+  EarlyDeparture = 'EARLY_DEPARTURE',
+  EarlyDepartureFromTimingPoint = 'EARLY_DEPARTURE_FROM_TIMING_POINT',
+  LateDeparture = 'LATE_DEPARTURE',
+  DeparturedAfterNextJourney = 'DEPARTURED_AFTER_NEXT_JOURNEY',
+  BlockFirstDepartureLate = 'BLOCK_FIRST_DEPARTURE_LATE',
+  TisError = 'TIS_ERROR',
+}
+
+export enum CancellationEffect {
+  CancelEntireDeparture = 'CANCEL_ENTIRE_DEPARTURE',
+  CancelStopsFromStart = 'CANCEL_STOPS_FROM_START',
+  CancelStopsFromMiddle = 'CANCEL_STOPS_FROM_MIDDLE',
+  CancelStopsFromEnd = 'CANCEL_STOPS_FROM_END',
 }
 
 export enum CacheControlScope {
@@ -210,7 +291,9 @@ export interface Query {
 
   eventsByBbox: Array<Maybe<AreaJourney>>
 
-  alerts: Array<Maybe<Alert>>
+  alerts: Alert[]
+
+  cancellations: Cancellation[]
 }
 
 export interface Equipment {
@@ -348,7 +431,35 @@ export interface Route {
 
   alerts: Alert[]
 
+  cancellations: Cancellation[]
+
   _matchScore?: Maybe<number>
+}
+
+export interface Cancellation {
+  routeId: string
+
+  direction: Direction
+
+  departureDate: Date
+
+  journeyStartTime: Time
+
+  title: string
+
+  description: string
+
+  category: AlertCategory
+
+  subCategory: CancellationSubcategory
+
+  isCancelled: boolean
+
+  cancellationType: CancellationType
+
+  cancellationEffect: CancellationEffect
+
+  lastModifiedDateTime: DateTime
 }
 
 export interface RouteGeometry {
@@ -403,6 +514,8 @@ export interface RouteSegment extends Position {
   modes: Array<Maybe<string>>
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
 }
 
 export interface Line {
@@ -442,6 +555,10 @@ export interface Departure {
 
   departureId: number
 
+  departureTime: Time
+
+  departureDate: Date
+
   extraDeparture: string
 
   isNextDay: boolean
@@ -457,6 +574,10 @@ export interface Departure {
   journey?: Maybe<DepartureJourney>
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
+
+  isCancelled: boolean
 
   originDepartureTime?: Maybe<PlannedDeparture>
 
@@ -491,6 +612,10 @@ export interface DepartureJourney {
   events?: Maybe<JourneyEvent[]>
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
+
+  isCancelled: boolean
 
   _numInstance?: Maybe<number>
 }
@@ -629,6 +754,10 @@ export interface Journey {
   departures: Departure[]
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
+
+  isCancelled: boolean
 }
 
 export interface VehicleJourney {
@@ -669,6 +798,10 @@ export interface VehicleJourney {
   nextStopId: string
 
   alerts: Alert[]
+
+  cancellations: Cancellation[]
+
+  isCancelled: boolean
 }
 
 export interface AreaJourney {
@@ -697,22 +830,10 @@ export interface AreaJourney {
   events: Array<Maybe<JourneyEvent>>
 
   alerts: Alert[]
-}
 
-export interface Cancellation {
-  id: string
+  cancellations: Cancellation[]
 
-  routeId: string
-
-  direction: Direction
-
-  departureDate: Date
-
-  journeyStartTime: Time
-
-  reason?: Maybe<string>
-
-  isCancelled?: Maybe<boolean>
+  isCancelled: boolean
 }
 
 // ====================================================
@@ -838,4 +959,9 @@ export interface AlertsQueryArgs {
   time?: Maybe<string>
 
   alertSearch?: Maybe<AlertSearchInput>
+}
+export interface CancellationsQueryArgs {
+  time?: Maybe<string>
+
+  cancellationSearch?: Maybe<CancellationSearchInput>
 }

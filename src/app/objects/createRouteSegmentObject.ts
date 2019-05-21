@@ -29,5 +29,6 @@ export const createRouteSegmentObject = (
     stopIndex: routeSegment.stop_index,
     isTimingStop: !!routeSegment.timing_stop_type,
     alerts,
+    cancellations: [],
   }
 }

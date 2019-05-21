@@ -38,6 +38,8 @@ export const Journey = gql`
     events: [JourneyEvent!]!
     departures: [Departure!]!
     alerts: [Alert!]!
+    cancellations: [Cancellation!]!
+    isCancelled: Boolean!
   }
 
   type VehicleJourney {
@@ -60,6 +62,8 @@ export const Journey = gql`
     timeDifference: Int!
     nextStopId: String!
     alerts: [Alert!]!
+    cancellations: [Cancellation!]!
+    isCancelled: Boolean!
   }
 
   type AreaJourney {
@@ -76,6 +80,8 @@ export const Journey = gql`
     mode: String
     events: [JourneyEvent]!
     alerts: [Alert!]!
+    cancellations: [Cancellation!]!
+    isCancelled: Boolean!
   }
 
   input AreaEventsFilterInput {
