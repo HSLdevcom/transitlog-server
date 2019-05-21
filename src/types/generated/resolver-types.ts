@@ -56,6 +56,16 @@ export interface AlertSearchInput {
   stop?: Maybe<string>
 }
 
+export interface CancellationSearchInput {
+  all?: Maybe<boolean>
+
+  routeId?: Maybe<string>
+
+  direction?: Maybe<number>
+
+  departureTime?: Maybe<string>
+}
+
 export enum AlertLevel {
   Info = 'INFO',
   Warning = 'WARNING',
@@ -304,7 +314,9 @@ export namespace QueryResolvers {
 
     eventsByBbox?: EventsByBboxResolver<Array<Maybe<AreaJourney>>, TypeParent, TContext>
 
-    alerts?: AlertsResolver<Array<Maybe<Alert>>, TypeParent, TContext>
+    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
+
+    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
   }
 
   export type EquipmentResolver<R = Array<Maybe<Equipment>>, Parent = {}, TContext = {}> = Resolver<
@@ -532,7 +544,7 @@ export namespace QueryResolvers {
     filters?: Maybe<AreaEventsFilterInput>
   }
 
-  export type AlertsResolver<R = Array<Maybe<Alert>>, Parent = {}, TContext = {}> = Resolver<
+  export type AlertsResolver<R = Alert[], Parent = {}, TContext = {}> = Resolver<
     R,
     Parent,
     TContext,
@@ -542,6 +554,18 @@ export namespace QueryResolvers {
     time?: Maybe<string>
 
     alertSearch?: Maybe<AlertSearchInput>
+  }
+
+  export type CancellationsResolver<R = Cancellation[], Parent = {}, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext,
+    CancellationsArgs
+  >
+  export interface CancellationsArgs {
+    time?: Maybe<string>
+
+    cancellationSearch?: Maybe<CancellationSearchInput>
   }
 }
 

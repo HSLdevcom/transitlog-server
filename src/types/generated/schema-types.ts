@@ -56,6 +56,16 @@ export interface AlertSearchInput {
   stop?: Maybe<string>
 }
 
+export interface CancellationSearchInput {
+  all?: Maybe<boolean>
+
+  routeId?: Maybe<string>
+
+  direction?: Maybe<number>
+
+  departureTime?: Maybe<string>
+}
+
 export enum AlertLevel {
   Info = 'INFO',
   Warning = 'WARNING',
@@ -279,7 +289,9 @@ export interface Query {
 
   eventsByBbox: Array<Maybe<AreaJourney>>
 
-  alerts: Array<Maybe<Alert>>
+  alerts: Alert[]
+
+  cancellations: Cancellation[]
 }
 
 export interface Equipment {
@@ -945,4 +957,9 @@ export interface AlertsQueryArgs {
   time?: Maybe<string>
 
   alertSearch?: Maybe<AlertSearchInput>
+}
+export interface CancellationsQueryArgs {
+  time?: Maybe<string>
+
+  cancellationSearch?: Maybe<CancellationSearchInput>
 }

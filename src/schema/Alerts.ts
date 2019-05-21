@@ -179,4 +179,11 @@ export const Alerts = gql`
     route: String
     stop: String
   }
+
+  input CancellationSearchInput {
+    all: Boolean
+    routeId: String
+    direction: Int
+    departureTime: String
+  }
 `
