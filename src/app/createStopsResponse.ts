@@ -13,7 +13,7 @@ import { filterStopsByBBox } from './filters/filterStopsByBBox'
 
 function getSearchValue(item) {
   const { stopId = '', shortId = '', name = '' } = item
-  return stopId ? [stopId, shortId, name] : []
+  return stopId ? [shortId, name, stopId] : []
 }
 
 // Result from the query is a join of a stop and route segments.
@@ -113,7 +113,9 @@ export async function createStopsResponse(
   }
 
   if (filter && filter.search) {
-    filteredStops = search<SimpleStop>(stops, filter.search, getSearchValue)
+    const searchedStops = search<SimpleStop>(stops, filter.search, getSearchValue)
+    filteredStops =
+      searchedStops.length === filteredStops.length ? filteredStops : searchedStops.slice(0, 20)
   }
 
   const currentTime = format(new Date(), 'YYYY-MM-DD')

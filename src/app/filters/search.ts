@@ -11,7 +11,7 @@ export function matchQuery<ItemType>(
   items: Array<Match<ItemType>>,
   query: string,
   value: number,
-  itemToSearchTerms: (ItemType) => string[]
+  itemToSearchTerms: (itemType: ItemType) => string[]
 ) {
   // Filter the items and create a score for the current word.
   return items.reduce((matches: Array<Match<ItemType>>, item) => {
@@ -41,15 +41,15 @@ export function matchQuery<ItemType>(
       }
 
       // If it matches exactly, don't bother with the rest.
-      if (termWord === query) {
+      if (termWord === query || termWord.startsWith(query) || termWord.endsWith(query)) {
         queryScore += value * 2
-        continue
+        break
       }
 
       // This score represents how much the current query word matches the current term word.
       let termWordScore = 0
 
-      // Calculate the value of the character should it match bwtween the query and the term.
+      // Calculate the value of the character should it match between the query and the term.
       const charValue = value / query.length
 
       // The character index of the term the matcher is looking at
@@ -75,7 +75,7 @@ export function matchQuery<ItemType>(
         if (queryChar === termChar) {
           // Bonus comes from matching the first character of the query word, or if
           // the query and term character indices are equal.
-          const bonus = termIndex === queryIndex ? 1.2 : 1
+          const bonus = termIndex === queryIndex ? 1.5 : 1
           // A fourth of the character value is awarded multiplied by the streak.
           const streakBonus = matchStreak * (charValue / 4)
 
