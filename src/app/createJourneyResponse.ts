@@ -124,10 +124,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
-  const originDeparture = validDepartures.find(
-    (departure) =>
-      getDepartureTime(departure) === time && departure.stop_id === journeyRouteObject.originStopId
-  )
+  const originDeparture = validDepartures.find((departure) => getDepartureTime(departure) === time)
 
   if (!originDeparture) {
     return { route: journeyRouteObject, departures: [] }
@@ -255,11 +252,11 @@ export async function createJourneyResponse(
     24 * 60 * 60
   )
 
-  if (!journeyEvents && !routeAndDepartures) {
+  if (!journeyEvents && (!routeAndDepartures || routeAndDepartures.departures.length === 0)) {
     return null
   }
 
-  const { route, departures = [] }: JourneyRoute = routeAndDepartures || {
+  const { route = null, departures = [] }: JourneyRoute = routeAndDepartures || {
     route: null,
     departures: [],
   }
@@ -306,7 +303,7 @@ export async function createJourneyResponse(
   // Return only the events if no departures were found.
   if (
     !routeAndDepartures ||
-    (!routeAndDepartures.route && routeAndDepartures.departures.length === 0)
+    (!routeAndDepartures.route || routeAndDepartures.departures.length === 0)
   ) {
     return createJourneyObject(
       events,

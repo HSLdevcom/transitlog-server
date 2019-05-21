@@ -9,7 +9,6 @@ import { JoreEquipment } from '../../types/Jore'
 import { getJourneyStartTime } from '../../utils/time'
 import { getDirection } from '../../utils/getDirection'
 import { getLatestCancellationState } from '../../utils/getLatestCancellationState'
-import { createDepartureId } from './createDepartureObject'
 
 export function createJourneyObject(
   journeyEvents: Vehicles[],
@@ -27,7 +26,7 @@ export function createJourneyObject(
     ? get(firstDeparture, 'plannedDepartureTime.departureTime', '')
     : getJourneyStartTime(journey)
 
-  const id = !journey ? `journey_no_events_${firstDeparture.id}` : createJourneyId(journey)
+  const id = !journey ? `journey_no_events_${get(firstDeparture, 'id')}` : createJourneyId(journey)
 
   const isCancelled =
     cancellations.length !== 0 && getLatestCancellationState(cancellations)[0].isCancelled
