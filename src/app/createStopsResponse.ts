@@ -108,19 +108,23 @@ export async function createStopsResponse(
   }
 
   if (filter && filter.search) {
-    const searchedStops = search<SimpleStop>(stops, filter.search, [
+    filteredStops = search<SimpleStop>(stops, filter.search, [
       { name: 'shortId', weight: 0.7 },
       { name: 'name', weight: 0.1 },
       { name: 'stopId', weight: 0.2 },
     ])
-    filteredStops =
-      searchedStops.length === filteredStops.length ? filteredStops : searchedStops.slice(0, 20)
   }
 
   const currentTime = format(new Date(), 'YYYY-MM-DD')
 
-  return filteredStops.map((stop) => {
+  filteredStops = filteredStops.map((stop) => {
     stop.alerts = getAlerts(currentTime, { allStops: true, stop: stop.stopId })
     return stop
   })
+
+  if (bbox) {
+    return filteredStops
+  }
+
+  return filteredStops.slice(0, 50)
 }
