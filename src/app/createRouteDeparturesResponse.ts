@@ -161,6 +161,8 @@ export async function createRouteDeparturesResponse(
   }
 
   const createDepartures: CachedFetcher<Departure[]> = async () => {
+    // The departures fetcher uses the route and direction in the query, so we need to
+    // include them in the cache key too.
     const departuresCacheKey = `departures_${stopId}_${routeId}_${direction}_${date}`
     const departures = await cacheFetch<Departure[]>(
       departuresCacheKey,
@@ -174,8 +176,10 @@ export async function createRouteDeparturesResponse(
 
     // Cache events for the current day for 10 seconds only.
     // Older dates can be cached for longer.
-    const journeyTTL: number = isToday(date) ? 10 : 30 * 24 * 60 * 60
+    const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
 
+    // The departure events are fetched with the route and direction so they need to be
+    // included in the cache key.
     const eventsCacheKey = `departure_events_${stopId}_${date}_${routeId}_${direction}`
     const departureEvents = await cacheFetch<Vehicles[]>(
       eventsCacheKey,
@@ -191,7 +195,7 @@ export async function createRouteDeparturesResponse(
     return combineDeparturesAndEvents(departures, departureEvents, date)
   }
 
-  const departuresTTL: number = isToday(date) ? 5 * 60 : 30 * 24 * 60 * 60
+  const departuresTTL: number = isToday(date) ? 5 : 30 * 24 * 60 * 60
   const cacheKey = `route_departures_${stopId}_${routeId}_${direction}_${date}`
   const routeDepartures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
 

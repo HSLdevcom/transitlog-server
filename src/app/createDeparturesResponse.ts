@@ -234,7 +234,7 @@ export async function createDeparturesResponse(
     return filterByExceptions(combineDeparturesAndStops(validDepartures, stops, date), exceptions)
   }
 
-  const createDepartures = async () => {
+  const createDepartures: CachedFetcher<Departure[]> = async () => {
     const departuresCacheKey = `departures_${stopId}_${date}`
     const departures = await cacheFetch<Departure[]>(
       departuresCacheKey,

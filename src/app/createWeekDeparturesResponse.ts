@@ -202,8 +202,8 @@ export const createWeekDeparturesResponse = async (
       return []
     }
 
-    const journeyTTL: number = 60
-    const eventsCacheKey = `departure_events_${stopId}_${weekNumber}_${routeId}_${direction}`
+    const journeyTTL: number = 5 * 60
+    const eventsCacheKey = `week_departure_events_${stopId}_${weekNumber}_${routeId}_${direction}`
     const departureEvents = await cacheFetch<Vehicles[]>(
       eventsCacheKey,
       () => fetchEvents(getEvents),
