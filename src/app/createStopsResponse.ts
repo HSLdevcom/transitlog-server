@@ -82,7 +82,7 @@ export async function createStopResponse(
 export async function createStopsResponse(
   getStops: () => Promise<JoreStop[]>,
   filter?: StopFilterInput,
-  bbox: BBox = {}
+  bbox: BBox | null = null
 ): Promise<SimpleStop[]> {
   const fetchStops: CachedFetcher<SimpleStop[]> = async () => {
     const fetchedStops = await getStops()
