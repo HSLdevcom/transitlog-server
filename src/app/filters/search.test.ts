@@ -12,21 +12,10 @@ describe('Search', () => {
     ]
   })
 
-  const itemToSearchTerms = (item) => [item.type, item.id]
-
   it('matches search terms to objects', () => {
-    const filtered = search(items, 'item', itemToSearchTerms)
+    const filtered = search(items, 'item', ['type', 'id'])
     expect(filtered).toHaveLength(3)
     expect(filtered.map((i) => i.type)).toContain('item')
-    expect(filtered.map((i) => i.type)).not.toContain('object')
-  })
-
-  it('gives a score based on how well the search term matched the item', () => {
-    const filtered = search(items, 'item 2', itemToSearchTerms)
-    expect(filtered).toHaveLength(1)
-    expect(filtered[0].type).toEqual('item')
-    expect(filtered[0].id).toEqual('2')
-    expect(filtered[0]._matchScore).toBeGreaterThanOrEqual(99)
     expect(filtered.map((i) => i.type)).not.toContain('object')
   })
 })

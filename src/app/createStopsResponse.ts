@@ -11,11 +11,6 @@ import { getAlerts } from './getAlerts'
 import format from 'date-fns/format'
 import { filterStopsByBBox } from './filters/filterStopsByBBox'
 
-function getSearchValue(item) {
-  const { stopId = '', shortId = '', name = '' } = item
-  return stopId ? [shortId, name, stopId] : []
-}
-
 // Result from the query is a join of a stop and route segments.
 type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute & JoreLine
 
@@ -113,7 +108,11 @@ export async function createStopsResponse(
   }
 
   if (filter && filter.search) {
-    const searchedStops = search<SimpleStop>(stops, filter.search, getSearchValue)
+    const searchedStops = search<SimpleStop>(stops, filter.search, [
+      { name: 'shortId', weight: 0.7 },
+      { name: 'name', weight: 0.1 },
+      { name: 'stopId', weight: 0.2 },
+    ])
     filteredStops =
       searchedStops.length === filteredStops.length ? filteredStops : searchedStops.slice(0, 20)
   }

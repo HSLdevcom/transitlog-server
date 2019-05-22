@@ -30,13 +30,11 @@ export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteF
     return routes
   }
 
-  const getSearchTermsForItem = ({
-    route_id,
-    direction,
-    name_fi,
-    originstop_id,
-    destinationstop_id,
-  }: JoreRoute) => [route_id, direction, name_fi, originstop_id, destinationstop_id]
-
-  return search<JoreRoute>(routes, searchFilter, getSearchTermsForItem)
+  return search<JoreRoute>(routes, searchFilter, [
+    'route_id',
+    'direction',
+    'name_fi',
+    'originstop_id',
+    'destinationstop_id',
+  ])
 }

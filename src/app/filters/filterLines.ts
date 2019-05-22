@@ -16,6 +16,5 @@ export function filterLines(lines: JoreLine[], filter?: LineFilterInput) {
     return filteredLines
   }
 
-  const getSearchTermsForItem = ({ line_id, name_fi }: JoreLine) => [line_id, name_fi]
-  return search<JoreLine>(filteredLines, lineSearchFilter, getSearchTermsForItem)
+  return search<JoreLine>(filteredLines, lineSearchFilter, ['line_id', 'name_fi'])
 }

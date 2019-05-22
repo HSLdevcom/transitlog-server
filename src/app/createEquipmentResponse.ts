@@ -72,7 +72,16 @@ export async function createEquipmentResponse(
     )
   } else if (searchFilter || (vehicleIdFilter || operatorIdFilter)) {
     const searchQuery = searchFilter || `${vehicleIdFilter},${operatorIdFilter}`
-    filteredEquipment = search<Equipment>(filteredEquipment, searchQuery, equipmentToSearchTerms)
+    filteredEquipment = search<Equipment>(filteredEquipment, searchQuery, [
+      'vehicleId',
+      'operatorId',
+      'operatorName',
+      'registryNr',
+      'exteriorColor',
+      'emissionClass',
+      'emissionDesc',
+      'type',
+    ])
   } else {
     filteredEquipment = orderBy(filteredEquipment, ['operatorId', 'vehicleId'], ['asc', 'asc'])
   }

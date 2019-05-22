@@ -58,6 +58,7 @@
     "express-session": "^1.15.6",
     "forever": "^0.15.3",
     "full-icu": "^1.2.1",
+    "fuse.js": "^3.4.4",
     "graphql": "^14.1.1",
     "graphql-code-generator": "^0.18.0",
     "ioredis": "^4.6.2",
