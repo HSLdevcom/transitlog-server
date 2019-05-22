@@ -248,7 +248,7 @@ export async function createDeparturesResponse(
 
     // Cache events for the current day for 10 seconds only.
     // Older dates can be cached for longer.
-    const journeyTTL: number = isToday(date) ? 10 : 30 * 24 * 60 * 60
+    const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
 
     const eventsCacheKey = `departure_events_${stopId}_${date}`
     const departureEvents = await cacheFetch<Vehicles[]>(
@@ -265,7 +265,7 @@ export async function createDeparturesResponse(
     return combineDeparturesAndEvents(departures, departureEvents, date)
   }
 
-  const departuresTTL: number = isToday(date) ? 5 * 60 : 30 * 24 * 60 * 60
+  const departuresTTL: number = isToday(date) ? 5 : 30 * 24 * 60 * 60
   const cacheKey = `stop_departures_${stopId}_${date}`
   const departures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
 
@@ -274,7 +274,6 @@ export async function createDeparturesResponse(
   }
 
   const departuresWithAlerts = departures.map((departure) => {
-    // TODO: Get cancellations for the origin departure.
     setAlertsOnDeparture(departure)
     setCancellationsOnDeparture(departure)
 
