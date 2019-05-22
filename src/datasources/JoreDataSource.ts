@@ -24,7 +24,7 @@ import { createExceptionDayObject } from '../app/objects/createExceptionDayObjec
 const knex: Knex = Knex({
   dialect: 'postgres',
   client: 'pg',
-  connection: process.env.PG_CONNECTION_STRING,
+  connection: process.env.JORE_PG_CONNECTION_STRING,
   pool: {
     min: 1,
     max: 20,

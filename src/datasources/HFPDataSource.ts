@@ -1,7 +1,6 @@
-import { GraphQLDataSource } from '../utils/GraphQLDataSource'
 import { get } from 'lodash'
 import moment from 'moment-timezone'
-import { HFP_URL, TZ } from '../constants'
+import { TZ } from '../constants'
 import { Vehicles } from '../types/generated/hfp-types'
 import { AVAILABLE_VEHICLES_QUERY } from '../queries/vehicleQueries'
 import {
@@ -17,15 +16,46 @@ import {
 } from '../queries/departureQueries'
 import { getNormalTime, isNextDay } from '../utils/time'
 import { Direction } from '../types/generated/schema-types'
+import Knex from 'knex'
+import SQLDataSource from '../utils/SQLDataSource'
 
-export class HFPDataSource extends GraphQLDataSource {
-  baseURL = HFP_URL
+const knex: Knex = Knex({
+  dialect: 'postgres',
+  client: 'pg',
+  connection: process.env.HFP_PG_CONNECTION_STRING,
+  searchPath: ['knex', 'public'],
+  pool: {
+    min: 1,
+    max: 20,
+  },
+})
+
+export class HFPDataSource extends SQLDataSource {
+  constructor() {
+    super()
+    // Add your instance of Knex to the DataSource
+    this.knex = knex
+  }
+
+  // Mock method to satisfy the compiler before I've had a chance to rewrite all functions
+  query(one, two) {
+    return {}
+  }
 
   async getAvailableVehicles(date): Promise<Vehicles[]> {
-    const response = await this.query(AVAILABLE_VEHICLES_QUERY, {
-      variables: { date },
-    })
-    return get(response, 'data.vehicles', [])
+    const query = this.db.raw(
+      `
+SELECT distinct on (unique_vehicle_id) unique_vehicle_id,
+vehicle_number,
+owner_operator_id
+FROM vehicles
+WHERE oday = :date AND geohash_level = 0
+ORDER BY (unique_vehicle_id);
+`,
+      { date }
+    )
+
+    return this.getBatched(query)
   }
 
   async getAreaJourneys(minTime, maxTime, bbox, date): Promise<Vehicles[]> {
