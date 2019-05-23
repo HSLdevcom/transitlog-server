@@ -2,17 +2,8 @@ import { get } from 'lodash'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { Vehicles } from '../types/generated/hfp-types'
-import {
-  JOURNEY_EVENTS_QUERY,
-  ROUTE_JOURNEY_EVENTS_QUERY,
-  VEHICLE_JOURNEYS_QUERY,
-} from '../queries/journeyQueries'
-import {
-  DEPARTURE_EVENTS_QUERY,
-  ROUTE_DEPARTURES_EVENTS_QUERY,
-  ROUTE_WEEK_DEPARTURES_EVENTS_QUERY,
-} from '../queries/departureQueries'
-import { getNormalTime, isNextDay } from '../utils/time'
+import { ROUTE_WEEK_DEPARTURES_EVENTS_QUERY } from '../queries/departureQueries'
+import { isNextDay } from '../utils/time'
 import { Direction } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
@@ -28,16 +19,34 @@ const knex: Knex = Knex({
   },
 })
 
+const vehicleFields = [
+  'mode',
+  'owner_operator_id',
+  'vehicle_number',
+  'unique_vehicle_id',
+  'route_id',
+  'direction_id',
+  'headsign',
+  'journey_start_time',
+  'next_stop_id',
+  'geohash_level',
+  'desi',
+  'tst',
+  'tsi',
+  'spd',
+  'hdg',
+  'lat',
+  'long',
+  'dl',
+  'drst',
+  'oday',
+]
+
 export class HFPDataSource extends SQLDataSource {
   constructor() {
     super()
     // Add your instance of Knex to the DataSource
     this.knex = knex
-  }
-
-  // Mock method to satisfy the compiler before I've had a chance to rewrite all functions
-  query(one, two) {
-    return {}
   }
 
   async getAvailableVehicles(date): Promise<Vehicles[]> {
@@ -56,34 +65,11 @@ ORDER BY (unique_vehicle_id);
     return this.getBatched(query)
   }
 
-  vehicleFields = [
-    'mode',
-    'owner_operator_id',
-    'vehicle_number',
-    'unique_vehicle_id',
-    'route_id',
-    'direction_id',
-    'headsign',
-    'journey_start_time',
-    'next_stop_id',
-    'geohash_level',
-    'desi',
-    'tst',
-    'tsi',
-    'spd',
-    'hdg',
-    'lat',
-    'long',
-    'dl',
-    'drst',
-    'oday',
-  ]
-
   async getAreaJourneys(minTime, maxTime, bbox, date): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
     const query = this.db('vehicles')
-      .select(this.vehicleFields)
+      .select(vehicleFields)
       .where('oday', date)
       .where('geohash_level', '<=', 4)
       .whereBetween('tsi', [moment.tz(minTime, TZ).unix(), moment.tz(maxTime, TZ).unix()])
@@ -102,7 +88,7 @@ ORDER BY (unique_vehicle_id);
     const queryVehicleId = `${operatorId}/${vehicleId}`
 
     const query = this.db('vehicles')
-      .select(this.vehicleFields)
+      .select(vehicleFields)
       .where('oday', date)
       .where('unique_vehicle_id', queryVehicleId)
       .orderBy('tst', 'ASC')
@@ -112,7 +98,7 @@ ORDER BY (unique_vehicle_id);
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
     const query = this.db('vehicles')
-      .select(this.vehicleFields)
+      .select(vehicleFields)
       .where('oday', date)
       .where('geohash_level', '<=', 4)
       .where('route_id', routeId)
@@ -139,17 +125,19 @@ ORDER BY (unique_vehicle_id);
     }
 
     let query = this.db('vehicles')
-      .select(this.vehicleFields)
+      .select(vehicleFields)
       .where('oday', departureDate)
       .where('route_id', routeId)
       .where('direction_id', direction)
       .where('journey_start_time', departureTime)
       .orderBy('tst', 'ASC')
 
+    // TODO: Test without uniqueVehicleId
     if (uniqueVehicleId) {
       query = query.where('unique_vehicle_id', `${operatorId}/${vehicleId}`)
     }
 
+    // TODO: Test next day departures
     if (isNextDay(departureTime)) {
       query = query.where('tst', '>', moment.tz(departureDate, TZ).toISOString())
     }
@@ -165,14 +153,21 @@ ORDER BY (unique_vehicle_id);
   }
 
   async getDepartureEvents(stopId: string, date: string) {
-    const response = await this.query(DEPARTURE_EVENTS_QUERY, {
-      variables: {
-        stopId,
-        date,
-      },
-    })
+    const query = this.db('vehicles')
+      .select(
+        this.db.raw(
+          `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
+        )
+      )
+      .where('oday', date)
+      .where('next_stop_id', stopId)
+      .orderBy([
+        { column: 'journey_start_time', order: 'asc' },
+        { column: 'unique_vehicle_id', order: 'asc' },
+        { column: 'tst', order: 'desc' },
+      ])
 
-    return get(response, 'data.vehicles', [])
+    return this.getBatched(query)
   }
 
   async getRouteDepartureEvents(
@@ -181,16 +176,23 @@ ORDER BY (unique_vehicle_id);
     routeId: string,
     direction: Direction
   ) {
-    const response = await this.query(ROUTE_DEPARTURES_EVENTS_QUERY, {
-      variables: {
-        stopId,
-        date,
-        routeId,
-        direction,
-      },
-    })
+    const query = this.db('vehicles')
+      .select(
+        this.db.raw(
+          `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
+        )
+      )
+      .where('oday', date)
+      .where('next_stop_id', stopId)
+      .where('route_id', routeId)
+      .where('direction_id', direction)
+      .orderBy([
+        { column: 'journey_start_time', order: 'asc' },
+        { column: 'unique_vehicle_id', order: 'asc' },
+        { column: 'tst', order: 'desc' },
+      ])
 
-    return get(response, 'data.vehicles', [])
+    return this.getBatched(query)
   }
 
   async getWeeklyDepartureEvents(
@@ -202,16 +204,28 @@ ORDER BY (unique_vehicle_id);
     const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
     const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
 
-    const response = await this.query(ROUTE_WEEK_DEPARTURES_EVENTS_QUERY, {
-      variables: {
-        stopId,
-        minDate: minDateMoment.format('YYYY-MM-DD'),
-        maxDate: maxDateMoment.format('YYYY-MM-DD'),
-        routeId,
-        direction,
-      },
-    })
+    const query = this.db('vehicles')
+      .select(
+        this.db.raw(
+          `DISTINCT ON ("oday", "journey_start_time", "unique_vehicle_id") ${vehicleFields.join(
+            ','
+          )}`
+        )
+      )
+      .whereBetween('oday', [
+        minDateMoment.format('YYYY-MM-DD'),
+        maxDateMoment.format('YYYY-MM-DD'),
+      ])
+      .where('next_stop_id', stopId)
+      .where('route_id', routeId)
+      .where('direction_id', direction)
+      .orderBy([
+        { column: 'oday', order: 'asc' },
+        { column: 'journey_start_time', order: 'asc' },
+        { column: 'unique_vehicle_id', order: 'asc' },
+        { column: 'tst', order: 'desc' },
+      ])
 
-    return get(response, 'data.vehicles', [])
+    return this.getBatched(query)
   }
 }
