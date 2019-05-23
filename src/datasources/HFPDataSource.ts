@@ -129,7 +129,6 @@ ORDER BY (unique_vehicle_id);
     departureTime,
     uniqueVehicleId = ''
   ): Promise<Vehicles[]> {
-    // TODO: Check what this returns for 24h+ queries and make sure that only events from one journey is used.
     let operatorId
     let vehicleId
 
@@ -139,22 +138,23 @@ ORDER BY (unique_vehicle_id);
       vehicleId = parseInt(vehiclePart, 10)
     }
 
-    const response = await this.query(JOURNEY_EVENTS_QUERY, {
-      variables: {
-        routeId,
-        direction,
-        departureDate,
-        departureTime: getNormalTime(departureTime),
-        compareVehicleId: uniqueVehicleId ? { _eq: `${operatorId}/${vehicleId}` } : undefined,
-        compareEventTime: isNextDay(departureTime)
-          ? {
-              _gt: moment.tz(departureDate, TZ).toISOString(),
-            }
-          : undefined,
-      },
-    })
+    let query = this.db('vehicles')
+      .select(this.vehicleFields)
+      .where('oday', departureDate)
+      .where('route_id', routeId)
+      .where('direction_id', direction)
+      .where('journey_start_time', departureTime)
+      .orderBy('tst', 'ASC')
 
-    let vehicles: Vehicles[] = get(response, 'data.vehicles', [])
+    if (uniqueVehicleId) {
+      query = query.where('unique_vehicle_id', `${operatorId}/${vehicleId}`)
+    }
+
+    if (isNextDay(departureTime)) {
+      query = query.where('tst', '>', moment.tz(departureDate, TZ).toISOString())
+    }
+
+    let vehicles: Vehicles[] = await this.getBatched(query)
 
     if (!uniqueVehicleId && vehicles.length !== 0) {
       const firstVehicleId = vehicles[0].unique_vehicle_id
