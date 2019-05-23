@@ -93,8 +93,6 @@ export async function createEquipmentResponse(
     const vehicles: Vehicles[] =
       (await cacheFetch<Vehicles[]>(vehicleHfpCacheKey, getObservedVehicles, ttl)) || []
 
-    console.log(vehicles)
-
     if (vehicles.length !== 0) {
       filteredEquipment = filteredEquipment.map((item: Equipment) => {
         const vehicleId = item.id

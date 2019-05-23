@@ -2,9 +2,7 @@ import { get } from 'lodash'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { Vehicles } from '../types/generated/hfp-types'
-import { AVAILABLE_VEHICLES_QUERY } from '../queries/vehicleQueries'
 import {
-  AREA_EVENTS_QUERY,
   JOURNEY_EVENTS_QUERY,
   ROUTE_JOURNEY_EVENTS_QUERY,
   VEHICLE_JOURNEYS_QUERY,
@@ -58,11 +56,42 @@ ORDER BY (unique_vehicle_id);
     return this.getBatched(query)
   }
 
+  vehicleFields = [
+    'mode',
+    'owner_operator_id',
+    'vehicle_number',
+    'unique_vehicle_id',
+    'route_id',
+    'direction_id',
+    'headsign',
+    'journey_start_time',
+    'next_stop_id',
+    'geohash_level',
+    'desi',
+    'tst',
+    'tsi',
+    'spd',
+    'hdg',
+    'lat',
+    'long',
+    'dl',
+    'drst',
+    'oday',
+  ]
+
   async getAreaJourneys(minTime, maxTime, bbox, date): Promise<Vehicles[]> {
-    const response = await this.query(AREA_EVENTS_QUERY, {
-      variables: { minTime, maxTime, date, ...bbox },
-    })
-    return get(response, 'data.vehicles', [])
+    const { minLat, maxLat, minLng, maxLng } = bbox
+
+    const query = this.db('vehicles')
+      .select(this.vehicleFields)
+      .where('oday', date)
+      .where('geohash_level', '<=', 4)
+      .whereBetween('tsi', [moment.tz(minTime, TZ).unix(), moment.tz(maxTime, TZ).unix()])
+      .whereBetween('lat', [minLat, maxLat])
+      .whereBetween('long', [minLng, maxLng])
+      .orderBy('tsi', 'ASC')
+
+    return this.getBatched(query)
   }
 
   async getJourneysForVehicle(uniqueVehicleId, date): Promise<Vehicles[]> {
