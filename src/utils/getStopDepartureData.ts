@@ -1,5 +1,4 @@
 import { diffDepartureJourney } from './diffDepartureJourney'
-import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, ObservedDeparture } from '../types/generated/schema-types'
 import { createJourneyEventObject } from '../app/objects/createJourneyEventObject'
 import { TZ } from '../constants'
@@ -8,6 +7,7 @@ import { getJourneyEventTime } from './time'
 import { createDepartureId } from '../app/objects/createDepartureObject'
 import { createJourneyId } from './createJourneyId'
 import { get } from 'lodash'
+import { Vehicles } from '../types/EventsDb'
 
 /**
  *

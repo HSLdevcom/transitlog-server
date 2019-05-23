@@ -70,7 +70,7 @@
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.23",
     "node-fetch": "^2.3.0",
-    "p-map": "^1.2.0",
+    "p-map": "^2.1.0",
     "pg": "^7.9.0",
     "ts-node": "^8.0.3",
     "typescript": "^3.3.3333"

@@ -1,5 +1,5 @@
 import { orderBy } from 'lodash'
-import { Vehicles } from '../types/generated/hfp-types'
+import { Vehicles } from '../types/EventsDb'
 
 export const getStopEvents = (events: Vehicles[], stopId: string) => {
   const stopEvents: Vehicles[] = []

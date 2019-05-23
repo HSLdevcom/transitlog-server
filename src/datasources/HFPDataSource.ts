@@ -1,12 +1,11 @@
-import { get } from 'lodash'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
-import { Vehicles } from '../types/generated/hfp-types'
-import { ROUTE_WEEK_DEPARTURES_EVENTS_QUERY } from '../queries/departureQueries'
 import { isNextDay } from '../utils/time'
 import { Direction } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
+import { DBAlert, DBCancellation, Vehicles } from '../types/EventsDb'
+import { AlertSearchProps } from '../app/getAlerts'
 
 const knex: Knex = Knex({
   dialect: 'postgres',
@@ -40,6 +39,32 @@ const vehicleFields = [
   'dl',
   'drst',
   'oday',
+]
+
+const cancellationFields = [
+  'created_at',
+  'modified_at',
+  'status',
+  'start_date',
+  'route_id',
+  'direction_id',
+  'start_time',
+  'last_modified',
+  'data',
+]
+
+const alertFields = [
+  'created_at',
+  'modified_at',
+  'route_id',
+  'stop_id',
+  'affects_all_routes',
+  'affects_all_stops',
+  'valid_from',
+  'valid_to',
+  'last_modified',
+  'data',
+  'ext_id_bulletin',
 ]
 
 export class HFPDataSource extends SQLDataSource {
@@ -152,7 +177,7 @@ ORDER BY (unique_vehicle_id);
     return vehicles
   }
 
-  async getDepartureEvents(stopId: string, date: string) {
+  async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
     const query = this.db('vehicles')
       .select(
         this.db.raw(
@@ -175,7 +200,7 @@ ORDER BY (unique_vehicle_id);
     date: string,
     routeId: string,
     direction: Direction
-  ) {
+  ): Promise<Vehicles[]> {
     const query = this.db('vehicles')
       .select(
         this.db.raw(
@@ -200,7 +225,7 @@ ORDER BY (unique_vehicle_id);
     date: string,
     routeId: string,
     direction: Direction
-  ) {
+  ): Promise<Vehicles[]> {
     const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
     const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
 
@@ -225,6 +250,84 @@ ORDER BY (unique_vehicle_id);
         { column: 'unique_vehicle_id', order: 'asc' },
         { column: 'tst', order: 'desc' },
       ])
+
+    return this.getBatched(query)
+  }
+
+  getAlerts = async (dateTime: string, alertSearchProps: AlertSearchProps): Promise<DBAlert[]> => {
+    let query = this.db('alert')
+      .select(alertFields)
+      .where('valid_from', '<=', dateTime)
+      .where('valid_to', '>=', dateTime)
+      .orderBy([
+        { column: 'valid_from', order: 'asc' },
+        { column: 'valid_to', order: 'desc' },
+        { column: 'last_modified', order: 'desc' },
+      ])
+
+    const { all, network, allRoutes, allStops, route: routeId, stop: stopId } = alertSearchProps
+
+    if (all) {
+      return this.getBatched(query)
+    }
+
+    if (network) {
+      query = query.where('affects_all_routes', true).where('affects_all_stops', true)
+    }
+
+    if (routeId) {
+      if (Array.isArray(routeId)) {
+        query = query.whereIn('route_id', routeId)
+      } else {
+        query = query.where('route_id', routeId)
+      }
+
+      query = query.orWhere('affects_all_routes', true)
+    }
+
+    if (stopId) {
+      if (Array.isArray(stopId)) {
+        query = query.whereIn('stop_id', stopId)
+      } else {
+        query = query.where('stop_id', stopId)
+      }
+
+      query = query.orWhere('affects_all_stops', true)
+    }
+
+    if (allStops) {
+      query = query.where('affects_all_stops', true)
+    }
+
+    if (allRoutes) {
+      query = query.where('affects_all_routes', true)
+    }
+
+    return this.getBatched(query)
+  }
+
+  getCancellations = async (
+    date: string,
+    routeId?: string,
+    direction?: number,
+    departureTime?: string
+  ): Promise<DBCancellation[]> => {
+    let query = this.db('cancellation')
+      .select(cancellationFields)
+      .where('start_date', date)
+      .orderBy([{ column: 'last_modified', order: 'desc' }, { column: 'start_time', order: 'asc' }])
+
+    if (routeId) {
+      query = query.where('route_id', routeId)
+
+      if (direction) {
+        query = query.where('direction_id', direction)
+      }
+
+      if (departureTime) {
+        query = query.where('start_time', 'LIKE', departureTime + '%')
+      }
+    }
 
     return this.getBatched(query)
   }

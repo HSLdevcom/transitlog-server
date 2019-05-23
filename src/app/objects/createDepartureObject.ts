@@ -14,12 +14,12 @@ import {
   RouteSegment,
 } from '../../types/generated/schema-types'
 import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../../utils/time'
-import { Vehicles } from '../../types/generated/hfp-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
 import { get } from 'lodash'
 import { getDirection } from '../../utils/getDirection'
 import { doubleDigit } from '../../utils/doubleDigit'
+import { Vehicles } from '../../types/EventsDb'
 
 function createJoreDepartureId(departure: JoreDeparture, date) {
   return `${departure.route_id}_${departure.direction}_${doubleDigit(

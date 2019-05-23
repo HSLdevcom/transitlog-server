@@ -1,4 +1,4 @@
-import { Vehicles } from '../types/generated/hfp-types'
+import { Vehicles } from '../types/EventsDb'
 
 export const findJourneyStartEvent = (events: Vehicles[] = []): Vehicles | null => {
   // Default to the first hfp event, ie when the data stream from this vehicle started

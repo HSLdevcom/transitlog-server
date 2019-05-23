@@ -1,15 +1,16 @@
 import { VehicleId, VehicleJourney } from '../types/generated/schema-types'
-import { Vehicles } from '../types/generated/hfp-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from './cache'
 import { createVehicleJourneyObject } from './objects/createVehicleJourneyObject'
 import { groupBy, map, orderBy, compact } from 'lodash'
 import { findJourneyStartEvent } from '../utils/findJourneyStartEvent'
 import { isToday } from 'date-fns'
-import { getAlerts } from './getAlerts'
+import { Vehicles } from '../types/EventsDb'
+import pMap from 'p-map'
 
 export const createVehicleJourneysResponse = async (
   getVehicleJourneys: () => Promise<Vehicles[] | null>,
+  getAlerts,
   uniqueVehicleId: VehicleId,
   date: string
 ): Promise<VehicleJourney[]> => {
@@ -42,8 +43,8 @@ export const createVehicleJourneysResponse = async (
     return []
   }
 
-  return journeys.map((journey) => {
-    journey.alerts = getAlerts(journey.recordedAt, {
+  return pMap(journeys, async (journey) => {
+    journey.alerts = await getAlerts(journey.recordedAt, {
       allRoutes: true,
       route: journey.routeId,
       stop: journey.nextStopId,

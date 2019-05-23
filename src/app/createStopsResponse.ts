@@ -7,15 +7,16 @@ import { filterByDateChains } from '../utils/filterByDateChains'
 import { groupBy, orderBy, uniqBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
-import { getAlerts } from './getAlerts'
 import format from 'date-fns/format'
 import { filterStopsByBBox } from './filters/filterStopsByBBox'
+import pMap from 'p-map'
 
 // Result from the query is a join of a stop and route segments.
 type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute & JoreLine
 
 export async function createStopResponse(
   getStops: () => Promise<JoreCombinedStop[]>,
+  getAlerts,
   date: string,
   stopId: string
 ): Promise<Stop | null> {
@@ -69,7 +70,7 @@ export async function createStopResponse(
     return null
   }
 
-  stop.alerts = getAlerts(date, {
+  stop.alerts = await getAlerts(date, {
     allStops: true,
     stop: stop.stopId,
     allRoutes: true,
@@ -81,6 +82,7 @@ export async function createStopResponse(
 
 export async function createStopsResponse(
   getStops: () => Promise<JoreStop[]>,
+  getAlerts,
   filter?: StopFilterInput,
   bbox: BBox | null = null
 ): Promise<SimpleStop[]> {
@@ -117,8 +119,8 @@ export async function createStopsResponse(
 
   const currentTime = format(new Date(), 'YYYY-MM-DD')
 
-  filteredStops = filteredStops.map((stop) => {
-    stop.alerts = getAlerts(currentTime, { allStops: true, stop: stop.stopId })
+  filteredStops = await pMap(filteredStops, async (stop) => {
+    stop.alerts = await getAlerts(currentTime, { allStops: true, stop: stop.stopId })
     return stop
   })
 

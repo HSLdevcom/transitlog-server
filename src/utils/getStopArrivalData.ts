@@ -1,6 +1,5 @@
 import moment from 'moment-timezone'
 import { diffDepartureJourney } from './diffDepartureJourney'
-import { Vehicles } from '../types/generated/hfp-types'
 import parse from 'date-fns/parse'
 import format from 'date-fns/format'
 import { DATE_FORMAT, TIME_FORMAT, TZ } from '../constants'
@@ -9,6 +8,7 @@ import { Departure, ObservedArrival } from '../types/generated/schema-types'
 import { reverse } from 'lodash'
 import { createJourneyId } from './createJourneyId'
 import { createDepartureId } from '../app/objects/createDepartureObject'
+import { Vehicles } from '../types/EventsDb'
 
 export function getStopArrivalData(
   stopEvents: Vehicles[] = [],

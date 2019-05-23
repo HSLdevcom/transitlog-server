@@ -1,11 +1,5 @@
-import {
-  JoreDeparture,
-  JoreEquipment,
-  JoreRouteDepartureData,
-  JoreStopSegment,
-} from '../types/Jore'
+import { JoreEquipment, JoreRouteDepartureData, JoreStopSegment } from '../types/Jore'
 import { cacheFetch } from './cache'
-import { Vehicles } from '../types/generated/hfp-types'
 import {
   Departure,
   Direction,
@@ -32,14 +26,11 @@ import { journeyInProgress } from '../utils/journeyInProgress'
 import { getDirection } from '../utils/getDirection'
 import { filterByExceptions } from '../utils/filterByExceptions'
 import { requireUser } from '../auth/requireUser'
-import { getAlerts } from './getAlerts'
-import { getCancellations } from './getCancellations'
 import isBefore from 'date-fns/is_before'
-import {
-  setAlertsOnDeparture,
-  setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlerts'
+import { setAlertsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
+import { Vehicles } from '../types/EventsDb'
+import pMap from 'p-map'
 
 type JourneyRoute = {
   route: Route | null
@@ -173,6 +164,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param fetchRouteData Async function that fetches the route and departures from Jore
  * @param fetchJourneyEvents Async function that fetches the HFP events
  * @param fetchJourneyEquipment Async function that fetches the equipment that operated this journey.
+ * @param getCancellations
  * @param exceptions Exceptions in effect during departureDate
  * @param routeId The route ID of the requested journey
  * @param direction The direction of the requested journey
@@ -186,8 +178,10 @@ export async function createJourneyResponse(
   fetchJourneyEvents: () => Promise<Vehicles[]>,
   fetchJourneyEquipment: (
     vehicleId: string | number,
-    operatorId: string
+    operatorId: string | number
   ) => Promise<JoreEquipment[]>,
+  getCancellations,
+  getAlerts,
   exceptions: ExceptionDay[],
   routeId: string,
   direction: Direction,
@@ -263,7 +257,7 @@ export async function createJourneyResponse(
 
   const departureDateTime = getDateFromDateTime(departureDate, departureTime)
 
-  const journeyAlerts = getAlerts(departureDateTime, {
+  const journeyAlerts = await getAlerts(departureDateTime, {
     allRoutes: true,
     allStops: true,
     route: routeId,
@@ -275,7 +269,7 @@ export async function createJourneyResponse(
         : undefined,
   })
 
-  const journeyCancellations = getCancellations(departureDate, {
+  const journeyCancellations = await getCancellations(departureDate, {
     routeId,
     direction,
     departureTime,
@@ -319,8 +313,9 @@ export async function createJourneyResponse(
 
   // Add observed data to the departures. Each stop is given a pile of events from which
   // arrival and departure times for the stop is parsed.
-  const observedDepartures: Departure[] = departures.map(
-    (departure: Departure): Departure => {
+  const observedDepartures: Departure[] = await pMap(
+    departures,
+    async (departure: Departure): Promise<Departure> => {
       // To get the events for a stop, first get all events with the next_stop_id matching
       // the current stop ID and sort by the timestamp in descending order. The departure
       // event will then be the first element in the array.
@@ -338,8 +333,7 @@ export async function createJourneyResponse(
         : null
 
       // TODO: Require authorization for showing alerts
-
-      setAlertsOnDeparture(departure)
+      await setAlertsOnDeparture(departure, getAlerts)
 
       const cancellationTime = cancellationState ? cancellationState.lastModifiedDateTime : null
       const stopTime = stopDeparture

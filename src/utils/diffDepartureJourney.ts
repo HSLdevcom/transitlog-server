@@ -1,8 +1,8 @@
 import moment from 'moment-timezone'
 import { getRealDepartureDate } from './time'
 import { TZ } from '../constants'
-import { Vehicles } from '../types/generated/hfp-types'
 import { Departure } from '../types/generated/schema-types'
+import { Vehicles } from '../types/EventsDb'
 
 export function diffDepartureJourney(
   journey: Vehicles,

@@ -27,28 +27,49 @@ const equipment = (root, { filter, date }, { dataSources }) => {
 
 const stops = (root, { filter }, { dataSources }) => {
   const getStops = () => dataSources.JoreAPI.getStops()
-  return createStopsResponse(getStops, filter)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+  return createStopsResponse(getStops, fetchAlerts, filter)
 }
 
 const stopsByBbox = (root, { filter, bbox }, { dataSources }) => {
   const getStops = () => dataSources.JoreAPI.getStops()
-  return createStopsResponse(getStops, filter, bbox)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+  return createStopsResponse(getStops, fetchAlerts, filter, bbox)
 }
 
 const stop = (root, { stopId, date }, { dataSources }) => {
   const getStopSegments = () => dataSources.JoreAPI.getStopSegments(stopId, date)
-  return createStopResponse(getStopSegments, date, stopId)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+  return createStopResponse(getStopSegments, fetchAlerts, date, stopId)
 }
 
 const route = async (root, { routeId, direction, date }, { dataSources }) => {
   const getRoutes = () => dataSources.JoreAPI.getRoutes()
-  const routes = await createRoutesResponse(getRoutes, date, undefined, { routeId, direction })
+
+  const fetchCancellations = getCancellations.bind(null, dataSources.HFPAPI.getCancellations)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+
+  const routes = await createRoutesResponse(
+    getRoutes,
+    fetchCancellations,
+    fetchAlerts,
+    date,
+    undefined,
+    {
+      routeId,
+      direction,
+    }
+  )
   return routes[0]
 }
 
 const routes = async (root, { filter, line, date }, { dataSources }) => {
   const getRoutes = () => dataSources.JoreAPI.getRoutes()
-  return createRoutesResponse(getRoutes, date, line, filter)
+
+  const fetchCancellations = getCancellations.bind(null, dataSources.HFPAPI.getCancellations)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+
+  return createRoutesResponse(getRoutes, fetchCancellations, fetchAlerts, date, line, filter)
 }
 
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
@@ -58,7 +79,18 @@ const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
 
 const routeSegments = (root, { routeId, direction, date }, { dataSources }) => {
   const getRouteSegments = () => dataSources.JoreAPI.getRouteSegments(routeId, direction)
-  return createRouteSegmentsResponse(getRouteSegments, date, routeId, direction)
+
+  const fetchCancellations = getCancellations.bind(null, dataSources.HFPAPI.getCancellations)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+
+  return createRouteSegmentsResponse(
+    getRouteSegments,
+    fetchCancellations,
+    fetchAlerts,
+    date,
+    routeId,
+    direction
+  )
 }
 
 const lines = async (root, { filter, date }, { dataSources }) => {
@@ -72,10 +104,15 @@ const departures = async (root, { filter, stopId, date }, { dataSources }) => {
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
   const getDepartureEvents = () => dataSources.HFPAPI.getDepartureEvents(stopId, date)
 
+  const fetchCancellations = getCancellations.bind(null, dataSources.HFPAPI.getCancellations)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+
   return createDeparturesResponse(
     getDepartures,
     getStops,
     getDepartureEvents,
+    fetchCancellations,
+    fetchAlerts,
     exceptions,
     stopId,
     date,
@@ -92,10 +129,15 @@ const routeDepartures = async (root, { routeId, direction, stopId, date }, { dat
   const getDepartureEvents = () =>
     dataSources.HFPAPI.getRouteDepartureEvents(stopId, date, routeId, direction)
 
+  const fetchCancellations = getCancellations.bind(null, dataSources.HFPAPI.getCancellations)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+
   return createRouteDeparturesResponse(
     getDepartures,
     getStops,
     getDepartureEvents,
+    fetchCancellations,
+    fetchAlerts,
     exceptions,
     stopId,
     routeId,
@@ -125,10 +167,15 @@ const weeklyDepartures = async (root, { routeId, direction, stopId, date }, { da
   const getDepartureEvents = () =>
     dataSources.HFPAPI.getWeeklyDepartureEvents(stopId, date, routeId, direction)
 
+  const fetchCancellations = getCancellations.bind(null, dataSources.HFPAPI.getCancellations)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+
   return createWeekDeparturesResponse(
     getDepartures,
     getStops,
     getDepartureEvents,
+    fetchCancellations,
+    fetchAlerts,
     exceptionsForWeek,
     stopId,
     routeId,
@@ -157,10 +204,15 @@ const journey = async (
   const getJourneyEquipment = (vehicleId, operatorId) =>
     dataSources.JoreAPI.getEquipmentById(vehicleId, operatorId)
 
+  const fetchCancellations = getCancellations.bind(null, dataSources.HFPAPI.getCancellations)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+
   return createJourneyResponse(
     getRouteData,
     getJourneyEvents,
     getJourneyEquipment,
+    fetchCancellations,
+    fetchAlerts,
     exceptions,
     routeId,
     direction,
@@ -178,7 +230,8 @@ const journeys = (root, { routeId, direction, departureDate }, { dataSources }) 
 
 const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources }) => {
   const getVehicleJourneys = () => dataSources.HFPAPI.getJourneysForVehicle(uniqueVehicleId, date)
-  return createVehicleJourneysResponse(getVehicleJourneys, uniqueVehicleId, date)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+  return createVehicleJourneysResponse(getVehicleJourneys, fetchAlerts, uniqueVehicleId, date)
 }
 
 const eventsByBbox = (root, { minTime, maxTime, bbox, date, filters }, { dataSources }) => {
@@ -191,12 +244,16 @@ const exceptionDays = (root, { year }, { dataSources }) => {
   return dataSources.JoreAPI.getExceptions(year)
 }
 
-const alerts = (root, { time, alertSearch }, { dataSources }): Alert[] => {
-  return getAlerts(time, alertSearch)
+const alerts = (root, { time, alertSearch }, { dataSources }): Promise<Alert[]> => {
+  return getAlerts(dataSources.HFPAPI.getAlerts, time, alertSearch)
 }
 
-const cancellations = (root, { time, cancellationSearch }, { dataSources }): Cancellation[] => {
-  return getCancellations(time, cancellationSearch)
+const cancellations = (
+  root,
+  { date, cancellationSearch },
+  { dataSources }
+): Promise<Cancellation[]> => {
+  return getCancellations(dataSources.HFPAPI.getCancellations, date, cancellationSearch)
 }
 
 export const queryResolvers: QueryResolvers.Resolvers = {

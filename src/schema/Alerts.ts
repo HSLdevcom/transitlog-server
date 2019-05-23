@@ -149,8 +149,7 @@ export const Alerts = gql`
     affectedId: String!
     startDateTime: DateTime!
     endDateTime: DateTime!
-    publishedDateTime: DateTime!
-    updatedDateTime: DateTime
+    lastModifiedDateTime: DateTime!
     title: String!
     description: String!
     url: String

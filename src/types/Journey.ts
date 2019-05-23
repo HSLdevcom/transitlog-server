@@ -1,4 +1,5 @@
 import { Direction, VehicleId } from './generated/schema-types'
+import { Vehicles } from './EventsDb'
 
 export interface HFPJourneyObject {
   oday?: string
@@ -16,4 +17,4 @@ export interface JourneyObject {
   uniqueVehicleId: VehicleId
 }
 
-export type Journey = HFPJourneyObject | JourneyObject
+export type Journey = HFPJourneyObject | JourneyObject | Vehicles

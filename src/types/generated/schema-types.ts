@@ -375,9 +375,7 @@ export interface Alert {
 
   endDateTime: DateTime
 
-  publishedDateTime: DateTime
-
-  updatedDateTime?: Maybe<DateTime>
+  lastModifiedDateTime: DateTime
 
   title: string
 
@@ -961,7 +959,7 @@ export interface AlertsQueryArgs {
   alertSearch?: Maybe<AlertSearchInput>
 }
 export interface CancellationsQueryArgs {
-  time?: Maybe<string>
+  date?: Maybe<Date>
 
   cancellationSearch?: Maybe<CancellationSearchInput>
 }

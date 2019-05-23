@@ -4,10 +4,10 @@ import { cacheFetch } from './cache'
 import { createEquipmentObject } from './objects/createEquipmentObject'
 import { get, orderBy } from 'lodash'
 import { search } from './filters/search'
-import { Vehicles } from '../types/generated/hfp-types'
 import isToday from 'date-fns/is_today'
 import { createUniqueVehicleId } from '../utils/createUniqueVehicleId'
 import { CachedFetcher } from '../types/CachedFetcher'
+import { Vehicles } from '../types/EventsDb'
 
 const equipmentToSearchTerms = ({
   vehicleId,

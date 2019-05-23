@@ -5,7 +5,6 @@ import { JoreDeparture, JoreDepartureWithOrigin, Mode } from '../types/Jore'
 import { Dictionary } from '../types/Dictionary'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { getISOWeek } from 'date-fns'
-import { Vehicles } from '../types/generated/hfp-types'
 import { getDirection } from '../utils/getDirection'
 import {
   createDepartureJourneyObject,
@@ -20,13 +19,12 @@ import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { filterByExceptions } from '../utils/filterByExceptions'
-import { getAlerts } from './getAlerts'
-import { getCancellations } from './getCancellations'
-import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
+import { Vehicles } from '../types/EventsDb'
+import pMap from 'p-map'
 
 const combineDeparturesAndEvents = (departures, events): Departure[] => {
   // Link observed events to departures.
@@ -147,6 +145,8 @@ export const createWeekDeparturesResponse = async (
   getDepartures,
   getStops,
   getEvents,
+  getCancellations,
+  getAlerts,
   exceptions,
   stopId,
   routeId,
@@ -227,9 +227,9 @@ export const createWeekDeparturesResponse = async (
     return []
   }
 
-  return routeDepartures.map((departure) => {
-    setAlertsOnDeparture(departure)
-    setCancellationsOnDeparture(departure)
+  return pMap(routeDepartures, async (departure) => {
+    await setAlertsOnDeparture(departure, getAlerts)
+    await setCancellationsOnDeparture(departure, getCancellations)
     return departure
   })
 }

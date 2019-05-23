@@ -1,12 +1,12 @@
 import { doubleDigit } from './doubleDigit'
 import format from 'date-fns/format'
 import moment from 'moment-timezone'
-import { Vehicles } from '../types/generated/hfp-types'
 import { get } from 'lodash'
 import { Departure } from '../types/generated/schema-types'
 import { Journey as JourneyType } from '../types/Journey'
 import { TZ } from '../constants'
 import { Moment } from 'moment'
+import { Vehicles } from '../types/EventsDb'
 
 const num = (val) => parseInt(val, 10)
 
