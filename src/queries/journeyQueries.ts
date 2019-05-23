@@ -113,36 +113,3 @@ export const VEHICLE_JOURNEYS_QUERY = gql`
   }
   ${JourneyFieldsFragment}
 `
-
-export const AREA_EVENTS_QUERY = gql`
-  query areaEventsQuery(
-    $date: date!
-    $minTime: timestamptz!
-    $maxTime: timestamptz!
-    $minLat: float8!
-    $maxLat: float8!
-    $minLng: float8!
-    $maxLng: float8!
-  ) {
-    vehicles(
-      order_by: { tsi: asc }
-      where: {
-        _and: [
-          { geohash_level: { _lte: 4 } }
-          { oday: { _eq: $date } }
-          { tst: { _lte: $maxTime } }
-          { tst: { _gte: $minTime } }
-          { lat: { _lte: $maxLat } }
-          { lat: { _gte: $minLat } }
-          { long: { _lte: $maxLng } }
-          { long: { _gte: $minLng } }
-        ]
-      }
-    ) {
-      ...JourneyFieldsFragment
-      ...JourneyEventFieldsFragment
-    }
-  }
-  ${JourneyFieldsFragment}
-  ${JourneyEventFieldsFragment}
-`

@@ -99,26 +99,27 @@ ORDER BY (unique_vehicle_id);
     const operatorId = parseInt(operatorPart, 10)
     const vehicleId = parseInt(vehiclePart, 10)
 
-    const response = await this.query(VEHICLE_JOURNEYS_QUERY, {
-      variables: {
-        date,
-        uniqueVehicleId: `${operatorId}/${vehicleId}`,
-      },
-    })
+    const queryVehicleId = `${operatorId}/${vehicleId}`
 
-    return get(response, 'data.vehicles', [])
+    const query = this.db('vehicles')
+      .select(this.vehicleFields)
+      .where('oday', date)
+      .where('unique_vehicle_id', queryVehicleId)
+      .orderBy('tst', 'ASC')
+
+    return this.getBatched(query)
   }
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
-    const response = await this.query(ROUTE_JOURNEY_EVENTS_QUERY, {
-      variables: {
-        routeId,
-        direction,
-        departureDate: date,
-      },
-    })
+    const query = this.db('vehicles')
+      .select(this.vehicleFields)
+      .where('oday', date)
+      .where('geohash_level', '<=', 4)
+      .where('route_id', routeId)
+      .where('direction_id', direction)
+      .orderBy('tst', 'ASC')
 
-    return get(response, 'data.vehicles', [])
+    return this.getBatched(query)
   }
 
   async getJourneyEvents(
