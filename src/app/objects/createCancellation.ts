@@ -17,7 +17,7 @@ export function createCancellation(cancellation: DBCancellation): Cancellation {
     routeId: cancellation.route_id,
     direction: cancellation.direction_id,
     departureDate: cancellation.start_date,
-    journeyStartTime: cancellation.start_time,
+    journeyStartTime: cancellation.start_time.slice(0, -3),
     title: get(cancellationData, 'title', ''),
     description: get(cancellationData, 'description', ''),
     category: get(cancellationData, 'category', AlertCategory.Other),
