@@ -60,29 +60,6 @@ export const JOURNEY_EVENTS_QUERY = gql`
   ${JourneyEventFieldsFragment}
 `
 
-export const ROUTE_JOURNEY_LIST_QUERY = gql`
-  query RouteJourneyListQuery($departureDate: date!, $routeId: String!, $direction: smallint!) {
-    vehicles(
-      distinct_on: [journey_start_time]
-      order_by: [{ journey_start_time: asc }, { tst: asc }]
-      where: {
-        oday: { _eq: $departureDate }
-        route_id: { _eq: $routeId }
-        direction_id: { _eq: $direction }
-      }
-    ) {
-      tst
-      tsi
-      journey_start_time
-      next_stop_id
-      route_id
-      direction_id
-      oday
-      unique_vehicle_id
-    }
-  }
-`
-
 export const ROUTE_JOURNEY_EVENTS_QUERY = gql`
   query RouteJourneyEventsQuery($departureDate: date!, $routeId: String!, $direction: smallint!) {
     vehicles(
@@ -91,7 +68,7 @@ export const ROUTE_JOURNEY_EVENTS_QUERY = gql`
         oday: { _eq: $departureDate }
         route_id: { _eq: $routeId }
         direction_id: { _eq: $direction }
-        geohash_level: { _lte: 2 }
+        geohash_level: { _lte: 4 }
       }
     ) {
       ...JourneyFieldsFragment

@@ -1,4 +1,4 @@
-import { flatten, get, groupBy, orderBy, uniqBy, compact } from 'lodash'
+import { flatten, get, groupBy, orderBy, compact } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, ExceptionDay, RouteSegment } from '../types/generated/schema-types'
@@ -17,9 +17,6 @@ import { getJourneyStartTime } from '../utils/time'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { filterByExceptions } from '../utils/filterByExceptions'
-import { getAlerts } from './getAlerts'
-import { getCancellations } from './getCancellations'
-import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
