@@ -122,9 +122,5 @@ export async function createStopsResponse(
     return stop
   })
 
-  if (bbox) {
-    return filteredStops
-  }
-
-  return filteredStops.slice(0, 50)
+  return filteredStops
 }
