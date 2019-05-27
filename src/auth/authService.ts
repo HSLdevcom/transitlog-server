@@ -87,7 +87,7 @@ const setGroup = async (userId: string, groups: string[]): Promise<Response> => 
   })
 }
 
-const requestGroupIdByName = async (groupName: string): Promise<Response> => {
+const requestGroups = async (groupName: string): Promise<Response> => {
   const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/group`
   return nodeFetch(url, {
     method: 'GET',
@@ -113,6 +113,6 @@ export {
   requestUserInfo,
   logoutFromIdentityProvider,
   setGroup,
-  requestGroupIdByName,
+  requestGroups,
   requestInfoByUserId,
 }
