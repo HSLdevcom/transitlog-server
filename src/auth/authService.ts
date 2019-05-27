@@ -1,6 +1,15 @@
 import * as express from 'express'
-import nodeFetch from 'node-fetch'
-import { CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, LOGIN_PROVIDER_URI } from '../constants'
+import nodeFetch, { Response } from 'node-fetch'
+import {
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REDIRECT_URI,
+  LOGIN_PROVIDER_URI,
+  API_CLIENT_ID,
+  API_CLIENT_SECRET,
+} from '../constants'
+
+const authHash = Buffer.from(`${API_CLIENT_ID}:${API_CLIENT_SECRET}`).toString('base64')
 
 interface IAccessToken {
   access_token: string
@@ -63,4 +72,47 @@ const logoutFromIdentityProvider = async (accessToken: string): Promise<Object> 
   })
 }
 
-export { checkAccessMiddleware, requestAccessToken, requestUserInfo, logoutFromIdentityProvider }
+const setGroup = async (userId: string, groups: string[]): Promise<Response> => {
+  const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/user/${userId}`
+  return nodeFetch(url, {
+    method: 'PUT',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${authHash}`,
+    },
+    body: JSON.stringify({
+      memberOf: groups,
+    }),
+  })
+}
+
+const requestGroupIdByName = async (groupName: string): Promise<Response> => {
+  const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/group`
+  return nodeFetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Basic ${authHash}`,
+    },
+  })
+}
+
+const requestInfoByUserId = async (userId: string): Promise<Response> => {
+  const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/user/${userId}`
+  return nodeFetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Basic ${authHash}`,
+    },
+  })
+}
+
+export {
+  checkAccessMiddleware,
+  requestAccessToken,
+  requestUserInfo,
+  logoutFromIdentityProvider,
+  setGroup,
+  requestGroupIdByName,
+  requestInfoByUserId,
+}
