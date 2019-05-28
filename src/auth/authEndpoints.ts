@@ -52,6 +52,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
       groups.push(groupId)
       const response = await AuthService.setGroup(req.session.userId, groups)
       const body = await response.json()
+      // TODO: Check response and log failures
 
       sessionGroups.push(HSL_GROUP_NAME)
       req.session.groups = sessionGroups
