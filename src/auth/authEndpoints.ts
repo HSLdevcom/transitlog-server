@@ -39,7 +39,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
     const sessionGroups = req.session.groups
     if (HSL_USER_DOMAINS.includes(domain) && !sessionGroups.includes(HSL_GROUP_NAME)) {
       console.log('Updating groups.')
-      const groupsResponse = await AuthService.requestGroups(HSL_GROUP_NAME)
+      const groupsResponse = await AuthService.requestGroups()
       const groupsResponseBody = await groupsResponse.json()
       const groupId = groupsResponseBody.resources.find(
         (element) => element.name === HSL_GROUP_NAME
