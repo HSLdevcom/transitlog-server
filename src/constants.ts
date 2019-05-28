@@ -11,3 +11,9 @@ export const CLIENT_ID = process.env.CLIENT_ID
 export const CLIENT_SECRET = process.env.CLIENT_SECRET
 export const REDIRECT_URI = process.env.REDIRECT_URI
 export const LOGIN_PROVIDER_URI = process.env.LOGIN_PROVIDER_URI
+
+export const API_CLIENT_ID = process.env.API_CLIENT_ID
+export const API_CLIENT_SECRET = process.env.API_CLIENT_SECRET
+
+export const HSL_USER_DOMAINS = ['hsl.fi', 'cgi.com', 'developsuperpowers.com']
+export const HSL_GROUP_NAME = 'HSL'

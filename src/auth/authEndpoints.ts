@@ -1,5 +1,6 @@
 import * as express from 'express'
 import * as AuthService from './authService'
+import { HSL_USER_DOMAINS, HSL_GROUP_NAME } from '../constants'
 
 interface IAuthRequest {
   code: string
@@ -32,6 +33,30 @@ const authorize = async (req: express.Request, res: express.Response) => {
     const userInfo = await AuthService.requestUserInfo(req.session.accessToken)
     req.session.email = userInfo.email
     req.session.groups = userInfo.groups
+    req.session.userId = userInfo.userId
+
+    const domain = req.session.email.split('@')[1]
+    const sessionGroups = req.session.groups
+    if (HSL_USER_DOMAINS.includes(domain) && !sessionGroups.includes(HSL_GROUP_NAME)) {
+      console.log('Updating groups.')
+      const groupsResponse = await AuthService.requestGroups()
+      const groupsResponseBody = await groupsResponse.json()
+      const groupId = groupsResponseBody.resources.find(
+        (element) => element.name === HSL_GROUP_NAME
+      ).id
+
+      const userResponse = await AuthService.requestInfoByUserId(req.session.userId)
+      const userResponseBody = await userResponse.json()
+
+      const groups = userResponseBody.memberOf
+      groups.push(groupId)
+      const response = await AuthService.setGroup(req.session.userId, groups)
+      const body = await response.json()
+
+      sessionGroups.push(HSL_GROUP_NAME)
+      req.session.groups = sessionGroups
+      console.log(`User's groups updated.`)
+    }
 
     const response: IAuthResponse = {
       isOk: true,
@@ -59,7 +84,7 @@ const devLogin = (req: express.Request, res: express.Response) => {
   } else if (req.session) {
     req.session.accessToken = 'dev'
     req.session.email = 'dev@hsl.fi'
-    req.session.groups = ['HSL', 'Admin']
+    req.session.groups = [HSL_GROUP_NAME, 'Admin']
 
     const response: IAuthResponse = {
       isOk: true,
