@@ -127,9 +127,30 @@ WHERE stop.stop_id = :stopId;`,
     return this.getBatched(query)
   }
 
-  async getStops(): Promise<JoreStop[]> {
-    const query = this.db.raw(
-      `
+  async getStops(date): Promise<JoreStop[]> {
+    const query = date
+      ? this.db.raw(
+          `
+      SELECT stop.stop_id,
+             stop.short_id,
+             stop.lat,
+             stop.lon,
+             stop.name_fi,
+             stop.stop_radius,
+             route_segment.date_begin,
+             route_segment.date_end,
+             route_segment.route_id,
+             route_segment.direction,
+             route_segment.timing_stop_type,
+             modes.modes
+      FROM :schema:.stop stop,
+           :schema:.stop_route_segments_for_date(stop, :date) route_segment,
+           :schema:.stop_modes(stop, :date) modes;
+    `,
+          { schema: SCHEMA, date }
+        )
+      : this.db.raw(
+          `
       SELECT stop.stop_id,
              stop.short_id,
              stop.lat,
@@ -139,8 +160,8 @@ WHERE stop.stop_id = :stopId;`,
              modes.modes
       FROM :schema:.stop stop, :schema:.stop_modes(stop, null) modes;
     `,
-      { schema: SCHEMA }
-    )
+          { schema: SCHEMA }
+        )
 
     return this.getBatched(query)
   }

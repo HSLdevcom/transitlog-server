@@ -352,6 +352,8 @@ export namespace QueryResolvers {
     StopsArgs
   >
   export interface StopsArgs {
+    date?: Maybe<Date>
+
     filter?: Maybe<StopFilterInput>
   }
 
@@ -882,6 +884,8 @@ export namespace SimpleStopResolvers {
 
     radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
 
+    routes?: RoutesResolver<SimpleRoute[], TypeParent, TContext>
+
     modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
 
     _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
@@ -924,6 +928,11 @@ export namespace SimpleStopResolvers {
     Parent,
     TContext
   >
+  export type RoutesResolver<R = SimpleRoute[], Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type ModesResolver<
     R = Array<Maybe<string>>,
     Parent = SimpleStop,
@@ -935,6 +944,32 @@ export namespace SimpleStopResolvers {
     TContext
   >
   export type AlertsResolver<R = Alert[], Parent = SimpleStop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
+export namespace SimpleRouteResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = SimpleRoute> {
+    routeId?: RouteIdResolver<string, TypeParent, TContext>
+
+    direction?: DirectionResolver<Direction, TypeParent, TContext>
+
+    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
+  }
+
+  export type RouteIdResolver<R = string, Parent = SimpleRoute, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type DirectionResolver<R = Direction, Parent = SimpleRoute, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type IsTimingStopResolver<R = boolean, Parent = SimpleRoute, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -2481,6 +2516,7 @@ export type IResolvers<TContext = {}> = {
   StopRoute?: StopRouteResolvers.Resolvers<TContext>
   Alert?: AlertResolvers.Resolvers<TContext>
   SimpleStop?: SimpleStopResolvers.Resolvers<TContext>
+  SimpleRoute?: SimpleRouteResolvers.Resolvers<TContext>
   Route?: RouteResolvers.Resolvers<TContext>
   Cancellation?: CancellationResolvers.Resolvers<TContext>
   RouteGeometry?: RouteGeometryResolvers.Resolvers<TContext>
