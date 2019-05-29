@@ -185,7 +185,14 @@ export const getAlerts = (dateTime: Moment | string, searchProps: AlertSearchPro
       )
     )
 
-  return orderBy(alerts, ({ startDateTime }) => startDateTime.unix(), 'desc').map(
+  return orderBy(
+    alerts,
+    [
+      ({ level }) => (level === AlertLevel.Severe ? 3 : level === AlertLevel.Warning ? 2 : 1),
+      ({ startDateTime, endDateTime }) => endDateTime.unix() / 2 + startDateTime.unix() / 2,
+    ],
+    ['desc', 'desc']
+  ).map(
     (alert): Alert => {
       const fullAlert: Alert = { ...defaultAlertProps, ...alert }
       return mapValues(fullAlert, (val) => (isMoment(val) ? val.toISOString(true) : val)) as Alert
