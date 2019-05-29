@@ -50,7 +50,7 @@ export class JoreDataSource extends SQLDataSource {
       .select()
       .from('line')
 
-    return this.getCachedAndBatched(query, ONE_DAY)
+    return this.getBatched(query)
   }
 
   async getRoutes(): Promise<JoreRoute[]> {
@@ -76,7 +76,7 @@ export class JoreDataSource extends SQLDataSource {
       { schema: SCHEMA }
     )
 
-    return this.getCachedAndBatched(query, ONE_DAY)
+    return this.getBatched(query)
   }
 
   async getRouteGeometry(
@@ -142,7 +142,7 @@ WHERE stop.stop_id = :stopId;`,
       { schema: SCHEMA }
     )
 
-    return this.getCachedAndBatched(query, ONE_DAY)
+    return this.getBatched(query)
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
@@ -151,7 +151,7 @@ WHERE stop.stop_id = :stopId;`,
       .select()
       .from('equipment')
 
-    return this.getCachedAndBatched(query, ONE_DAY)
+    return this.getBatched(query)
   }
 
   async getEquipmentById(vehicleId: string | number, operatorId: string): Promise<JoreEquipment[]> {
@@ -511,7 +511,7 @@ ORDER BY ex_day.date_in_effect ASC;
       { schema: SCHEMA, startDate, endDate }
     )
 
-    return this.getCachedAndBatched(query, ONE_DAY)
+    return this.getBatched(query)
   }
 
   async getExceptions(date): Promise<ExceptionDay[]> {
