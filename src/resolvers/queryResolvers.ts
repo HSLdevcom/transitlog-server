@@ -25,14 +25,14 @@ const equipment = (root, { filter, date }, { dataSources }) => {
   return createEquipmentResponse(getEquipment, getObservedVehicles, filter, date)
 }
 
-const stops = (root, { filter }, { dataSources }) => {
-  const getStops = () => dataSources.JoreAPI.getStops()
-  return createStopsResponse(getStops, filter)
+const stops = (root, { filter, date }, { dataSources }) => {
+  const getStops = () => dataSources.JoreAPI.getStops(date)
+  return createStopsResponse(getStops, date, filter)
 }
 
 const stopsByBbox = (root, { filter, bbox }, { dataSources }) => {
   const getStops = () => dataSources.JoreAPI.getStops()
-  return createStopsResponse(getStops, filter, bbox)
+  return createStopsResponse(getStops, '', filter, bbox)
 }
 
 const stop = (root, { stopId, date }, { dataSources }) => {

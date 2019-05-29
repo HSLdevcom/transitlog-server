@@ -11,6 +11,12 @@ export const Stop = gql`
     mode: String
   }
 
+  type SimpleRoute {
+    routeId: String!
+    direction: Direction!
+    isTimingStop: Boolean!
+  }
+
   type SimpleStop implements Position {
     id: ID!
     stopId: String!
@@ -19,6 +25,7 @@ export const Stop = gql`
     lng: Float!
     name: String
     radius: Float
+    routes: [SimpleRoute!]!
     modes: [String]!
     _matchScore: Float
     alerts: [Alert!]!

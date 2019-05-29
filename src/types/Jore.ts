@@ -1,3 +1,5 @@
+import { SimpleRoute } from './generated/schema-types'
+
 export type Maybe<T> = T | null
 
 export enum Mode {
@@ -84,6 +86,12 @@ export interface JoreStop {
   stop_tariff?: Maybe<string>
   point?: Maybe<string>
   modes: Maybe<Mode[]>
+  timing_stop_type?: number
+  route_id?: string
+  direction?: string
+  date_begin?: string
+  date_end?: string
+  routes?: SimpleRoute[]
 }
 
 export interface JoreRoute {

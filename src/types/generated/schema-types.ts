@@ -401,11 +401,21 @@ export interface SimpleStop extends Position {
 
   radius?: Maybe<number>
 
+  routes: SimpleRoute[]
+
   modes: Array<Maybe<string>>
 
   _matchScore?: Maybe<number>
 
   alerts: Alert[]
+}
+
+export interface SimpleRoute {
+  routeId: string
+
+  direction: Direction
+
+  isTimingStop: boolean
 }
 
 export interface Route {
@@ -851,6 +861,8 @@ export interface StopQueryArgs {
   date: Date
 }
 export interface StopsQueryArgs {
+  date?: Maybe<Date>
+
   filter?: Maybe<StopFilterInput>
 }
 export interface StopsByBboxQueryArgs {
