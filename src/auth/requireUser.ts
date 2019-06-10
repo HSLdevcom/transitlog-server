@@ -1,4 +1,10 @@
 import { intersection } from 'lodash'
+import { Request, Response } from 'express'
+
+export function getUserFromReq(req) {
+  const { email = '', groups = [], accessToken = '' } = req.session || {}
+  return !accessToken ? null : { email, groups, accessToken }
+}
 
 export function requireUser(
   user: null | { accessToken: string; groups: string[] },
@@ -24,4 +30,19 @@ export function requireUser(
 
   // All good!
   return true
+}
+
+export const requireUserMiddleware = (group?: string | string[]) => (
+  req: Request,
+  res: Response,
+  next
+) => {
+  const user = getUserFromReq(req)
+
+  if (requireUser(user, group)) {
+    next()
+  } else {
+    // TODO: Create login page and redirect to it
+    res.status(403).send('FORBIDDEN')
+  }
 }

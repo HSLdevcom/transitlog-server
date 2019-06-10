@@ -17,6 +17,9 @@ import { HFPDataSource } from './datasources/HFPDataSource'
 import authEndpoints from './auth/authEndpoints'
 import { checkAccessMiddleware } from './auth/authService'
 import { getRedis } from './app/cache'
+import path from 'path'
+import { createEngine } from 'express-react-views'
+import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
 
 const session = require('express-session')
 const RedisSession = require('connect-redis')(session)
@@ -42,8 +45,7 @@ type UserContext = {
       HFPAPI: new HFPDataSource(),
     }),
     context: ({ req }): UserContext => {
-      const { email = '', groups = [], accessToken = '' } = req.session || {}
-      return { user: !accessToken ? null : { email, groups, accessToken } }
+      return { user: getUserFromReq(req) }
     },
   })
 
@@ -57,6 +59,11 @@ type UserContext = {
   )
 
   app.use(json({ limit: '50mb' }))
+
+  app.engine('jsx', createEngine())
+  app.set('view engine', 'jsx')
+
+  app.set('views', path.join(__dirname, 'views'))
 
   const redisClient = await getRedis()
 
@@ -91,6 +98,13 @@ type UserContext = {
 
   app.get('/logout', (req, res) => {
     authEndpoints.logout(req, res)
+  })
+
+  app.use(express.urlencoded({ extended: true }))
+  app.use(requireUserMiddleware('HSL'))
+
+  app.get('/admin', (req, res) => {
+    res.render('admin', {})
   })
 
   app.listen({ port: 4000 }, () =>
