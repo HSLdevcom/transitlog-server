@@ -104,9 +104,9 @@ const availableAlerts = (date): PartialAlert[] => [
     endDateTime: getDateFromDateTime(date, '23:59:00'),
   },
   {
-    title: 'Departure displays buggy',
+    title: 'Päivitetään Transitlogia monilta osin tänään, katkoja saattaa olla paljon.',
     affectedId: '',
-    description: 'The central system controlling all stop displays has stopped working.',
+    description: 'Päivitetään Transitlogia monilta osin tänään, katkoja saattaa olla paljon.',
     distribution: AlertDistribution.Network,
     level: AlertLevel.Severe,
     category: AlertCategory.ItsSystemError,
