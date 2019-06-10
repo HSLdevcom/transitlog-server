@@ -80,6 +80,35 @@ export class JoreDataSource extends SQLDataSource {
     return this.getBatched(query)
   }
 
+  async getRoute(routeId, direction): Promise<JoreRoute[]> {
+    const query = this.db.raw(
+      `
+      SELECT
+        route.route_id,
+        line.line_id,
+        route.direction,
+        route.destination_fi,
+        route.destinationstop_id,
+        route.origin_fi,
+        route.originstop_id,
+        route.name_fi,
+        route.name_fi as route_name,
+        route.date_begin,
+        route.date_end,
+        route.date_modified,
+        mode.mode
+      FROM :schema:.route route,
+           :schema:.route_mode(route) mode,
+           :schema:.route_line(route) line
+      WHERE route.route_id = :routeId
+        AND route.direction = :direction;
+    `,
+      { schema: SCHEMA, routeId, direction: direction + '' }
+    )
+
+    return this.getBatched(query)
+  }
+
   async getRouteGeometry(
     routeId: string,
     direction: Direction,
