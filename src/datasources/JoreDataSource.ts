@@ -68,6 +68,7 @@ export class JoreDataSource extends SQLDataSource {
         route.name_fi as route_name,
         route.date_begin,
         route.date_end,
+        route.date_modified,
         mode.mode
       FROM :schema:.route route,
            :schema:.route_mode(route) mode,
@@ -85,7 +86,7 @@ export class JoreDataSource extends SQLDataSource {
     date: string
   ): Promise<JoreRoute[]> {
     const query = this.db.raw(
-      `SELECT route.date_begin, route.date_end, mode.mode, geometry.geometry
+      `SELECT route.date_begin, route.date_end, route.date_modified, mode.mode, geometry.geometry
 from :schema:.route route,
      :schema:.route_mode(route) mode,
      :schema:.route_geometries(route, :date) geometry
@@ -99,7 +100,8 @@ where route_id = :routeId
 
   async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
     const query = this.db.raw(
-      `SELECT route.route_id,
+      `SELECT
+       route.route_id,
        route.direction,
        route.originstop_id,
        route.name_fi as route_name,
@@ -109,6 +111,7 @@ where route_id = :routeId
        route_segment.date_end,
        route_segment.timing_stop_type,
        route_segment.stop_index,
+       route_segment.date_modified,
        stop.lat,
        stop.lon,
        stop.stop_id,
@@ -139,6 +142,7 @@ WHERE stop.stop_id = :stopId;`,
              stop.stop_radius,
              route_segment.date_begin,
              route_segment.date_end,
+             route_segment.date_modified,
              route_segment.route_id,
              route_segment.direction,
              route_segment.timing_stop_type,
@@ -208,6 +212,7 @@ WHERE stop.stop_id = :stopId;`,
        route_segment.next_stop_id,
        route_segment.date_begin,
        route_segment.date_end,
+       route_segment.date_modified,
        route_segment.duration,
        route_segment.stop_index,
        route_segment.distance_from_previous,
@@ -299,6 +304,7 @@ SELECT stop.stop_id,
        stop.stop_type,
        route_segment.date_begin,
        route_segment.date_end,
+       route_segment.date_modified,
        route_segment.destination_fi,
        route_segment.distance_from_previous,
        route_segment.distance_from_start,
@@ -350,6 +356,7 @@ SELECT stop.stop_id,
        stop.stop_type,
        route_segment.date_begin,
        route_segment.date_end,
+       route_segment.date_modified,
        route_segment.destination_fi,
        route_segment.distance_from_previous,
        route_segment.distance_from_start,
