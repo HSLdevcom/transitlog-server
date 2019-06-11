@@ -20,7 +20,7 @@ import { getRedis } from './app/cache'
 import path from 'path'
 import { createEngine } from 'express-react-views'
 import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
-import { adminRouter } from './app/admin/adminController'
+import { adminController } from './app/admin/adminController'
 
 const session = require('express-session')
 const RedisSession = require('connect-redis')(session)
@@ -61,9 +61,8 @@ type UserContext = {
 
   app.use(json({ limit: '50mb' }))
 
-  app.engine('tsx', createEngine())
+  app.engine('tsx', createEngine({ transformViews: false }))
   app.set('view engine', 'tsx')
-
   app.set('views', path.join(__dirname, 'views'))
 
   const redisClient = await getRedis()
@@ -108,7 +107,10 @@ type UserContext = {
   })
 
   app.use(express.urlencoded({ extended: true }))
-  app.use('/admin', requireUserMiddleware(HSL_GROUP_NAME), adminRouter)
+
+  const adminPath = '/admin'
+  const adminRouter = await adminController(adminPath)
+  app.use(adminPath, requireUserMiddleware(HSL_GROUP_NAME), adminRouter)
 
   app.listen({ port: 4000 }, () =>
     console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)

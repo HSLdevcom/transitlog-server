@@ -1,11 +1,11 @@
 import React from 'react'
-import url from 'url'
+import join from 'proper-url-join'
 import { REDIRECT_URI, PATH_PREFIX } from '../constants'
 
-const loginUrl = url.join(REDIRECT_URI, PATH_PREFIX, 'login')
+const loginUrl = join(REDIRECT_URI, PATH_PREFIX, 'login')
 
 const ReceiveRedirect = ({ redirectTo }) => {
-  const redirectUrl = url.join(PATH_PREFIX, redirectTo)
+  const redirectUrl = join(PATH_PREFIX, redirectTo)
 
   return (
     <div>

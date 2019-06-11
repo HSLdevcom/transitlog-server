@@ -1,31 +1,25 @@
 import express from 'express'
-import fs from 'fs-extra'
-import path from 'path'
+import { getSettings, initSettings, setUIMessage } from '../../datasources/transitlogServer'
+import { get } from 'lodash'
+import join from 'proper-url-join'
+import { PATH_PREFIX } from '../../constants'
 
-const defaultSettings = {
-  uiMessage: '',
-  domainGroups: [],
-  autoDomainGroups: [],
+export const adminController = async (adminPath) => {
+  await initSettings()
+
+  const prefixedAdminPath = join(PATH_PREFIX, adminPath)
+  const adminRouter = express.Router()
+
+  adminRouter.get('/', async (req, res) => {
+    const currentState = await getSettings()
+    res.render('Admin', { adminPath: prefixedAdminPath, settings: currentState })
+  })
+
+  adminRouter.post('/set-ui-message', async (req, res) => {
+    const message = get(req, 'body.ui_message', '') || ''
+    await setUIMessage(message)
+    res.redirect(prefixedAdminPath)
+  })
+
+  return adminRouter
 }
-
-const cwd = process.cwd()
-const settingsFile = path.join(cwd, 'data', 'config.json')
-
-export const adminRouter = express.Router()
-
-async function getSettings() {
-  const settingsExist = await fs.fileExists(settingsFile)
-
-  if (!settingsExist) {
-    await fs.outputJson(settingsFile, defaultSettings)
-  }
-
-  return fs.readJson()
-}
-
-adminRouter.get('/', async (req, res) => {
-  const currentState = ''
-  res.render('Admin', {})
-})
-
-// adminRouter.post('/set-ui-message', ())
