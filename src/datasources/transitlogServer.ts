@@ -7,7 +7,27 @@ const knex = getKnex()
 const schema = 'transitlog'
 const settingsTable = 'transitlog_settings'
 
-const defaultSettings = {
+export type UIMessage = {
+  date: string
+  message: string
+}
+
+export type DomainGroup = {
+  domain: string
+  groups: string[]
+}
+
+export type AutoDomainGroup = {
+  domain: string
+}
+
+export type TransitlogSettings = {
+  ui_message: UIMessage
+  domain_groups: DomainGroup[]
+  auto_domain_groups: AutoDomainGroup[]
+}
+
+const defaultSettings: TransitlogSettings = {
   ui_message: {
     date: '',
     message: '',
@@ -16,31 +36,36 @@ const defaultSettings = {
   auto_domain_groups: [],
 }
 
-export const upsert = async (key, data, trx) => {
-  const hasRecord = await knex
-    .withSchema(schema)
-    .transacting(trx)
-    .first('key')
-    .from(settingsTable)
-    .where({ key })
+export const upsert = async (key, data, trx?) => {
+  const transact = (query) => (trx ? query.transacting(trx) : query)
 
-  if (hasRecord) {
-    return knex
+  const hasRecord = await transact(
+    knex
       .withSchema(schema)
-      .transacting(trx)
+      .first('key')
       .from(settingsTable)
       .where({ key })
-      .update({ value: JSON.stringify(data) })
+  )
+
+  if (hasRecord) {
+    return transact(
+      knex
+        .withSchema(schema)
+        .from(settingsTable)
+        .where({ key })
+        .update({ value: JSON.stringify(data) })
+    )
   }
 
-  return knex
-    .withSchema(schema)
-    .transacting(trx)
-    .insert({ key, value: JSON.stringify(data) })
-    .into(settingsTable)
+  return transact(
+    knex
+      .withSchema(schema)
+      .insert({ key, value: JSON.stringify(data) })
+      .into(settingsTable)
+  )
 }
 
-export async function getSettings(trx?: Transaction) {
+export async function getSettings(trx?: Transaction): Promise<TransitlogSettings> {
   let query = knex
     .withSchema(schema)
     .select('*')
@@ -51,6 +76,7 @@ export async function getSettings(trx?: Transaction) {
   }
 
   const settings = await query
+
   return settings.reduce((obj, row) => {
     obj[row.key] = row.value
     return obj
@@ -58,13 +84,14 @@ export async function getSettings(trx?: Transaction) {
 }
 
 export async function setUIMessage(message = '') {
-  return knex
-    .withSchema(schema)
-    .update({
-      value: JSON.stringify({ date: message ? new Date() : '', message: message || '' }),
-    })
-    .into(settingsTable)
-    .where('key', 'ui_message')
+  return upsert(
+    'ui_message',
+    JSON.stringify({ date: message ? new Date() : '', message: message || '' })
+  )
+}
+
+export async function saveAssignments(assignments) {
+  return upsert('domain_groups', assignments)
 }
 
 export async function initSettings(reset = false) {
@@ -73,7 +100,10 @@ export async function initSettings(reset = false) {
   return knex.transaction(async (trx) => {
     const settingsMap = await getSettings(trx)
 
-    const initialSettings = reset ? defaultSettings : merge(defaultSettings, settingsMap)
+    const initialSettings: TransitlogSettings = reset
+      ? defaultSettings
+      : merge(defaultSettings, settingsMap)
+
     const ops: Array<Promise<any>> = []
 
     for (const [key, value] of Object.entries(initialSettings)) {
