@@ -58,6 +58,7 @@
     "express-react-views": "^0.11.0",
     "express-session": "^1.15.6",
     "forever": "^0.15.3",
+    "fs-extra": "^8.0.1",
     "full-icu": "^1.2.1",
     "fuse.js": "^3.4.4",
     "graphql": "^14.1.1",

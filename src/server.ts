@@ -2,7 +2,7 @@ import moment from 'moment-timezone'
 import express from 'express'
 import cors from 'cors'
 import { json } from 'body-parser'
-import { TZ } from './constants'
+import { HSL_GROUP_NAME, TZ } from './constants'
 // Set the default timezone for the app
 moment.tz.setDefault(TZ)
 
@@ -20,6 +20,7 @@ import { getRedis } from './app/cache'
 import path from 'path'
 import { createEngine } from 'express-react-views'
 import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
+import { adminRouter } from './app/admin/adminController'
 
 const session = require('express-session')
 const RedisSession = require('connect-redis')(session)
@@ -60,8 +61,8 @@ type UserContext = {
 
   app.use(json({ limit: '50mb' }))
 
-  app.engine('jsx', createEngine())
-  app.set('view engine', 'jsx')
+  app.engine('tsx', createEngine())
+  app.set('view engine', 'tsx')
 
   app.set('views', path.join(__dirname, 'views'))
 
@@ -100,12 +101,14 @@ type UserContext = {
     authEndpoints.logout(req, res)
   })
 
-  app.use(express.urlencoded({ extended: true }))
-  app.use(requireUserMiddleware('HSL'))
-
-  app.get('/admin', (req, res) => {
-    res.render('admin', {})
+  app.get('/hslid-redirect', (req, res) => {
+    res.render('ReceiveRedirect', {
+      redirectTo: '/admin',
+    })
   })
+
+  app.use(express.urlencoded({ extended: true }))
+  app.use('/admin', requireUserMiddleware(HSL_GROUP_NAME), adminRouter)
 
   app.listen({ port: 4000 }, () =>
     console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
