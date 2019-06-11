@@ -294,6 +294,8 @@ export interface Query {
   alerts: Alert[]
 
   cancellations: Cancellation[]
+
+  uiMessage: UiMessage
 }
 
 export interface Equipment {
@@ -844,6 +846,12 @@ export interface AreaJourney {
   cancellations: Cancellation[]
 
   isCancelled: boolean
+}
+
+export interface UiMessage {
+  date?: Maybe<string>
+
+  message?: Maybe<string>
 }
 
 // ====================================================

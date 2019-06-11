@@ -13,11 +13,12 @@ import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
 import { createWeekDeparturesResponse } from '../app/createWeekDeparturesResponse'
 import { createRouteDeparturesResponse } from '../app/createRouteDeparturesResponse'
 import { format } from 'date-fns'
-import { compact, flatten } from 'lodash'
+import { compact, flatten, get } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
 import { Alert, Cancellation } from '../types/generated/schema-types'
 import { getAlerts } from '../app/getAlerts'
 import { getCancellations } from '../app/getCancellations'
+import { getSettings } from '../datasources/transitlogServer'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -190,12 +191,17 @@ const exceptionDays = (root, { year }, { dataSources }) => {
   return dataSources.JoreAPI.getExceptions(year)
 }
 
-const alerts = (root, { time, alertSearch }, { dataSources }): Alert[] => {
+const alerts = (root, { time, alertSearch }): Alert[] => {
   return getAlerts(time, alertSearch)
 }
 
-const cancellations = (root, { time, cancellationSearch }, { dataSources }): Cancellation[] => {
+const cancellations = (root, { time, cancellationSearch }): Cancellation[] => {
   return getCancellations(time, cancellationSearch)
+}
+
+const uiMessage = async () => {
+  const settings = await getSettings()
+  return get(settings, 'ui_message', { date: '', message: '' })
 }
 
 export const queryResolvers: QueryResolvers.Resolvers = {
@@ -218,4 +224,5 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   exceptionDays,
   alerts,
   cancellations,
+  uiMessage,
 }

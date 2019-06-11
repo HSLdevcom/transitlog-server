@@ -1,8 +1,6 @@
 import React from 'react'
 import join from 'proper-url-join'
-import { REDIRECT_URI, PATH_PREFIX } from '../constants'
-
-const loginUrl = join(REDIRECT_URI, PATH_PREFIX, 'login')
+import { PATH_PREFIX } from '../constants'
 
 const ReceiveRedirect = ({ redirectTo }) => {
   const redirectUrl = join(PATH_PREFIX, redirectTo)
@@ -16,9 +14,10 @@ const ReceiveRedirect = ({ redirectTo }) => {
 ;(() => {
   const url = new URL(window.location.href)
   const code = url.searchParams.get("code")
+  const loginUrl = url.origin + "${PATH_PREFIX}" + "login"
  
   if(code) {
-    fetch(${loginUrl}, {
+    fetch(loginUrl, {
       method: "post",
       credentials: "include",
       body: JSON.stringify({ code }),
@@ -27,10 +26,10 @@ const ReceiveRedirect = ({ redirectTo }) => {
         "Content-Type": "application/json",
       },
     })
-    .then(response => response.json())
-    .then(response => {
+    .then((response) => response.json())
+    .then((response) => {
       console.log(response)
-      // window.location.assign("${redirectUrl}");
+      window.location.assign("${redirectUrl}");
     })
   } else {
     alert("No code received.")

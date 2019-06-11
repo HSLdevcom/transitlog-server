@@ -29,3 +29,6 @@ export const API_CLIENT_SECRET = process.env.API_CLIENT_SECRET
 // HSL ID config
 export const HSL_USER_DOMAINS = ['hsl.fi', 'cgi.com', 'developsuperpowers.com']
 export const HSL_GROUP_NAME = 'HSL'
+
+export const ALLOW_DEV_LOGIN = process.env.ALLOW_DEV_LOGIN || 'false'
+export const DEBUG = process.env.DEBUG || 'false'

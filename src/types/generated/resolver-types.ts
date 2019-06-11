@@ -319,6 +319,8 @@ export namespace QueryResolvers {
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
     cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
+
+    uiMessage?: UiMessageResolver<UiMessage, TypeParent, TContext>
   }
 
   export type EquipmentResolver<R = Array<Maybe<Equipment>>, Parent = {}, TContext = {}> = Resolver<
@@ -571,6 +573,12 @@ export namespace QueryResolvers {
 
     cancellationSearch?: Maybe<CancellationSearchInput>
   }
+
+  export type UiMessageResolver<R = UiMessage, Parent = {}, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace EquipmentResolvers {
@@ -2436,6 +2444,25 @@ export namespace AreaJourneyResolvers {
   >
 }
 
+export namespace UiMessageResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = UiMessage> {
+    date?: DateResolver<Maybe<string>, TypeParent, TContext>
+
+    message?: MessageResolver<Maybe<string>, TypeParent, TContext>
+  }
+
+  export type DateResolver<R = Maybe<string>, Parent = UiMessage, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type MessageResolver<R = Maybe<string>, Parent = UiMessage, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+}
+
 /** Any object that describes something with a position implements this interface. */
 export namespace PositionResolvers {
   export interface Resolvers {
@@ -2534,6 +2561,7 @@ export type IResolvers<TContext = {}> = {
   Journey?: JourneyResolvers.Resolvers<TContext>
   VehicleJourney?: VehicleJourneyResolvers.Resolvers<TContext>
   AreaJourney?: AreaJourneyResolvers.Resolvers<TContext>
+  UiMessage?: UiMessageResolvers.Resolvers<TContext>
   Position?: PositionResolvers.Resolvers
   Date?: GraphQLScalarType
   Direction?: GraphQLScalarType

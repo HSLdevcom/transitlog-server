@@ -1,6 +1,15 @@
 import { intersection } from 'lodash'
 import { Request, Response } from 'express'
-import { ADMIN_REDIRECT_URI, AUTH_SCOPE, AUTH_URI, CLIENT_ID } from '../constants'
+import {
+  ALLOW_DEV_LOGIN,
+  DEBUG,
+  PATH_PREFIX,
+  ADMIN_REDIRECT_URI,
+  AUTH_SCOPE,
+  AUTH_URI,
+  CLIENT_ID,
+} from '../constants'
+import join from 'proper-url-join'
 
 export function getUserFromReq(req) {
   const { email = '', groups = [], accessToken = '' } = req.session || {}
@@ -42,6 +51,9 @@ export const requireUserMiddleware = (group?: string | string[]) => (
 
   if (requireUser(user, group)) {
     next()
+  } else if (ALLOW_DEV_LOGIN === 'true' && DEBUG === 'true') {
+    // Perform dev login
+    res.redirect(join(PATH_PREFIX, 'hslid-redirect', '?code=dev'))
   } else {
     const authUrl = `${AUTH_URI}?ns=hsl-transitlog&client_id=${CLIENT_ID}&redirect_uri=${ADMIN_REDIRECT_URI}&response_type=code&scope=${AUTH_SCOPE}&ui_locales=en`
     res.redirect(authUrl)
