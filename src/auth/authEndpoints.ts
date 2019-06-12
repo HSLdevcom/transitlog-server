@@ -1,6 +1,8 @@
 import * as express from 'express'
 import * as AuthService from './authService'
-import { HSL_USER_DOMAINS, HSL_GROUP_NAME } from '../constants'
+import { HSL_GROUP_NAME } from '../constants'
+import { getSettings } from '../datasources/transitlogServer'
+import { get, difference, compact, groupBy, map, flatten } from 'lodash'
 
 interface IAuthRequest {
   code: string
@@ -26,6 +28,23 @@ const authorize = async (req: express.Request, res: express.Response) => {
     return devLogin(req, res)
   }
 
+  const settings = await getSettings()
+  const domainGroups = settings.domain_groups
+  const autoDomainGroups = settings.auto_domain_groups
+
+  // Merge domain groups and auto-created groups into one domain groups array.
+  const assignGroups = map(
+    groupBy(domainGroups.concat(autoDomainGroups), 'domain'),
+    (mergedDomainGroups, domain) => {
+      const groups = flatten(mergedDomainGroups.map(({ groups }) => groups))
+
+      return {
+        domain,
+        groups,
+      }
+    }
+  )
+
   const tokenResponse = await AuthService.requestAccessToken(code)
 
   if (req.session && tokenResponse.access_token) {
@@ -37,25 +56,29 @@ const authorize = async (req: express.Request, res: express.Response) => {
 
     const domain = req.session.email.split('@')[1]
     const sessionGroups = req.session.groups
-    if (HSL_USER_DOMAINS.includes(domain) && !sessionGroups.includes(HSL_GROUP_NAME)) {
+    const groupAssignments = get(assignGroups.find((dg) => dg.domain === domain), 'groups', [])
+    const assignToGroups = difference(groupAssignments, sessionGroups)
+
+    if (assignToGroups.length !== 0) {
       console.log('Updating groups.')
       const groupsResponse = await AuthService.requestGroups()
-      const groupsResponseBody = await groupsResponse.json()
-      const groupId = groupsResponseBody.resources.find(
-        (element) => element.name === HSL_GROUP_NAME
-      ).id
+
+      // Get IDs for each group and remove undefineds.
+      const groupIds = compact(
+        assignToGroups.map(
+          (groupName) => groupsResponse.resources.find((element) => element.name === groupName).id
+        )
+      )
 
       const userResponse = await AuthService.requestInfoByUserId(req.session.userId)
       const userResponseBody = await userResponse.json()
 
-      const groups = userResponseBody.memberOf
-      groups.push(groupId)
+      const groups = [...userResponseBody.memberOf, ...groupIds]
       const response = await AuthService.setGroup(req.session.userId, groups)
       const body = await response.json()
       // TODO: Check response and log failures
 
-      sessionGroups.push(HSL_GROUP_NAME)
-      req.session.groups = sessionGroups
+      req.session.groups = groups
       console.log(`User's groups updated.`)
     }
 

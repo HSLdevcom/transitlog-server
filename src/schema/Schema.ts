@@ -21,6 +21,11 @@ export const Schema = gql`
     query: Query
   }
 
+  type UIMessage {
+    date: String
+    message: String
+  }
+
   type Query {
     equipment(filter: EquipmentFilterInput, date: Date): [Equipment]!
     stop(stopId: String!, date: Date!): Stop
@@ -63,5 +68,6 @@ export const Schema = gql`
     ): [AreaJourney]!
     alerts(time: String, alertSearch: AlertSearchInput): [Alert!]!
     cancellations(time: String, cancellationSearch: CancellationSearchInput): [Cancellation!]!
+    uiMessage: UIMessage!
   }
 `

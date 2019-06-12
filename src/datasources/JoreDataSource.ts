@@ -12,7 +12,6 @@ import {
 } from '../types/Jore'
 import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
-import Knex from 'knex'
 import { orderBy, uniq } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
 import { JourneyRouteData } from '../app/createJourneyResponse'
@@ -20,16 +19,9 @@ import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'da
 import { cacheFetch } from '../app/cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
+import { getKnex } from '../knex'
 
-const knex: Knex = Knex({
-  dialect: 'postgres',
-  client: 'pg',
-  connection: process.env.PG_CONNECTION_STRING,
-  pool: {
-    min: 1,
-    max: 20,
-  },
-})
+const knex = getKnex()
 
 const SCHEMA = 'jore'
 const ONE_DAY = 24 * 60 * 60

@@ -2,7 +2,7 @@ import moment from 'moment-timezone'
 import express from 'express'
 import cors from 'cors'
 import { json } from 'body-parser'
-import { TZ } from './constants'
+import { HSL_GROUP_NAME, TZ } from './constants'
 // Set the default timezone for the app
 moment.tz.setDefault(TZ)
 
@@ -17,6 +17,10 @@ import { HFPDataSource } from './datasources/HFPDataSource'
 import authEndpoints from './auth/authEndpoints'
 import { checkAccessMiddleware } from './auth/authService'
 import { getRedis } from './app/cache'
+import path from 'path'
+import { createEngine } from 'express-react-views'
+import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
+import { adminController } from './app/admin/adminController'
 
 const session = require('express-session')
 const RedisSession = require('connect-redis')(session)
@@ -42,8 +46,7 @@ type UserContext = {
       HFPAPI: new HFPDataSource(),
     }),
     context: ({ req }): UserContext => {
-      const { email = '', groups = [], accessToken = '' } = req.session || {}
-      return { user: !accessToken ? null : { email, groups, accessToken } }
+      return { user: getUserFromReq(req) }
     },
   })
 
@@ -57,6 +60,10 @@ type UserContext = {
   )
 
   app.use(json({ limit: '50mb' }))
+
+  app.engine('tsx', createEngine({ transformViews: false }))
+  app.set('view engine', 'tsx')
+  app.set('views', path.join(__dirname, 'views'))
 
   const redisClient = await getRedis()
 
@@ -92,6 +99,18 @@ type UserContext = {
   app.get('/logout', (req, res) => {
     authEndpoints.logout(req, res)
   })
+
+  app.get('/hslid-redirect', (req, res) => {
+    res.render('ReceiveRedirect', {
+      redirectTo: '/admin',
+    })
+  })
+
+  app.use(express.urlencoded({ extended: true }))
+
+  const adminPath = '/admin'
+  const adminRouter = await adminController(adminPath)
+  app.use(adminPath, requireUserMiddleware(HSL_GROUP_NAME), adminRouter)
 
   app.listen({ port: 4000 }, () =>
     console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
