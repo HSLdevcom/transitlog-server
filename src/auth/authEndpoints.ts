@@ -1,11 +1,12 @@
 import * as express from 'express'
 import * as AuthService from './authService'
-import { HSL_GROUP_NAME } from '../constants'
+import { HSL_GROUP_NAME, ALLOW_DEV_LOGIN, REDIRECT_URI } from '../constants'
 import { getSettings } from '../datasources/transitlogServer'
 import { get, difference, compact, groupBy, map, flatten } from 'lodash'
 
 interface IAuthRequest {
   code: string
+  redirect_uri?: string
 }
 
 interface IAuthResponse {
@@ -16,7 +17,7 @@ interface IAuthResponse {
 
 const authorize = async (req: express.Request, res: express.Response) => {
   const authRequest = req.body as IAuthRequest
-  const code = authRequest.code
+  const { code, redirect_uri = REDIRECT_URI } = authRequest
 
   if (!code) {
     console.log('No authorization code')
@@ -24,7 +25,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
     return
   }
 
-  if (code === 'dev') {
+  if (ALLOW_DEV_LOGIN === 'true' && code === 'dev') {
     return devLogin(req, res)
   }
 
@@ -45,11 +46,12 @@ const authorize = async (req: express.Request, res: express.Response) => {
     }
   )
 
-  const tokenResponse = await AuthService.requestAccessToken(code)
+  const tokenResponse = await AuthService.requestAccessToken(code, redirect_uri)
 
   if (req.session && tokenResponse.access_token) {
     req.session.accessToken = tokenResponse.access_token
     const userInfo = await AuthService.requestUserInfo(req.session.accessToken)
+
     req.session.email = userInfo.email
     req.session.groups = userInfo.groups
     req.session.userId = userInfo.userId
@@ -65,21 +67,21 @@ const authorize = async (req: express.Request, res: express.Response) => {
 
       // Get IDs for each group and remove undefineds.
       const groupIds = compact(
-        assignToGroups.map(
-          (groupName) => groupsResponse.resources.find((element) => element.name === groupName).id
+        assignToGroups.map((groupName) =>
+          get(groupsResponse.resources.find((element) => element.name === groupName), 'id')
         )
       )
 
       const userResponse = await AuthService.requestInfoByUserId(req.session.userId)
-      const userResponseBody = await userResponse.json()
+      const groups = [...userResponse.memberOf, ...groupIds]
 
-      const groups = [...userResponseBody.memberOf, ...groupIds]
-      const response = await AuthService.setGroup(req.session.userId, groups)
-      const body = await response.json()
-      // TODO: Check response and log failures
+      await AuthService.setGroup(req.session.userId, groups)
+      const newUserInfo = await AuthService.requestUserInfo(req.session.accessToken)
 
-      req.session.groups = groups
-      console.log(`User's groups updated.`)
+      if (newUserInfo) {
+        req.session.groups = newUserInfo.groups
+        console.log(`User's groups updated.`)
+      }
     }
 
     const response: IAuthResponse = {

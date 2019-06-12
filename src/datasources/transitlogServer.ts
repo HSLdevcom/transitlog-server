@@ -80,10 +80,7 @@ export async function getSettings(trx?: Transaction): Promise<TransitlogSettings
 }
 
 export async function setUIMessage(message = '') {
-  return upsert(
-    'ui_message',
-    JSON.stringify({ date: message ? new Date() : '', message: message || '' })
-  )
+  return upsert('ui_message', { date: message ? new Date() : '', message: message || '' })
 }
 
 export async function saveAssignments(assignments) {

@@ -34,8 +34,12 @@ const checkAccessMiddleware = (
   next()
 }
 
-const requestAccessToken = async (code: string): Promise<IAccessToken> => {
-  const url = `${LOGIN_PROVIDER_URI}/openid/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=authorization_code&code=${code}&redirect_uri=${REDIRECT_URI}`
+const requestAccessToken = async (
+  code: string,
+  redirectUri = REDIRECT_URI
+): Promise<IAccessToken> => {
+  const url = `${LOGIN_PROVIDER_URI}/openid/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=authorization_code&code=${code}&redirect_uri=${redirectUri}`
+
   const response = await nodeFetch(url, {
     method: 'POST',
     headers: {
@@ -91,7 +95,7 @@ const createGroup = async (group): Promise<Response> => {
 
 const setGroup = async (userId: string, groups: string[]): Promise<Response> => {
   const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/user/${userId}`
-  return nodeFetch(url, {
+  const response = await nodeFetch(url, {
     method: 'PUT',
     headers: {
       Accept: 'application/json',
@@ -102,6 +106,8 @@ const setGroup = async (userId: string, groups: string[]): Promise<Response> => 
       memberOf: groups,
     }),
   })
+
+  return response.json()
 }
 
 const requestGroups = async (): Promise<Response> => {
@@ -118,12 +124,14 @@ const requestGroups = async (): Promise<Response> => {
 
 const requestInfoByUserId = async (userId: string): Promise<Response> => {
   const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/user/${userId}`
-  return nodeFetch(url, {
+  const response = await nodeFetch(url, {
     method: 'GET',
     headers: {
       Authorization: `Basic ${authHash}`,
     },
   })
+
+  return response.json()
 }
 
 export {

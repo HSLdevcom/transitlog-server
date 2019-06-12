@@ -1,6 +1,6 @@
 import React from 'react'
 import join from 'proper-url-join'
-import { PATH_PREFIX } from '../constants'
+import { ADMIN_REDIRECT_URI, PATH_PREFIX } from '../constants'
 
 const ReceiveRedirect = ({ redirectTo }) => {
   const redirectUrl = join(PATH_PREFIX, redirectTo)
@@ -20,7 +20,7 @@ const ReceiveRedirect = ({ redirectTo }) => {
     fetch(loginUrl, {
       method: "post",
       credentials: "include",
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, redirect_uri: "${ADMIN_REDIRECT_URI}" }),
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
