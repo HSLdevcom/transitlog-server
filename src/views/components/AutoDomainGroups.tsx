@@ -16,7 +16,9 @@ const AutoDomainGroups = ({ adminPath, settings }) => {
             Enter each domain (one per line, without the @) that you want to have groups created
             for. The group will be named after the domain, and all emails from that domain that
             register with Transitlog will be assigned to the group as well. Additionally, you can
-            assign domains to existing groups with the = sign (like above).
+            assign domains to existing groups with the = sign (like above). Groups will be created
+            when you click "Create groups" but no users will be assigned until they log into
+            Transitlog.
           </p>
           <p>
             To remove a user from a group, or to remove a group, first remove the assignment in this
