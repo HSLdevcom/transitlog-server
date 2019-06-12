@@ -2,7 +2,7 @@ import * as express from 'express'
 import * as AuthService from './authService'
 import { HSL_GROUP_NAME, ALLOW_DEV_LOGIN, REDIRECT_URI } from '../constants'
 import { getSettings } from '../datasources/transitlogServer'
-import { get, difference, compact, groupBy, map, flatten } from 'lodash'
+import { get, difference, compact, groupBy, map, flatten, uniq } from 'lodash'
 
 interface IAuthRequest {
   code: string
@@ -37,7 +37,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
   const assignGroups = map(
     groupBy(domainGroups.concat(autoDomainGroups), 'domain'),
     (mergedDomainGroups, domain) => {
-      const groups = flatten(mergedDomainGroups.map(({ groups }) => groups))
+      const groups = flatten(uniq(mergedDomainGroups.map(({ groups }) => groups)))
 
       return {
         domain,
