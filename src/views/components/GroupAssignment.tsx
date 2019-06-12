@@ -13,9 +13,10 @@ const GroupAssignment = ({ adminPath, settings }) => {
         <fieldset>
           <legend>HSL ID group assignment</legend>
           <p>
-            One email domain (without the @) per line, assigned to a group with =. A domain can be
-            assigned to many groups, separated by a comma. This will not yet assign any users to any
-            groups, that happens when a user with the domain signs into Transitlog the next time.
+            One email domain or email per line, assigned to a group with =. A domain can be assigned
+            to many groups, separated by a comma. This will not yet assign any users to groups, that
+            happens when a user with with an email that matches an assignment signs into Transitlog
+            the next time.
           </p>
           <p>
             To remove a user from a group, first remove the assignment in this field and then remove

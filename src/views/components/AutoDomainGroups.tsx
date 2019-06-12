@@ -13,18 +13,16 @@ const AutoDomainGroups = ({ adminPath, settings }) => {
         <fieldset>
           <legend>HSL ID group creation</legend>
           <p>
-            Enter each domain (one per line, without the @) that you want to have groups created
-            for. The group will be named after the domain, and all emails from that domain that
-            register with Transitlog will be assigned to the group as well. Additionally, you can
-            assign domains to existing groups with the = sign (like above). Groups will be created
-            when you click "Create groups" but no users will be assigned until they log into
-            Transitlog.
+            Enter each email or domain (one per line) that you want to have groups created for. The
+            group will be named after the domain, and all emails from that domain that register with
+            Transitlog will be assigned to the group as well. Additionally, you can assign domains
+            to existing groups with the = sign (like above). Groups will be created when you click
+            "Create groups" but no users will be assigned until they log into Transitlog.
           </p>
           <p>
-            To remove a user from a group, or to remove a group, first remove the assignment in this
-            field and then remove the user from the group or the group itself through the HSL ID
-            dashboard at <a href="https://hslid-uat.cinfra.fi/ui">https://hslid-uat.cinfra.fi/ui</a>
-            .
+            To remove a user from a group, first remove the assignment in this field and then remove
+            the user from the group through the HSL ID dashboard at{' '}
+            <a href="https://hslid-uat.cinfra.fi/ui">https://hslid-uat.cinfra.fi/ui</a>.
           </p>
           <div>
             <textarea
