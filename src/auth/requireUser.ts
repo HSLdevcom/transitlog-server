@@ -51,7 +51,7 @@ export const requireUserMiddleware = (group?: string | string[]) => (
 
   if (requireUser(user, group)) {
     next()
-  } else if (ALLOW_DEV_LOGIN === 'true' && DEBUG === 'true') {
+  } else if (ALLOW_DEV_LOGIN === 'true' && process.env.ADMIN_AUTO_LOGIN_DEV === 'true') {
     // Perform dev login
     res.redirect(join(PATH_PREFIX, 'hslid-redirect', '?code=dev'))
   } else {
