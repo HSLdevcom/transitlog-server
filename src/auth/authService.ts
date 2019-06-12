@@ -72,6 +72,23 @@ const logoutFromIdentityProvider = async (accessToken: string): Promise<Object> 
   })
 }
 
+const createGroup = async (group): Promise<Response> => {
+  const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/group`
+  return nodeFetch(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${authHash}`,
+    },
+    body: JSON.stringify({
+      name: group,
+      description: 'Auto-created with Transitlog Admin.',
+      nsCode: 'hsl-transitlog',
+    }),
+  })
+}
+
 const setGroup = async (userId: string, groups: string[]): Promise<Response> => {
   const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/user/${userId}`
   return nodeFetch(url, {
@@ -89,12 +106,14 @@ const setGroup = async (userId: string, groups: string[]): Promise<Response> => 
 
 const requestGroups = async (): Promise<Response> => {
   const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/group`
-  return nodeFetch(url, {
+  const groupsResponse = await nodeFetch(url, {
     method: 'GET',
     headers: {
       Authorization: `Basic ${authHash}`,
     },
   })
+
+  return groupsResponse.json()
 }
 
 const requestInfoByUserId = async (userId: string): Promise<Response> => {
@@ -113,6 +132,7 @@ export {
   requestUserInfo,
   logoutFromIdentityProvider,
   setGroup,
+  createGroup,
   requestGroups,
   requestInfoByUserId,
 }

@@ -2,7 +2,7 @@ import * as express from 'express'
 import * as AuthService from './authService'
 import { HSL_GROUP_NAME } from '../constants'
 import { getSettings } from '../datasources/transitlogServer'
-import { get, difference } from 'lodash'
+import { get, difference, compact } from 'lodash'
 
 interface IAuthRequest {
   code: string
@@ -48,10 +48,12 @@ const authorize = async (req: express.Request, res: express.Response) => {
     if (assignToGroups.length !== 0) {
       console.log('Updating groups.')
       const groupsResponse = await AuthService.requestGroups()
-      const groupsResponseBody = await groupsResponse.json()
 
-      const groupIds = assignToGroups.map(
-        (groupName) => groupsResponseBody.resources.find((element) => element.name === groupName).id
+      // Get IDs for each group and remove undefineds.
+      const groupIds = compact(
+        assignToGroups.map(
+          (groupName) => groupsResponse.resources.find((element) => element.name === groupName).id
+        )
       )
 
       const userResponse = await AuthService.requestInfoByUserId(req.session.userId)

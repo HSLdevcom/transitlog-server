@@ -1,6 +1,7 @@
 import React from 'react'
 import UIMessageForm from './components/UIMessage'
 import GroupAssignment from './components/GroupAssignment'
+import AutoDomainGroups from './components/AutoDomainGroups'
 
 const AdminView = ({ adminPath, settings }) => {
   return (
@@ -9,6 +10,7 @@ const AdminView = ({ adminPath, settings }) => {
       <hr />
       <UIMessageForm adminPath={adminPath} settings={settings} />
       <GroupAssignment adminPath={adminPath} settings={settings} />
+      <AutoDomainGroups adminPath={adminPath} settings={settings} />
     </>
   )
 }

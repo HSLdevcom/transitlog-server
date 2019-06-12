@@ -17,14 +17,10 @@ export type DomainGroup = {
   groups: string[]
 }
 
-export type AutoDomainGroup = {
-  domain: string
-}
-
 export type TransitlogSettings = {
   ui_message: UIMessage
   domain_groups: DomainGroup[]
-  auto_domain_groups: AutoDomainGroup[]
+  auto_domain_groups: DomainGroup[]
 }
 
 const defaultSettings: TransitlogSettings = {
@@ -92,6 +88,10 @@ export async function setUIMessage(message = '') {
 
 export async function saveAssignments(assignments) {
   return upsert('domain_groups', assignments)
+}
+
+export async function saveAutoGroups(autoGroups) {
+  return upsert('auto_domain_groups', autoGroups)
 }
 
 export async function initSettings(reset = false) {
