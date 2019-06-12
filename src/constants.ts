@@ -2,15 +2,18 @@ import { mapValues } from 'lodash'
 import fs from 'fs-extra'
 
 // For any env variable with the value of "secret", resolve the actual value from the
-// associated secrets file.
-const secretsEnv = mapValues(process.env, (value, key) => {
-  if (key.startsWith('FILEPATH_') || value !== 'secret') {
+// associated secrets file. Using sync fs methods for the sake of simplicity.
+// Since this will only run once when staring the app it's OK.
+const secretsEnv = mapValues(process.env, (value, key, env) => {
+  const pathEnv = 'FILEPATH_' + key
+  const filepath = env[pathEnv]
+
+  if (!filepath) {
     return value
   }
 
-  const pathEnv = 'FILEPATH_' + key
-  if (fs.existsSync(process.env[pathEnv])) {
-    return fs.readFileSync(process.env[pathEnv], { encoding: 'utf8' })
+  if (fs.existsSync(filepath)) {
+    return (fs.readFileSync(filepath, { encoding: 'utf8' }) || '').trim()
   }
 
   return value
@@ -24,7 +27,6 @@ export const TIME_FORMAT = secretsEnv.TIME_FORMAT || 'HH:mm:ss'
 export const PG_CONNECTION_STRING = secretsEnv.PG_CONNECTION_STRING
 
 // URLs
-export const JORE_URL = secretsEnv.JORE_URL || 'https://dev-kartat.hsldev.com/jore-history/graphql'
 export const HFP_URL = secretsEnv.HFP_URL || 'https://sandbox-1.hsldev.com/v1alpha1/graphql'
 export const PATH_PREFIX = secretsEnv.PATH_PREFIX || '/'
 
