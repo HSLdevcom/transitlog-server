@@ -7,11 +7,12 @@ import {
   saveAutoGroups,
   setUIMessage,
 } from '../../datasources/transitlogServer'
-import { get, find, uniq, difference } from 'lodash'
+import { get, find, uniq, difference, last, compact } from 'lodash'
 import join from 'proper-url-join'
 import { PATH_PREFIX } from '../../constants'
 import pMap from 'p-map'
 import { createGroup, requestGroups } from '../../auth/authService'
+import isRegExpSupported from 'jest-haste-map/build/lib/isRegExpSupported'
 
 export const adminController = async (adminPath) => {
   await initSettings()
@@ -73,10 +74,18 @@ export const adminController = async (adminPath) => {
     const existingGroups = await requestGroups()
 
     const domains = domainGroups.map(({ domain }) => domain)
-    const newGroupNames = domains.map((domain) => [
-      domain.toLowerCase().replace(/\..*$/g, ''),
-      domain,
-    ])
+    const newGroupNames = compact(
+      domains.map((email) => {
+        const domain = (last(email.toLowerCase().split('@')) || '') as string
+
+        if (!domain) {
+          return
+        }
+
+        const groupName = domain.replace(/\..*$/g, '')
+        return [groupName, email]
+      })
+    )
 
     const groupsToCreate = difference(
       newGroupNames.map(([groupName]) => groupName),

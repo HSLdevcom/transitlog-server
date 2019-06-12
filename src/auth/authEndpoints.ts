@@ -56,9 +56,10 @@ const authorize = async (req: express.Request, res: express.Response) => {
     req.session.groups = userInfo.groups
     req.session.userId = userInfo.userId
 
-    const domain = req.session.email.split('@')[1]
+    const email = get(req, 'session.email', '')
     const sessionGroups = req.session.groups
-    const groupAssignments = get(assignGroups.find((dg) => dg.domain === domain), 'groups', [])
+    const emailDomainGroups = assignGroups.filter((dg) => email.endsWith(dg.domain))
+    const groupAssignments = uniq(flatten(emailDomainGroups.map(({ groups }) => groups)))
     const assignToGroups = difference(groupAssignments, sessionGroups)
 
     if (assignToGroups.length !== 0) {
