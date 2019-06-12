@@ -2,7 +2,7 @@ import * as express from 'express'
 import * as AuthService from './authService'
 import { HSL_GROUP_NAME } from '../constants'
 import { getSettings } from '../datasources/transitlogServer'
-import { get, difference, compact } from 'lodash'
+import { get, difference, compact, groupBy, map, flatten } from 'lodash'
 
 interface IAuthRequest {
   code: string
@@ -30,6 +30,20 @@ const authorize = async (req: express.Request, res: express.Response) => {
 
   const settings = await getSettings()
   const domainGroups = settings.domain_groups
+  const autoDomainGroups = settings.auto_domain_groups
+
+  // Merge domain groups and auto-created groups into one domain groups array.
+  const assignGroups = map(
+    groupBy(domainGroups.concat(autoDomainGroups), 'domain'),
+    (mergedDomainGroups, domain) => {
+      const groups = flatten(mergedDomainGroups.map(({ groups }) => groups))
+
+      return {
+        domain,
+        groups,
+      }
+    }
+  )
 
   const tokenResponse = await AuthService.requestAccessToken(code)
 
@@ -42,7 +56,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
 
     const domain = req.session.email.split('@')[1]
     const sessionGroups = req.session.groups
-    const groupAssignments = get(domainGroups.find((dg) => dg.domain === domain), 'groups', [])
+    const groupAssignments = get(assignGroups.find((dg) => dg.domain === domain), 'groups', [])
     const assignToGroups = difference(groupAssignments, sessionGroups)
 
     if (assignToGroups.length !== 0) {
