@@ -26,7 +26,6 @@ const session = require('express-session')
 const RedisSession = require('connect-redis')(session)
 
 const ORIGIN = process.env.REDIRECT_URI
-const SECURE_COOKIE = process.env.SECURE_COOKIE === 'true'
 
 type User = {
   email: string
