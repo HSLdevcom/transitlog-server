@@ -21,10 +21,15 @@ export const Schema = gql`
     query: Query
   }
 
+  type UIMessage {
+    date: String
+    message: String
+  }
+
   type Query {
     equipment(filter: EquipmentFilterInput, date: Date): [Equipment]!
     stop(stopId: String!, date: Date!): Stop
-    stops(filter: StopFilterInput): [SimpleStop]!
+    stops(date: Date, filter: StopFilterInput): [SimpleStop]!
     stopsByBbox(filter: StopFilterInput, bbox: PreciseBBox!): [SimpleStop]!
     route(routeId: String!, direction: Direction!, date: Date!): Route
     routes(filter: RouteFilterInput, line: String, date: Date): [Route]!
@@ -63,5 +68,6 @@ export const Schema = gql`
     ): [AreaJourney]!
     alerts(time: String, alertSearch: AlertSearchInput): [Alert!]!
     cancellations(date: Date, cancellationSearch: CancellationSearchInput): [Cancellation!]!
+    uiMessage: UIMessage!
   }
 `

@@ -18,6 +18,7 @@ export function createSimpleStopObject(
     radius: stop.stop_radius,
     modes: mode ? [mode] : [Mode.Bus],
     alerts,
+    routes: stop.routes || [],
     // @ts-ignore
     _matchScore: stop._matchScore,
   }

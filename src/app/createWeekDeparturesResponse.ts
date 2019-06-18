@@ -218,8 +218,8 @@ export const createWeekDeparturesResponse = async (
     return combineDeparturesAndEvents(departures, departureEvents)
   }
 
-  // Cache for 5 minutes
-  const departuresTTL: number = 5 * 60
+  // Cache for 5 minutes if current week, one day otherwise.
+  const departuresTTL: number = weekNumber === getISOWeek(new Date()) ? 5 * 60 : 24 * 60 * 60
   const cacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}`
   const routeDepartures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
 

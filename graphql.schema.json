@@ -72,6 +72,12 @@
             "description": "",
             "args": [
               {
+                "name": "date",
+                "description": "",
+                "type": { "kind": "SCALAR", "name": "Date", "ofType": null },
+                "defaultValue": null
+              },
+              {
                 "name": "filter",
                 "description": "",
                 "type": { "kind": "INPUT_OBJECT", "name": "StopFilterInput", "ofType": null },
@@ -770,6 +776,18 @@
                   "ofType": { "kind": "OBJECT", "name": "Cancellation", "ofType": null }
                 }
               }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "uiMessage",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "OBJECT", "name": "UIMessage", "ofType": null }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1885,6 +1903,26 @@
             "deprecationReason": null
           },
           {
+            "name": "routes",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": { "kind": "OBJECT", "name": "SimpleRoute", "ofType": null }
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "modes",
             "description": "",
             "args": [],
@@ -1931,6 +1969,53 @@
         ],
         "inputFields": null,
         "interfaces": [{ "kind": "INTERFACE", "name": "Position", "ofType": null }],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "SimpleRoute",
+        "description": "",
+        "fields": [
+          {
+            "name": "routeId",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "SCALAR", "name": "String", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "direction",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "isTimingStop",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "SCALAR", "name": "Boolean", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
         "enumValues": null,
         "possibleTypes": null
       },
@@ -4982,6 +5067,33 @@
           }
         ],
         "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
+        "name": "UIMessage",
+        "description": "",
+        "fields": [
+          {
+            "name": "date",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "message",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
         "enumValues": null,
         "possibleTypes": null
       },

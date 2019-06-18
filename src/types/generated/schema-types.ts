@@ -294,6 +294,8 @@ export interface Query {
   alerts: Alert[]
 
   cancellations: Cancellation[]
+
+  uiMessage: UiMessage
 }
 
 export interface Equipment {
@@ -399,11 +401,21 @@ export interface SimpleStop extends Position {
 
   radius?: Maybe<number>
 
+  routes: SimpleRoute[]
+
   modes: Array<Maybe<string>>
 
   _matchScore?: Maybe<number>
 
   alerts: Alert[]
+}
+
+export interface SimpleRoute {
+  routeId: string
+
+  direction: Direction
+
+  isTimingStop: boolean
 }
 
 export interface Route {
@@ -834,6 +846,12 @@ export interface AreaJourney {
   isCancelled: boolean
 }
 
+export interface UiMessage {
+  date?: Maybe<string>
+
+  message?: Maybe<string>
+}
+
 // ====================================================
 // Arguments
 // ====================================================
@@ -849,6 +867,8 @@ export interface StopQueryArgs {
   date: Date
 }
 export interface StopsQueryArgs {
+  date?: Maybe<Date>
+
   filter?: Maybe<StopFilterInput>
 }
 export interface StopsByBboxQueryArgs {

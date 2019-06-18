@@ -1,6 +1,15 @@
 import * as express from 'express'
-import nodeFetch from 'node-fetch'
-import { CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, LOGIN_PROVIDER_URI } from '../constants'
+import nodeFetch, { Response } from 'node-fetch'
+import {
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REDIRECT_URI,
+  LOGIN_PROVIDER_URI,
+  API_CLIENT_ID,
+  API_CLIENT_SECRET,
+} from '../constants'
+
+const authHash = Buffer.from(`${API_CLIENT_ID}:${API_CLIENT_SECRET}`).toString('base64')
 
 interface IAccessToken {
   access_token: string
@@ -25,8 +34,12 @@ const checkAccessMiddleware = (
   next()
 }
 
-const requestAccessToken = async (code: string): Promise<IAccessToken> => {
-  const url = `${LOGIN_PROVIDER_URI}/openid/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=authorization_code&code=${code}&redirect_uri=${REDIRECT_URI}`
+const requestAccessToken = async (
+  code: string,
+  redirectUri = REDIRECT_URI
+): Promise<IAccessToken> => {
+  const url = `${LOGIN_PROVIDER_URI}/openid/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=authorization_code&code=${code}&redirect_uri=${redirectUri}`
+
   const response = await nodeFetch(url, {
     method: 'POST',
     headers: {
@@ -63,4 +76,71 @@ const logoutFromIdentityProvider = async (accessToken: string): Promise<Object> 
   })
 }
 
-export { checkAccessMiddleware, requestAccessToken, requestUserInfo, logoutFromIdentityProvider }
+const createGroup = async (group): Promise<Response> => {
+  const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/group`
+  return nodeFetch(url, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${authHash}`,
+    },
+    body: JSON.stringify({
+      name: group,
+      description: 'Auto-created with Transitlog Admin.',
+      nsCode: 'hsl-transitlog',
+    }),
+  })
+}
+
+const setGroup = async (userId: string, groups: string[]): Promise<Response> => {
+  const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/user/${userId}`
+  const response = await nodeFetch(url, {
+    method: 'PUT',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${authHash}`,
+    },
+    body: JSON.stringify({
+      memberOf: groups,
+    }),
+  })
+
+  return response.json()
+}
+
+const requestGroups = async (): Promise<Response> => {
+  const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/group`
+  const groupsResponse = await nodeFetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Basic ${authHash}`,
+    },
+  })
+
+  return groupsResponse.json()
+}
+
+const requestInfoByUserId = async (userId: string): Promise<Response> => {
+  const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/user/${userId}`
+  const response = await nodeFetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Basic ${authHash}`,
+    },
+  })
+
+  return response.json()
+}
+
+export {
+  checkAccessMiddleware,
+  requestAccessToken,
+  requestUserInfo,
+  logoutFromIdentityProvider,
+  setGroup,
+  createGroup,
+  requestGroups,
+  requestInfoByUserId,
+}

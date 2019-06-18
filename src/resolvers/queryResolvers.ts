@@ -1,6 +1,6 @@
 import { QueryResolvers } from '../types/generated/resolver-types'
 import { createLinesResponse } from '../app/createLinesResponse'
-import { createRoutesResponse } from '../app/createRoutesResponse'
+import { createRouteResponse, createRoutesResponse } from '../app/createRoutesResponse'
 import { createStopResponse, createStopsResponse } from '../app/createStopsResponse'
 import { createRouteGeometryResponse } from '../app/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../app/createEquipmentResponse'
@@ -13,11 +13,12 @@ import { createRouteJourneysResponse } from '../app/createRouteJourneysResponse'
 import { createWeekDeparturesResponse } from '../app/createWeekDeparturesResponse'
 import { createRouteDeparturesResponse } from '../app/createRouteDeparturesResponse'
 import { format } from 'date-fns'
-import { compact, flatten } from 'lodash'
+import { compact, flatten, get } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
 import { Alert, Cancellation } from '../types/generated/schema-types'
 import { getAlerts } from '../app/getAlerts'
 import { getCancellations } from '../app/getCancellations'
+import { getSettings } from '../datasources/transitlogServer'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -25,10 +26,10 @@ const equipment = (root, { filter, date }, { dataSources }) => {
   return createEquipmentResponse(getEquipment, getObservedVehicles, filter, date)
 }
 
-const stops = (root, { filter }, { dataSources }) => {
-  const getStops = () => dataSources.JoreAPI.getStops()
+const stops = (root, { filter, date }, { dataSources }) => {
+  const getStops = () => dataSources.JoreAPI.getStops(date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-  return createStopsResponse(getStops, fetchAlerts, filter)
+  return createStopsResponse(getStops, fetchAlerts, date, filter)
 }
 
 const stopsByBbox = (root, { filter, bbox }, { dataSources }) => {
@@ -44,21 +45,18 @@ const stop = (root, { stopId, date }, { dataSources }) => {
 }
 
 const route = async (root, { routeId, direction, date }, { dataSources }) => {
-  const getRoutes = () => dataSources.JoreAPI.getRoutes()
+  const getRoute = () => dataSources.JoreAPI.getRoute(routeId, direction)
 
   const fetchCancellations = getCancellations.bind(null, dataSources.HFPAPI.getCancellations)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
-  const routes = await createRoutesResponse(
-    getRoutes,
+  const routes = await createRouteResponse(
+    getRoute,
     fetchCancellations,
     fetchAlerts,
     date,
-    undefined,
-    {
-      routeId,
-      direction,
-    }
+    routeId,
+    direction
   )
   return routes[0]
 }
@@ -256,6 +254,11 @@ const cancellations = (
   return getCancellations(dataSources.HFPAPI.getCancellations, date, cancellationSearch)
 }
 
+const uiMessage = async () => {
+  const settings = await getSettings()
+  return get(settings, 'ui_message', { date: '', message: '' })
+}
+
 export const queryResolvers: QueryResolvers.Resolvers = {
   equipment,
   stop,
@@ -276,4 +279,5 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   exceptionDays,
   alerts,
   cancellations,
+  uiMessage,
 }

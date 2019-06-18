@@ -9,6 +9,40 @@ import { CachedFetcher } from '../types/CachedFetcher'
 import { getDirection } from '../utils/getDirection'
 import pMap from 'p-map'
 
+export async function createRouteResponse(
+  getRoute: () => Promise<JoreRoute[]>,
+  date: string,
+  routeId: string,
+  direction: Direction
+): Promise<Route | null> {
+  const fetchAndValidate: CachedFetcher<JoreRoute> = async () => {
+    const routes = await getRoute()
+
+    if (!routes) {
+      return false
+    }
+
+    const validRoute = filterByDateChains<JoreRoute>([routes], date)
+    return validRoute[0]
+  }
+
+  const cacheKey = `route_${routeId}_${direction}_${date}`
+  const validRoute = await cacheFetch<JoreRoute>(cacheKey, fetchAndValidate, 24 * 60 * 60)
+
+  if (!validRoute) {
+    return null
+  }
+
+  const routeAlerts = getAlerts(date, { allRoutes: true, route: routeId })
+
+  const routeCancellations = getCancellations(date, {
+    routeId,
+    direction: getDirection(direction) || undefined,
+  })
+
+  return createRouteObject(validRoute, routeAlerts, routeCancellations)
+}
+
 export async function createRoutesResponse(
   getRoutes: () => Promise<JoreRoute[]>,
   getCancellations,
@@ -28,7 +62,7 @@ export async function createRoutesResponse(
     return filterByDateChains<JoreRoute>(groupedRoutes, date)
   }
 
-  const cacheKey = !date ? false : `routes_${date}`
+  const cacheKey = `routes_${date}`
   const validRoutes = await cacheFetch<JoreRoute[]>(cacheKey, fetchAndValidate, 24 * 60 * 60)
 
   if (!validRoutes) {

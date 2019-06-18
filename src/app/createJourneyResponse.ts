@@ -10,7 +10,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, get, groupBy, orderBy } from 'lodash'
+import { compact, get, groupBy, orderBy, uniqBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -115,7 +115,10 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
-  const originDeparture = validDepartures.find((departure) => getDepartureTime(departure) === time)
+  const originDeparture = validDepartures.find(
+    (departure) =>
+      getDepartureTime(departure) === time && departure.stop_id === journeyRouteObject.originStopId
+  )
 
   if (!originDeparture) {
     return { route: journeyRouteObject, departures: [] }
