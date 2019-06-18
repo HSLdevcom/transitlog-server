@@ -1,9 +1,9 @@
-import { getKnex } from '../knex'
+import { databases, getKnex } from '../knex'
 import { createDatabase } from '../app/admin/createDatabase'
 import { merge } from 'lodash'
 import { Transaction } from 'knex'
 
-const knex = getKnex()
+const knex = getKnex(databases.JORE)
 const schema = 'transitlog'
 const settingsTable = 'transitlog_settings'
 

@@ -2,7 +2,7 @@ import { groupBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { createRouteObject } from './objects/createRouteObject'
 import { JoreRoute } from '../types/Jore'
-import { Route, RouteFilterInput } from '../types/generated/schema-types'
+import { Direction, Route, RouteFilterInput } from '../types/generated/schema-types'
 import { cacheFetch } from './cache'
 import { filterRoutes } from './filters/filterRoutes'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -11,6 +11,8 @@ import pMap from 'p-map'
 
 export async function createRouteResponse(
   getRoute: () => Promise<JoreRoute[]>,
+  getCancellations,
+  getAlerts,
   date: string,
   routeId: string,
   direction: Direction
@@ -33,13 +35,12 @@ export async function createRouteResponse(
     return null
   }
 
-  const routeAlerts = getAlerts(date, { allRoutes: true, route: routeId })
+  const routeAlerts = await getAlerts(date, { allRoutes: true, route: validRoute.route_id })
 
-  const routeCancellations = getCancellations(date, {
-    routeId,
-    direction: getDirection(direction) || undefined,
+  const routeCancellations = await getCancellations(date, {
+    routeId: validRoute.route_id,
+    direction: getDirection(validRoute.direction) || undefined,
   })
-
   return createRouteObject(validRoute, routeAlerts, routeCancellations)
 }
 

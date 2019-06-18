@@ -1,22 +1,32 @@
 import Knex from 'knex'
-import { PG_CONNECTION_STRING } from './constants'
+import { HFP_PG_CONNECTION_STRING, JORE_PG_CONNECTION_STRING } from './constants'
 
-let knex: Knex | null = null
+export enum databases {
+  HFP = 'hfp',
+  JORE = 'jore',
+}
 
-export function getKnex(): Knex {
-  if (knex) {
-    return knex
+const knexes: { [id: string]: Knex } = {}
+
+const connections = {
+  jore: JORE_PG_CONNECTION_STRING,
+  hfp: HFP_PG_CONNECTION_STRING,
+}
+
+export function getKnex(id: databases = databases.JORE): Knex {
+  if (knexes[id]) {
+    return knexes[id]
   }
 
-  knex = Knex({
+  knexes[id] = Knex({
     dialect: 'postgres',
     client: 'pg',
-    connection: PG_CONNECTION_STRING,
+    connection: connections[id],
     pool: {
       min: 1,
       max: 50,
     },
   })
 
-  return knex
+  return knexes[id]
 }

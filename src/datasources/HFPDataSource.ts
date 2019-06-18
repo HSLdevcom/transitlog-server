@@ -6,17 +6,9 @@ import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
 import { DBAlert, DBCancellation, Vehicles } from '../types/EventsDb'
 import { AlertSearchProps } from '../app/getAlerts'
+import { databases, getKnex } from '../knex'
 
-const knex: Knex = Knex({
-  dialect: 'postgres',
-  client: 'pg',
-  connection: process.env.HFP_PG_CONNECTION_STRING,
-  searchPath: ['knex', 'public'],
-  pool: {
-    min: 1,
-    max: 20,
-  },
-})
+const knex: Knex = getKnex(databases.HFP)
 
 const vehicleFields = [
   'mode',

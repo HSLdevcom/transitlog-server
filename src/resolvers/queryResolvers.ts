@@ -50,15 +50,7 @@ const route = async (root, { routeId, direction, date }, { dataSources }) => {
   const fetchCancellations = getCancellations.bind(null, dataSources.HFPAPI.getCancellations)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
-  const routes = await createRouteResponse(
-    getRoute,
-    fetchCancellations,
-    fetchAlerts,
-    date,
-    routeId,
-    direction
-  )
-  return routes[0]
+  return createRouteResponse(getRoute, fetchCancellations, fetchAlerts, date, routeId, direction)
 }
 
 const routes = async (root, { filter, line, date }, { dataSources }) => {
