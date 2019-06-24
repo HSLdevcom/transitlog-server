@@ -748,9 +748,9 @@
             "description": "",
             "args": [
               {
-                "name": "time",
+                "name": "date",
                 "description": "",
-                "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+                "type": { "kind": "SCALAR", "name": "Date", "ofType": null },
                 "defaultValue": null
               },
               {

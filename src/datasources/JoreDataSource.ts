@@ -1,14 +1,14 @@
 import {
-  JoreRoute,
-  JoreLine,
-  JoreStop,
+  JoreDeparture,
+  JoreDepartureWithOrigin,
   JoreEquipment,
+  JoreExceptionDay,
+  JoreLine,
+  JoreRoute,
   JoreRouteData,
   JoreRouteDepartureData,
-  JoreDepartureWithOrigin,
-  JoreExceptionDay,
+  JoreStop,
   JoreStopSegment,
-  JoreDeparture,
 } from '../types/Jore'
 import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
@@ -19,11 +19,10 @@ import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'da
 import { cacheFetch } from '../app/cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
-import { getKnex } from '../knex'
-
-const knex = getKnex()
+import { databases, getKnex } from '../knex'
 
 const SCHEMA = 'jore'
+const knex = getKnex(databases.JORE)
 const ONE_DAY = 24 * 60 * 60
 
 // install postgis functions in knex.postgis;
@@ -156,7 +155,7 @@ WHERE stop.stop_id = :stopId;`,
     return this.getBatched(query)
   }
 
-  async getStops(date): Promise<JoreStop[]> {
+  async getStops(date?: string): Promise<JoreStop[]> {
     const query = date
       ? this.db.raw(
           `

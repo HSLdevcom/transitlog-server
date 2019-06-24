@@ -67,7 +67,7 @@ export const Schema = gql`
       filters: AreaEventsFilterInput
     ): [AreaJourney]!
     alerts(time: String, alertSearch: AlertSearchInput): [Alert!]!
-    cancellations(time: String, cancellationSearch: CancellationSearchInput): [Cancellation!]!
+    cancellations(date: Date, cancellationSearch: CancellationSearchInput): [Cancellation!]!
     uiMessage: UIMessage!
   }
 `

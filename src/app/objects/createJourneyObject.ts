@@ -1,5 +1,4 @@
 import { createJourneyId } from '../../utils/createJourneyId'
-import { Vehicles } from '../../types/generated/hfp-types'
 import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 import { Alert, Cancellation, Departure, Journey, Route } from '../../types/generated/schema-types'
 import { createJourneyEventObject } from './createJourneyEventObject'
@@ -9,6 +8,7 @@ import { JoreEquipment } from '../../types/Jore'
 import { getJourneyStartTime } from '../../utils/time'
 import { getDirection } from '../../utils/getDirection'
 import { getLatestCancellationState } from '../../utils/getLatestCancellationState'
+import { Vehicles } from '../../types/EventsDb'
 
 export function createJourneyObject(
   journeyEvents: Vehicles[],
@@ -48,11 +48,11 @@ export function createJourneyObject(
     uniqueVehicleId: !journey
       ? ''
       : createUniqueVehicleId(journey.owner_operator_id, journey.vehicle_number),
-    operatorId: !journey ? '' : journey.owner_operator_id,
+    operatorId: !journey ? '' : journey.owner_operator_id + '',
     vehicleId: !journey ? '' : journey.vehicle_number + '',
     headsign: !journey ? '' : journey.headsign,
     name: get(journeyRoute, 'name', ''),
-    mode: get(journeyRoute, 'mode', get(journey, 'mode', '')).toUpperCase(),
+    mode: (get(journeyRoute, 'mode', get(journey, 'mode', '')) || '').toUpperCase(),
     equipment: journeyEquipment ? createEquipmentObject(journeyEquipment) : null,
     events: journeyEvents.map((event) => createJourneyEventObject(event, id)),
     departures: journeyDepartures,

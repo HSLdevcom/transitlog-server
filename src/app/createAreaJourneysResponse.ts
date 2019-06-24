@@ -4,13 +4,13 @@ import {
   AreaJourney,
   PreciseBBox,
 } from '../types/generated/schema-types'
-import { Vehicles } from '../types/generated/hfp-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from './cache'
 import { groupBy, map } from 'lodash'
 import { createAreaJourneyObject } from './objects/createAreaJourneyObject'
 import { createBBoxString } from '../utils/createBBoxString'
 import { createJourneyId } from '../utils/createJourneyId'
+import { Vehicles } from '../types/EventsDb'
 
 export const createAreaJourneysResponse = async (
   getAreaJourneys: () => Promise<Vehicles[] | null>,

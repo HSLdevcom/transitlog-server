@@ -1,7 +1,7 @@
 import { Cancellation } from '../types/generated/schema-types'
 import moment from 'moment-timezone'
 
-export const getLatestCancellationState = (cancellations: Cancellation[]): Cancellation[] => {
+export const getLatestCancellationState = (cancellations: Cancellation[] = []): Cancellation[] => {
   return cancellations.reduce(
     (latest: Cancellation[], cancellation, index, allCancellations: Cancellation[]) => {
       const previousCancellation = allCancellations.find(

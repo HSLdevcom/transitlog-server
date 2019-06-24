@@ -1,4 +1,3 @@
-import { Vehicles } from '../../types/generated/hfp-types'
 import { Alert, VehicleJourney } from '../../types/generated/schema-types'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { getDirection } from '../../utils/getDirection'
@@ -7,6 +6,7 @@ import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 import { TZ } from '../../constants'
 import { getDateFromDateTime, getJourneyEventTime, getJourneyStartTime } from '../../utils/time'
 import moment from 'moment-timezone'
+import { Vehicles } from '../../types/EventsDb'
 
 export const createVehicleJourneyObject = (
   event: Vehicles,
@@ -27,12 +27,12 @@ export const createVehicleJourneyObject = (
     departureDate,
     departureTime,
     uniqueVehicleId: createUniqueVehicleId(event.owner_operator_id, event.vehicle_number),
-    operatorId: get(event, 'owner_operator_id', ''),
+    operatorId: get(event, 'owner_operator_id', '') + '',
     vehicleId: get(event, 'vehicle_number', '') + '',
     headsign: get(event, 'headsign', ''),
     mode: get(event, 'mode', 'BUS'),
-    receivedAt: moment.tz(event.received_at, TZ).toISOString(true),
-    recordedAt: moment.tz(event.tst, TZ).toISOString(true),
+    receivedAt: observedDepartureTime.toISOString(true),
+    recordedAt: observedDepartureTime.toISOString(true),
     recordedAtUnix: parseInt(event.tsi, 10),
     recordedTime: getJourneyEventTime(event),
     timeDifference: departureDiff,

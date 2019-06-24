@@ -1,6 +1,6 @@
 import { groupBy, orderBy } from 'lodash'
-import { Vehicles } from '../types/generated/hfp-types'
 import { createValidVehicleId } from './createUniqueVehicleId'
+import { Vehicles } from '../types/EventsDb'
 
 export const groupEventsByInstances = (events: Vehicles[] = []): Array<[string, Vehicles[]]> => {
   const vehicleIdGroups = groupBy(events, ({ unique_vehicle_id }) =>

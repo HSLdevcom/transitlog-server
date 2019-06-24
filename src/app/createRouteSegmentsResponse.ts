@@ -4,11 +4,12 @@ import { JoreRouteData } from '../types/Jore'
 import { cacheFetch } from './cache'
 import { Direction, RouteSegment } from '../types/generated/schema-types'
 import { createRouteSegmentObject } from './objects/createRouteSegmentObject'
-import { getAlerts } from './getAlerts'
-import { getCancellations } from './getCancellations'
+import pMap from 'p-map'
 
 export async function createRouteSegmentsResponse(
   getRouteSegments: () => Promise<JoreRouteData[]>,
+  getCancellations,
+  getAlerts,
   date: string,
   routeId: string,
   direction: Direction
@@ -45,13 +46,13 @@ export async function createRouteSegmentsResponse(
     return []
   }
 
-  return validRouteSegments.map((routeSegment) => {
-    routeSegment.alerts = getAlerts(date, {
+  return pMap(validRouteSegments, async (routeSegment) => {
+    routeSegment.alerts = await getAlerts(date, {
       allStops: true,
       stop: routeSegment.stopId,
     })
 
-    routeSegment.cancellations = getCancellations(date, {
+    routeSegment.cancellations = await getCancellations(date, {
       routeId: routeSegment.routeId,
       direction: routeSegment.direction,
     })

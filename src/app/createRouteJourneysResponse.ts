@@ -1,10 +1,10 @@
 import { Direction, Journey } from '../types/generated/schema-types'
-import { Vehicles } from '../types/generated/hfp-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from './cache'
 import { isToday } from 'date-fns'
 import { groupBy, map } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
+import { Vehicles } from '../types/EventsDb'
 
 export const createRouteJourneysResponse = async (
   getJourney: () => Promise<Vehicles[] | null>,

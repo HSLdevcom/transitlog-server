@@ -1,6 +1,5 @@
 import { flatten, get, groupBy, orderBy, compact } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
-import { Vehicles } from '../types/generated/hfp-types'
 import { Departure, Direction, ExceptionDay, RouteSegment } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from './cache'
@@ -21,6 +20,8 @@ import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
+import { Vehicles } from '../types/EventsDb'
+import pMap from 'p-map'
 
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
@@ -117,6 +118,8 @@ export async function createRouteDeparturesResponse(
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
   getEvents: () => Promise<Vehicles[]>,
+  getCancellations,
+  getAlerts,
   exceptions: ExceptionDay[],
   stopId: string,
   routeId: string,
@@ -200,12 +203,9 @@ export async function createRouteDeparturesResponse(
     return []
   }
 
-  const departuresWithAlerts = routeDepartures.map((departure) => {
-    setAlertsOnDeparture(departure)
-    setCancellationsOnDeparture(departure)
-
+  return pMap(routeDepartures, async (departure) => {
+    await setAlertsOnDeparture(departure, getAlerts)
+    await setCancellationsOnDeparture(departure, getCancellations)
     return departure
   })
-
-  return departuresWithAlerts
 }

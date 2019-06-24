@@ -6,12 +6,13 @@ import { Direction, Route, RouteFilterInput } from '../types/generated/schema-ty
 import { cacheFetch } from './cache'
 import { filterRoutes } from './filters/filterRoutes'
 import { CachedFetcher } from '../types/CachedFetcher'
-import { getAlerts } from './getAlerts'
-import { getCancellations } from './getCancellations'
 import { getDirection } from '../utils/getDirection'
+import pMap from 'p-map'
 
 export async function createRouteResponse(
   getRoute: () => Promise<JoreRoute[]>,
+  getCancellations,
+  getAlerts,
   date: string,
   routeId: string,
   direction: Direction
@@ -34,18 +35,19 @@ export async function createRouteResponse(
     return null
   }
 
-  const routeAlerts = getAlerts(date, { allRoutes: true, route: routeId })
+  const routeAlerts = await getAlerts(date, { allRoutes: true, route: validRoute.route_id })
 
-  const routeCancellations = getCancellations(date, {
-    routeId,
-    direction: getDirection(direction) || undefined,
+  const routeCancellations = await getCancellations(date, {
+    routeId: validRoute.route_id,
+    direction: getDirection(validRoute.direction) || undefined,
   })
-
   return createRouteObject(validRoute, routeAlerts, routeCancellations)
 }
 
 export async function createRoutesResponse(
   getRoutes: () => Promise<JoreRoute[]>,
+  getCancellations,
+  getAlerts,
   date: string,
   line?: string,
   filter?: RouteFilterInput
@@ -70,12 +72,14 @@ export async function createRoutesResponse(
 
   const filteredRoutes = filterRoutes(validRoutes, line, filter)
 
-  return filteredRoutes.map((route) => {
-    const routeAlerts = getAlerts(date, { allRoutes: true, route: route.route_id })
-    const routeCancellations = getCancellations(date, {
+  return pMap(filteredRoutes, async (route) => {
+    const routeAlerts = await getAlerts(date, { allRoutes: true, route: route.route_id })
+
+    const routeCancellations = await getCancellations(date, {
       routeId: route.route_id,
       direction: getDirection(route.direction) || undefined,
     })
+
     return createRouteObject(route, routeAlerts, routeCancellations)
   })
 }

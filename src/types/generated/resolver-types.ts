@@ -569,7 +569,7 @@ export namespace QueryResolvers {
     CancellationsArgs
   >
   export interface CancellationsArgs {
-    time?: Maybe<string>
+    date?: Maybe<Date>
 
     cancellationSearch?: Maybe<CancellationSearchInput>
   }

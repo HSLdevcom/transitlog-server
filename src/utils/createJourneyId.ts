@@ -3,7 +3,7 @@ import { getDirection } from './getDirection'
 import { createValidVehicleId } from './createUniqueVehicleId'
 import { getJourneyStartTime } from './time'
 import { Journey } from '../types/Journey'
-import { Vehicles } from '../types/generated/hfp-types'
+import { Vehicles } from '../types/EventsDb'
 
 export const createJourneyId = (journeyObject: Journey | Vehicles | null) => {
   if (!journeyObject) {
