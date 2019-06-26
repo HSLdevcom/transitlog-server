@@ -1,5 +1,5 @@
 import Knex from 'knex'
-import { HFP_PG_CONNECTION_STRING, JORE_PG_CONNECTION_STRING } from './constants'
+import { HFP_PG_CONNECTION, JORE_PG_CONNECTION } from './constants'
 
 export enum databases {
   HFP = 'hfp',
@@ -9,8 +9,8 @@ export enum databases {
 const knexes: { [id: string]: Knex } = {}
 
 const connections = {
-  jore: JORE_PG_CONNECTION_STRING,
-  hfp: HFP_PG_CONNECTION_STRING,
+  jore: JORE_PG_CONNECTION,
+  hfp: HFP_PG_CONNECTION,
 }
 
 export function getKnex(id: databases = databases.JORE): Knex {
