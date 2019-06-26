@@ -4,13 +4,8 @@ import fs from 'fs-extra'
 // For any env variable with the value of "secret", resolve the actual value from the
 // associated secrets file. Using sync fs methods for the sake of simplicity,
 // since this will only run once when staring the app, sync is OK.
-const secretsEnv = mapValues(process.env, (value, key, env) => {
-  const pathEnv = 'FILEPATH_' + key
-  const filepath = env[pathEnv]
-
-  if (!filepath) {
-    return value
-  }
+const secretsEnv = mapValues(process.env, (value, key) => {
+  const filepath = '/run/secrets/' + key
 
   if (fs.existsSync(filepath)) {
     return (fs.readFileSync(filepath, { encoding: 'utf8' }) || '').trim()
@@ -28,7 +23,6 @@ export const JORE_PG_CONNECTION_STRING = secretsEnv.JORE_PG_CONNECTION_STRING
 export const HFP_PG_CONNECTION_STRING = secretsEnv.HFP_PG_CONNECTION_STRING
 
 // URLs
-export const HFP_URL = secretsEnv.HFP_URL || 'https://sandbox-1.hsldev.com/v1alpha1/graphql'
 export const PATH_PREFIX = secretsEnv.PATH_PREFIX || '/'
 
 // HSL ID authentication
