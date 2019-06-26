@@ -64,6 +64,10 @@ type UserContext = {
   app.set('view engine', 'tsx')
   app.set('views', path.join(__dirname, 'views'))
 
+  app.get('/check', (req, res) => {
+    res.status(200).send('ok')
+  })
+
   const redisClient = await getRedis()
 
   app.use(
