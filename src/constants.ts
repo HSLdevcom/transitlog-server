@@ -73,3 +73,6 @@ export const HSL_GROUP_NAME = 'HSL'
 
 export const ALLOW_DEV_LOGIN = secretsEnv.ALLOW_DEV_LOGIN || 'false'
 export const DEBUG = secretsEnv.DEBUG || 'false'
+
+export const REDIS_HOST = secretsEnv.REDIS_HOST || '0.0.0.0'
+export const REDIS_PORT = secretsEnv.REDIS_PORT || 6379

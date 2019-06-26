@@ -1,4 +1,5 @@
 import Redis, { Redis as RedisType } from 'ioredis'
+import { REDIS_HOST, REDIS_PORT } from '../constants'
 
 let redisClient: RedisType | null = null
 
@@ -8,8 +9,8 @@ export async function getRedis() {
   }
 
   const client = new Redis({
-    host: process.env.REDIS_HOST,
-    port: 6379,
+    host: REDIS_HOST,
+    port: REDIS_PORT,
     lazyConnect: true,
   })
 
