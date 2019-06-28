@@ -186,6 +186,7 @@ export enum CancellationSubcategory {
   OperatorPersonnelOnStrike = 'OPERATOR_PERSONNEL_ON_STRIKE',
   OtherStrike = 'OTHER_STRIKE',
   OtherOperatorReason = 'OTHER_OPERATOR_REASON',
+  DoorMalfunction = 'DOOR_MALFUNCTION',
   UnknownCause = 'UNKNOWN_CAUSE',
 }
 
@@ -803,9 +804,7 @@ export namespace AlertResolvers {
 
     endDateTime?: EndDateTimeResolver<DateTime, TypeParent, TContext>
 
-    publishedDateTime?: PublishedDateTimeResolver<DateTime, TypeParent, TContext>
-
-    updatedDateTime?: UpdatedDateTimeResolver<Maybe<DateTime>, TypeParent, TContext>
+    lastModifiedDateTime?: LastModifiedDateTimeResolver<DateTime, TypeParent, TContext>
 
     title?: TitleResolver<string, TypeParent, TContext>
 
@@ -849,16 +848,11 @@ export namespace AlertResolvers {
     Parent,
     TContext
   >
-  export type PublishedDateTimeResolver<R = DateTime, Parent = Alert, TContext = {}> = Resolver<
+  export type LastModifiedDateTimeResolver<R = DateTime, Parent = Alert, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
   >
-  export type UpdatedDateTimeResolver<
-    R = Maybe<DateTime>,
-    Parent = Alert,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
   export type TitleResolver<R = string, Parent = Alert, TContext = {}> = Resolver<
     R,
     Parent,

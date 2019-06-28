@@ -186,6 +186,7 @@ export enum CancellationSubcategory {
   OperatorPersonnelOnStrike = 'OPERATOR_PERSONNEL_ON_STRIKE',
   OtherStrike = 'OTHER_STRIKE',
   OtherOperatorReason = 'OTHER_OPERATOR_REASON',
+  DoorMalfunction = 'DOOR_MALFUNCTION',
   UnknownCause = 'UNKNOWN_CAUSE',
 }
 

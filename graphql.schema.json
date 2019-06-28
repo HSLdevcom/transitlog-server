@@ -1389,7 +1389,7 @@
             "deprecationReason": null
           },
           {
-            "name": "publishedDateTime",
+            "name": "lastModifiedDateTime",
             "description": "",
             "args": [],
             "type": {
@@ -1397,14 +1397,6 @@
               "name": null,
               "ofType": { "kind": "SCALAR", "name": "DateTime", "ofType": null }
             },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "updatedDateTime",
-            "description": "",
-            "args": [],
-            "type": { "kind": "SCALAR", "name": "DateTime", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -2633,6 +2625,12 @@
           },
           {
             "name": "OTHER_OPERATOR_REASON",
+            "description": "",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "DOOR_MALFUNCTION",
             "description": "",
             "isDeprecated": false,
             "deprecationReason": null
