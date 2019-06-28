@@ -143,6 +143,7 @@ export const Alerts = gql`
   }
 
   type Alert {
+    id: Int!
     level: AlertLevel!
     category: AlertCategory!
     distribution: AlertDistribution!
@@ -157,6 +158,7 @@ export const Alerts = gql`
   }
 
   type Cancellation {
+    id: Int!
     routeId: String!
     direction: Direction!
     departureDate: Date!

@@ -22,6 +22,7 @@ export type CancellationDataType = {
 }
 
 export interface DBCancellation {
+  id: number
   created_at: string
   modified_at: string
   status: DBCancellationStatus
@@ -42,6 +43,7 @@ export type AlertDataType = {
 }
 
 export interface DBAlert {
+  id: number
   created_at: string
   modified_at: string
   route_id: string

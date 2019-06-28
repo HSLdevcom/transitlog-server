@@ -234,8 +234,8 @@ const exceptionDays = (root, { year }, { dataSources }) => {
   return dataSources.JoreAPI.getExceptions(year)
 }
 
-const alerts = (root, { time, alertSearch }, { dataSources }): Promise<Alert[]> => {
-  return getAlerts(dataSources.HFPAPI.getAlerts, time, alertSearch)
+const alerts = (root, { time, language, alertSearch }, { dataSources }): Promise<Alert[]> => {
+  return getAlerts(dataSources.HFPAPI.getAlerts, time, language, alertSearch)
 }
 
 const cancellations = (

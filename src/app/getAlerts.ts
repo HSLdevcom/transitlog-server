@@ -20,6 +20,7 @@ export type AlertSearchProps = {
 export const getAlerts = async (
   fetchAlerts: (dateTime: string, alertSearchProps: AlertSearchProps) => Promise<DBAlert[]>,
   dateTime: Moment | string,
+  language: string,
   searchProps: AlertSearchProps = {}
 ): Promise<Alert[]> => {
   const time = moment.tz(dateTime, TZ).toISOString(true)
@@ -31,7 +32,7 @@ export const getAlerts = async (
       return false
     }
 
-    return alerts.map((alert) => createAlert(alert))
+    return alerts.map((alert) => createAlert(alert, language))
   }
 
   const alertsCacheKey = `alerts_${time}_${sortBy(Object.entries(searchProps), ([key]) => key)

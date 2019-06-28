@@ -364,6 +364,8 @@ export interface StopRoute {
 }
 
 export interface Alert {
+  id: number
+
   level: AlertLevel
 
   category: AlertCategory
@@ -448,6 +450,8 @@ export interface Route {
 }
 
 export interface Cancellation {
+  id: number
+
   routeId: string
 
   direction: Direction
@@ -976,6 +980,8 @@ export interface EventsByBboxQueryArgs {
 }
 export interface AlertsQueryArgs {
   time?: Maybe<string>
+
+  language: string
 
   alertSearch?: Maybe<AlertSearchInput>
 }

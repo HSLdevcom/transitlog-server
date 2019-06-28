@@ -34,6 +34,7 @@ const vehicleFields = [
 ]
 
 const cancellationFields = [
+  'id',
   'created_at',
   'modified_at',
   'status',
@@ -46,6 +47,7 @@ const cancellationFields = [
 ]
 
 const alertFields = [
+  'id',
   'created_at',
   'modified_at',
   'route_id',

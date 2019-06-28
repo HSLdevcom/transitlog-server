@@ -560,6 +560,8 @@ export namespace QueryResolvers {
   export interface AlertsArgs {
     time?: Maybe<string>
 
+    language: string
+
     alertSearch?: Maybe<AlertSearchInput>
   }
 
@@ -790,6 +792,8 @@ export namespace StopRouteResolvers {
 
 export namespace AlertResolvers {
   export interface Resolvers<TContext = {}, TypeParent = Alert> {
+    id?: IdResolver<number, TypeParent, TContext>
+
     level?: LevelResolver<AlertLevel, TypeParent, TContext>
 
     category?: CategoryResolver<AlertCategory, TypeParent, TContext>
@@ -813,6 +817,7 @@ export namespace AlertResolvers {
     url?: UrlResolver<Maybe<string>, TypeParent, TContext>
   }
 
+  export type IdResolver<R = number, Parent = Alert, TContext = {}> = Resolver<R, Parent, TContext>
   export type LevelResolver<R = AlertLevel, Parent = Alert, TContext = {}> = Resolver<
     R,
     Parent,
@@ -1072,6 +1077,8 @@ export namespace RouteResolvers {
 
 export namespace CancellationResolvers {
   export interface Resolvers<TContext = {}, TypeParent = Cancellation> {
+    id?: IdResolver<number, TypeParent, TContext>
+
     routeId?: RouteIdResolver<string, TypeParent, TContext>
 
     direction?: DirectionResolver<Direction, TypeParent, TContext>
@@ -1097,6 +1104,11 @@ export namespace CancellationResolvers {
     lastModifiedDateTime?: LastModifiedDateTimeResolver<DateTime, TypeParent, TContext>
   }
 
+  export type IdResolver<R = number, Parent = Cancellation, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type RouteIdResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
     R,
     Parent,

@@ -721,6 +721,16 @@
                 "defaultValue": null
               },
               {
+                "name": "language",
+                "description": "",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": { "kind": "SCALAR", "name": "String", "ofType": null }
+                },
+                "defaultValue": null
+              },
+              {
                 "name": "alertSearch",
                 "description": "",
                 "type": { "kind": "INPUT_OBJECT", "name": "AlertSearchInput", "ofType": null },
@@ -1304,6 +1314,18 @@
         "name": "Alert",
         "description": "",
         "fields": [
+          {
+            "name": "id",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "SCALAR", "name": "Int", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "level",
             "description": "",
@@ -2185,6 +2207,18 @@
         "name": "Cancellation",
         "description": "",
         "fields": [
+          {
+            "name": "id",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "SCALAR", "name": "Int", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "routeId",
             "description": "",

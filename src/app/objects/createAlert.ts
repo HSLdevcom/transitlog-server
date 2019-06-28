@@ -1,16 +1,18 @@
 import { AlertDataType, DBAlert } from '../../types/EventsDb'
 import {
+  Alert,
   AlertCategory,
-  AlertLevel,
   AlertDistribution,
   AlertImpact,
-  Alert,
+  AlertLevel,
 } from '../../types/generated/schema-types'
 import { get } from 'lodash'
 import moment from 'moment-timezone'
 import { TZ } from '../../constants'
 
-export function createAlert(alert: DBAlert): Alert {
+export function createAlert(alert: DBAlert, language: string = 'fi'): Alert {
+  const alertLanguage = language === 'se' ? 'sv' : language
+
   const alertData: AlertDataType | null = alert.data || null
   let distribution = AlertDistribution.Network
 
@@ -26,7 +28,18 @@ export function createAlert(alert: DBAlert): Alert {
     distribution = AlertDistribution.Stop
   }
 
+  const titles = get(alertData, 'titles', [])
+  const title = titles.find((title) => title.language === alertLanguage) || titles[0]
+
+  const descriptions = get(alertData, 'descriptions', [])
+  const description =
+    descriptions.find((description) => description.language === alertLanguage) || descriptions[0]
+
+  const urls = get(alertData, 'urls', [])
+  const url = urls.find((url) => url.language === alertLanguage) || urls[0]
+
   return {
+    id: alert.id,
     level: get(alertData, 'priority', AlertLevel.Info),
     category: get(alertData, 'category', AlertCategory.Other),
     distribution,
@@ -35,8 +48,8 @@ export function createAlert(alert: DBAlert): Alert {
     startDateTime: moment.tz(alert.valid_from, TZ).toISOString(true),
     endDateTime: moment.tz(alert.valid_to, TZ).toISOString(true),
     lastModifiedDateTime: moment.tz(alert.last_modified, TZ).toISOString(true),
-    title: get(alertData, 'titles[0].text', ''),
-    description: get(alertData, 'descriptions[0].text', ''),
-    url: get(alertData, 'urls[0].text', null),
+    title: get(title, 'text', ''),
+    description: get(description, 'text', ''),
+    url: get(url, 'text', null),
   }
 }
