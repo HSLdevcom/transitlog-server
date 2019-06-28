@@ -7,7 +7,7 @@
     "docker:build": "docker build --cpuset-cpus 2 -t hsldevcom/transitlog-server .",
     "docker:run": "docker run --name transitlog-server -p 4000:4000 hsldevcom/transitlog-server",
     "start": "NODE_ICU_DATA=\"node_modules/full-icu\" ts-node-dev --no-notify --respawn --inspect -r dotenv/config src/server.ts",
-    "start:production": "NODE_ICU_DATA=\"node_modules/full-icu\" forever start -c \"ts-node -T -r dotenv/config\" src/server.ts -l server.log -o server-out.log -e server-err.log && sleep 3 && forever -f logs 0",
+    "start:production": "NODE_ICU_DATA=\"node_modules/full-icu\" forever start -c \"ts-node -T -r dotenv/config\" src/server.ts -l server.log -o server-out.log -e server-err.log",
     "codegen": "gql-gen --config codegen.yml",
     "codestyle": "prettier \"src/**/*.{ts,js,json}\" --write",
     "test": "node scripts/test.js",
