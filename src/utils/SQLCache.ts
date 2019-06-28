@@ -8,7 +8,9 @@ class SQLCache {
   constructor(cache = new InMemoryLRUCache(), knex) {
     this.cache = cache
     this.loader = new DataLoader((rawQueries) =>
-      Promise.all(rawQueries.map((rawQuery) => knex.raw(rawQuery)))
+      knex.transaction((trx) => {
+        return Promise.all(rawQueries.map((rawQuery) => trx.raw(rawQuery)))
+      })
     )
   }
 
