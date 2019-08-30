@@ -74,9 +74,9 @@ export class HFPDataSource extends SQLDataSource {
 SELECT distinct on (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
 owner_operator_id
-FROM vehicles
-WHERE oday = :date AND geohash_level = 4
-ORDER BY (unique_vehicle_id);
+FROM vehicle_continuous_aggregate
+WHERE oday = :date
+ORDER BY unique_vehicle_id;
 `,
       { date }
     )
