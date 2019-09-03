@@ -82,8 +82,6 @@ export async function createStopResponse(
   stop.alerts = await getAlerts(date, {
     allStops: true,
     stop: stop.stopId,
-    allRoutes: true,
-    route: stop.routes && stop.routes.length ? stop.routes.map(({ routeId }) => routeId) : '',
   })
 
   return stop
