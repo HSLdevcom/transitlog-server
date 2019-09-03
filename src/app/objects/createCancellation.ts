@@ -9,6 +9,7 @@ import {
 import { get } from 'lodash'
 import moment from 'moment-timezone'
 import { TZ } from '../../constants'
+import { getDirection } from '../../utils/getDirection'
 
 export function createCancellation(cancellation: DBCancellation): Cancellation {
   const cancellationData: CancellationDataType | null = cancellation.data || null
@@ -16,7 +17,7 @@ export function createCancellation(cancellation: DBCancellation): Cancellation {
   return {
     id: cancellation.id,
     routeId: cancellation.route_id,
-    direction: cancellation.direction_id,
+    direction: getDirection(cancellation.direction_id),
     departureDate: cancellation.start_date,
     journeyStartTime: cancellation.start_time.slice(0, -3),
     title: get(cancellationData, 'title', ''),

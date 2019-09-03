@@ -30,7 +30,7 @@ const st = require('knex-postgis')(knex)
 
 export class JoreDataSource extends SQLDataSource {
   constructor() {
-    super()
+    super({ log: false })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }

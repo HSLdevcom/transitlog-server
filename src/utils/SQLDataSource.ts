@@ -2,23 +2,25 @@ import { DataSource } from 'apollo-datasource'
 import knexTinyLogger from 'knex-tiny-logger'
 import SQLCache from './SQLCache'
 import Knex from 'knex'
-
-const { DEBUG } = process.env
-
-let hasLogger = false
+import { DEBUG } from '../constants'
 
 class SQLDataSource extends DataSource {
   context
   knex: Knex
   db: Knex
   sqlCache: SQLCache
+  log: boolean
+
+  constructor({ log }: { log?: boolean }) {
+    super()
+    this.log = typeof log !== 'undefined' ? log : DEBUG === 'true'
+  }
 
   initialize(config) {
     this.context = config.context
     this.db = this.knex
 
-    if (DEBUG && !hasLogger) {
-      hasLogger = true // Prevent duplicate loggers
+    if (this.log) {
       knexTinyLogger(this.db) // Add a logging utility for debugging
     }
 

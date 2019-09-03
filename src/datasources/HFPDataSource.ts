@@ -1,5 +1,5 @@
 import moment from 'moment-timezone'
-import { TZ } from '../constants'
+import { DEBUG, TZ } from '../constants'
 import { isNextDay } from '../utils/time'
 import { Direction } from '../types/generated/schema-types'
 import Knex from 'knex'
@@ -63,7 +63,7 @@ const alertFields = [
 
 export class HFPDataSource extends SQLDataSource {
   constructor() {
-    super()
+    super({ log: true })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }
@@ -248,8 +248,8 @@ ORDER BY unique_vehicle_id;
     return this.getBatched(query)
   }
 
-  getAlerts = async (dateTime: string, alertSearchProps: AlertSearchProps): Promise<DBAlert[]> => {
-    let query = this.db('alert')
+  getAlerts = async (dateTime: string): Promise<DBAlert[]> => {
+    const query = this.db('alert')
       .select(alertFields)
       .where('valid_from', '<=', dateTime)
       .where('valid_to', '>=', dateTime)
@@ -259,69 +259,14 @@ ORDER BY unique_vehicle_id;
         { column: 'last_modified', order: 'desc' },
       ])
 
-    const { all, network, allRoutes, allStops, route: routeId, stop: stopId } = alertSearchProps
-
-    if (all) {
-      return this.getBatched(query)
-    }
-
-    if (network) {
-      query = query.where('affects_all_routes', true).where('affects_all_stops', true)
-    }
-
-    if (routeId) {
-      if (Array.isArray(routeId)) {
-        query = query.whereIn('route_id', routeId)
-      } else {
-        query = query.where('route_id', routeId)
-      }
-
-      query = query.orWhere('affects_all_routes', true)
-    }
-
-    if (stopId) {
-      if (Array.isArray(stopId)) {
-        query = query.whereIn('stop_id', stopId)
-      } else {
-        query = query.where('stop_id', stopId)
-      }
-
-      query = query.orWhere('affects_all_stops', true)
-    }
-
-    if (allStops) {
-      query = query.where('affects_all_stops', true)
-    }
-
-    if (allRoutes) {
-      query = query.where('affects_all_routes', true)
-    }
-
     return this.getBatched(query)
   }
 
-  getCancellations = async (
-    date: string,
-    routeId?: string,
-    direction?: number,
-    departureTime?: string
-  ): Promise<DBCancellation[]> => {
-    let query = this.db('cancellation')
+  getCancellations = async (date: string): Promise<DBCancellation[]> => {
+    const query = this.db('cancellation')
       .select(cancellationFields)
       .where('start_date', date)
       .orderBy([{ column: 'last_modified', order: 'desc' }, { column: 'start_time', order: 'asc' }])
-
-    if (routeId) {
-      query = query.where('route_id', routeId)
-
-      if (direction) {
-        query = query.where('direction_id', direction)
-      }
-
-      if (departureTime) {
-        query = query.where('start_time', 'LIKE', departureTime + '%')
-      }
-    }
 
     return this.getBatched(query)
   }

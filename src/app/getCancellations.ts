@@ -4,6 +4,8 @@ import { DBCancellation } from '../types/EventsDb'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createCancellation } from './objects/createCancellation'
 import { cacheFetch } from './cache'
+import { getDirection } from '../utils/getDirection'
+import { getDateFromDateTime } from '../utils/time'
 
 export type CancellationSearchProps = {
   all?: boolean
@@ -14,19 +16,14 @@ export type CancellationSearchProps = {
 }
 
 export const getCancellations = async (
-  fetchCancellations: (
-    date: string,
-    routeId?: string,
-    direction?: number,
-    departureTime?: string
-  ) => DBCancellation[],
+  fetchCancellations: (date: string) => DBCancellation[],
   date: string,
   cancellationSearchProps: CancellationSearchProps
 ): Promise<Cancellation[]> => {
   const { routeId, departureTime, direction, all, latestOnly = false } = cancellationSearchProps
 
   const cancellationFetcher: CachedFetcher<Cancellation[]> = async () => {
-    const cancellations = await fetchCancellations(date, routeId, direction, departureTime)
+    const cancellations = await fetchCancellations(date)
 
     if (cancellations.length === 0) {
       return false
@@ -35,12 +32,7 @@ export const getCancellations = async (
     return cancellations.map((cancellation) => createCancellation(cancellation))
   }
 
-  const cancellationsCacheKey =
-    all || (!routeId && !direction && !departureTime)
-      ? `all_cancellations_${date}`
-      : `cancellations_${date}_${routeId || 'no-route'}_${direction ||
-          'no-direction'}_${departureTime || 'no-time'}`
-
+  const cancellationsCacheKey = `cancellations_${date}`
   let cancellations = await cacheFetch<Cancellation[]>(
     cancellationsCacheKey,
     cancellationFetcher,
@@ -51,10 +43,43 @@ export const getCancellations = async (
     return []
   }
 
+  if (all) {
+    return cancellations
+  }
+
   if (latestOnly) {
     // If requested, only the latest info existing about a departure is returned.
     cancellations = getLatestCancellationState(cancellations)
   }
 
-  return cancellations
+  let filteredCancellations: Cancellation[] = cancellations
+
+  if (routeId) {
+    filteredCancellations = filteredCancellations.filter((cancellation) => {
+      let match = cancellation.routeId === routeId
+
+      if (!direction && !departureTime) {
+        return match
+      }
+
+      if (direction) {
+        match = match && getDirection(direction) === cancellation.direction
+      }
+
+      if (departureTime) {
+        console.log(departureTime)
+
+        const matchTime = getDateFromDateTime(
+          cancellation.departureDate,
+          cancellation.journeyStartTime
+        )
+
+        match = match && matchTime.isSameOrAfter(departureTime)
+      }
+
+      return match
+    })
+  }
+
+  return filteredCancellations
 }
