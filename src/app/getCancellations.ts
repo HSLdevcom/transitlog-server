@@ -67,14 +67,7 @@ export const getCancellations = async (
       }
 
       if (departureTime) {
-        console.log(departureTime)
-
-        const matchTime = getDateFromDateTime(
-          cancellation.departureDate,
-          cancellation.journeyStartTime
-        )
-
-        match = match && matchTime.isSameOrAfter(departureTime)
+        match = match && departureTime.startsWith(cancellation.journeyStartTime)
       }
 
       return match

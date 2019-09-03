@@ -13,14 +13,14 @@ class SQLDataSource extends DataSource {
 
   constructor({ log }: { log?: boolean }) {
     super()
-    this.log = typeof log !== 'undefined' ? log : DEBUG === 'true'
+    this.log = log || false
   }
 
   initialize(config) {
     this.context = config.context
     this.db = this.knex
 
-    if (this.log) {
+    if (DEBUG === 'true' && this.log) {
       knexTinyLogger(this.db) // Add a logging utility for debugging
     }
 
