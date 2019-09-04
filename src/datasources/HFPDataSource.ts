@@ -63,7 +63,7 @@ const alertFields = [
 
 export class HFPDataSource extends SQLDataSource {
   constructor() {
-    super({ log: true })
+    super({ log: true, name: 'hfp' })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }

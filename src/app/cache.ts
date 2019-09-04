@@ -69,6 +69,7 @@ export async function cacheFetch<DataType = any>(
   try {
     data = await fetchData()
   } catch (err) {
+    console.trace()
     console.log(err)
   }
 

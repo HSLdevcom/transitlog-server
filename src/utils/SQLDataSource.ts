@@ -10,10 +10,12 @@ class SQLDataSource extends DataSource {
   db: Knex
   sqlCache: SQLCache
   log: boolean
+  name: string
 
-  constructor({ log }: { log?: boolean }) {
+  constructor({ log, name = 'sqlsource' }: { log?: boolean; name: string }) {
     super()
     this.log = log || false
+    this.name = name
   }
 
   initialize(config) {
@@ -24,7 +26,7 @@ class SQLDataSource extends DataSource {
       knexTinyLogger(this.db) // Add a logging utility for debugging
     }
 
-    this.sqlCache = new SQLCache(config.cache, this.knex)
+    this.sqlCache = new SQLCache(config.cache, this.knex, this.name)
   }
 
   getBatched(query) {
