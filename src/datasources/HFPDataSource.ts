@@ -112,6 +112,8 @@ ORDER BY unique_vehicle_id;
       .where('unique_vehicle_id', queryVehicleId)
       .orderBy('tst', 'ASC')
 
+    console.log(query.toString())
+
     return this.getBatched(query)
   }
 

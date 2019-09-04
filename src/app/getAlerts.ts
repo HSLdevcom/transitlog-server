@@ -6,7 +6,6 @@ import { CachedFetcher } from '../types/CachedFetcher'
 import { DBAlert } from '../types/EventsDb'
 import { createAlert } from './objects/createAlert'
 import { cacheFetch } from './cache'
-import { sortBy } from 'lodash'
 
 export type AlertSearchProps = {
   all?: boolean

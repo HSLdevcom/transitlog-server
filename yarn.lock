@@ -5856,13 +5856,6 @@ knex-postgis@^0.7.0:
   dependencies:
     "@mapbox/geojsonhint" "^2.0.1"
 
-knex-tiny-logger@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/knex-tiny-logger/-/knex-tiny-logger-1.1.0.tgz#652d62b6751254658fb68d75e921a0315b1da3f6"
-  integrity sha512-a2pLNaTc700BHawdgIMe1HaQlEgl/Gib+8teUk8/idZBi/sCG7LyQR38WtGURZUH66ZQfjn7hA4hKVufTFPHEw==
-  dependencies:
-    chalk "2.4.1"
-
 knex@*, knex@^0.16.3:
   version "0.16.3"
   resolved "https://registry.yarnpkg.com/knex/-/knex-0.16.3.tgz#ca9effd4973655f42b42132b9019b0bc6bd20644"

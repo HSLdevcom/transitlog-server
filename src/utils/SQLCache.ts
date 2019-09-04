@@ -9,9 +9,7 @@ class SQLCache {
     this.cache = cache
     this.loader = new DataLoader((rawQueries) =>
       knex.transaction((trx) => {
-        return Promise.all(rawQueries.map((rawQuery) => trx.raw(rawQuery))).catch((err) => {
-          console.log(name, err)
-        })
+        return Promise.all(rawQueries.map((rawQuery) => trx.raw(rawQuery)))
       })
     )
   }

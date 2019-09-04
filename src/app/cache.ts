@@ -1,5 +1,6 @@
 import Redis, { Redis as RedisType } from 'ioredis'
 import { REDIS_HOST, REDIS_PORT } from '../constants'
+import { get } from 'lodash'
 
 let redisClient: RedisType | null = null
 
@@ -42,6 +43,8 @@ export async function getItem<T>(key): Promise<T | null> {
   return JSON.parse(cachedVal)
 }
 
+const currentQueries = new Map()
+
 export async function cacheFetch<DataType = any>(
   cacheKey: false | string | ((data?: DataType) => string | false),
   fetchData: () => Promise<DataType | false | null>,
@@ -67,10 +70,21 @@ export async function cacheFetch<DataType = any>(
   let data
 
   try {
-    data = await fetchData()
+    let queryPromise = currentQueries.get(computedCacheKey)
+
+    if (!queryPromise) {
+      queryPromise = fetchData()
+      currentQueries.set(computedCacheKey, queryPromise)
+    }
+
+    data = await queryPromise
+
+    if (currentQueries.size > 100) {
+      currentQueries.delete(computedCacheKey)
+    }
   } catch (err) {
     console.trace()
-    console.log(err)
+    console.log(computedCacheKey, get(err, 'message', 'Data fetching error!'))
   }
 
   if (!data || (typeof data.length !== 'undefined' && data.length === 0)) {
