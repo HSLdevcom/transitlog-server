@@ -7,7 +7,7 @@ export const setCancellationsOnDeparture = async (departure: Departure, getCance
     ? departure.originDepartureTime.departureTime
     : departure.plannedDepartureTime.departureTime
 
-  const cancellations = await getCancellations(departure.plannedDepartureTime.departureDateTime, {
+  const cancellations = await getCancellations(departure.plannedDepartureTime.departureDate, {
     routeId: departure.routeId,
     direction: departure.direction,
     departureTime: departureTime.slice(0, 5),

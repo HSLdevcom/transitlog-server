@@ -5,7 +5,6 @@ import { Direction } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
 import { DBAlert, DBCancellation, Vehicles } from '../types/EventsDb'
-import { AlertSearchProps } from '../app/getAlerts'
 import { databases, getKnex } from '../knex'
 
 const knex: Knex = getKnex(databases.HFP)
@@ -30,6 +29,17 @@ const vehicleFields = [
   'long',
   'dl',
   'drst',
+  'oday',
+]
+
+const routeDepartureFields = [
+  'unique_vehicle_id',
+  'route_id',
+  'direction_id',
+  'journey_start_time',
+  'next_stop_id',
+  'tst',
+  'tsi',
   'oday',
 ]
 
@@ -63,7 +73,7 @@ const alertFields = [
 
 export class HFPDataSource extends SQLDataSource {
   constructor() {
-    super({ log: true, name: 'hfp' })
+    super({ log: false, name: 'hfp' })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }
@@ -111,8 +121,6 @@ ORDER BY unique_vehicle_id;
       .where('oday', date)
       .where('unique_vehicle_id', queryVehicleId)
       .orderBy('tst', 'ASC')
-
-    console.log(query.toString())
 
     return this.getBatched(query)
   }
@@ -197,10 +205,12 @@ ORDER BY unique_vehicle_id;
     routeId: string,
     direction: Direction
   ): Promise<Vehicles[]> {
-    const query = this.db('vehicles')
+    const query = this.db('journey_start_continuous_aggregate')
       .select(
         this.db.raw(
-          `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
+          `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
+            ','
+          )}`
         )
       )
       .where('oday', date)
@@ -225,10 +235,10 @@ ORDER BY unique_vehicle_id;
     const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
     const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
 
-    const query = this.db('vehicles')
+    const query = this.db('journey_start_continuous_aggregate')
       .select(
         this.db.raw(
-          `DISTINCT ON ("oday", "journey_start_time", "unique_vehicle_id") ${vehicleFields.join(
+          `DISTINCT ON ("oday", "journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
             ','
           )}`
         )
@@ -261,7 +271,7 @@ ORDER BY unique_vehicle_id;
         { column: 'last_modified', order: 'desc' },
       ])
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, 24 * 60 * 60)
   }
 
   getCancellations = async (date: string): Promise<DBCancellation[]> => {
@@ -270,6 +280,6 @@ ORDER BY unique_vehicle_id;
       .where('start_date', date)
       .orderBy([{ column: 'last_modified', order: 'desc' }, { column: 'start_time', order: 'asc' }])
 
-    return this.getBatched(query)
+    return this.getCachedAndBatched(query, 24 * 60 * 60)
   }
 }

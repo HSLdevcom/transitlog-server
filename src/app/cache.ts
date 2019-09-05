@@ -59,46 +59,52 @@ export async function cacheFetch<DataType = any>(
   // it is supposed to be useful for retrieving data.
   const computedCacheKey = typeof cacheKey === 'function' ? cacheKey() : cacheKey
 
-  if (computedCacheKey) {
-    const cachedData = await getItem<DataType>(computedCacheKey)
+  const fetchFromCacheOrDb = async (usingCacheKey) => {
+    if (usingCacheKey) {
+      const cachedData = await getItem<DataType>(usingCacheKey)
 
-    if (cachedData) {
-      return cachedData
+      if (cachedData) {
+        return cachedData
+      }
     }
+
+    let data
+
+    try {
+      data = await fetchData()
+    } catch (err) {
+      console.trace()
+      console.log(usingCacheKey, get(err, 'message', 'Data fetching error!'))
+    }
+
+    if (usingCacheKey.startsWith('departure_events')) {
+      if (!data || (typeof data.length !== 'undefined' && data.length === 0)) {
+        return null
+      }
+    }
+
+    const ttlValue = typeof ttl === 'function' ? ttl(data) : ttl
+    const ttlConfig = ttlValue > 0 ? ['EX', ttlValue] : []
+
+    const useCacheKey = typeof cacheKey === 'function' ? cacheKey(data) : usingCacheKey
+
+    if (useCacheKey) {
+      await setItem<DataType>(useCacheKey, data, ttlConfig)
+    }
+
+    return data
   }
 
   let data
+  let queryPromise = currentQueries.get(computedCacheKey)
 
-  try {
-    let queryPromise = currentQueries.get(computedCacheKey)
-
-    if (!queryPromise) {
-      queryPromise = fetchData()
-      currentQueries.set(computedCacheKey, queryPromise)
-    }
-
-    data = await queryPromise
-
-    if (currentQueries.size > 100) {
-      currentQueries.delete(computedCacheKey)
-    }
-  } catch (err) {
-    console.trace()
-    console.log(computedCacheKey, get(err, 'message', 'Data fetching error!'))
+  if (!queryPromise) {
+    queryPromise = fetchFromCacheOrDb(computedCacheKey)
+    currentQueries.set(computedCacheKey, queryPromise)
   }
 
-  if (!data || (typeof data.length !== 'undefined' && data.length === 0)) {
-    return null
-  }
-
-  const ttlValue = typeof ttl === 'function' ? ttl(data) : ttl
-  const ttlConfig = ttlValue > 0 ? ['EX', ttlValue] : []
-
-  const useCacheKey = typeof cacheKey === 'function' ? cacheKey(data) : cacheKey
-
-  if (useCacheKey) {
-    await setItem<DataType>(useCacheKey, data, ttlConfig)
-  }
+  data = await queryPromise
+  currentQueries.delete(computedCacheKey)
 
   return data
 }

@@ -5,7 +5,6 @@ import { CachedFetcher } from '../types/CachedFetcher'
 import { createCancellation } from './objects/createCancellation'
 import { cacheFetch } from './cache'
 import { getDirection } from '../utils/getDirection'
-import { getDateFromDateTime } from '../utils/time'
 
 export type CancellationSearchProps = {
   all?: boolean
@@ -21,6 +20,10 @@ export const getCancellations = async (
   cancellationSearchProps: CancellationSearchProps
 ): Promise<Cancellation[]> => {
   const { routeId, departureTime, direction, all, latestOnly = false } = cancellationSearchProps
+
+  if (typeof date !== 'string' || date.length > 10) {
+    console.trace()
+  }
 
   const cancellationFetcher: CachedFetcher<Cancellation[]> = async () => {
     const cancellations = await fetchCancellations(date)
