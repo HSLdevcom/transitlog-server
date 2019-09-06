@@ -1,5 +1,6 @@
 import Knex from 'knex'
 import { HFP_PG_CONNECTION, JORE_PG_CONNECTION } from './constants'
+import { cleanup } from './utils/cleanup'
 
 export enum databases {
   HFP = 'hfp',
@@ -23,10 +24,14 @@ export function getKnex(id: databases = databases.JORE): Knex {
     client: 'pg',
     connection: connections[id],
     pool: {
-      min: 1,
-      max: 50,
+      min: 0,
+      max: 30,
     },
   })
 
   return knexes[id]
 }
+
+cleanup(() => {
+  Object.values(knexes).forEach((k) => k.destroy())
+})

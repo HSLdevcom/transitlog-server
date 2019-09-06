@@ -73,7 +73,7 @@ const alertFields = [
 
 export class HFPDataSource extends SQLDataSource {
   constructor() {
-    super({ log: false, name: 'hfp' })
+    super({ log: true, name: 'hfp' })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }
@@ -84,7 +84,7 @@ export class HFPDataSource extends SQLDataSource {
 SELECT distinct on (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
 owner_operator_id
-FROM vehicle_continuous_aggregate
+FROM vehicles
 WHERE oday = :date
 ORDER BY unique_vehicle_id;
 `,
@@ -109,6 +109,11 @@ ORDER BY unique_vehicle_id;
     return this.getBatched(query)
   }
 
+  /*
+   * Get the journeys for a vehicle. Only journey start time required. Shown in the sidebar
+   * list of vehicle journeys when a vehicle is selected.
+   */
+
   async getJourneysForVehicle(uniqueVehicleId, date): Promise<Vehicles[]> {
     const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
     const operatorId = parseInt(operatorPart, 10)
@@ -124,6 +129,11 @@ ORDER BY unique_vehicle_id;
 
     return this.getBatched(query)
   }
+
+  /*
+   * Get all events for a route. Drawn on map after route selection but before
+   * departure selection.
+   */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
     const query = this.db('vehicles')
@@ -205,7 +215,7 @@ ORDER BY unique_vehicle_id;
     routeId: string,
     direction: Direction
   ): Promise<Vehicles[]> {
-    const query = this.db('journey_start_continuous_aggregate')
+    const query = this.db('vehicles')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
@@ -235,7 +245,7 @@ ORDER BY unique_vehicle_id;
     const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
     const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
 
-    const query = this.db('journey_start_continuous_aggregate')
+    const query = this.db('vehicles')
       .select(
         this.db.raw(
           `DISTINCT ON ("oday", "journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
