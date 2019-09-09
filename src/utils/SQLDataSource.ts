@@ -4,6 +4,8 @@ import Knex from 'knex'
 import { DEBUG } from '../constants'
 import knexLogger from './knexLogger'
 
+const loggersCreated: string[] = []
+
 class SQLDataSource extends DataSource {
   context
   knex: Knex
@@ -23,7 +25,10 @@ class SQLDataSource extends DataSource {
     this.db = this.knex
 
     if (DEBUG === 'true' && this.log) {
-      knexLogger(this.db) // Add a logging utility for debugging
+      if (!loggersCreated.includes(this.name)) {
+        loggersCreated.push(this.name)
+        knexLogger(this.db) // Add a logging utility for debugging
+      }
     }
 
     this.sqlCache = new SQLCache(config.cache, this.knex, this.name)

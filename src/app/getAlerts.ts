@@ -17,15 +17,19 @@ export type AlertSearchProps = {
 }
 
 export const getAlerts = async (
-  fetchAlerts: (dateTime: string) => Promise<DBAlert[]>,
+  fetchAlerts: (startDate: string, endDate: string) => Promise<DBAlert[]>,
   dateTime: Moment | string,
   language: string = 'fi',
   searchProps: AlertSearchProps = {}
 ): Promise<Alert[]> => {
-  const time = moment.tz(dateTime, TZ).toISOString(true)
+  const timeMoment = moment.tz(dateTime, TZ).startOf('day')
+  const endTimeMoment = moment
+    .tz(timeMoment, TZ)
+    .endOf('day')
+    .add(4.5, 'hours')
 
   const alertsFetcher: CachedFetcher<Alert[]> = async () => {
-    const alerts = await fetchAlerts(time)
+    const alerts = await fetchAlerts(timeMoment.toISOString(true), endTimeMoment.toISOString(true))
 
     if (alerts.length === 0) {
       return false
@@ -34,7 +38,7 @@ export const getAlerts = async (
     return alerts.map((alert) => createAlert(alert, language))
   }
 
-  const alertsCacheKey = `alerts_${time}_${language}`
+  const alertsCacheKey = `alerts_${timeMoment.toISOString(true)}_${language}`
   const alerts = await cacheFetch<Alert[]>(alertsCacheKey, alertsFetcher, 24 * 60 * 60)
 
   if (!alerts) {

@@ -84,7 +84,7 @@ export class HFPDataSource extends SQLDataSource {
 SELECT distinct on (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
 owner_operator_id
-FROM vehicles
+FROM vehicle_continuous_aggregate
 WHERE oday = :date
 ORDER BY unique_vehicle_id;
 `,
@@ -97,14 +97,27 @@ ORDER BY unique_vehicle_id;
   async getAreaJourneys(minTime, maxTime, bbox, date): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
-    const query = this.db('vehicles')
-      .select(vehicleFields)
-      .where('oday', date)
-      .where('geohash_level', '<=', 4)
-      .whereBetween('tsi', [moment.tz(minTime, TZ).unix(), moment.tz(maxTime, TZ).unix()])
-      .whereBetween('lat', [minLat, maxLat])
-      .whereBetween('long', [minLng, maxLng])
-      .orderBy('tsi', 'ASC')
+    const query = this.db.raw(
+      `
+SELECT ${vehicleFields.join(',')}
+FROM vehicles
+WHERE oday = :date
+  AND geohash_level <= 4 -- Limit the amount of data coming into the app
+  AND tsi BETWEEN :minTime AND :maxTime
+  AND lat BETWEEN :minLat AND :maxLat
+  AND long BETWEEN :minLng AND :maxLng
+ORDER BY tst ASC;
+    `,
+      {
+        date,
+        minTime: moment.tz(minTime, TZ).unix(),
+        maxTime: moment.tz(maxTime, TZ).unix(),
+        minLat,
+        maxLat,
+        minLng,
+        maxLng,
+      }
+    )
 
     return this.getBatched(query)
   }
@@ -215,7 +228,7 @@ ORDER BY unique_vehicle_id;
     routeId: string,
     direction: Direction
   ): Promise<Vehicles[]> {
-    const query = this.db('vehicles')
+    const query = this.db('journey_start_continuous_aggregate')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
@@ -245,7 +258,7 @@ ORDER BY unique_vehicle_id;
     const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
     const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
 
-    const query = this.db('vehicles')
+    const query = this.db('journey_start_continuous_aggregate')
       .select(
         this.db.raw(
           `DISTINCT ON ("oday", "journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
@@ -270,11 +283,11 @@ ORDER BY unique_vehicle_id;
     return this.getBatched(query)
   }
 
-  getAlerts = async (dateTime: string): Promise<DBAlert[]> => {
+  getAlerts = async (startDate: string, endDate: string): Promise<DBAlert[]> => {
     const query = this.db('alert')
       .select(alertFields)
-      .where('valid_from', '<=', dateTime)
-      .where('valid_to', '>=', dateTime)
+      .where('valid_from', '>=', startDate)
+      .orWhere('valid_to', '<=', endDate)
       .orderBy([
         { column: 'valid_from', order: 'asc' },
         { column: 'valid_to', order: 'desc' },

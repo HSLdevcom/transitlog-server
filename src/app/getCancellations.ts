@@ -5,6 +5,8 @@ import { CachedFetcher } from '../types/CachedFetcher'
 import { createCancellation } from './objects/createCancellation'
 import { cacheFetch } from './cache'
 import { getDirection } from '../utils/getDirection'
+import moment from 'moment-timezone'
+import { TZ } from '../constants'
 
 export type CancellationSearchProps = {
   all?: boolean
@@ -20,13 +22,10 @@ export const getCancellations = async (
   cancellationSearchProps: CancellationSearchProps
 ): Promise<Cancellation[]> => {
   const { routeId, departureTime, direction, all, latestOnly = false } = cancellationSearchProps
-
-  if (typeof date !== 'string' || date.length > 10) {
-    console.trace()
-  }
+  const onlyDate = moment.tz(date, TZ).format('YYYY-MM-DD')
 
   const cancellationFetcher: CachedFetcher<Cancellation[]> = async () => {
-    const cancellations = await fetchCancellations(date)
+    const cancellations = await fetchCancellations(onlyDate)
 
     if (cancellations.length === 0) {
       return false
@@ -35,7 +34,7 @@ export const getCancellations = async (
     return cancellations.map((cancellation) => createCancellation(cancellation))
   }
 
-  const cancellationsCacheKey = `cancellations_${date}`
+  const cancellationsCacheKey = `cancellations_${onlyDate}`
   let cancellations = await cacheFetch<Cancellation[]>(
     cancellationsCacheKey,
     cancellationFetcher,
