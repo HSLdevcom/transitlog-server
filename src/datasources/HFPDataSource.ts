@@ -258,7 +258,7 @@ ORDER BY tst ASC;
     const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
     const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
 
-    const query = this.db('journey_start_continuous_aggregate')
+    const query = this.db('vehicles')
       .select(
         this.db.raw(
           `DISTINCT ON ("oday", "journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(

@@ -4,6 +4,8 @@ All dates and other WHERE values are for demonstration purposes only.
 
 ## All vehicles in traffic for a day
 
+This is a problematic query that usually times out.
+
 ```postgresql
 SELECT distinct on (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
@@ -14,6 +16,8 @@ ORDER BY unique_vehicle_id;
 ```
 
 ## Get all events within an area
+
+This works well enough if the area is small enough.
 
 ```postgresql
 SELECT *
