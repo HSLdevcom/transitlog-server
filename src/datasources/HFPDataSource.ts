@@ -43,6 +43,22 @@ const routeDepartureFields = [
   'oday',
 ]
 
+const routeJourneyFields = [
+  'route_id',
+  'direction_id',
+  'oday',
+  'tst',
+  'tsi',
+  'journey_start_time',
+  'owner_operator_id',
+  'vehicle_number',
+  'lat',
+  'long',
+  'drst',
+  'hdg',
+  'mode',
+]
+
 const cancellationFields = [
   'id',
   'created_at',
@@ -150,9 +166,9 @@ ORDER BY tst ASC;
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
     const query = this.db('vehicles')
-      .select(vehicleFields)
+      .select(routeJourneyFields)
       .where('oday', date)
-      .where('geohash_level', '<=', 4)
+      .where('geohash_level', '<=', 2)
       .where('route_id', routeId)
       .where('direction_id', direction)
       .orderBy('tst', 'ASC')

@@ -46,13 +46,13 @@ ORDER BY tst ASC;
 
 ## Get all events for a route by day
 
-All events drawn on map but can be less precise (which is why the data is limited with the geohash_level).
+All events drawn on map but can be less precise (which is why the data is limited with the geohash_level). This is another quite slow query.
 
 ```postgresql
 SELECT *
 FROM vehicles
 WHERE oday = '2019-09-04'
-  AND geohash_level <= 4
+  AND geohash_level <= 2
   AND route_id = '2510'
   AND direction_id = 1
 ORDER BY tst ASC;
