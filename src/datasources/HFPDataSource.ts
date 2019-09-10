@@ -89,7 +89,7 @@ const alertFields = [
 
 export class HFPDataSource extends SQLDataSource {
   constructor() {
-    super({ log: true, name: 'hfp' })
+    super({ log: false, name: 'hfp' })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }
@@ -165,6 +165,9 @@ ORDER BY tst ASC;
    */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
+    // Diaable until we can optimize this query.
+    return []
+
     const query = this.db('vehicles')
       .select(routeJourneyFields)
       .where('oday', date)

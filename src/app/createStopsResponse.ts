@@ -175,7 +175,7 @@ export async function createStopsResponse(
     ])
   }
 
-  const currentTime = format(new Date(), 'YYYY-MM-DD')
+  const currentTime = date || format(new Date(), 'YYYY-MM-DD')
 
   filteredStops = await pMap(filteredStops, async (stop) => {
     stop.alerts = await getAlerts(currentTime, { allStops: true, stop: stop.stopId })
