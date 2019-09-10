@@ -235,7 +235,7 @@ const exceptionDays = (root, { year }, { dataSources }) => {
 }
 
 const alerts = (root, { time, language, alertSearch }, { dataSources }): Promise<Alert[]> => {
-  return getAlerts(dataSources.HFPAPI.getAlerts, time, language, alertSearch)
+  return getAlerts(dataSources.HFPAPI.getAlerts, time, alertSearch, language)
 }
 
 const cancellations = (

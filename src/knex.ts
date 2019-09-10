@@ -25,7 +25,7 @@ export function getKnex(id: databases = databases.JORE): Knex {
     connection: connections[id],
     pool: {
       min: 0,
-      max: 30,
+      max: 50,
     },
   })
 

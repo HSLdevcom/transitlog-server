@@ -19,8 +19,8 @@ export type AlertSearchProps = {
 export const getAlerts = async (
   fetchAlerts: (startDate: string, endDate: string) => Promise<DBAlert[]>,
   dateTime: Moment | string,
-  language: string = 'fi',
-  searchProps: AlertSearchProps = {}
+  searchProps: AlertSearchProps = {},
+  language: string = 'fi'
 ): Promise<Alert[]> => {
   const timeMoment = moment.tz(dateTime, TZ).startOf('day')
   const endTimeMoment = moment

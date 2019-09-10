@@ -77,10 +77,8 @@ export async function cacheFetch<DataType = any>(
       console.log(usingCacheKey, get(err, 'message', 'Data fetching error!'))
     }
 
-    if (usingCacheKey.startsWith('departure_events')) {
-      if (!data || (typeof data.length !== 'undefined' && data.length === 0)) {
-        return null
-      }
+    if (!data || (typeof data.length !== 'undefined' && data.length === 0)) {
+      return null
     }
 
     const ttlValue = typeof ttl === 'function' ? ttl(data) : ttl

@@ -244,7 +244,7 @@ ORDER BY tst ASC;
     routeId: string,
     direction: Direction
   ): Promise<Vehicles[]> {
-    const query = this.db('journey_start_continuous_aggregate')
+    const query = this.db('vehicles')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(

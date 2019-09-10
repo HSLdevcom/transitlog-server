@@ -5,7 +5,7 @@ class SQLCache {
   cache
   loader
 
-  constructor(cache = new InMemoryLRUCache(), knex, name) {
+  constructor(cache = new InMemoryLRUCache(), knex) {
     this.cache = cache
     this.loader = new DataLoader((rawQueries) =>
       knex.transaction((trx) => {
