@@ -44,6 +44,7 @@ const routeDepartureFields = [
 ]
 
 const routeJourneyFields = [
+  'geohash_level',
   'route_id',
   'direction_id',
   'oday',
