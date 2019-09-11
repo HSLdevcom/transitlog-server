@@ -19,7 +19,10 @@ export const createRouteJourneysResponse = async (
       return false
     }
 
-    const routeJourneys = journeyEvents.filter(({ lat, long }) => !!lat && !!long)
+    const routeJourneys = journeyEvents.filter(
+      ({ lat, long, geohash_level }) =>
+        !!lat && !!long && (typeof geohash_level === 'number' && geohash_level <= 2)
+    )
 
     if (routeJourneys.length === 0) {
       return false

@@ -165,13 +165,12 @@ ORDER BY tst ASC;
    */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
-    // Diaable until we can optimize this query.
-    return []
+    // Disable until we can optimize this query.
+    // return []
 
     const query = this.db('vehicles')
       .select(routeJourneyFields)
       .where('oday', date)
-      .where('geohash_level', '<=', 2)
       .where('route_id', routeId)
       .where('direction_id', direction)
       .orderBy('tst', 'ASC')
