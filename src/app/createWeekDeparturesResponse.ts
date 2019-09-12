@@ -165,24 +165,27 @@ export const createWeekDeparturesResponse = async (
       () => fetchStops(getStops, date),
       24 * 60 * 60
     )
-    const departuresPromise = getDepartures()
+
+    const departuresPromise: Promise<JoreDeparture[]> = getDepartures()
 
     // Fetch stops and departures in parallel
     const [stops, departures] = await Promise.all([stopsPromise, departuresPromise])
 
     // If either of these fail, we've got nothing of value.
-    // Be aware that stops can be falsy due to being from a CachedFetcher.
+    // Be aware that stops can be falsy due to coming from a CachedFetcher.
     if (!stops || stops.length === 0 || departures.length === 0) {
       return false
     }
 
+    const orderedDepartures = orderBy(departures, ['hours', 'minutes'], 'asc')
+
     // Group and validate departures with date chains.
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
-      departures,
+      orderedDepartures,
       ({ departure_id, extra_departure, day_type }) =>
         // Careful with this group key. You want to group departures that are the same but have different
         // validity times without including any items that shouldn't be included or excluding any items
-        // that should be included.
+        // that should be included. Duh!
         `${departure_id}_${extra_departure}_${day_type}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
@@ -190,46 +193,57 @@ export const createWeekDeparturesResponse = async (
     return combineDeparturesAndStops(validDepartures, stops, exceptions, date)
   }
 
-  const createDepartures: CachedFetcher<Departure[]> = async () => {
-    const departuresCacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}`
-    const departures = await cacheFetch<Departure[]>(
-      departuresCacheKey,
-      fetchDepartures,
-      24 * 60 * 60
-    )
+  const departuresCacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}`
+  const departures = await cacheFetch<Departure[]>(
+    departuresCacheKey,
+    fetchDepartures,
+    24 * 60 * 60
+  )
 
-    if (!departures || departures.length === 0) {
-      return []
-    }
-
-    const journeyTTL: number = 5 * 60
-    const eventsCacheKey = `week_departure_events_${stopId}_${weekNumber}_${routeId}_${direction}`
-    const departureEvents = await cacheFetch<Vehicles[]>(
-      eventsCacheKey,
-      () => fetchEvents(getEvents),
-      journeyTTL
-    )
-
-    // We can still return planned departures without observed events.
-    if (!departureEvents || departureEvents.length === 0) {
-      return orderBy(departures, 'plannedDepartureTime.departureTime')
-    }
-
-    return combineDeparturesAndEvents(departures, departureEvents)
-  }
-
-  // Cache for 5 minutes if current week, one day otherwise.
-  const departuresTTL: number = weekNumber === getISOWeek(new Date()) ? 5 * 60 : 24 * 60 * 60
-  const cacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}`
-  const routeDepartures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
-
-  if (!routeDepartures || routeDepartures.length === 0) {
+  if (!departures || departures.length === 0) {
     return []
   }
 
-  return pMap(routeDepartures, async (departure) => {
-    await setAlertsOnDeparture(departure, getAlerts)
-    await setCancellationsOnDeparture(departure, getCancellations)
-    return departure
-  })
+  const journeyTTL: number = 10 * 60
+  const eventsCacheKey = `week_departure_events_${stopId}_${weekNumber}_${routeId}_${direction}`
+  const departureEvents = await cacheFetch<Vehicles[]>(
+    eventsCacheKey,
+    () => fetchEvents(getEvents),
+    journeyTTL
+  )
+
+  const createDepartureResults = async () => {
+    let routeDepartures: Departure[] = []
+
+    // We can still return planned departures without observed events.
+    if (!departureEvents || departureEvents.length === 0) {
+      routeDepartures = orderBy(departures, 'plannedDepartureTime.departureTime')
+    } else {
+      routeDepartures = combineDeparturesAndEvents(departures, departureEvents)
+    }
+
+    if (!routeDepartures || routeDepartures.length === 0) {
+      return []
+    }
+
+    return pMap(routeDepartures, async (departure) => {
+      await setAlertsOnDeparture(departure, getAlerts)
+      await setCancellationsOnDeparture(departure, getCancellations)
+      return departure
+    })
+  }
+
+  const resultsTTL: number = 10 * 60
+  const resultsCacheKey = `week_departure_results_${stopId}_${routeId}_${direction}_${weekNumber}`
+  const weekDepartures = await cacheFetch<Departure[]>(
+    resultsCacheKey,
+    createDepartureResults,
+    resultsTTL
+  )
+
+  if (!weekDepartures || weekDepartures.length === 0) {
+    return []
+  }
+
+  return weekDepartures
 }

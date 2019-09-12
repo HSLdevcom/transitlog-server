@@ -30,7 +30,7 @@ const st = require('knex-postgis')(knex)
 
 export class JoreDataSource extends SQLDataSource {
   constructor() {
-    super({ log: true, name: 'jore' })
+    super({ log: false, name: 'jore' })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }
@@ -518,9 +518,7 @@ FROM :schema:.departure departure
 WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
-  AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
-ORDER BY departure.hours ASC,
-         departure.minutes ASC;`,
+  AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')});`,
       {
         schema: SCHEMA,
         stopId,

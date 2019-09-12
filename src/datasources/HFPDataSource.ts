@@ -274,9 +274,6 @@ ORDER BY tst ASC;
     routeId: string,
     direction: Direction
   ): Promise<Vehicles[]> {
-    // Disable this query until we have a database that can handle it.
-    return []
-
     const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
     const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
 
