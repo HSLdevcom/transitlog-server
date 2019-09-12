@@ -10,16 +10,14 @@ import {
   CLIENT_ID,
 } from '../constants'
 import join from 'proper-url-join'
+import { AuthenticatedUser } from '../types/Authentication'
 
 export function getUserFromReq(req) {
   const { email = '', groups = [], accessToken = '' } = req.session || {}
   return !accessToken ? null : { email, groups, accessToken }
 }
 
-export function requireUser(
-  user: null | { accessToken: string; groups: string[] },
-  group?: string | string[]
-) {
+export function requireUser(user: AuthenticatedUser, group?: string | string[]) {
   // Make sure we actually have a user
   if (!user || !user.accessToken || (group && (!user.groups || user.groups.length === 0))) {
     return false

@@ -7,6 +7,8 @@ import { cacheFetch } from './cache'
 import { getDirection } from '../utils/getDirection'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
+import { AuthenticatedUser } from '../types/Authentication'
+import { requireUser } from '../auth/requireUser'
 
 export type CancellationSearchProps = {
   all?: boolean
@@ -17,6 +19,7 @@ export type CancellationSearchProps = {
 }
 
 export const getCancellations = async (
+  user: AuthenticatedUser,
   fetchCancellations: (date: string) => DBCancellation[],
   date: string,
   cancellationSearchProps: CancellationSearchProps
@@ -43,6 +46,17 @@ export const getCancellations = async (
 
   if (!cancellations) {
     return []
+  }
+
+  if (!requireUser(user, 'HSL')) {
+    cancellations = cancellations.map((cancellation) => {
+      cancellation.title = ''
+      cancellation.description = ''
+      cancellation.category = ''
+      cancellation.subCategory = ''
+
+      return cancellation
+    })
   }
 
   if (all) {

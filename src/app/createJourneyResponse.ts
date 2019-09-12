@@ -191,7 +191,7 @@ export async function createJourneyResponse(
   departureDate: string,
   departureTime: string,
   uniqueVehicleId: VehicleId,
-  user
+  user?
 ): Promise<Journey | null> {
   // Return the cache key without needing the data if there is a uniqueVehicleId provided.
   // If not, it needs to the data to get the vehicle ID.
@@ -283,19 +283,16 @@ export async function createJourneyResponse(
   }
 
   const events: Vehicles[] = journeyEvents
-  let journeyEquipment: JoreEquipment | null = null
 
-  if (requireUser(user, 'HSL')) {
-    // Get the ID of the vehicle that actually operated this journey and fetch its data.
-    const { owner_operator_id, vehicle_number } = events[0]
-    const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
+  // Get the ID of the vehicle that actually operated this journey and fetch its data.
+  const { owner_operator_id, vehicle_number } = events[0]
+  const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
 
-    const fetchedEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
-      fetchJourneyEquipment(vehicle_number, owner_operator_id)
-    )
+  const fetchedEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
+    fetchJourneyEquipment(vehicle_number, owner_operator_id)
+  )
 
-    journeyEquipment = get(fetchedEquipment, '[0]', null) || null
-  }
+  const journeyEquipment = get(fetchedEquipment, '[0]', null) || null
 
   // Return only the events if no departures were found.
   if (

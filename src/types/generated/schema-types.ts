@@ -464,9 +464,9 @@ export interface Cancellation {
 
   description: string
 
-  category: AlertCategory
+  category: AlertCategory | ''
 
-  subCategory: CancellationSubcategory
+  subCategory: CancellationSubcategory | ''
 
   isCancelled: boolean
 
