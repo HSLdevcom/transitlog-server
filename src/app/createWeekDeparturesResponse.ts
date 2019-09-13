@@ -213,33 +213,46 @@ export const createWeekDeparturesResponse = async (
     journeyTTL
   )
 
-  let routeDepartures: Departure[] = []
+  const createDepartureResults = async () => {
+    let routeDepartures: Departure[] = []
 
-  // We can still return planned departures without observed events.
-  if (!departureEvents || departureEvents.length === 0) {
-    routeDepartures = orderBy(departures, 'plannedDepartureTime.departureTime')
-  } else {
-    routeDepartures = combineDeparturesAndEvents(departures, departureEvents)
+    // We can still return planned departures without observed events.
+    if (!departureEvents || departureEvents.length === 0) {
+      routeDepartures = orderBy(departures, 'plannedDepartureTime.departureTime')
+    } else {
+      routeDepartures = combineDeparturesAndEvents(departures, departureEvents)
+    }
+
+    if (!routeDepartures || routeDepartures.length === 0) {
+      return []
+    }
+
+    const alerts = await getAlerts(date, {
+      allStops: true,
+      allRoutes: true,
+      stop: stopId,
+      route: routeId,
+    })
+
+    const cancellations = await getCancellations(date, { routeId, direction })
+
+    return routeDepartures.map((departure) => {
+      setAlertsOnDeparture(departure, alerts)
+      setCancellationsOnDeparture(departure, cancellations)
+      return departure
+    })
   }
 
-  if (!routeDepartures || routeDepartures.length === 0) {
-    return []
-  }
+  const resultsTTL: number = 10 * 60
+  const resultsCacheKey = `week_departure_results_${stopId}_${routeId}_${direction}_${weekNumber}_${
+    requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
+  }`
 
-  const alerts = await getAlerts(date, {
-    allStops: true,
-    allRoutes: true,
-    stop: stopId,
-    route: routeId,
-  })
-
-  const cancellations = await getCancellations(date, { routeId, direction })
-
-  const weekDepartures = departures.map((departure) => {
-    setAlertsOnDeparture(departure, alerts)
-    setCancellationsOnDeparture(departure, cancellations)
-    return departure
-  })
+  const weekDepartures = await cacheFetch<Departure[]>(
+    resultsCacheKey,
+    createDepartureResults,
+    resultsTTL
+  )
 
   if (!weekDepartures || weekDepartures.length === 0) {
     return []
