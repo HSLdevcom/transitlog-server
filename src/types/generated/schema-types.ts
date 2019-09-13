@@ -264,9 +264,9 @@ export interface Query {
 
   stop?: Maybe<Stop>
 
-  stops: Array<Maybe<SimpleStop>>
+  stops: Array<Maybe<Stop>>
 
-  stopsByBbox: Array<Maybe<SimpleStop>>
+  stopsByBbox: Array<Maybe<Stop>>
 
   route?: Maybe<Route>
 
@@ -342,9 +342,11 @@ export interface Stop extends Position {
 
   radius?: Maybe<number>
 
+  routes: StopRoute[]
+
   modes: Array<Maybe<string>>
 
-  routes: StopRoute[]
+  _matchScore?: Maybe<number>
 
   alerts: Alert[]
 }
@@ -389,38 +391,6 @@ export interface Alert {
   description: string
 
   url?: Maybe<string>
-}
-
-export interface SimpleStop extends Position {
-  id: string
-
-  stopId: string
-
-  shortId: string
-
-  lat: number
-
-  lng: number
-
-  name?: Maybe<string>
-
-  radius?: Maybe<number>
-
-  routes: SimpleRoute[]
-
-  modes: Array<Maybe<string>>
-
-  _matchScore?: Maybe<number>
-
-  alerts: Alert[]
-}
-
-export interface SimpleRoute {
-  routeId: string
-
-  direction: Direction
-
-  isTimingStop: boolean
 }
 
 export interface Route {

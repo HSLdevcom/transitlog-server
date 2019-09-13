@@ -1,14 +1,13 @@
 import {
+  AlertDistribution,
   BBox,
-  SimpleRoute,
-  SimpleStop,
   Stop,
   StopFilterInput,
   StopRoute,
 } from '../types/generated/schema-types'
 import { JoreLine, JoreRoute, JoreRouteSegment, JoreStop } from '../types/Jore'
 import { cacheFetch } from './cache'
-import { createSimpleStopObject, createStopObject } from './objects/createStopObject'
+import { createStopObject } from './objects/createStopObject'
 import { search } from './filters/search'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { groupBy, orderBy, uniqBy } from 'lodash'
@@ -18,7 +17,6 @@ import format from 'date-fns/format'
 import { filterStopsByBBox } from './filters/filterStopsByBBox'
 import { ValidityRange } from '../types/ValidityRange'
 import { Dictionary } from '../types/Dictionary'
-import pMap from 'p-map'
 
 // Result from the query is a join of a stop and route segments.
 type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute & JoreLine
@@ -93,8 +91,8 @@ export async function createStopsResponse(
   date?: string,
   filter?: StopFilterInput,
   bbox: BBox | null = null
-): Promise<SimpleStop[]> {
-  const fetchStops: CachedFetcher<SimpleStop[]> = async () => {
+): Promise<Stop[]> {
+  const fetchStops: CachedFetcher<Stop[]> = async () => {
     const fetchedStops = await getStops()
 
     if (!fetchedStops || fetchedStops.length === 0) {
@@ -126,8 +124,11 @@ export async function createStopsResponse(
         const useStop = existingStop || stop
         useStop.routes = useStop.routes || []
 
-        const route: SimpleRoute | null = stop.route_id
+        const route: StopRoute | null = stop.route_id
           ? {
+              id: `stop_route_${stop.route_id}_${stop.route_id}_${stop.date_begin}_${
+                stop.date_end
+              }`,
               routeId: stop.route_id || '',
               direction: getDirection(stop.direction),
               isTimingStop: !!stop.timing_stop_type,
@@ -151,11 +152,21 @@ export async function createStopsResponse(
       }, [])
     }
 
-    return stopData.map((stop) => createSimpleStopObject(stop))
+    const currentTime = date || format(new Date(), 'YYYY-MM-DD')
+    const alerts = await getAlerts(currentTime, { allStops: true, stop: true })
+
+    return stopData.map((stop) => {
+      const stopAlerts = alerts.filter(
+        (alert) =>
+          alert.distribution === AlertDistribution.AllStops || alert.affectedId === stop.stop_id
+      )
+
+      return createStopObject(stop, stop.routes, stopAlerts)
+    })
   }
 
   const cacheKey = `stops_${date || 'undated'}`
-  const stops = await cacheFetch<SimpleStop[]>(cacheKey, fetchStops, 24 * 60 * 60)
+  const stops = await cacheFetch<Stop[]>(cacheKey, fetchStops, 24 * 60 * 60)
 
   if (!stops) {
     return []
@@ -168,19 +179,12 @@ export async function createStopsResponse(
   }
 
   if (filter && filter.search) {
-    filteredStops = search<SimpleStop>(stops, filter.search, [
+    filteredStops = search<Stop>(stops, filter.search, [
       { name: 'shortId', weight: 0.7 },
       { name: 'name', weight: 0.1 },
       { name: 'stopId', weight: 0.2 },
     ])
   }
-
-  const currentTime = date || format(new Date(), 'YYYY-MM-DD')
-
-  filteredStops = await pMap(filteredStops, async (stop) => {
-    stop.alerts = await getAlerts(currentTime, { allStops: true, stop: stop.stopId })
-    return stop
-  })
 
   return filteredStops
 }

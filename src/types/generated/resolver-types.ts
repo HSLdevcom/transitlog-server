@@ -289,9 +289,9 @@ export namespace QueryResolvers {
 
     stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
 
-    stops?: StopsResolver<Array<Maybe<SimpleStop>>, TypeParent, TContext>
+    stops?: StopsResolver<Array<Maybe<Stop>>, TypeParent, TContext>
 
-    stopsByBbox?: StopsByBboxResolver<Array<Maybe<SimpleStop>>, TypeParent, TContext>
+    stopsByBbox?: StopsByBboxResolver<Array<Maybe<Stop>>, TypeParent, TContext>
 
     route?: RouteResolver<Maybe<Route>, TypeParent, TContext>
 
@@ -350,7 +350,7 @@ export namespace QueryResolvers {
     date: Date
   }
 
-  export type StopsResolver<R = Array<Maybe<SimpleStop>>, Parent = {}, TContext = {}> = Resolver<
+  export type StopsResolver<R = Array<Maybe<Stop>>, Parent = {}, TContext = {}> = Resolver<
     R,
     Parent,
     TContext,
@@ -362,11 +362,12 @@ export namespace QueryResolvers {
     filter?: Maybe<StopFilterInput>
   }
 
-  export type StopsByBboxResolver<
-    R = Array<Maybe<SimpleStop>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, StopsByBboxArgs>
+  export type StopsByBboxResolver<R = Array<Maybe<Stop>>, Parent = {}, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext,
+    StopsByBboxArgs
+  >
   export interface StopsByBboxArgs {
     filter?: Maybe<StopFilterInput>
 
@@ -691,9 +692,11 @@ export namespace StopResolvers {
 
     radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
 
+    routes?: RoutesResolver<StopRoute[], TypeParent, TContext>
+
     modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
 
-    routes?: RoutesResolver<StopRoute[], TypeParent, TContext>
+    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
   }
@@ -721,12 +724,17 @@ export namespace StopResolvers {
     Parent,
     TContext
   >
+  export type RoutesResolver<R = StopRoute[], Parent = Stop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type ModesResolver<R = Array<Maybe<string>>, Parent = Stop, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
   >
-  export type RoutesResolver<R = StopRoute[], Parent = Stop, TContext = {}> = Resolver<
+  export type _MatchScoreResolver<R = Maybe<number>, Parent = Stop, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -871,114 +879,6 @@ export namespace AlertResolvers {
     TContext
   >
   export type UrlResolver<R = Maybe<string>, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-}
-
-export namespace SimpleStopResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = SimpleStop> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    stopId?: StopIdResolver<string, TypeParent, TContext>
-
-    shortId?: ShortIdResolver<string, TypeParent, TContext>
-
-    lat?: LatResolver<number, TypeParent, TContext>
-
-    lng?: LngResolver<number, TypeParent, TContext>
-
-    name?: NameResolver<Maybe<string>, TypeParent, TContext>
-
-    radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
-
-    routes?: RoutesResolver<SimpleRoute[], TypeParent, TContext>
-
-    modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
-
-    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopIdResolver<R = string, Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ShortIdResolver<R = string, Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LatResolver<R = number, Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LngResolver<R = number, Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type NameResolver<R = Maybe<string>, Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RadiusResolver<R = Maybe<number>, Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RoutesResolver<R = SimpleRoute[], Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ModesResolver<
-    R = Array<Maybe<string>>,
-    Parent = SimpleStop,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type _MatchScoreResolver<R = Maybe<number>, Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type AlertsResolver<R = Alert[], Parent = SimpleStop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-}
-
-export namespace SimpleRouteResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = SimpleRoute> {
-    routeId?: RouteIdResolver<string, TypeParent, TContext>
-
-    direction?: DirectionResolver<Direction, TypeParent, TContext>
-
-    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
-  }
-
-  export type RouteIdResolver<R = string, Parent = SimpleRoute, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DirectionResolver<R = Direction, Parent = SimpleRoute, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type IsTimingStopResolver<R = boolean, Parent = SimpleRoute, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -2477,8 +2377,8 @@ export namespace PositionResolvers {
     __resolveType: ResolveType
   }
   export type ResolveType<
-    R = 'Stop' | 'SimpleStop' | 'RouteGeometryPoint' | 'RouteSegment' | 'JourneyEvent',
-    Parent = Stop | SimpleStop | RouteGeometryPoint | RouteSegment | JourneyEvent,
+    R = 'Stop' | 'RouteGeometryPoint' | 'RouteSegment' | 'JourneyEvent',
+    Parent = Stop | RouteGeometryPoint | RouteSegment | JourneyEvent,
     TContext = {}
   > = TypeResolveFn<R, Parent, TContext>
 }
@@ -2550,8 +2450,6 @@ export type IResolvers<TContext = {}> = {
   Stop?: StopResolvers.Resolvers<TContext>
   StopRoute?: StopRouteResolvers.Resolvers<TContext>
   Alert?: AlertResolvers.Resolvers<TContext>
-  SimpleStop?: SimpleStopResolvers.Resolvers<TContext>
-  SimpleRoute?: SimpleRouteResolvers.Resolvers<TContext>
   Route?: RouteResolvers.Resolvers<TContext>
   Cancellation?: CancellationResolvers.Resolvers<TContext>
   RouteGeometry?: RouteGeometryResolvers.Resolvers<TContext>

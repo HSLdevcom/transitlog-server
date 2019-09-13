@@ -1,8 +1,8 @@
 import BoundingBox from 'boundingbox'
 import { BBox } from '../../types/BBox'
-import { SimpleStop, Stop } from '../../types/generated/schema-types'
+import { Stop } from '../../types/generated/schema-types'
 
-export function filterStopsByBBox(stops: Array<Stop | SimpleStop>, bbox: BBox) {
+export function filterStopsByBBox(stops: Array<Stop | Stop>, bbox: BBox) {
   const bounds = new BoundingBox({
     minlat: bbox.minLat,
     minlon: bbox.minLng,

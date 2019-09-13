@@ -13,8 +13,8 @@ export type AlertSearchProps = {
   network?: boolean
   allRoutes?: boolean
   allStops?: boolean
-  route?: string | string[]
-  stop?: string | string[]
+  route?: string | string[] | boolean
+  stop?: string | string[] | boolean
 }
 
 export const getAlerts = async (
@@ -23,14 +23,17 @@ export const getAlerts = async (
   searchProps: AlertSearchProps = {},
   language: string = 'fi'
 ): Promise<Alert[]> => {
-  const timeMoment = moment.tz(dateTime, TZ).startOf('day')
+  const startTimeMoment = moment.tz(dateTime, TZ).startOf('day')
   const endTimeMoment = moment
-    .tz(timeMoment, TZ)
+    .tz(startTimeMoment, TZ)
     .endOf('day')
     .add(4.5, 'hours')
 
   const alertsFetcher: CachedFetcher<Alert[]> = async () => {
-    const alerts = await fetchAlerts(timeMoment.toISOString(true), endTimeMoment.toISOString(true))
+    const alerts = await fetchAlerts(
+      startTimeMoment.toISOString(true),
+      endTimeMoment.toISOString(true)
+    )
 
     if (alerts.length === 0) {
       return false
@@ -39,8 +42,13 @@ export const getAlerts = async (
     return alerts.map((alert) => createAlert(alert, language))
   }
 
-  const alertsCacheKey = `alerts_${timeMoment.toISOString(true)}_${language}`
-  const alerts = await cacheFetch<Alert[]>(alertsCacheKey, alertsFetcher, 24 * 60 * 60)
+  const alertsCacheKey = `alerts_${startTimeMoment.format('YYYY-MM-DD')}_${language}`
+  const dateIsToday = startTimeMoment.isSame(new Date(), 'day')
+  const alerts = await cacheFetch<Alert[]>(
+    alertsCacheKey,
+    alertsFetcher,
+    dateIsToday ? 5 * 60 : 24 * 60 * 60
+  )
 
   if (!alerts) {
     return []
@@ -54,11 +62,17 @@ export const getAlerts = async (
     let match = false
 
     if (searchProps.route) {
-      match = distribution === AlertDistribution.Route && affectedId === searchProps.route
+      match =
+        typeof searchProps.route === 'boolean'
+          ? searchProps.route
+          : distribution === AlertDistribution.Route && affectedId === searchProps.route
     }
 
     if (searchProps.stop) {
-      match = distribution === AlertDistribution.Stop && affectedId === searchProps.stop
+      match =
+        typeof searchProps.stop === 'boolean'
+          ? searchProps.stop
+          : distribution === AlertDistribution.Stop && affectedId === searchProps.stop
     }
 
     if (searchProps.allRoutes) {

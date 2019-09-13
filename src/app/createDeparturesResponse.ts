@@ -13,7 +13,7 @@ import {
   createDepartureJourneyObject,
   createPlannedDepartureObject,
 } from './objects/createDepartureObject'
-import { createSimpleStopObject } from './objects/createStopObject'
+import { createStopObject } from './objects/createStopObject'
 import { getDirection } from '../utils/getDirection'
 import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
@@ -57,7 +57,7 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
   // Create a combo of the stop data and the route segment. The segment acts as glue between
   // the stop and the route, carrying such data as timing stop status.
   return validSegments.map((segment) => {
-    const stop = createSimpleStopObject(segment)
+    const stop = createStopObject(segment)
 
     return {
       destination: segment.destination_fi || '',

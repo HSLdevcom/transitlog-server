@@ -302,18 +302,28 @@ ORDER BY tst ASC;
     return this.getBatched(query)
   }
 
-  getAlerts = async (startDate: string, endDate: string): Promise<DBAlert[]> => {
+  getAlerts = async (minDate: string, maxDate: string): Promise<DBAlert[]> => {
     const query = this.db('alert')
-      .select(alertFields)
-      .where('valid_from', '>=', startDate)
-      .orWhere('valid_to', '<=', endDate)
+      .select(
+        this.db.raw(
+          `DISTINCT ON ("valid_from", "valid_to", "stop_id", "route_id") ${alertFields.join(',')}`
+        )
+      )
+      .where((builder) =>
+        builder.where('valid_from', '<=', minDate).andWhere('valid_to', '>=', minDate)
+      )
+      .orWhere((builder) =>
+        builder.where('valid_from', '<=', maxDate).andWhere('valid_to', '>=', maxDate)
+      )
       .orderBy([
         { column: 'valid_from', order: 'asc' },
         { column: 'valid_to', order: 'desc' },
+        { column: 'stop_id', order: 'asc' },
+        { column: 'route_id', order: 'asc' },
         { column: 'last_modified', order: 'desc' },
       ])
 
-    return this.getCachedAndBatched(query, 24 * 60 * 60)
+    return this.getBatched(query)
   }
 
   getCancellations = async (date: string): Promise<DBCancellation[]> => {
@@ -322,6 +332,6 @@ ORDER BY tst ASC;
       .where('start_date', date)
       .orderBy([{ column: 'last_modified', order: 'desc' }, { column: 'start_time', order: 'asc' }])
 
-    return this.getCachedAndBatched(query, 24 * 60 * 60)
+    return this.getBatched(query)
   }
 }

@@ -1,8 +1,8 @@
 import * as express from 'express'
 import * as AuthService from './authService'
-import { HSL_GROUP_NAME, ALLOW_DEV_LOGIN, REDIRECT_URI } from '../constants'
+import { ALLOW_DEV_LOGIN, HSL_GROUP_NAME, REDIRECT_URI } from '../constants'
 import { getSettings } from '../datasources/transitlogServer'
-import { get, difference, compact, groupBy, map, flatten, uniq } from 'lodash'
+import { compact, difference, flatten, get, groupBy, map, uniq } from 'lodash'
 
 interface IAuthRequest {
   code: string
@@ -68,13 +68,15 @@ const authorize = async (req: express.Request, res: express.Response) => {
 
       // Get IDs for each group and remove undefineds.
       const groupIds = compact(
-        assignToGroups.map((groupName) =>
-          get(groupsResponse.resources.find((element) => element.name === groupName), 'id')
-        )
+        assignToGroups.map((groupName) => {
+          const resources = get(groupsResponse, 'resources', [])
+          return get(resources.find((element) => element.name === groupName), 'id', '')
+        })
       )
 
       const userResponse = await AuthService.requestInfoByUserId(req.session.userId)
-      const groups = [...userResponse.memberOf, ...groupIds]
+      const memberships = get(userResponse, 'memberOf', [])
+      const groups = [...memberships, ...groupIds]
 
       await AuthService.setGroup(req.session.userId, groups)
       const newUserInfo = await AuthService.requestUserInfo(req.session.accessToken)

@@ -1,4 +1,4 @@
-import { SimpleRoute } from './generated/schema-types'
+import { StopRoute } from './generated/schema-types'
 
 export type Maybe<T> = T | null
 
@@ -91,7 +91,7 @@ export interface JoreStop {
   direction?: string
   date_begin?: string
   date_end?: string
-  routes?: SimpleRoute[]
+  routes?: StopRoute[]
 }
 
 export interface JoreRoute {
