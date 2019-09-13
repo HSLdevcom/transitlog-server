@@ -7,3 +7,4 @@ postgres-data
 .env.local
 schema.graphql
 secrets
+data

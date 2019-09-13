@@ -1,12 +1,12 @@
 import { JoreRoute } from '../../types/Jore'
 import { get } from 'lodash'
-import { RouteFilterInput } from '../../types/generated/schema-types'
+import { Route, RouteFilterInput } from '../../types/generated/schema-types'
 import { search } from './search'
 import { getDirection } from '../../utils/getDirection'
 
-export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteFilterInput) {
+export function filterRoutes(routes: Route[], line?: string, filter?: RouteFilterInput) {
   if (line) {
-    return routes.filter((route) => get(route, 'line_id', '') === line)
+    return routes.filter((route) => get(route, 'lineId', '') === line)
   }
 
   const routeIdFilter = get(filter, 'routeId', '')
@@ -14,8 +14,7 @@ export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteF
 
   if (routeIdFilter && directionFilter) {
     return routes.filter(
-      (route) =>
-        route.route_id === routeIdFilter && getDirection(route.direction) === directionFilter
+      (route) => route.routeId === routeIdFilter && route.direction === directionFilter
     )
   }
 
@@ -30,11 +29,5 @@ export function filterRoutes(routes: JoreRoute[], line?: string, filter?: RouteF
     return routes
   }
 
-  return search<JoreRoute>(routes, searchFilter, [
-    'route_id',
-    'direction',
-    'name_fi',
-    'originstop_id',
-    'destinationstop_id',
-  ])
+  return search<Route>(routes, searchFilter, ['routeId', 'direction', 'name'])
 }

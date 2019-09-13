@@ -22,6 +22,7 @@ import {
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import pMap from 'p-map'
+import { requireUser } from '../auth/requireUser'
 
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
@@ -115,6 +116,7 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
  */
 
 export async function createRouteDeparturesResponse(
+  user,
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
   getEvents: () => Promise<Vehicles[]>,
@@ -187,25 +189,39 @@ export async function createRouteDeparturesResponse(
       journeyTTL
     )
 
+    const alerts = await getAlerts(date, {
+      allStops: true,
+      allRoutes: true,
+      stop: stopId,
+      route: routeId,
+    })
+
+    const cancellations = await getCancellations(date, { routeId, direction })
+
+    const departuresWithAlerts = departures.map((departure) => {
+      setAlertsOnDeparture(departure, alerts)
+      setCancellationsOnDeparture(departure, cancellations)
+      return departure
+    })
+
     // We can still return planned departures without observed events.
     if (!departureEvents || departureEvents.length === 0) {
-      return orderBy(departures, 'plannedDepartureTime.departureTime')
+      return orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
     }
 
-    return combineDeparturesAndEvents(departures, departureEvents, date)
+    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date)
   }
 
   const departuresTTL: number = isToday(date) ? 5 : 30 * 24 * 60 * 60
-  const cacheKey = `route_departures_${stopId}_${routeId}_${direction}_${date}`
+  const cacheKey = `route_departures_${stopId}_${routeId}_${direction}_${date}_${
+    requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
+  }`
+
   const routeDepartures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
 
   if (!routeDepartures || routeDepartures.length === 0) {
     return []
   }
 
-  return pMap(routeDepartures, async (departure) => {
-    await setAlertsOnDeparture(departure, getAlerts)
-    await setCancellationsOnDeparture(departure, getCancellations)
-    return departure
-  })
+  return routeDepartures
 }

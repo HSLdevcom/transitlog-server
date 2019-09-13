@@ -59,7 +59,7 @@ const routes = async (root, { filter, line, date }, { dataSources, user }) => {
   const fetchCancellations = getCancellations.bind(null, user, dataSources.HFPAPI.getCancellations)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
-  return createRoutesResponse(getRoutes, fetchCancellations, fetchAlerts, date, line, filter)
+  return createRoutesResponse(user, getRoutes, fetchCancellations, fetchAlerts, date, line, filter)
 }
 
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
@@ -74,6 +74,7 @@ const routeSegments = (root, { routeId, direction, date }, { dataSources, user }
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   return createRouteSegmentsResponse(
+    user,
     getRouteSegments,
     fetchCancellations,
     fetchAlerts,
@@ -98,6 +99,7 @@ const departures = async (root, { filter, stopId, date }, { dataSources, user })
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   return createDeparturesResponse(
+    user,
     getDepartures,
     getStops,
     getDepartureEvents,
@@ -127,6 +129,7 @@ const routeDepartures = async (
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   return createRouteDeparturesResponse(
+    user,
     getDepartures,
     getStops,
     getDepartureEvents,
@@ -169,6 +172,7 @@ const weeklyDepartures = async (
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   return createWeekDeparturesResponse(
+    user,
     getDepartures,
     getStops,
     getDepartureEvents,

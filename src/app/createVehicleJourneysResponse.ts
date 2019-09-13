@@ -4,9 +4,8 @@ import { cacheFetch } from './cache'
 import { createVehicleJourneyObject } from './objects/createVehicleJourneyObject'
 import { groupBy, map, orderBy, compact } from 'lodash'
 import { findJourneyStartEvent } from '../utils/findJourneyStartEvent'
-import { isToday } from 'date-fns'
+import { isToday, isWithinRange } from 'date-fns'
 import { Vehicles } from '../types/EventsDb'
-import pMap from 'p-map'
 
 export const createVehicleJourneysResponse = async (
   getVehicleJourneys: () => Promise<Vehicles[] | null>,
@@ -28,8 +27,18 @@ export const createVehicleJourneysResponse = async (
       )
     )
 
+    const alerts = await getAlerts(date, { allRoutes: true, route: true })
+
     return journeyEvents.map((journey) => {
-      return createVehicleJourneyObject(journey)
+      const journeyAlerts = alerts.filter((alert) => {
+        if (!isWithinRange(journey.tst, alert.startDateTime, alert.endDateTime)) {
+          return false
+        }
+
+        return alert.affectedId === journey.route_id
+      })
+
+      return createVehicleJourneyObject(journey, journeyAlerts)
     })
   }
 
@@ -43,13 +52,5 @@ export const createVehicleJourneysResponse = async (
     return []
   }
 
-  return pMap(journeys, async (journey) => {
-    journey.alerts = await getAlerts(journey.recordedAt, {
-      allRoutes: true,
-      route: journey.routeId,
-      stop: journey.nextStopId,
-    })
-
-    return journey
-  })
+  return journeys
 }

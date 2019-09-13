@@ -1,7 +1,7 @@
 import { getDirection } from '../../utils/getDirection'
 import { createStopObject } from './createStopObject'
 import { get } from 'lodash'
-import { Alert, RouteSegment } from '../../types/generated/schema-types'
+import { Alert, Cancellation, RouteSegment } from '../../types/generated/schema-types'
 import { JoreRoute, JoreRouteData } from '../../types/Jore'
 
 export function createSegmentId(routeSegment) {
@@ -13,7 +13,8 @@ export function createSegmentId(routeSegment) {
 export const createRouteSegmentObject = (
   routeSegment: JoreRouteData,
   route?: JoreRoute | null,
-  alerts: Alert[] = []
+  alerts: Alert[] = [],
+  cancellations: Cancellation[] = []
 ): RouteSegment => {
   return {
     ...createStopObject(routeSegment),
@@ -29,6 +30,6 @@ export const createRouteSegmentObject = (
     stopIndex: routeSegment.stop_index,
     isTimingStop: !!routeSegment.timing_stop_type,
     alerts,
-    cancellations: [],
+    cancellations,
   }
 }

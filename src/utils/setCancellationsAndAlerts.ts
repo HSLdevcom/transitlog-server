@@ -1,52 +1,76 @@
 import { getLatestCancellationState } from './getLatestCancellationState'
-import { Departure } from '../types/generated/schema-types'
-import { get } from 'lodash'
+import { Alert, AlertDistribution, Cancellation, Departure } from '../types/generated/schema-types'
+import { isWithinRange, parse } from 'date-fns'
 
-export const setCancellationsOnDeparture = async (departure: Departure, getCancellations) => {
+export const setCancellationsOnDeparture = (
+  departure: Departure,
+  cancellations: Cancellation[]
+) => {
   const departureTime = departure.originDepartureTime
     ? departure.originDepartureTime.departureTime
     : departure.plannedDepartureTime.departureTime
 
-  const cancellations = await getCancellations(departure.plannedDepartureTime.departureDate, {
-    routeId: departure.routeId,
-    direction: departure.direction,
-    departureTime: departureTime.slice(0, 5),
-  })
+  const departureCancellations: Cancellation[] = cancellations.filter(
+    (cancellation) =>
+      cancellation.routeId === departure.routeId &&
+      cancellation.direction === departure.direction &&
+      departureTime.startsWith(cancellation.journeyStartTime)
+  )
 
   const isCancelled =
-    cancellations.length !== 0 && getLatestCancellationState(cancellations)[0].isCancelled
+    departureCancellations.length !== 0 &&
+    getLatestCancellationState(departureCancellations)[0].isCancelled
 
   departure.isCancelled = isCancelled
-  departure.cancellations = cancellations
+  departure.cancellations = departureCancellations
 
   if (departure.journey) {
-    departure.journey.cancellations = cancellations
+    departure.journey.cancellations = departureCancellations
     departure.journey.isCancelled = isCancelled
   }
 
-  return { cancellations, isCancelled, departure }
+  return { cancellations: departureCancellations, isCancelled, departure }
 }
 
-export const setAlertsOnDeparture = async (departure: Departure, getAlerts) => {
-  const alertTime = departure.observedDepartureTime
-    ? departure.observedDepartureTime.departureDateTime
-    : departure.plannedDepartureTime.departureDateTime
+export const setAlertsOnDeparture = (departure: Departure, alerts: Alert[]) => {
+  const alertTime = parse(
+    departure.observedDepartureTime
+      ? departure.observedDepartureTime.departureDateTime
+      : departure.plannedDepartureTime.departureDateTime
+  )
 
-  const alerts = await getAlerts(departure.plannedDepartureTime.departureDateTime, {
-    allStops: true,
-    allRoutes: true,
-    route: departure.routeId,
-    stop: departure.stopId,
-  })
+  const departureAlerts: Alert[] = []
+  const stopAlerts: Alert[] = []
 
-  departure.alerts = alerts
+  for (const alert of alerts) {
+    if (!isWithinRange(alertTime, alert.startDateTime, alert.endDateTime)) {
+      continue
+    }
+
+    if (
+      alert.distribution === AlertDistribution.AllStops ||
+      alert.affectedId === departure.stopId
+    ) {
+      departureAlerts.push(alert)
+      stopAlerts.push(alert)
+    }
+
+    if (
+      alert.distribution === AlertDistribution.AllRoutes ||
+      alert.affectedId === departure.routeId
+    ) {
+      departureAlerts.push(alert)
+    }
+  }
+
+  departure.alerts = departureAlerts
 
   if (departure.journey) {
-    departure.journey.alerts = alerts
+    departure.journey.alerts = departureAlerts
   }
 
   if (departure.stop) {
-    departure.stop.alerts = await getAlerts(alertTime, { allStops: true, stop: departure.stopId })
+    departure.stop.alerts = stopAlerts
   }
 
   return alerts

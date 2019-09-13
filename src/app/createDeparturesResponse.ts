@@ -29,6 +29,7 @@ import {
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import pMap from 'p-map'
+import { requireUser } from '../auth/requireUser'
 
 /*
   Common functions for route departures and stop departures.
@@ -195,6 +196,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
  */
 
 export async function createDeparturesResponse(
+  user,
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
   getEvents: () => Promise<Vehicles[]>,
@@ -260,28 +262,39 @@ export async function createDeparturesResponse(
       journeyTTL
     )
 
+    const alerts = await getAlerts(date, {
+      allStops: true,
+      allRoutes: true,
+      stop: true,
+      route: true,
+    })
+
+    const cancellations = await getCancellations(date, { all: true })
+
+    const departuresWithAlerts = departures.map((departure) => {
+      setAlertsOnDeparture(departure, alerts)
+      setCancellationsOnDeparture(departure, cancellations)
+      return departure
+    })
+
     // We can still return planned departures without observed events.
     if (!departureEvents || departureEvents.length === 0) {
-      return orderBy(departures, 'plannedDepartureTime.departureTime')
+      return orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
     }
 
-    return combineDeparturesAndEvents(departures, departureEvents, date)
+    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date)
   }
 
   const departuresTTL: number = isToday(date) ? 5 : 30 * 24 * 60 * 60
-  const cacheKey = `stop_departures_${stopId}_${date}`
+  const cacheKey = `stop_departures_${stopId}_${date}_${
+    requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
+  }`
+
   const departures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
 
   if (!departures || departures.length === 0) {
     return []
   }
 
-  const departuresWithAlerts = await pMap(departures, async (departure) => {
-    await setAlertsOnDeparture(departure, getAlerts)
-    await setCancellationsOnDeparture(departure, getCancellations)
-
-    return departure
-  })
-
-  return filterDepartures(departuresWithAlerts, filters)
+  return filterDepartures(departures, filters)
 }

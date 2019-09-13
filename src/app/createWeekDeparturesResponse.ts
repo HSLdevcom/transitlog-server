@@ -24,7 +24,7 @@ import {
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
-import pMap from 'p-map'
+import { requireUser } from '../auth/requireUser'
 
 const combineDeparturesAndEvents = (departures, events): Departure[] => {
   // Link observed events to departures.
@@ -142,6 +142,7 @@ export const combineDeparturesAndStops = (
 }
 
 export const createWeekDeparturesResponse = async (
+  user,
   getDepartures,
   getStops,
   getEvents,
@@ -226,15 +227,27 @@ export const createWeekDeparturesResponse = async (
       return []
     }
 
-    return pMap(routeDepartures, async (departure) => {
-      await setAlertsOnDeparture(departure, getAlerts)
-      await setCancellationsOnDeparture(departure, getCancellations)
+    const alerts = await getAlerts(date, {
+      allStops: true,
+      allRoutes: true,
+      stop: stopId,
+      route: routeId,
+    })
+
+    const cancellations = await getCancellations(date, { routeId, direction })
+
+    return departures.map((departure) => {
+      setAlertsOnDeparture(departure, alerts)
+      setCancellationsOnDeparture(departure, cancellations)
       return departure
     })
   }
 
   const resultsTTL: number = 10 * 60
-  const resultsCacheKey = `week_departure_results_${stopId}_${routeId}_${direction}_${weekNumber}`
+  const resultsCacheKey = `week_departure_results_${stopId}_${routeId}_${direction}_${weekNumber}_${
+    requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
+  }`
+
   const weekDepartures = await cacheFetch<Departure[]>(
     resultsCacheKey,
     createDepartureResults,

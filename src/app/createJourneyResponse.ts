@@ -167,7 +167,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param fetchRouteData Async function that fetches the route and departures from Jore
  * @param fetchJourneyEvents Async function that fetches the HFP events
  * @param fetchJourneyEquipment Async function that fetches the equipment that operated this journey.
- * @param getCancellations
+ * @param getCancellations Async function that returns cancellations
+ * @param getAlerts Async function that returns alerts
  * @param exceptions Exceptions in effect during departureDate
  * @param routeId The route ID of the requested journey
  * @param direction The direction of the requested journey
@@ -190,8 +191,7 @@ export async function createJourneyResponse(
   direction: Direction,
   departureDate: string,
   departureTime: string,
-  uniqueVehicleId: VehicleId,
-  user?
+  uniqueVehicleId: VehicleId
 ): Promise<Journey | null> {
   // Return the cache key without needing the data if there is a uniqueVehicleId provided.
   // If not, it needs to the data to get the vehicle ID.
@@ -332,8 +332,7 @@ export async function createJourneyResponse(
         ? getStopDepartureData(stopEvents, departure, departureDate)
         : null
 
-      // TODO: Require authorization for showing alerts
-      await setAlertsOnDeparture(departure, getAlerts)
+      setAlertsOnDeparture(departure, journeyAlerts)
 
       const cancellationTime = cancellationState ? cancellationState.lastModifiedDateTime : null
       const stopTime = stopDeparture
