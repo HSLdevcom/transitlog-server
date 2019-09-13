@@ -108,6 +108,7 @@ export enum AlertCategory {
   PowerFailure = 'POWER_FAILURE',
   MisparkedVehicle = 'MISPARKED_VEHICLE',
   PublicEvent = 'PUBLIC_EVENT',
+  Hidden = 'HIDDEN',
 }
 
 export enum AlertDistribution {
@@ -188,6 +189,7 @@ export enum CancellationSubcategory {
   OtherOperatorReason = 'OTHER_OPERATOR_REASON',
   DoorMalfunction = 'DOOR_MALFUNCTION',
   UnknownCause = 'UNKNOWN_CAUSE',
+  Hidden = 'HIDDEN',
 }
 
 export enum CancellationType {

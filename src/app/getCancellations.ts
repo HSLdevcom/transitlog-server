@@ -1,4 +1,8 @@
-import { Cancellation } from '../types/generated/schema-types'
+import {
+  AlertCategory,
+  Cancellation,
+  CancellationSubcategory,
+} from '../types/generated/schema-types'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import { DBCancellation } from '../types/EventsDb'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -52,8 +56,8 @@ export const getCancellations = async (
     cancellations = cancellations.map((cancellation) => {
       cancellation.title = ''
       cancellation.description = ''
-      cancellation.category = ''
-      cancellation.subCategory = ''
+      cancellation.category = AlertCategory.Hidden
+      cancellation.subCategory = CancellationSubcategory.Hidden
 
       return cancellation
     })

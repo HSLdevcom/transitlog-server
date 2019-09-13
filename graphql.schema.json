@@ -1669,7 +1669,8 @@
             "description": "",
             "isDeprecated": false,
             "deprecationReason": null
-          }
+          },
+          { "name": "HIDDEN", "description": "", "isDeprecated": false, "deprecationReason": null }
         ],
         "possibleTypes": null
       },
@@ -2674,7 +2675,8 @@
             "description": "",
             "isDeprecated": false,
             "deprecationReason": null
-          }
+          },
+          { "name": "HIDDEN", "description": "", "isDeprecated": false, "deprecationReason": null }
         ],
         "possibleTypes": null
       },
