@@ -19,6 +19,7 @@ import { Alert, Cancellation } from '../types/generated/schema-types'
 import { getAlerts } from '../app/getAlerts'
 import { getCancellations } from '../app/getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
+import { createUnsignedJourneysResponse } from '../app/createUnsignedJourneysResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -119,6 +120,16 @@ const routeDepartures = async (
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
 
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
+
+  if (routeId === 'unsigned') {
+    return createUnsignedJourneysResponse(
+      user,
+      () => dataSources.HFPAPI.getUnsignedEvents(date),
+      date
+    )
+  }
+
   const getDepartures = () =>
     dataSources.JoreAPI.getDeparturesForRoute(stopId, routeId, direction, date)
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
@@ -126,7 +137,6 @@ const routeDepartures = async (
     dataSources.HFPAPI.getRouteDepartureEvents(stopId, date, routeId, direction)
 
   const fetchCancellations = getCancellations.bind(null, user, dataSources.HFPAPI.getCancellations)
-  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   return createRouteDeparturesResponse(
     user,

@@ -161,6 +161,21 @@ ORDER BY tst ASC;
   }
 
   /*
+   * Get the journeys for a vehicle. Only journey start time required. Shown in the sidebar
+   * list of vehicle journeys when a vehicle is selected.
+   */
+
+  async getUnsignedEvents(date): Promise<Vehicles[]> {
+    const query = this.db('vehicles')
+      .select(vehicleFields)
+      .where('oday', date)
+      .where('journey_start_time', null)
+      .orderBy('tst', 'ASC')
+
+    return this.getBatched(query)
+  }
+
+  /*
    * Get all events for a route. Drawn on map after route selection but before
    * departure selection.
    */
