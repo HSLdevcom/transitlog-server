@@ -213,46 +213,33 @@ export const createWeekDeparturesResponse = async (
     journeyTTL
   )
 
-  const createDepartureResults = async () => {
-    let routeDepartures: Departure[] = []
+  let routeDepartures: Departure[] = []
 
-    // We can still return planned departures without observed events.
-    if (!departureEvents || departureEvents.length === 0) {
-      routeDepartures = orderBy(departures, 'plannedDepartureTime.departureTime')
-    } else {
-      routeDepartures = combineDeparturesAndEvents(departures, departureEvents)
-    }
-
-    if (!routeDepartures || routeDepartures.length === 0) {
-      return []
-    }
-
-    const alerts = await getAlerts(date, {
-      allStops: true,
-      allRoutes: true,
-      stop: stopId,
-      route: routeId,
-    })
-
-    const cancellations = await getCancellations(date, { routeId, direction })
-
-    return departures.map((departure) => {
-      setAlertsOnDeparture(departure, alerts)
-      setCancellationsOnDeparture(departure, cancellations)
-      return departure
-    })
+  // We can still return planned departures without observed events.
+  if (!departureEvents || departureEvents.length === 0) {
+    routeDepartures = orderBy(departures, 'plannedDepartureTime.departureTime')
+  } else {
+    routeDepartures = combineDeparturesAndEvents(departures, departureEvents)
   }
 
-  const resultsTTL: number = 10 * 60
-  const resultsCacheKey = `week_departure_results_${stopId}_${routeId}_${direction}_${weekNumber}_${
-    requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
-  }`
+  if (!routeDepartures || routeDepartures.length === 0) {
+    return []
+  }
 
-  const weekDepartures = await cacheFetch<Departure[]>(
-    resultsCacheKey,
-    createDepartureResults,
-    resultsTTL
-  )
+  const alerts = await getAlerts(date, {
+    allStops: true,
+    allRoutes: true,
+    stop: stopId,
+    route: routeId,
+  })
+
+  const cancellations = await getCancellations(date, { routeId, direction })
+
+  const weekDepartures = departures.map((departure) => {
+    setAlertsOnDeparture(departure, alerts)
+    setCancellationsOnDeparture(departure, cancellations)
+    return departure
+  })
 
   if (!weekDepartures || weekDepartures.length === 0) {
     return []
