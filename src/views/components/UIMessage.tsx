@@ -21,7 +21,14 @@ const UIMessageForm = ({ settings, adminPath }) => {
               </p>
             </>
           )}
-          <input type="text" name="ui_message" value={message.message} onChange={() => {}} />
+          <textarea
+            cols={30}
+            rows={10}
+            style={{ width: '100%' }}
+            name="ui_message"
+            value={message.message}
+            onChange={() => {}}
+          />
           <input type="submit" value="Set message" />
         </fieldset>
       </form>
