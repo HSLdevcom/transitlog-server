@@ -56,7 +56,7 @@ export async function cacheFetch<DataType = any>(
   }
 
   // The cacheKey function should be able to return a cacheKey without the data if
-  // it is supposed to be useful for retrieving data.
+  // the cacheKey is supposed to be useful for retrieving data.
   const computedCacheKey = typeof cacheKey === 'function' ? cacheKey() : cacheKey
 
   const fetchFromCacheOrDb = async (usingCacheKey) => {

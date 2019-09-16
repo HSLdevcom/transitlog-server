@@ -95,6 +95,13 @@ export class HFPDataSource extends SQLDataSource {
     this.knex = knex
   }
 
+  /*
+   * Query for which vehicles were in traffic (ie have events) for a specific day.
+   *
+   * Optimization:
+   * Materialized continuous view
+   */
+
   async getAvailableVehicles(date): Promise<Vehicles[]> {
     const query = this.db.raw(
       `
@@ -111,6 +118,13 @@ ORDER BY unique_vehicle_id;
     return this.getBatched(query)
   }
 
+  /*
+   * Query for all vehicle events inside a specific area and timeframe.
+   *
+   * Index:
+   * CREATE INDEX vehicle_journeys_idx ON vehicles (tst ASC, oday, unique_vehicle_id);
+   */
+
   async getAreaJourneys(minTime, maxTime, bbox, date): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
@@ -119,16 +133,16 @@ ORDER BY unique_vehicle_id;
 SELECT ${vehicleFields.join(',')}
 FROM vehicles
 WHERE oday = :date
-  AND geohash_level <= 4 -- Limit the amount of data coming into the app
-  AND tsi BETWEEN :minTime AND :maxTime
+  -- AND geohash_level <= 4 -- Limit the amount of data coming into the app
+  AND tst BETWEEN :minTime AND :maxTime
   AND lat BETWEEN :minLat AND :maxLat
   AND long BETWEEN :minLng AND :maxLng
 ORDER BY tst ASC;
     `,
       {
         date,
-        minTime: moment.tz(minTime, TZ).unix(),
-        maxTime: moment.tz(maxTime, TZ).unix(),
+        minTime: moment.tz(minTime, TZ).toISOString(true),
+        maxTime: moment.tz(maxTime, TZ).toISOString(true),
         minLat,
         maxLat,
         minLng,
@@ -142,6 +156,9 @@ ORDER BY tst ASC;
   /*
    * Get the journeys for a vehicle. Only journey start time required. Shown in the sidebar
    * list of vehicle journeys when a vehicle is selected.
+   *
+   * Index:
+   * CREATE INDEX vehicle_journeys_idx ON vehicles (tst ASC, oday, unique_vehicle_id);
    */
 
   async getJourneysForVehicle(uniqueVehicleId, date): Promise<Vehicles[]> {
@@ -179,6 +196,13 @@ ORDER BY tst ASC;
     return this.getBatched(query)
   }
 
+  /*
+   * Get all the events for a specific journey.
+   *
+   * Index:
+   * CREATE INDEX single_journey_events_idx ON vehicles (tst ASC, oday, route_id, direction_id, journey_start_time, unique_vehicle_id);
+   */
+
   async getJourneyEvents(
     routeId,
     direction,
@@ -210,7 +234,7 @@ ORDER BY tst ASC;
 
     // TODO: Test next day departures
     if (isNextDay(departureTime)) {
-      query = query.where('tst', '>', moment.tz(departureDate, TZ).toISOString())
+      query = query.where('tst', '>', moment.tz(departureDate, TZ).toISOString(true))
     }
 
     let vehicles: Vehicles[] = await this.getBatched(query)
@@ -222,6 +246,13 @@ ORDER BY tst ASC;
 
     return vehicles
   }
+
+  /*
+   * Get all departures for a specific stop during a date.
+   *
+   * Index:
+   * CREATE INDEX stop_departures_idx ON vehicles (tst DESC, unique_vehicle_id ASC, journey_start_time ASC, oday, next_stop_id);
+   */
 
   async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
     const query = this.db('vehicles')
@@ -240,6 +271,13 @@ ORDER BY tst ASC;
 
     return this.getBatched(query)
   }
+
+  /*
+   * Get all departures for a specific route (from the origin stop) during a date.
+   *
+   * Index:
+   * CREATE INDEX route_departures_idx ON vehicles (tst DESC, unique_vehicle_id ASC, journey_start_time ASC, oday ASC, next_stop_id, route_id, direction_id);
+   */
 
   async getRouteDepartureEvents(
     stopId: string,
@@ -267,6 +305,13 @@ ORDER BY tst ASC;
 
     return this.getBatched(query)
   }
+
+  /*
+   * Get weekly departures for a specific route (from the origin stop).
+   *
+   * Index (same as above):
+   * CREATE INDEX route_departures_idx ON vehicles (tst DESC, unique_vehicle_id ASC, journey_start_time ASC, oday ASC, next_stop_id, route_id, direction_id);
+   */
 
   async getWeeklyDepartureEvents(
     stopId: string,

@@ -32,8 +32,9 @@ export const createAreaJourneysResponse = async (
     )
   }
 
+  // Cache for when a link containing an area query is shared.
   const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}`
-  const journeys = await cacheFetch<AreaJourney[]>(cacheKey, fetchJourneys, 5 * 60)
+  const journeys = await cacheFetch<AreaJourney[]>(cacheKey, fetchJourneys, 10 * 60)
 
   if (!journeys) {
     return []
