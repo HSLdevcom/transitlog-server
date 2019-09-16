@@ -43,8 +43,6 @@ export async function getItem<T>(key): Promise<T | null> {
   return JSON.parse(cachedVal)
 }
 
-const currentQueries = new Map()
-
 export async function cacheFetch<DataType = any>(
   cacheKey: false | string | ((data?: DataType) => string | false),
   fetchData: () => Promise<DataType | false | null>,
@@ -59,50 +57,35 @@ export async function cacheFetch<DataType = any>(
   // the cacheKey is supposed to be useful for retrieving data.
   const computedCacheKey = typeof cacheKey === 'function' ? cacheKey() : cacheKey
 
-  const fetchFromCacheOrDb = async (usingCacheKey) => {
-    if (usingCacheKey) {
-      const cachedData = await getItem<DataType>(usingCacheKey)
+  if (computedCacheKey) {
+    const cachedData = await getItem<DataType>(computedCacheKey)
 
-      if (cachedData) {
-        return cachedData
-      }
+    if (cachedData) {
+      return cachedData
     }
-
-    let data
-
-    try {
-      data = await fetchData()
-    } catch (err) {
-      console.trace()
-      console.log(usingCacheKey, get(err, 'message', 'Data fetching error!'))
-    }
-
-    if (!data || (typeof data.length !== 'undefined' && data.length === 0)) {
-      return null
-    }
-
-    const ttlValue = typeof ttl === 'function' ? ttl(data) : ttl
-    const ttlConfig = ttlValue > 0 ? ['EX', ttlValue] : []
-
-    const useCacheKey = typeof cacheKey === 'function' ? cacheKey(data) : usingCacheKey
-
-    if (useCacheKey) {
-      await setItem<DataType>(useCacheKey, data, ttlConfig)
-    }
-
-    return data
   }
 
   let data
-  let queryPromise = currentQueries.get(computedCacheKey)
 
-  if (!queryPromise) {
-    queryPromise = fetchFromCacheOrDb(computedCacheKey)
-    currentQueries.set(computedCacheKey, queryPromise)
+  try {
+    data = await fetchData()
+  } catch (err) {
+    console.trace()
+    console.log(computedCacheKey, get(err, 'message', 'Data fetching error!'))
   }
 
-  data = await queryPromise
-  currentQueries.delete(computedCacheKey)
+  if (!data || (typeof data.length !== 'undefined' && data.length === 0)) {
+    return null
+  }
+
+  const ttlValue = typeof ttl === 'function' ? ttl(data) : ttl
+  const ttlConfig = ttlValue > 0 ? ['EX', ttlValue] : []
+
+  const useCacheKey = typeof cacheKey === 'function' ? cacheKey(data) : computedCacheKey
+
+  if (useCacheKey) {
+    await setItem<DataType>(useCacheKey, data, ttlConfig)
+  }
 
   return data
 }
