@@ -172,6 +172,8 @@ export const createWeekDeparturesResponse = async (
     // Fetch stops and departures in parallel
     const [stops, departures] = await Promise.all([stopsPromise, departuresPromise])
 
+    console.log('Fetched stop and departures.')
+
     // If either of these fail, we've got nothing of value.
     // Be aware that stops can be falsy due to coming from a CachedFetcher.
     if (!stops || stops.length === 0 || departures.length === 0) {
@@ -213,6 +215,8 @@ export const createWeekDeparturesResponse = async (
     journeyTTL
   )
 
+  console.log('Fetched departure events.')
+
   const createDepartureResults = async () => {
     let routeDepartures: Departure[] = []
 
@@ -236,6 +240,8 @@ export const createWeekDeparturesResponse = async (
 
     const cancellations = await getCancellations(date, { routeId, direction })
 
+    console.log('Fetched alerts and cancellations.')
+
     return routeDepartures.map((departure) => {
       setAlertsOnDeparture(departure, alerts)
       setCancellationsOnDeparture(departure, cancellations)
@@ -253,6 +259,8 @@ export const createWeekDeparturesResponse = async (
     createDepartureResults,
     resultsTTL
   )
+
+  console.log('Fetched week results.')
 
   if (!weekDepartures || weekDepartures.length === 0) {
     return []

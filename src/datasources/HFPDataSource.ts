@@ -325,7 +325,7 @@ ORDER BY tst ASC;
     const query = this.db('vehicles')
       .select(
         this.db.raw(
-          `DISTINCT ON ("oday", "journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
+          `DISTINCT ON ("oday", "journey_start_time", "route_id", "direction_id", "unique_vehicle_id") ${routeDepartureFields.join(
             ','
           )}`
         )
@@ -340,6 +340,8 @@ ORDER BY tst ASC;
       .orderBy([
         { column: 'oday', order: 'asc' },
         { column: 'journey_start_time', order: 'asc' },
+        { column: 'route_id', order: 'asc' },
+        { column: 'direction_id', order: 'asc' },
         { column: 'unique_vehicle_id', order: 'asc' },
         { column: 'tst', order: 'desc' },
       ])

@@ -53,9 +53,10 @@ export async function cacheFetch<DataType = any>(
     return uncachedData || null
   }
 
-  // The cacheKey function should be able to return a cacheKey without the data if
-  // the cacheKey is supposed to be useful for retrieving data.
   const computedCacheKey = typeof cacheKey === 'function' ? cacheKey() : cacheKey
+
+  /*/ The cacheKey function should be able to return a cacheKey without the data if
+  // the cacheKey is supposed to be useful for retrieving data.
 
   if (computedCacheKey) {
     const cachedData = await getItem<DataType>(computedCacheKey)
@@ -63,7 +64,7 @@ export async function cacheFetch<DataType = any>(
     if (cachedData) {
       return cachedData
     }
-  }
+  }*/
 
   let data
 
