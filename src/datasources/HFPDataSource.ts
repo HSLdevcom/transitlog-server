@@ -249,34 +249,45 @@ ORDER BY tst ASC;
 
   /*
    * Get all departures for a specific stop during a date.
-   *
-   * Index:
-   * CREATE INDEX stop_departures_idx ON vehicles (tst DESC, unique_vehicle_id ASC, journey_start_time ASC, oday, next_stop_id);
    */
 
   async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
-    const query = this.db('vehicles')
-      .select(
-        this.db.raw(
-          `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
-        )
-      )
-      .where('oday', date)
-      .where('next_stop_id', stopId)
-      .orderBy([
-        { column: 'journey_start_time', order: 'asc' },
-        { column: 'unique_vehicle_id', order: 'asc' },
-        { column: 'tst', order: 'desc' },
-      ])
+    const query = this.db.raw(
+      `
+SELECT ${routeDepartureFields.join(',')}
+FROM vehicles
+WHERE event_type = 'DEP'
+  AND oday = ?
+  AND stop = ?;
+`,
+      [date, stopId]
+    )
 
-    return this.getBatched(query)
+    const eventsResult = await this.getBatched(query)
+
+    if (!eventsResult || eventsResult.length === 0) {
+      const query = this.db('vehicles')
+        .select(
+          this.db.raw(
+            `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
+          )
+        )
+        .where('oday', date)
+        .where('next_stop_id', stopId)
+        .orderBy([
+          { column: 'journey_start_time', order: 'asc' },
+          { column: 'unique_vehicle_id', order: 'asc' },
+          { column: 'tst', order: 'desc' },
+        ])
+
+      return this.getBatched(query)
+    }
+
+    return eventsResult
   }
 
   /*
    * Get all departures for a specific route (from the origin stop) during a date.
-   *
-   * Index:
-   * CREATE INDEX route_departures_idx ON vehicles (tst DESC, unique_vehicle_id ASC, journey_start_time ASC, oday ASC, next_stop_id, route_id, direction_id);
    */
 
   async getRouteDepartureEvents(
@@ -285,67 +296,45 @@ ORDER BY tst ASC;
     routeId: string,
     direction: Direction
   ): Promise<Vehicles[]> {
-    const query = this.db('vehicles')
-      .select(
-        this.db.raw(
-          `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
-            ','
-          )}`
-        )
-      )
-      .where('oday', date)
-      .where('next_stop_id', stopId)
-      .where('route_id', routeId)
-      .where('direction_id', direction)
-      .orderBy([
-        { column: 'journey_start_time', order: 'asc' },
-        { column: 'unique_vehicle_id', order: 'asc' },
-        { column: 'tst', order: 'desc' },
-      ])
+    const query = this.db.raw(
+      `
+SELECT ${routeDepartureFields.join(',')}
+FROM vehicles
+WHERE event_type = 'DEP'
+  AND oday = ?
+  AND stop = ?
+  AND route_id = ?
+  AND direction_id = ?;
+`,
+      [date, stopId, routeId, direction]
+    )
 
-    return this.getBatched(query)
+    const eventsResult = await this.getBatched(query)
+
+    if (!eventsResult || eventsResult.length === 0) {
+      const query = this.db('vehicles')
+        .select(
+          this.db.raw(
+            `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
+              ','
+            )}`
+          )
+        )
+        .where('oday', date)
+        .where('next_stop_id', stopId)
+        .where('route_id', routeId)
+        .where('direction_id', direction)
+        .orderBy([
+          { column: 'journey_start_time', order: 'asc' },
+          { column: 'unique_vehicle_id', order: 'asc' },
+          { column: 'tst', order: 'desc' },
+        ])
+
+      return this.getBatched(query)
+    }
+
+    return eventsResult
   }
-
-  /*
-   * Get weekly departures for a specific route (from the origin stop).
-   *
-   * Index (same as above):
-   * CREATE INDEX route_departures_idx ON vehicles (tst DESC, unique_vehicle_id ASC, journey_start_time ASC, oday ASC, next_stop_id, route_id, direction_id);
-   */
-
-  /*async getWeeklyDepartureEvents(
-    stopId: string,
-    date: string,
-    routeId: string,
-    direction: Direction
-  ): Promise<Vehicles[]> {
-    const query = this.db('vehicles')
-      .select(
-        this.db.raw(
-          `DISTINCT ON ("oday", "journey_start_time", "route_id", "direction_id", "next_stop_id", "unique_vehicle_id") ${routeDepartureFields.join(
-            ','
-          )}`
-        )
-      )
-      .whereBetween('oday', [
-        minDateMoment.format('YYYY-MM-DD'),
-        maxDateMoment.format('YYYY-MM-DD'),
-      ])
-      .where('next_stop_id', stopId)
-      .where('route_id', routeId)
-      .where('direction_id', direction)
-      .orderBy([
-        { column: 'oday', order: 'asc' },
-        { column: 'journey_start_time', order: 'asc' },
-        { column: 'route_id', order: 'asc' },
-        { column: 'direction_id', order: 'asc' },
-        { column: 'next_stop_id', order: 'asc' },
-        { column: 'unique_vehicle_id', order: 'asc' },
-        { column: 'tst', order: 'desc' },
-      ])
-
-    return this.getBatched(query)
-  }*/
 
   getAlerts = async (minDate: string, maxDate: string): Promise<DBAlert[]> => {
     const query = this.db('alert')
