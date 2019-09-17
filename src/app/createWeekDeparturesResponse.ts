@@ -4,7 +4,7 @@ import { cacheFetch } from './cache'
 import { JoreDeparture, JoreDepartureWithOrigin, Mode } from '../types/Jore'
 import { Dictionary } from '../types/Dictionary'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { getISOWeek } from 'date-fns'
+import { getISOWeek, isAfter, isToday, startOfTomorrow } from 'date-fns'
 import { getDirection } from '../utils/getDirection'
 import {
   createDepartureJourneyObject,
@@ -14,7 +14,7 @@ import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { compact, flatten, get, groupBy, orderBy, uniq } from 'lodash'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
-import { fetchEvents, fetchStops } from './createDeparturesResponse'
+import { fetchStops } from './createDeparturesResponse'
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
@@ -172,8 +172,6 @@ export const createWeekDeparturesResponse = async (
     // Fetch stops and departures in parallel
     const [stops, departures] = await Promise.all([stopsPromise, departuresPromise])
 
-    console.log('Fetched stop and departures.')
-
     // If either of these fail, we've got nothing of value.
     // Be aware that stops can be falsy due to coming from a CachedFetcher.
     if (!stops || stops.length === 0 || departures.length === 0) {
@@ -207,15 +205,45 @@ export const createWeekDeparturesResponse = async (
     return []
   }
 
+  const fetchDepartureEvents: CachedFetcher<Vehicles[]> = async () => {
+    const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
+    const requests: Array<Promise<Vehicles[] | null>> = []
+
+    let i = 0
+
+    while (i < 7) {
+      const fetchMoment = minDateMoment.clone().add(i, 'day')
+      const fetchDate = fetchMoment.format('YYYY-MM-DD')
+
+      // Unnecessary to fetch dates too far into the future
+      if (isAfter(fetchDate, startOfTomorrow())) {
+        break
+      }
+
+      const journeyTTL: number = isToday(fetchDate) ? 5 * 60 : 24 * 60 * 60
+      const eventsCacheKey = `departure_events_${stopId}_${fetchDate}_${routeId}_${direction}`
+      const eventsPromise = cacheFetch<Vehicles[]>(
+        eventsCacheKey,
+        () => getEvents(fetchDate),
+        journeyTTL
+      )
+
+      requests.push(eventsPromise)
+      i++
+    }
+
+    return Promise.all(requests).then((events) =>
+      flatten(events.map((dayEvents) => (!dayEvents || dayEvents.length === 0 ? [] : dayEvents)))
+    )
+  }
+
   const journeyTTL: number = 10 * 60
   const eventsCacheKey = `week_departure_events_${stopId}_${weekNumber}_${routeId}_${direction}`
   const departureEvents = await cacheFetch<Vehicles[]>(
     eventsCacheKey,
-    () => fetchEvents(getEvents),
+    fetchDepartureEvents,
     journeyTTL
   )
-
-  console.log('Fetched departure events.')
 
   const createDepartureResults = async () => {
     let routeDepartures: Departure[] = []
@@ -240,8 +268,6 @@ export const createWeekDeparturesResponse = async (
 
     const cancellations = await getCancellations(date, { routeId, direction })
 
-    console.log('Fetched alerts and cancellations.')
-
     return routeDepartures.map((departure) => {
       setAlertsOnDeparture(departure, alerts)
       setCancellationsOnDeparture(departure, cancellations)
@@ -259,8 +285,6 @@ export const createWeekDeparturesResponse = async (
     createDepartureResults,
     resultsTTL
   )
-
-  console.log('Fetched week results.')
 
   if (!weekDepartures || weekDepartures.length === 0) {
     return []

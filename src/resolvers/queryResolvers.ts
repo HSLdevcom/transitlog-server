@@ -121,7 +121,9 @@ const routeDepartures = async (
 
   const getDepartures = () =>
     dataSources.JoreAPI.getDeparturesForRoute(stopId, routeId, direction, date)
+
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
+
   const getDepartureEvents = () =>
     dataSources.HFPAPI.getRouteDepartureEvents(stopId, date, routeId, direction)
 
@@ -165,8 +167,9 @@ const weeklyDepartures = async (
     dataSources.JoreAPI.getWeeklyDepartures(stopId, routeId, direction, exceptionDayTypes)
 
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
-  const getDepartureEvents = () =>
-    dataSources.HFPAPI.getWeeklyDepartureEvents(stopId, date, routeId, direction)
+
+  const getDepartureEvents = (fetchDate) =>
+    dataSources.HFPAPI.getRouteDepartureEvents(stopId, fetchDate, routeId, direction)
 
   const fetchCancellations = getCancellations.bind(null, user, dataSources.HFPAPI.getCancellations)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)

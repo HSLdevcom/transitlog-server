@@ -234,7 +234,7 @@ ORDER BY tst ASC;
 
     // TODO: Test next day departures
     if (isNextDay(departureTime)) {
-      query = query.where('tst', '>', moment.tz(departureDate, TZ).toISOString(true))
+      query = query.where('tst', '>', moment.tz(departureDate, TZ).toISOString())
     }
 
     let vehicles: Vehicles[] = await this.getBatched(query)
@@ -313,19 +313,16 @@ ORDER BY tst ASC;
    * CREATE INDEX route_departures_idx ON vehicles (tst DESC, unique_vehicle_id ASC, journey_start_time ASC, oday ASC, next_stop_id, route_id, direction_id);
    */
 
-  async getWeeklyDepartureEvents(
+  /*async getWeeklyDepartureEvents(
     stopId: string,
     date: string,
     routeId: string,
     direction: Direction
   ): Promise<Vehicles[]> {
-    const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
-    const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
-
     const query = this.db('vehicles')
       .select(
         this.db.raw(
-          `DISTINCT ON ("oday", "journey_start_time", "route_id", "direction_id", "unique_vehicle_id") ${routeDepartureFields.join(
+          `DISTINCT ON ("oday", "journey_start_time", "route_id", "direction_id", "next_stop_id", "unique_vehicle_id") ${routeDepartureFields.join(
             ','
           )}`
         )
@@ -342,12 +339,13 @@ ORDER BY tst ASC;
         { column: 'journey_start_time', order: 'asc' },
         { column: 'route_id', order: 'asc' },
         { column: 'direction_id', order: 'asc' },
+        { column: 'next_stop_id', order: 'asc' },
         { column: 'unique_vehicle_id', order: 'asc' },
         { column: 'tst', order: 'desc' },
       ])
 
     return this.getBatched(query)
-  }
+  }*/
 
   getAlerts = async (minDate: string, maxDate: string): Promise<DBAlert[]> => {
     const query = this.db('alert')
