@@ -368,7 +368,7 @@ export interface StopRoute {
 }
 
 export interface Alert {
-  id: number
+  id: string
 
   level: AlertLevel
 

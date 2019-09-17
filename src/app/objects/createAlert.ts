@@ -39,7 +39,7 @@ export function createAlert(alert: DBAlert, language: string = 'fi'): Alert {
   const url = urls.find((url) => url.language === alertLanguage) || urls[0]
 
   return {
-    id: alert.id,
+    id: alert.id + alertLanguage,
     level: get(alertData, 'priority', AlertLevel.Info),
     category: get(alertData, 'category', AlertCategory.Other),
     distribution,

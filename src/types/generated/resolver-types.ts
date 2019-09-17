@@ -802,7 +802,7 @@ export namespace StopRouteResolvers {
 
 export namespace AlertResolvers {
   export interface Resolvers<TContext = {}, TypeParent = Alert> {
-    id?: IdResolver<number, TypeParent, TContext>
+    id?: IdResolver<string, TypeParent, TContext>
 
     level?: LevelResolver<AlertLevel, TypeParent, TContext>
 
@@ -827,7 +827,7 @@ export namespace AlertResolvers {
     url?: UrlResolver<Maybe<string>, TypeParent, TContext>
   }
 
-  export type IdResolver<R = number, Parent = Alert, TContext = {}> = Resolver<R, Parent, TContext>
+  export type IdResolver<R = string, Parent = Alert, TContext = {}> = Resolver<R, Parent, TContext>
   export type LevelResolver<R = AlertLevel, Parent = Alert, TContext = {}> = Resolver<
     R,
     Parent,
