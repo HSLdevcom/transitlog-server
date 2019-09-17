@@ -132,8 +132,8 @@ ORDER BY unique_vehicle_id;
       `
 SELECT ${vehicleFields.join(',')}
 FROM vehicles
-WHERE oday = :date
-  -- AND geohash_level <= 4 -- Limit the amount of data coming into the app
+WHERE event_type = 'VP'
+  AND oday = :date
   AND tst BETWEEN :minTime AND :maxTime
   AND lat BETWEEN :minLat AND :maxLat
   AND long BETWEEN :minLng AND :maxLng
@@ -168,13 +168,31 @@ ORDER BY tst ASC;
 
     const queryVehicleId = `${operatorId}/${vehicleId}`
 
-    const query = this.db('vehicles')
-      .select(vehicleFields)
-      .where('oday', date)
-      .where('unique_vehicle_id', queryVehicleId)
-      .orderBy('tst', 'ASC')
+    const query = this.db.raw(
+      `
+SELECT DISTINCT ON (journey_start_time) ${vehicleFields.join(',')}
+FROM vehicles
+WHERE event_type = 'DEP'
+  AND oday = ?
+  AND unique_vehicle_id = ?
+ORDER BY journey_start_time, tst;
+`,
+      [date, queryVehicleId]
+    )
 
-    return this.getBatched(query)
+    const eventsResult = await this.getBatched(query)
+
+    if (!eventsResult || eventsResult.length === 0) {
+      const query = this.db('vehicles')
+        .select(vehicleFields)
+        .where('oday', date)
+        .where('unique_vehicle_id', queryVehicleId)
+        .orderBy('tst', 'ASC')
+
+      return this.getBatched(query)
+    }
+
+    return eventsResult
   }
 
   /*
@@ -221,6 +239,7 @@ ORDER BY tst ASC;
 
     let query = this.db('vehicles')
       .select(vehicleFields)
+      .where('event_type', 'VP')
       .where('oday', departureDate)
       .where('route_id', routeId)
       .where('direction_id', direction)
