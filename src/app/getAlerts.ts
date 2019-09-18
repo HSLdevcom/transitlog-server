@@ -7,6 +7,7 @@ import { DBAlert } from '../types/EventsDb'
 import { createAlert } from './objects/createAlert'
 import { cacheFetch } from './cache'
 import { requireUser } from '../auth/requireUser'
+import { isToday } from 'date-fns'
 
 export type AlertSearchProps = {
   all?: boolean
@@ -43,7 +44,7 @@ export const getAlerts = async (
   }
 
   const alertsCacheKey = `alerts_${startTimeMoment.format('YYYY-MM-DD')}_${language}`
-  const dateIsToday = startTimeMoment.isSame(new Date(), 'day')
+  const dateIsToday = isToday(startTimeMoment.toDate())
   const alerts = await cacheFetch<Alert[]>(
     alertsCacheKey,
     alertsFetcher,
