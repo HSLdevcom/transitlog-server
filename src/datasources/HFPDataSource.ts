@@ -1,6 +1,6 @@
 import moment from 'moment-timezone'
 import { DEBUG, TZ } from '../constants'
-import { isNextDay } from '../utils/time'
+import { getNormalTime, isNextDay } from '../utils/time'
 import { Direction } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
@@ -243,17 +243,25 @@ ORDER BY journey_start_time, tst;
       .where('oday', departureDate)
       .where('route_id', routeId)
       .where('direction_id', direction)
-      .where('journey_start_time', departureTime)
+      .where('journey_start_time', getNormalTime(departureTime))
       .orderBy('tst', 'ASC')
 
-    // TODO: Test without uniqueVehicleId
     if (uniqueVehicleId) {
       query = query.where('unique_vehicle_id', `${operatorId}/${vehicleId}`)
     }
 
-    // TODO: Test next day departures
+    // Ensure the correct events are returned by limiting the results to timestamps
+    // after the departure date if we are dealing with a 24h+ journey.
     if (isNextDay(departureTime)) {
-      query = query.where('tst', '>', moment.tz(departureDate, TZ).toISOString())
+      // Note that tst is UTC time so we should not give it a time with a timezone.
+      query = query.where(
+        'tst',
+        '>',
+        moment
+          .tz(departureDate, TZ)
+          .endOf('day')
+          .toISOString()
+      )
     }
 
     let vehicles: Vehicles[] = await this.getBatched(query)

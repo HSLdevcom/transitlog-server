@@ -19,7 +19,6 @@ import { Alert, Cancellation } from '../types/generated/schema-types'
 import { getAlerts } from '../app/getAlerts'
 import { getCancellations } from '../app/getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
-import { getNormalTime } from '../utils/time'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -203,7 +202,7 @@ const journey = async (
       routeId,
       direction,
       departureDate,
-      getNormalTime(departureTime),
+      departureTime,
       uniqueVehicleId
     )
 
