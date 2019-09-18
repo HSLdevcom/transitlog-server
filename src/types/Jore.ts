@@ -20,6 +20,14 @@ export type Json = string
 // Types
 // ====================================================
 
+export interface JoreDepartureOperator {
+  hours: number
+  minutes: number
+  operator_id: string
+  route_id: string
+  direction: string
+}
+
 export interface JoreOriginDeparture {
   hours: number
   minutes: number
