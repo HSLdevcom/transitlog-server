@@ -16,6 +16,7 @@ import { AuthenticatedUser } from '../types/Authentication'
 import { requireUser } from '../auth/requireUser'
 import { secondsToTimeObject, timeToSeconds } from '../utils/time'
 import { JoreDepartureOperator } from '../types/Jore'
+import { isToday } from 'date-fns'
 
 export type CancellationSearchProps = {
   all?: boolean
@@ -65,7 +66,7 @@ export const getCancellations = async (
   let cancellations = await cacheFetch<Cancellation[]>(
     cancellationsCacheKey,
     cancellationFetcher,
-    24 * 60 * 60
+    isToday(onlyDate) ? 5 * 60 : 24 * 60 * 60
   )
 
   if (!cancellations) {
