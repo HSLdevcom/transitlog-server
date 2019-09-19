@@ -34,7 +34,7 @@ export const createRouteJourneysResponse = async (
         `${route_id}_${direction_id}_${journey_start_time}`
     )
 
-    return map(routeGroups, (events) => createJourneyObject(events, null, [], null))
+    return map(routeGroups, (events) => createJourneyObject(events, [], null, null, null))
   }
 
   const journeysTTL: number = isToday(date) ? 5 * 60 : 24 * 60 * 60

@@ -346,6 +346,8 @@ export interface Stop extends Position {
 
   modes: Array<Maybe<string>>
 
+  isTimingStop: boolean
+
   _matchScore?: Maybe<number>
 
   alerts: Alert[]
@@ -556,7 +558,7 @@ export interface Departure {
 
   mode: string
 
-  stop: RouteSegment
+  stop: Stop
 
   journey?: Maybe<DepartureJourney>
 
@@ -565,6 +567,8 @@ export interface Departure {
   cancellations: Cancellation[]
 
   isCancelled: boolean
+
+  departureEvent?: Maybe<JourneyStopEvent>
 
   originDepartureTime?: Maybe<PlannedDeparture>
 
@@ -596,7 +600,7 @@ export interface DepartureJourney {
 
   mode?: Maybe<string>
 
-  events?: Maybe<JourneyEvent[]>
+  events?: Maybe<VehiclePosition[]>
 
   alerts: Alert[]
 
@@ -607,10 +611,8 @@ export interface DepartureJourney {
   _numInstance?: Maybe<number>
 }
 
-export interface JourneyEvent extends Position {
+export interface VehiclePosition extends Position {
   id: string
-
-  receivedAt: DateTime
 
   recordedAt: DateTime
 
@@ -624,13 +626,51 @@ export interface JourneyEvent extends Position {
 
   lng?: Maybe<number>
 
-  doorStatus?: Maybe<boolean>
-
   velocity?: Maybe<number>
+
+  doorStatus?: Maybe<boolean>
 
   delay?: Maybe<number>
 
   heading?: Maybe<number>
+}
+
+export interface JourneyStopEvent {
+  id: string
+
+  type: string
+
+  recordedAt: DateTime
+
+  recordedAtUnix: number
+
+  recordedTime: Time
+
+  nextStopId: string
+
+  stopId: string
+
+  doorsOpened?: Maybe<boolean>
+
+  stopped?: Maybe<boolean>
+
+  plannedDate?: Maybe<Date>
+
+  plannedTime?: Maybe<Time>
+
+  plannedDateTime?: Maybe<DateTime>
+
+  plannedTimeDifference?: Maybe<number>
+
+  isNextDay?: Maybe<boolean>
+
+  departureId?: Maybe<number>
+
+  isTimingStop: boolean
+
+  index?: Maybe<number>
+
+  stop?: Maybe<Stop>
 }
 
 export interface PlannedDeparture {
@@ -660,8 +700,6 @@ export interface PlannedArrival {
 export interface ObservedArrival {
   id: string
 
-  arrivalEvent: JourneyEvent
-
   arrivalDate: Date
 
   arrivalTime: Time
@@ -675,8 +713,6 @@ export interface ObservedArrival {
 
 export interface ObservedDeparture {
   id: string
-
-  departureEvent: JourneyEvent
 
   departureDate: Date
 
@@ -736,15 +772,53 @@ export interface Journey {
 
   equipment?: Maybe<Equipment>
 
-  events: JourneyEvent[]
+  vehiclePositions: VehiclePosition[]
 
-  departures: Departure[]
+  events: JourneyEventType[]
+
+  departure?: Maybe<Departure>
 
   alerts: Alert[]
 
   cancellations: Cancellation[]
 
   isCancelled: boolean
+}
+
+export interface JourneyEvent {
+  id: string
+
+  type: string
+
+  recordedAt: DateTime
+
+  recordedAtUnix: number
+
+  recordedTime: Time
+}
+
+export interface PlannedStopEvent {
+  id: string
+
+  type: string
+
+  stopId?: Maybe<string>
+
+  plannedDate: Date
+
+  plannedTime: Time
+
+  plannedDateTime: DateTime
+
+  isNextDay?: Maybe<boolean>
+
+  departureId: number
+
+  isTimingStop: boolean
+
+  index?: Maybe<number>
+
+  stop: Stop
 }
 
 export interface VehicleJourney {
@@ -771,8 +845,6 @@ export interface VehicleJourney {
   headsign?: Maybe<string>
 
   mode?: Maybe<string>
-
-  receivedAt: DateTime
 
   recordedAt: DateTime
 
@@ -814,7 +886,7 @@ export interface AreaJourney {
 
   mode?: Maybe<string>
 
-  events: Array<Maybe<JourneyEvent>>
+  events: Array<Maybe<VehiclePosition>>
 
   alerts: Alert[]
 
@@ -962,3 +1034,9 @@ export interface CancellationsQueryArgs {
 
   cancellationSearch?: Maybe<CancellationSearchInput>
 }
+
+// ====================================================
+// Unions
+// ====================================================
+
+export type JourneyEventType = JourneyEvent | JourneyStopEvent | PlannedStopEvent

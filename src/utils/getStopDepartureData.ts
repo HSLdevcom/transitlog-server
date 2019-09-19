@@ -1,6 +1,5 @@
 import { diffDepartureJourney } from './diffDepartureJourney'
 import { Departure, ObservedDeparture } from '../types/generated/schema-types'
-import { createJourneyEventObject } from '../app/objects/createJourneyEventObject'
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { getJourneyEventTime } from './time'
@@ -37,9 +36,9 @@ export const getStopDepartureData = (
   const departureDiff = diffDepartureJourney(departureEvent, stopDeparture, departureDate)
   const journeyId = createJourneyId(departureEvent)
 
+  // @ts-ignore
   return {
     id: `odt_${journeyId}_${departureEvent.tst}_${createDepartureId(stopDeparture)}`,
-    departureEvent: createJourneyEventObject(departureEvent, journeyId),
     departureDate: departureEvent.oday,
     departureTime: getJourneyEventTime(departureEvent),
     departureDateTime: moment.tz(departureEvent.tst, TZ).toISOString(true),

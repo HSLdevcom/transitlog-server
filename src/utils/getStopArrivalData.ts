@@ -52,9 +52,9 @@ export function getStopArrivalData(
 
   const journeyId = createJourneyId(arrivalEvent)
 
+  // @ts-ignore
   return {
     id: `oat_${journeyId}_${arrivalTime}_${createDepartureId(stopDeparture)}`,
-    arrivalEvent: createJourneyEventObject(arrivalEvent, journeyId),
     arrivalDate: format(arrivalTime, DATE_FORMAT),
     arrivalTime: format(arrivalTime, TIME_FORMAT),
     // Yes, tst is iso 8601 already but in UTC. We want the local timezone.

@@ -4,10 +4,13 @@ import { getDirection } from '../../utils/getDirection'
 import get from 'lodash/get'
 import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 import { getJourneyStartTime } from '../../utils/time'
-import { createJourneyEventObject } from './createJourneyEventObject'
+import { createVehiclePositionObject } from './createJourneyEventObject'
 import { Vehicles } from '../../types/EventsDb'
 
-export const createAreaJourneyObject = (events: Vehicles[], alerts: Alert[] = []): AreaJourney => {
+export const createAreaJourneyObject = (
+  events: Vehicles[],
+  alerts: Alert[] = []
+): AreaJourney => {
   const journey = events[0]
   const departureTime = getJourneyStartTime(journey)
   const departureDate = get(journey, 'oday')
@@ -24,7 +27,7 @@ export const createAreaJourneyObject = (events: Vehicles[], alerts: Alert[] = []
     vehicleId: get(journey, 'vehicle_number', '') + '',
     headsign: get(journey, 'headsign', ''),
     mode: get(journey, 'mode', 'BUS'),
-    events: events.map((event) => createJourneyEventObject(event, id)),
+    events: events.map((event) => createVehiclePositionObject(event, id)),
     alerts,
     cancellations: [],
     isCancelled: false,
