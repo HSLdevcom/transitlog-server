@@ -1757,7 +1757,7 @@ export namespace JourneyStopEventResolvers {
 
     nextStopId?: NextStopIdResolver<string, TypeParent, TContext>
 
-    stopId?: StopIdResolver<string, TypeParent, TContext>
+    stopId?: StopIdResolver<Maybe<string>, TypeParent, TContext>
 
     doorsOpened?: DoorsOpenedResolver<Maybe<boolean>, TypeParent, TContext>
 
@@ -1779,7 +1779,7 @@ export namespace JourneyStopEventResolvers {
 
     index?: IndexResolver<Maybe<number>, TypeParent, TContext>
 
-    stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
+    stop?: StopResolver<Stop, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = JourneyStopEvent, TContext = {}> = Resolver<
@@ -1812,11 +1812,11 @@ export namespace JourneyStopEventResolvers {
     Parent = JourneyStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type StopIdResolver<R = string, Parent = JourneyStopEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
+  export type StopIdResolver<
+    R = Maybe<string>,
+    Parent = JourneyStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type DoorsOpenedResolver<
     R = Maybe<boolean>,
     Parent = JourneyStopEvent,
@@ -1867,11 +1867,11 @@ export namespace JourneyStopEventResolvers {
     Parent = JourneyStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type StopResolver<
-    R = Maybe<Stop>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
+  export type StopResolver<R = Stop, Parent = JourneyStopEvent, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace PlannedDepartureResolvers {
@@ -2295,15 +2295,15 @@ export namespace PlannedStopEventResolvers {
 
     stopId?: StopIdResolver<Maybe<string>, TypeParent, TContext>
 
-    plannedDate?: PlannedDateResolver<Date, TypeParent, TContext>
+    plannedDate?: PlannedDateResolver<Maybe<Date>, TypeParent, TContext>
 
-    plannedTime?: PlannedTimeResolver<Time, TypeParent, TContext>
+    plannedTime?: PlannedTimeResolver<Maybe<Time>, TypeParent, TContext>
 
-    plannedDateTime?: PlannedDateTimeResolver<DateTime, TypeParent, TContext>
+    plannedDateTime?: PlannedDateTimeResolver<Maybe<DateTime>, TypeParent, TContext>
 
     isNextDay?: IsNextDayResolver<Maybe<boolean>, TypeParent, TContext>
 
-    departureId?: DepartureIdResolver<number, TypeParent, TContext>
+    departureId?: DepartureIdResolver<Maybe<number>, TypeParent, TContext>
 
     isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
 
@@ -2328,17 +2328,17 @@ export namespace PlannedStopEventResolvers {
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type PlannedDateResolver<
-    R = Date,
+    R = Maybe<Date>,
     Parent = PlannedStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type PlannedTimeResolver<
-    R = Time,
+    R = Maybe<Time>,
     Parent = PlannedStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type PlannedDateTimeResolver<
-    R = DateTime,
+    R = Maybe<DateTime>,
     Parent = PlannedStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
@@ -2348,7 +2348,7 @@ export namespace PlannedStopEventResolvers {
     TContext = {}
   > = Resolver<R, Parent, TContext>
   export type DepartureIdResolver<
-    R = number,
+    R = Maybe<number>,
     Parent = PlannedStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>

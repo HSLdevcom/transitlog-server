@@ -648,7 +648,7 @@ export interface JourneyStopEvent {
 
   nextStopId: string
 
-  stopId: string
+  stopId?: Maybe<string>
 
   doorsOpened?: Maybe<boolean>
 
@@ -670,7 +670,7 @@ export interface JourneyStopEvent {
 
   index?: Maybe<number>
 
-  stop?: Maybe<Stop>
+  stop: Stop
 }
 
 export interface PlannedDeparture {
@@ -802,15 +802,15 @@ export interface PlannedStopEvent {
 
   stopId?: Maybe<string>
 
-  plannedDate: Date
+  plannedDate?: Maybe<Date>
 
-  plannedTime: Time
+  plannedTime?: Maybe<Time>
 
-  plannedDateTime: DateTime
+  plannedDateTime?: Maybe<DateTime>
 
   isNextDay?: Maybe<boolean>
 
-  departureId: number
+  departureId?: Maybe<number>
 
   isTimingStop: boolean
 

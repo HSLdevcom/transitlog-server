@@ -20,7 +20,7 @@ export const Journey = gql`
     recordedAtUnix: Int!
     recordedTime: Time!
     nextStopId: String!
-    stopId: String!
+    stopId: String
     doorsOpened: Boolean
     stopped: Boolean
     plannedDate: Date
@@ -31,18 +31,18 @@ export const Journey = gql`
     departureId: Int
     isTimingStop: Boolean!
     index: Int
-    stop: Stop
+    stop: Stop!
   }
 
   type PlannedStopEvent {
     id: ID!
     type: String!
     stopId: String
-    plannedDate: Date!
-    plannedTime: Time!
-    plannedDateTime: DateTime!
+    plannedDate: Date
+    plannedTime: Time
+    plannedDateTime: DateTime
     isNextDay: Boolean
-    departureId: Int!
+    departureId: Int
     isTimingStop: Boolean!
     index: Int
     stop: Stop!

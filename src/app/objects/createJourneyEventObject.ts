@@ -70,14 +70,14 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
 export function createJourneyStopEventObject(
   event: Vehicles,
   departure: Departure | null,
-  stop: Stop | null,
+  stop: Stop,
   doorsOpened: boolean,
   stopped: boolean
 ): JourneyStopEvent {
   const id = createJourneyId(event)
   const unix = parseInt(event.tsi, 10)
   const ts = moment.tz(event.tst, TZ).toISOString(true)
-  const stopData = stop ? stop : departure ? departure.stop : null
+  const stopData = !departure ? stop : departure.stop
 
   const plannedTimeDiff = !departure
     ? 0
