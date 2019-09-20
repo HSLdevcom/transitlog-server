@@ -707,8 +707,6 @@ export interface ObservedArrival {
   arrivalDateTime: DateTime
 
   arrivalTimeDifference: number
-
-  doorDidOpen: boolean
 }
 
 export interface ObservedDeparture {

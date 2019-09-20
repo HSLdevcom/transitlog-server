@@ -697,7 +697,7 @@ export namespace StopResolvers {
 
     modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
 
-    isTimingStop?: IsTimingStopResolver<Maybe<boolean>, TypeParent, TContext>
+    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
 
     _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
 
@@ -749,11 +749,11 @@ export namespace StopResolvers {
     Parent,
     TContext
   >
-  export type IsTimingStopResolver<
-    R = Maybe<boolean>,
-    Parent = Stop,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
+  export type IsTimingStopResolver<R = boolean, Parent = Stop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type _MatchScoreResolver<R = Maybe<number>, Parent = Stop, TContext = {}> = Resolver<
     R,
     Parent,
@@ -1965,8 +1965,6 @@ export namespace ObservedArrivalResolvers {
     arrivalDateTime?: ArrivalDateTimeResolver<DateTime, TypeParent, TContext>
 
     arrivalTimeDifference?: ArrivalTimeDifferenceResolver<number, TypeParent, TContext>
-
-    doorDidOpen?: DoorDidOpenResolver<boolean, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = ObservedArrival, TContext = {}> = Resolver<
@@ -1991,11 +1989,6 @@ export namespace ObservedArrivalResolvers {
   > = Resolver<R, Parent, TContext>
   export type ArrivalTimeDifferenceResolver<
     R = number,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DoorDidOpenResolver<
-    R = boolean,
     Parent = ObservedArrival,
     TContext = {}
   > = Resolver<R, Parent, TContext>

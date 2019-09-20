@@ -31,7 +31,6 @@ export const Departure = gql`
     arrivalTime: Time!
     arrivalDateTime: DateTime!
     arrivalTimeDifference: Int!
-    doorDidOpen: Boolean!
   }
 
   type DepartureJourney {

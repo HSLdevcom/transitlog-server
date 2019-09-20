@@ -7,6 +7,7 @@ import {
   Journey,
   JourneyEvent,
   JourneyStopEvent,
+  PlannedStopEvent,
   Route,
 } from '../../types/generated/schema-types'
 import {
@@ -23,7 +24,7 @@ import { Vehicles } from '../../types/EventsDb'
 
 export function createJourneyObject(
   vehiclePositions: Vehicles[],
-  events: Array<JourneyEvent | JourneyStopEvent>,
+  events: Array<JourneyEvent | JourneyStopEvent | PlannedStopEvent>,
   journeyRoute?: Route | null,
   originDeparture: Departure | null = null,
   journeyEquipment?: JoreEquipment | null,

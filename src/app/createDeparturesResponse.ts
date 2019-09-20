@@ -123,7 +123,7 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
   return compact(departuresWithStops)
 }
 
-export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
+const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the "instances" of the journey.
   const departuresWithEvents: Departure[][] = departures.map((departure) => {
@@ -235,8 +235,14 @@ export async function createDeparturesResponse(
         `${route_id}_${direction}_${departure_id}_${stop_id}_${day_type}_${extra_departure}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
-    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
-    return filterByExceptions(combineDeparturesAndStops(validDepartures, stops, date), exceptions)
+    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
+      groupedDepartures,
+      date
+    )
+    return filterByExceptions(
+      combineDeparturesAndStops(validDepartures, stops, date),
+      exceptions
+    )
   }
 
   const createDepartures: CachedFetcher<Departure[]> = async () => {
