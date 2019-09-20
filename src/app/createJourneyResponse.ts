@@ -5,6 +5,7 @@ import {
   Direction,
   ExceptionDay,
   Journey,
+  JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
   PlannedStopEvent,
@@ -31,6 +32,7 @@ import {
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import {
+  createJourneyCancellationEventObject,
   createJourneyEventObject,
   createJourneyStopEventObject,
   createPlannedStopEventObject,
@@ -39,6 +41,7 @@ import pMap from 'p-map'
 import { createStopObject } from './objects/createStopObject'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
+import { parse } from 'date-fns'
 
 type JourneyRoute = {
   route: Route | null
@@ -295,8 +298,24 @@ export async function createJourneyResponse(
 
   setCancellationsOnDeparture(originDeparture, journeyCancellations)
 
+  const cancellationEvents: JourneyCancellationEvent[] = journeyCancellations.map(
+    (cancellation) => createJourneyCancellationEventObject(cancellation)
+  )
+
   const plannedStopEvents: PlannedStopEvent[] = departures.map((departure) =>
     createPlannedStopEventObject(departure, journeyAlerts)
+  )
+
+  type EventsType =
+    | JourneyStopEvent
+    | JourneyEvent
+    | PlannedStopEvent
+    | JourneyCancellationEvent
+
+  const stopAndCancellationEvents = orderBy<EventsType>(
+    compact([...cancellationEvents, ...plannedStopEvents]),
+    (event) => moment.tz(get(event, 'recordedAt', get(event, 'plannedDateTime')), TZ).unix(),
+    'asc'
   )
 
   // At this point we have everything we need to return just the planned
@@ -304,7 +323,7 @@ export async function createJourneyResponse(
   if (!journeyEvents) {
     return createJourneyObject(
       [],
-      plannedStopEvents,
+      stopAndCancellationEvents,
       route,
       originDeparture,
       null,
@@ -371,17 +390,38 @@ export async function createJourneyResponse(
 
   // Create event objects from other events
   const otherEvents = events.map((event) => createJourneyEventObject(event))
+  const flatStopEventObjects: Array<JourneyEvent | JourneyStopEvent> = flatten(
+    stopEventObjects
+  )
 
   // Exclude planned stops that did end up having events attached to them. Those are
   // included on the stopEventObjects collection.
-  const stopsWithoutEvents = differenceBy(plannedStopEvents, stopEventObjects, 'stopId')
+  const stopsWithoutEvents = plannedStopEvents.reduce(
+    (deduplicated: PlannedStopEvent[], plannedEvent) => {
+      const stopWithEvent = flatStopEventObjects.some(
+        (evt) =>
+          get(evt, 'stopId', '') === plannedEvent.stopId &&
+          get(evt, 'index', -1) === plannedEvent.index
+      )
 
-  type EventsType = JourneyStopEvent | JourneyEvent | PlannedStopEvent
+      if (!stopWithEvent) {
+        deduplicated.push(plannedEvent)
+      }
+
+      return deduplicated
+    },
+    []
+  )
 
   // Combine all created event objects and order by time.
   const allJourneyEvents = orderBy<EventsType>(
-    compact([...flatten(stopEventObjects), ...otherEvents, ...stopsWithoutEvents]),
-    (event) => moment.tz(get(event, 'recordedAt', get(event, 'plannedDateTime')), TZ).unix(),
+    compact([
+      ...flatStopEventObjects,
+      ...otherEvents,
+      ...stopsWithoutEvents,
+      ...cancellationEvents,
+    ]),
+    (event) => parse(get(event, 'recordedAt', get(event, 'plannedDateTime'))).getTime() / 1000,
     'asc'
   )
 

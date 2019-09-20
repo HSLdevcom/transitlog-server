@@ -65,7 +65,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     }
 
     const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
-      ([_, instanceEvents]) => instanceEvents.filter((event) => event.event_type === 'DEP')
+      ([_, instanceEvents]) => instanceEvents
     )
 
     const firstStopId = get(departure, 'stop.originStopId', '')

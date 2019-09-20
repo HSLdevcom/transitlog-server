@@ -670,7 +670,7 @@ export interface JourneyStopEvent {
 
   index?: Maybe<number>
 
-  stop: Stop
+  stop?: Maybe<Stop>
 }
 
 export interface PlannedDeparture {
@@ -795,6 +795,32 @@ export interface JourneyEvent {
   recordedTime: Time
 }
 
+export interface JourneyCancellationEvent {
+  id: string
+
+  type: string
+
+  recordedAt: DateTime
+
+  recordedAtUnix: number
+
+  recordedTime: Time
+
+  title: string
+
+  description: string
+
+  category: AlertCategory
+
+  subCategory: CancellationSubcategory
+
+  isCancelled: boolean
+
+  cancellationType: CancellationType
+
+  cancellationEffect: CancellationEffect
+}
+
 export interface PlannedStopEvent {
   id: string
 
@@ -816,7 +842,7 @@ export interface PlannedStopEvent {
 
   index?: Maybe<number>
 
-  stop: Stop
+  stop?: Maybe<Stop>
 }
 
 export interface VehicleJourney {
@@ -884,7 +910,7 @@ export interface AreaJourney {
 
   mode?: Maybe<string>
 
-  events: Array<Maybe<VehiclePosition>>
+  vehiclePositions: Array<Maybe<VehiclePosition>>
 
   alerts: Alert[]
 
@@ -1037,4 +1063,8 @@ export interface CancellationsQueryArgs {
 // Unions
 // ====================================================
 
-export type JourneyEventType = JourneyEvent | JourneyStopEvent | PlannedStopEvent
+export type JourneyEventType =
+  | JourneyEvent
+  | JourneyStopEvent
+  | JourneyCancellationEvent
+  | PlannedStopEvent

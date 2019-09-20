@@ -40,10 +40,13 @@ const vehicleFields = [
 ]
 
 const routeDepartureFields = [
+  'journey_type',
+  'event_type',
   'unique_vehicle_id',
   'route_id',
   'direction_id',
   'journey_start_time',
+  'stop',
   'next_stop_id',
   'tst',
   'tsi',

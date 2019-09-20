@@ -1779,7 +1779,7 @@ export namespace JourneyStopEventResolvers {
 
     index?: IndexResolver<Maybe<number>, TypeParent, TContext>
 
-    stop?: StopResolver<Stop, TypeParent, TContext>
+    stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = JourneyStopEvent, TContext = {}> = Resolver<
@@ -1867,11 +1867,11 @@ export namespace JourneyStopEventResolvers {
     Parent = JourneyStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type StopResolver<R = Stop, Parent = JourneyStopEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
+  export type StopResolver<
+    R = Maybe<Stop>,
+    Parent = JourneyStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 export namespace PlannedDepartureResolvers {
@@ -2287,6 +2287,95 @@ export namespace JourneyEventResolvers {
   >
 }
 
+export namespace JourneyCancellationEventResolvers {
+  export interface Resolvers<TContext = {}, TypeParent = JourneyCancellationEvent> {
+    id?: IdResolver<string, TypeParent, TContext>
+
+    type?: TypeResolver<string, TypeParent, TContext>
+
+    recordedAt?: RecordedAtResolver<DateTime, TypeParent, TContext>
+
+    recordedAtUnix?: RecordedAtUnixResolver<number, TypeParent, TContext>
+
+    recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
+
+    title?: TitleResolver<string, TypeParent, TContext>
+
+    description?: DescriptionResolver<string, TypeParent, TContext>
+
+    category?: CategoryResolver<AlertCategory, TypeParent, TContext>
+
+    subCategory?: SubCategoryResolver<CancellationSubcategory, TypeParent, TContext>
+
+    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
+
+    cancellationType?: CancellationTypeResolver<CancellationType, TypeParent, TContext>
+
+    cancellationEffect?: CancellationEffectResolver<CancellationEffect, TypeParent, TContext>
+  }
+
+  export type IdResolver<
+    R = string,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type TypeResolver<
+    R = string,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type RecordedAtResolver<
+    R = DateTime,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type RecordedAtUnixResolver<
+    R = number,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type RecordedTimeResolver<
+    R = Time,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type TitleResolver<
+    R = string,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DescriptionResolver<
+    R = string,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type CategoryResolver<
+    R = AlertCategory,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type SubCategoryResolver<
+    R = CancellationSubcategory,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsCancelledResolver<
+    R = boolean,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type CancellationTypeResolver<
+    R = CancellationType,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type CancellationEffectResolver<
+    R = CancellationEffect,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+}
+
 export namespace PlannedStopEventResolvers {
   export interface Resolvers<TContext = {}, TypeParent = PlannedStopEvent> {
     id?: IdResolver<string, TypeParent, TContext>
@@ -2309,7 +2398,7 @@ export namespace PlannedStopEventResolvers {
 
     index?: IndexResolver<Maybe<number>, TypeParent, TContext>
 
-    stop?: StopResolver<Stop, TypeParent, TContext>
+    stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = PlannedStopEvent, TContext = {}> = Resolver<
@@ -2362,11 +2451,11 @@ export namespace PlannedStopEventResolvers {
     Parent = PlannedStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type StopResolver<R = Stop, Parent = PlannedStopEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
+  export type StopResolver<
+    R = Maybe<Stop>,
+    Parent = PlannedStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 export namespace VehicleJourneyResolvers {
@@ -2538,7 +2627,11 @@ export namespace AreaJourneyResolvers {
 
     mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
 
-    events?: EventsResolver<Array<Maybe<VehiclePosition>>, TypeParent, TContext>
+    vehiclePositions?: VehiclePositionsResolver<
+      Array<Maybe<VehiclePosition>>,
+      TypeParent,
+      TContext
+    >
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
@@ -2602,7 +2695,7 @@ export namespace AreaJourneyResolvers {
     Parent,
     TContext
   >
-  export type EventsResolver<
+  export type VehiclePositionsResolver<
     R = Array<Maybe<VehiclePosition>>,
     Parent = AreaJourney,
     TContext = {}
@@ -2660,8 +2753,8 @@ export namespace JourneyEventTypeResolvers {
     __resolveType: ResolveType
   }
   export type ResolveType<
-    R = 'JourneyEvent' | 'JourneyStopEvent' | 'PlannedStopEvent',
-    Parent = JourneyEvent | JourneyStopEvent | PlannedStopEvent,
+    R = 'JourneyEvent' | 'JourneyStopEvent' | 'JourneyCancellationEvent' | 'PlannedStopEvent',
+    Parent = JourneyEvent | JourneyStopEvent | JourneyCancellationEvent | PlannedStopEvent,
     TContext = {}
   > = TypeResolveFn<R, Parent, TContext>
 }
@@ -2754,6 +2847,7 @@ export type IResolvers<TContext = {}> = {
   ExceptionDay?: ExceptionDayResolvers.Resolvers<TContext>
   Journey?: JourneyResolvers.Resolvers<TContext>
   JourneyEvent?: JourneyEventResolvers.Resolvers<TContext>
+  JourneyCancellationEvent?: JourneyCancellationEventResolvers.Resolvers<TContext>
   PlannedStopEvent?: PlannedStopEventResolvers.Resolvers<TContext>
   VehicleJourney?: VehicleJourneyResolvers.Resolvers<TContext>
   AreaJourney?: AreaJourneyResolvers.Resolvers<TContext>

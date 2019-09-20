@@ -27,7 +27,7 @@ export const createAreaJourneyObject = (
     vehicleId: get(journey, 'vehicle_number', '') + '',
     headsign: get(journey, 'headsign', ''),
     mode: get(journey, 'mode', 'BUS'),
-    events: events.map((event) => createVehiclePositionObject(event, id)),
+    vehiclePositions: events.map((event) => createVehiclePositionObject(event, id)),
     alerts,
     cancellations: [],
     isCancelled: false,

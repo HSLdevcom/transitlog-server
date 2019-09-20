@@ -13,6 +13,21 @@ export const Journey = gql`
     recordedTime: Time!
   }
 
+  type JourneyCancellationEvent {
+    id: ID!
+    type: String!
+    recordedAt: DateTime!
+    recordedAtUnix: Int!
+    recordedTime: Time!
+    title: String!
+    description: String!
+    category: AlertCategory!
+    subCategory: CancellationSubcategory!
+    isCancelled: Boolean!
+    cancellationType: CancellationType!
+    cancellationEffect: CancellationEffect!
+  }
+
   type JourneyStopEvent {
     id: ID!
     type: String!
@@ -31,7 +46,7 @@ export const Journey = gql`
     departureId: Int
     isTimingStop: Boolean!
     index: Int
-    stop: Stop!
+    stop: Stop
   }
 
   type PlannedStopEvent {
@@ -45,10 +60,14 @@ export const Journey = gql`
     departureId: Int
     isTimingStop: Boolean!
     index: Int
-    stop: Stop!
+    stop: Stop
   }
 
-  union JourneyEventType = JourneyEvent | JourneyStopEvent | PlannedStopEvent
+  union JourneyEventType =
+      JourneyEvent
+    | JourneyStopEvent
+    | JourneyCancellationEvent
+    | PlannedStopEvent
 
   type VehiclePosition implements Position {
     id: ID!
@@ -122,7 +141,7 @@ export const Journey = gql`
     vehicleId: String
     headsign: String
     mode: String
-    events: [VehiclePosition]!
+    vehiclePositions: [VehiclePosition]!
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!

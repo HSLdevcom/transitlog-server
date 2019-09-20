@@ -1,13 +1,16 @@
 import {
   AlertDistribution,
+  Cancellation,
+  CancellationSubcategory,
   Departure,
+  JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
   PlannedStopEvent,
   Stop,
   VehiclePosition,
 } from '../../types/generated/schema-types'
-import { TZ } from '../../constants'
+import { TIME_FORMAT, TZ } from '../../constants'
 import moment from 'moment-timezone'
 import { getJourneyEventTime } from '../../utils/time'
 import { Vehicles } from '../../types/EventsDb'
@@ -24,11 +27,33 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
   const ts = moment.tz(event.tst, TZ).toISOString(true)
 
   return {
-    id: `journey_event_${id}_${unix}`,
+    id: `journey_event_${event.event_type || 'VP'}_${id}_${unix}`,
     type: event.event_type || 'VP',
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
+  }
+}
+
+export function createJourneyCancellationEventObject(
+  cancellation: Cancellation
+): JourneyCancellationEvent {
+  const id = cancellation.id
+  const ts = moment.tz(cancellation.lastModifiedDateTime, TZ)
+
+  return {
+    id: `journey_cancellation_event_${id}`,
+    type: 'CANCELLATION',
+    recordedAt: ts.toISOString(true),
+    recordedAtUnix: ts.unix(),
+    recordedTime: ts.format(TIME_FORMAT),
+    title: cancellation.title,
+    description: cancellation.description,
+    category: cancellation.category,
+    subCategory: cancellation.subCategory,
+    isCancelled: cancellation.isCancelled,
+    cancellationType: cancellation.cancellationType,
+    cancellationEffect: cancellation.cancellationEffect,
   }
 }
 
@@ -55,7 +80,7 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
   return {
     id: `journey_planned_stop_event_${id}`,
     type: 'PLANNED',
-    stopId: departure.stopId,
+    stopId: departure.stopId + '',
     plannedDate: departureDate,
     plannedTime: departureTime,
     plannedDateTime: departureDateTime,
@@ -70,7 +95,7 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
 export function createJourneyStopEventObject(
   event: Vehicles,
   departure: Departure | null,
-  stop: Stop,
+  stop: Stop | null,
   doorsOpened: boolean,
   stopped: boolean
 ): JourneyStopEvent {
@@ -94,8 +119,8 @@ export function createJourneyStopEventObject(
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
-    stopId: event.stop || event.next_stop_id || '',
-    nextStopId: event.next_stop_id || '',
+    stopId: (event.stop || event.next_stop_id || '') + '',
+    nextStopId: (event.next_stop_id || '') + '',
     stopped,
     doorsOpened,
     plannedDate: get(departure, 'plannedDepartureTime.departureDate', null),
@@ -105,7 +130,7 @@ export function createJourneyStopEventObject(
     isNextDay: get(departure, 'isNextDay', null),
     departureId: get(departure, 'departureId', null),
     isTimingStop: get(departure, 'isTimingStop', get(stop, 'isTimingStop', false)),
-    index: get(departure, 'index', null),
+    index: get(departure, 'index', 0),
     stop: stopData,
   }
 }
@@ -120,7 +145,7 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
-    nextStopId: event.next_stop_id,
+    nextStopId: event.next_stop_id + '',
     lat: event.lat,
     lng: event.long,
     doorStatus: event.drst,
