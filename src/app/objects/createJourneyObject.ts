@@ -5,15 +5,13 @@ import {
   Cancellation,
   Departure,
   Journey,
+  JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
   PlannedStopEvent,
   Route,
 } from '../../types/generated/schema-types'
-import {
-  createJourneyEventObject,
-  createVehiclePositionObject,
-} from './createJourneyEventObject'
+import { createVehiclePositionObject } from './createJourneyEventObject'
 import { get } from 'lodash'
 import { createEquipmentObject } from './createEquipmentObject'
 import { JoreEquipment } from '../../types/Jore'
@@ -24,7 +22,7 @@ import { Vehicles } from '../../types/EventsDb'
 
 export function createJourneyObject(
   vehiclePositions: Vehicles[],
-  events: Array<JourneyEvent | JourneyStopEvent | PlannedStopEvent>,
+  events: Array<JourneyEvent | JourneyStopEvent | PlannedStopEvent | JourneyCancellationEvent>,
   journeyRoute?: Route | null,
   originDeparture: Departure | null = null,
   journeyEquipment?: JoreEquipment | null,

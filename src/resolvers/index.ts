@@ -21,6 +21,11 @@ export const resolvers: StringIndexed<any> = {
       if (obj.plannedDateTime && !obj.recordedAt) {
         return 'PlannedStopEvent'
       }
+
+      if (typeof obj.isCancelled !== 'undefined') {
+        return 'JourneyCancellationEvent'
+      }
+
       if (obj.plannedDateTime && obj.recordedAt) {
         return 'JourneyStopEvent'
       }

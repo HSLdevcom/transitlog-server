@@ -19,6 +19,8 @@ export const Journey = gql`
     recordedAt: DateTime!
     recordedAtUnix: Int!
     recordedTime: Time!
+    plannedDate: Date
+    plannedTime: Time
     title: String!
     description: String!
     category: AlertCategory!

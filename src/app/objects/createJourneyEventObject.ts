@@ -47,6 +47,8 @@ export function createJourneyCancellationEventObject(
     recordedAt: ts.toISOString(true),
     recordedAtUnix: ts.unix(),
     recordedTime: ts.format(TIME_FORMAT),
+    plannedDate: cancellation.departureDate,
+    plannedTime: cancellation.journeyStartTime,
     title: cancellation.title,
     description: cancellation.description,
     category: cancellation.category,

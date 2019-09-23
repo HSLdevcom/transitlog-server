@@ -806,6 +806,10 @@ export interface JourneyCancellationEvent {
 
   recordedTime: Time
 
+  plannedDate?: Maybe<Date>
+
+  plannedTime?: Maybe<Time>
+
   title: string
 
   description: string

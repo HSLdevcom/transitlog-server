@@ -4756,6 +4756,22 @@
             "deprecationReason": null
           },
           {
+            "name": "plannedDate",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Date", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "plannedTime",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Time", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "title",
             "description": "",
             "args": [],

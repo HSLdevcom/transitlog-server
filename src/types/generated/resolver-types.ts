@@ -2299,6 +2299,10 @@ export namespace JourneyCancellationEventResolvers {
 
     recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
 
+    plannedDate?: PlannedDateResolver<Maybe<Date>, TypeParent, TContext>
+
+    plannedTime?: PlannedTimeResolver<Maybe<Time>, TypeParent, TContext>
+
     title?: TitleResolver<string, TypeParent, TContext>
 
     description?: DescriptionResolver<string, TypeParent, TContext>
@@ -2336,6 +2340,16 @@ export namespace JourneyCancellationEventResolvers {
   > = Resolver<R, Parent, TContext>
   export type RecordedTimeResolver<
     R = Time,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type PlannedDateResolver<
+    R = Maybe<Date>,
+    Parent = JourneyCancellationEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type PlannedTimeResolver<
+    R = Maybe<Time>,
     Parent = JourneyCancellationEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
