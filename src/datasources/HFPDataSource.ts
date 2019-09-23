@@ -179,29 +179,35 @@ ORDER BY tst ASC;
 
     const queryVehicleId = `${operatorId}/${vehicleId}`
 
-    let query
-
-    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
-      query = this.db('vehicles')
-        .select(vehicleFields)
-        .where('event_type', 'VP')
-        .where('oday', date)
-        .where('unique_vehicle_id', queryVehicleId)
-        .orderBy('tst', 'ASC')
-    } else {
-      query = this.db.raw(
-        `SELECT DISTINCT ON (journey_start_time) ${vehicleFields.join(',')}
+    const eventsQuery = this.db.raw(
+      `SELECT DISTINCT ON (journey_start_time) ${vehicleFields.join(',')}
 FROM vehicles
 WHERE event_type = 'DEP'
   AND oday = ?
   AND unique_vehicle_id = ?
 ORDER BY journey_start_time, tst;
 `,
-        [date, queryVehicleId]
-      )
+      [date, queryVehicleId]
+    )
+
+    const legacyQuery = this.db('vehicles')
+      .select(vehicleFields)
+      .where('event_type', 'VP')
+      .where('oday', date)
+      .where('unique_vehicle_id', queryVehicleId)
+      .orderBy('tst', 'ASC')
+
+    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
+      return this.getBatched(legacyQuery)
     }
 
-    return this.getBatched(query)
+    const eventsResult = await this.getBatched(eventsQuery)
+
+    if (eventsResult.length === 0) {
+      return this.getBatched(legacyQuery)
+    }
+
+    return eventsResult
   }
 
   /*
@@ -284,39 +290,43 @@ ORDER BY journey_start_time, tst;
    */
 
   async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
-    let query
-
-    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
-      query = this.db('vehicles')
-        .select(
-          this.db.raw(
-            `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(
-              ','
-            )}`
-          )
+    const legacyQuery = this.db('vehicles')
+      .select(
+        this.db.raw(
+          `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
         )
-        .where('event_type', 'VP')
-        .where('oday', date)
-        .where('next_stop_id', stopId)
-        .orderBy([
-          { column: 'journey_start_time', order: 'asc' },
-          { column: 'unique_vehicle_id', order: 'asc' },
-          { column: 'tst', order: 'desc' },
-        ])
-    } else {
-      query = this.db.raw(
-        `
+      )
+      .where('event_type', 'VP')
+      .where('oday', date)
+      .where('stop', stopId)
+      .orderBy([
+        { column: 'journey_start_time', order: 'asc' },
+        { column: 'unique_vehicle_id', order: 'asc' },
+        { column: 'tst', order: 'desc' },
+      ])
+
+    const eventsQuery = this.db.raw(
+      `
 SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
 WHERE event_type IN ('DEP', 'ARR')
   AND oday = ?
   AND stop = ?;
 `,
-        [date, stopId]
-      )
+      [date, stopId]
+    )
+
+    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
+      return this.getBatched(legacyQuery)
     }
 
-    return this.getBatched(query)
+    const eventsResult = await this.getBatched(eventsQuery)
+
+    if (eventsResult.length === 0) {
+      return this.getBatched(legacyQuery)
+    }
+
+    return eventsResult
   }
 
   /*
@@ -329,30 +339,27 @@ WHERE event_type IN ('DEP', 'ARR')
     routeId: string,
     direction: Direction
   ): Promise<Vehicles[]> {
-    let query
-
-    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
-      query = this.db('vehicles')
-        .select(
-          this.db.raw(
-            `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
-              ','
-            )}`
-          )
+    const legacyQuery = this.db('vehicles')
+      .select(
+        this.db.raw(
+          `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
+            ','
+          )}`
         )
-        .where('event_type', 'VP')
-        .where('oday', date)
-        .where('next_stop_id', stopId)
-        .where('route_id', routeId)
-        .where('direction_id', direction)
-        .orderBy([
-          { column: 'journey_start_time', order: 'asc' },
-          { column: 'unique_vehicle_id', order: 'asc' },
-          { column: 'tst', order: 'desc' },
-        ])
-    } else {
-      query = this.db.raw(
-        `SELECT ${routeDepartureFields.join(',')}
+      )
+      .where('event_type', 'VP')
+      .where('oday', date)
+      .where('route_id', routeId)
+      .where('direction_id', direction)
+      .where('stop', stopId)
+      .orderBy([
+        { column: 'journey_start_time', order: 'asc' },
+        { column: 'unique_vehicle_id', order: 'asc' },
+        { column: 'tst', order: 'desc' },
+      ])
+
+    const eventsQuery = this.db.raw(
+      `SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
 WHERE event_type = 'DEP'
   AND oday = ?
@@ -360,11 +367,20 @@ WHERE event_type = 'DEP'
   AND route_id = ?
   AND direction_id = ?;
 `,
-        [date, stopId, routeId, direction]
-      )
+      [date, stopId, routeId, direction]
+    )
+
+    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
+      return this.getBatched(legacyQuery)
     }
 
-    return this.getBatched(query)
+    const eventsResult = await this.getBatched(eventsQuery)
+
+    if (eventsResult.length === 0) {
+      return this.getBatched(legacyQuery)
+    }
+
+    return eventsResult
   }
 
   getAlerts = async (minDate: string, maxDate: string): Promise<DBAlert[]> => {

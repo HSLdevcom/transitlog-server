@@ -1,4 +1,4 @@
-import { flatten, get, groupBy, orderBy, compact } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import {
   Departure,
@@ -26,10 +26,9 @@ import {
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
-import pMap from 'p-map'
 import { requireUser } from '../auth/requireUser'
 
-export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
+const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the "instances" of the journey.
   const departuresWithEvents: Departure[][] = departures.map((departure) => {
@@ -65,7 +64,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     }
 
     const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
-      ([_, instanceEvents]) => instanceEvents
+      ([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc')
     )
 
     const firstStopId = get(departure, 'stop.originStopId', '')
