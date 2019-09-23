@@ -42,38 +42,19 @@ export function getStopArrivalData(
 }
 
 export const getLegacyStopArrivalEvent = (events) => {
-  // The stopEvents are sorted by recorded-at time in descending order,
-  // so the last event from this stop is first. For this function,
-  // it is best to reverse it back to first-last order.
   const reversedEvents = reverse([...events])
   let arrivalEvent = reversedEvents[0]
-  let doorOpenEvent = null
 
   if (!arrivalEvent) {
-    return [null]
+    return null
   }
 
-  // Find out when the vehicle arrived at the stop
-  // by looking at when the doors were opened.
-  let doorDidOpen = false
-
-  for (let i = 0; i < reversedEvents.length; i++) {
-    const evt = reversedEvents[i]
-
-    if (!!evt.drst) {
-      doorDidOpen = true
-      doorOpenEvent = evt
-
-      const pickIdx = i > 0 ? i - 1 : 0
-      arrivalEvent = reversedEvents[pickIdx]
+  for (const evt of reversedEvents) {
+    if (evt.drst) {
+      arrivalEvent = evt
       break
     }
   }
 
-  // If the loop didn't find an event, pick the last event for the stop as a fallback.
-  if (!arrivalEvent) {
-    arrivalEvent = reversedEvents[reversedEvents.length - 1]
-  }
-
-  return [arrivalEvent, doorOpenEvent]
+  return arrivalEvent
 }
