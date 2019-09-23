@@ -15,7 +15,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, differenceBy, flatten, get, groupBy, orderBy } from 'lodash'
+import { compact, differenceBy, flatten, get, groupBy, orderBy, unionBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -42,6 +42,7 @@ import { createStopObject } from './objects/createStopObject'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { parse } from 'date-fns'
+import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
 
 type JourneyRoute = {
   route: Route | null
@@ -358,9 +359,20 @@ export async function createJourneyResponse(
 
   const journeyEquipment = get(fetchedEquipment, '[0]', null) || null
 
+  // Create virtual ARR and DEP stop events from the vehicle positions.
+  const virtualStopEvents = createVirtualStopEvents(vehiclePositions, departures)
+
+  // Patch the stop events collection with virtual stop
+  // events that we parsed from the vehiclePositions.
+  const patchedStopEvents = unionBy(
+    stopEvents,
+    virtualStopEvents,
+    (event) => event.event_type + event.stop + event.next_stop_id
+  )
+
   // Get a listing of all stops visited during this journey, regardless of whether or not
   // the stop was planned.
-  const stopGroupedEvents = groupBy(stopEvents, (event) =>
+  const stopGroupedEvents = groupBy(patchedStopEvents, (event) =>
     event.stop ? event.stop : event.next_stop_id
   )
 

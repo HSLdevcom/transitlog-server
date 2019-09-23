@@ -13,7 +13,7 @@ export const getStopEvents = (events: Vehicles[], stopId: string) => {
   let didFindStop = false
 
   for (const pos of events) {
-    if (pos.next_stop_id === stopId) {
+    if ([pos.next_stop_id, pos.stop].includes(stopId)) {
       didFindStop = true
       stopEvents.push(pos)
       continue

@@ -4,7 +4,7 @@ import parse from 'date-fns/parse'
 import format from 'date-fns/format'
 import { DATE_FORMAT, TZ } from '../constants'
 import { Departure, ObservedArrival } from '../types/generated/schema-types'
-import { get } from 'lodash'
+import { get, reverse } from 'lodash'
 import { createJourneyId } from './createJourneyId'
 import { createDepartureId } from '../app/objects/createDepartureObject'
 import { Vehicles } from '../types/EventsDb'
@@ -39,4 +39,41 @@ export function getStopArrivalData(
     arrivalDateTime: moment.tz(arrivalTime, TZ).toISOString(true),
     arrivalTimeDifference: arrivalDiff,
   }
+}
+
+export const getLegacyStopArrivalEvent = (events) => {
+  // The stopEvents are sorted by recorded-at time in descending order,
+  // so the last event from this stop is first. For this function,
+  // it is best to reverse it back to first-last order.
+  const reversedEvents = reverse([...events])
+  let arrivalEvent = reversedEvents[0]
+  let doorOpenEvent = null
+
+  if (!arrivalEvent) {
+    return [null]
+  }
+
+  // Find out when the vehicle arrived at the stop
+  // by looking at when the doors were opened.
+  let doorDidOpen = false
+
+  for (let i = 0; i < reversedEvents.length; i++) {
+    const evt = reversedEvents[i]
+
+    if (!!evt.drst) {
+      doorDidOpen = true
+      doorOpenEvent = evt
+
+      const pickIdx = i > 0 ? i - 1 : 0
+      arrivalEvent = reversedEvents[pickIdx]
+      break
+    }
+  }
+
+  // If the loop didn't find an event, pick the last event for the stop as a fallback.
+  if (!arrivalEvent) {
+    arrivalEvent = reversedEvents[reversedEvents.length - 1]
+  }
+
+  return [arrivalEvent, doorOpenEvent]
 }

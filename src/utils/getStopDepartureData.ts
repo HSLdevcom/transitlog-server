@@ -23,14 +23,10 @@ export const getStopDepartureData = (
   stopDeparture: Departure,
   date?: string
 ): ObservedDeparture | null => {
-  let departureEvent = stopEvents.find((event) => event.event_type === 'DEP')
+  const departureEvent = getStopDepartureEvent(stopEvents)
 
   if (!departureEvent) {
-    departureEvent = stopEvents[0]
-
-    if (!departureEvent) {
-      return null
-    }
+    return null
   }
 
   const tst = departureEvent.tst
@@ -51,4 +47,18 @@ export const getStopDepartureData = (
     departureDateTime: moment.tz(departureTime, TZ).toISOString(true),
     departureTimeDifference: departureDiff,
   }
+}
+
+export const getStopDepartureEvent = (events) => {
+  let departureEvent = events.find((event) => event.event_type === 'DEP')
+
+  if (!departureEvent) {
+    departureEvent = events[0]
+
+    if (!departureEvent) {
+      return null
+    }
+  }
+
+  return departureEvent
 }
