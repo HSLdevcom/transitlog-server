@@ -1,7 +1,17 @@
 import { createJourneyId } from '../../utils/createJourneyId'
 import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
-import { Alert, Cancellation, Departure, Journey, Route } from '../../types/generated/schema-types'
-import { createJourneyEventObject } from './createJourneyEventObject'
+import {
+  Alert,
+  Cancellation,
+  Departure,
+  Journey,
+  JourneyCancellationEvent,
+  JourneyEvent,
+  JourneyStopEvent,
+  PlannedStopEvent,
+  Route,
+} from '../../types/generated/schema-types'
+import { createVehiclePositionObject } from './createJourneyEventObject'
 import { get } from 'lodash'
 import { createEquipmentObject } from './createEquipmentObject'
 import { JoreEquipment } from '../../types/Jore'
@@ -11,22 +21,24 @@ import { getLatestCancellationState } from '../../utils/getLatestCancellationSta
 import { Vehicles } from '../../types/EventsDb'
 
 export function createJourneyObject(
-  journeyEvents: Vehicles[],
+  vehiclePositions: Vehicles[],
+  events: Array<JourneyEvent | JourneyStopEvent | PlannedStopEvent | JourneyCancellationEvent>,
   journeyRoute?: Route | null,
-  journeyDepartures: Departure[] = [],
+  originDeparture: Departure | null = null,
   journeyEquipment?: JoreEquipment | null,
   alerts: Alert[] = [],
   cancellations: Cancellation[] = []
 ): Journey {
-  const journey = journeyEvents[0]
-  const firstDeparture = journeyDepartures[0]
+  const journey = vehiclePositions[0]
 
-  const departureDate = get(firstDeparture, 'plannedDepartureTime.departureDate', '')
+  const departureDate = get(originDeparture, 'plannedDepartureTime.departureDate', '')
   const departureTime = !journey
-    ? get(firstDeparture, 'plannedDepartureTime.departureTime', '')
+    ? get(originDeparture, 'plannedDepartureTime.departureTime', '')
     : getJourneyStartTime(journey)
 
-  const id = !journey ? `journey_no_events_${get(firstDeparture, 'id')}` : createJourneyId(journey)
+  const id = !journey
+    ? `journey_no_events_${get(originDeparture, 'id')}`
+    : createJourneyId(journey)
 
   const isCancelled =
     cancellations.length !== 0 && getLatestCancellationState(cancellations)[0].isCancelled
@@ -40,7 +52,7 @@ export function createJourneyObject(
       get(
         journey,
         'direction_id',
-        get(firstDeparture, 'direction', get(journeyRoute, 'direction', 0))
+        get(originDeparture, 'direction', get(journeyRoute, 'direction', 0))
       )
     ),
     departureDate: get(journey, 'oday', departureDate),
@@ -54,8 +66,9 @@ export function createJourneyObject(
     name: get(journeyRoute, 'name', ''),
     mode: (get(journeyRoute, 'mode', get(journey, 'mode', '')) || '').toUpperCase(),
     equipment: journeyEquipment ? createEquipmentObject(journeyEquipment) : null,
-    events: journeyEvents.map((event) => createJourneyEventObject(event, id)),
-    departures: journeyDepartures,
+    vehiclePositions: vehiclePositions.map((event) => createVehiclePositionObject(event, id)),
+    events,
+    departure: originDeparture,
     alerts,
     cancellations,
     isCancelled,

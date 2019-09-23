@@ -1,7 +1,8 @@
 import { diffDepartureJourney } from './diffDepartureJourney'
 import { Departure, ObservedDeparture } from '../types/generated/schema-types'
-import { createJourneyEventObject } from '../app/objects/createJourneyEventObject'
-import { TZ } from '../constants'
+import format from 'date-fns/format'
+import parse from 'date-fns/parse'
+import { DATE_FORMAT, TZ } from '../constants'
 import moment from 'moment-timezone'
 import { getJourneyEventTime } from './time'
 import { createDepartureId } from '../app/objects/createDepartureObject'
@@ -22,13 +23,14 @@ export const getStopDepartureData = (
   stopDeparture: Departure,
   date?: string
 ): ObservedDeparture | null => {
-  // The stopEvents are sorted by recorded-at time in descending order,
-  // so the last event from this stop is first. Exactly like we want it.
-  const departureEvent = stopEvents[0]
+  const departureEvent = stopEvents.find((event) => event.event_type === 'DEP')
 
   if (!departureEvent) {
     return null
   }
+
+  const tst = departureEvent.tst
+  const departureTime = parse(tst)
 
   const departureDate = !date
     ? get(stopDeparture, 'plannedDepartureTime.departureDate', departureEvent.oday)
@@ -37,12 +39,12 @@ export const getStopDepartureData = (
   const departureDiff = diffDepartureJourney(departureEvent, stopDeparture, departureDate)
   const journeyId = createJourneyId(departureEvent)
 
+  // @ts-ignore
   return {
-    id: `odt_${journeyId}_${departureEvent.tst}_${createDepartureId(stopDeparture)}`,
-    departureEvent: createJourneyEventObject(departureEvent, journeyId),
-    departureDate: departureEvent.oday,
+    id: `odt_${journeyId}_${tst}_${createDepartureId(stopDeparture)}`,
+    departureDate: format(departureTime, DATE_FORMAT),
     departureTime: getJourneyEventTime(departureEvent),
-    departureDateTime: moment.tz(departureEvent.tst, TZ).toISOString(true),
+    departureDateTime: moment.tz(departureTime, TZ).toISOString(true),
     departureTimeDifference: departureDiff,
   }
 }

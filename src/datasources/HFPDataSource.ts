@@ -14,6 +14,8 @@ const knex: Knex = getKnex(databases.HFP)
 const EVENTS_CUTOFF_DATE = '2019-09-18'
 
 const vehicleFields = [
+  'journey_type',
+  'event_type',
   'mode',
   'owner_operator_id',
   'vehicle_number',
@@ -22,6 +24,7 @@ const vehicleFields = [
   'direction_id',
   'headsign',
   'journey_start_time',
+  'stop',
   'next_stop_id',
   'geohash_level',
   'desi',
@@ -37,10 +40,13 @@ const vehicleFields = [
 ]
 
 const routeDepartureFields = [
+  'journey_type',
+  'event_type',
   'unique_vehicle_id',
   'route_id',
   'direction_id',
   'journey_start_time',
+  'stop',
   'next_stop_id',
   'tst',
   'tsi',
@@ -238,7 +244,6 @@ ORDER BY journey_start_time, tst;
 
     let query = this.db('vehicles')
       .select(vehicleFields)
-      .where('event_type', 'VP')
       .where('oday', departureDate)
       .where('route_id', routeId)
       .where('direction_id', direction)
@@ -284,7 +289,9 @@ ORDER BY journey_start_time, tst;
       query = this.db('vehicles')
         .select(
           this.db.raw(
-            `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
+            `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(
+              ','
+            )}`
           )
         )
         .where('event_type', 'VP')
@@ -300,7 +307,7 @@ ORDER BY journey_start_time, tst;
         `
 SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
-WHERE event_type = 'DEP'
+WHERE event_type IN ('DEP', 'ARR')
   AND oday = ?
   AND stop = ?;
 `,
@@ -363,7 +370,9 @@ WHERE event_type = 'DEP'
     const query = this.db('alert')
       .select(
         this.db.raw(
-          `DISTINCT ON ("valid_from", "valid_to", "stop_id", "route_id") ${alertFields.join(',')}`
+          `DISTINCT ON ("valid_from", "valid_to", "stop_id", "route_id") ${alertFields.join(
+            ','
+          )}`
         )
       )
       .where((builder) =>
@@ -387,7 +396,10 @@ WHERE event_type = 'DEP'
     const query = this.db('cancellation')
       .select(cancellationFields)
       .where('start_date', date)
-      .orderBy([{ column: 'last_modified', order: 'desc' }, { column: 'start_time', order: 'asc' }])
+      .orderBy([
+        { column: 'last_modified', order: 'desc' },
+        { column: 'start_time', order: 'asc' },
+      ])
 
     return this.getBatched(query)
   }

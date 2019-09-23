@@ -48,22 +48,25 @@ export async function createStopResponse(
       return false
     }
 
-    let stopRoutes = validStops.reduce((routes: StopRoute[], stopRouteData: JoreCombinedStop) => {
-      const stopRoute: StopRoute = {
-        id: `stop_route_${stopRouteData.route_id}_${stopRouteData.direction}_${
-          stopRouteData.date_begin
-        }_${stopRouteData.date_end}`,
-        lineId: stopRouteData.line_id,
-        direction: getDirection(stopRouteData.direction),
-        routeId: stopRouteData.route_id,
-        isTimingStop: !!stopRouteData.timing_stop_type,
-        originStopId: stopRouteData.originstop_id,
-        mode: stopRouteData.mode || 'BUS',
-      }
+    let stopRoutes = validStops.reduce(
+      (routes: StopRoute[], stopRouteData: JoreCombinedStop) => {
+        const stopRoute: StopRoute = {
+          id: `stop_route_${stopRouteData.route_id}_${stopRouteData.direction}_${
+            stopRouteData.date_begin
+          }_${stopRouteData.date_end}`,
+          lineId: stopRouteData.line_id,
+          direction: getDirection(stopRouteData.direction),
+          routeId: stopRouteData.route_id,
+          isTimingStop: !!stopRouteData.timing_stop_type,
+          originStopId: stopRouteData.originstop_id,
+          mode: stopRouteData.mode || 'BUS',
+        }
 
-      routes.push(stopRoute)
-      return routes
-    }, [])
+        routes.push(stopRoute)
+        return routes
+      },
+      []
+    )
 
     const stop = validStops[0]
     stopRoutes = orderBy(stopRoutes, 'route_id')
@@ -103,9 +106,10 @@ export async function createStopsResponse(
 
     if (date && fetchedStops.some(({ date_begin, date_end }) => !!date_begin && !!date_end)) {
       const filteredStops = filterByDateChains<JoreStop & ValidityRange>(
-        groupBy(stopData, (stop) => stop.stop_id + stop.route_id + stop.direction) as Dictionary<
-          Array<JoreStop & ValidityRange>
-        >,
+        groupBy(
+          stopData,
+          (stop) => stop.stop_id + stop.route_id + stop.direction
+        ) as Dictionary<Array<JoreStop & ValidityRange>>,
         date
       )
 
@@ -138,7 +142,8 @@ export async function createStopsResponse(
         if (
           route &&
           !useStop.routes.find(
-            ({ routeId, direction }) => routeId === route.routeId && direction === route.direction
+            ({ routeId, direction }) =>
+              routeId === route.routeId && direction === route.direction
           )
         ) {
           useStop.routes.push(route)
@@ -158,7 +163,8 @@ export async function createStopsResponse(
     return stopData.map((stop) => {
       const stopAlerts = alerts.filter(
         (alert) =>
-          alert.distribution === AlertDistribution.AllStops || alert.affectedId === stop.stop_id
+          alert.distribution === AlertDistribution.AllStops ||
+          alert.affectedId === stop.stop_id
       )
 
       return createStopObject(stop, stop.routes, stopAlerts)

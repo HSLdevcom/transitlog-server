@@ -244,8 +244,11 @@ const journey = async (
   { dataSources, user }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(departureDate)
+
   const getRouteData = () =>
     dataSources.JoreAPI.getDepartureData(routeId, direction, departureDate)
+
+  const getStopData = (stopId) => stop(root, { stopId, date: departureDate }, { dataSources })
 
   const getJourneyEvents = () =>
     dataSources.HFPAPI.getJourneyEvents(
@@ -272,6 +275,7 @@ const journey = async (
     getRouteData,
     getJourneyEvents,
     getJourneyEquipment,
+    getStopData,
     fetchCancellations,
     fetchAlerts,
     exceptions,

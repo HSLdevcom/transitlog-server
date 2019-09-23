@@ -16,8 +16,25 @@ export const resolvers: StringIndexed<any> = {
   BBox: BBoxScalar,
   PreciseBBox: PreciseBBoxScalar,
   Direction: DirectionScalar,
+  JourneyEventType: {
+    __resolveType(obj) {
+      if (obj.plannedDateTime && !obj.recordedAt) {
+        return 'PlannedStopEvent'
+      }
+
+      if (typeof obj.isCancelled !== 'undefined') {
+        return 'JourneyCancellationEvent'
+      }
+
+      if (obj.plannedDateTime && obj.recordedAt) {
+        return 'JourneyStopEvent'
+      }
+
+      return 'JourneyEvent'
+    },
+  },
   Position: {
-    __resolveType(obj, context, info) {
+    __resolveType(obj) {
       if (obj.recordedAt) {
         return 'JourneyEvent'
       }

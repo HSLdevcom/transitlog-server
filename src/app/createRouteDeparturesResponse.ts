@@ -1,6 +1,11 @@
 import { flatten, get, groupBy, orderBy, compact } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
-import { Departure, Direction, ExceptionDay, RouteSegment } from '../types/generated/schema-types'
+import {
+  Departure,
+  Direction,
+  ExceptionDay,
+  RouteSegment,
+} from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from './cache'
 import { Dictionary } from '../types/Dictionary'
@@ -60,7 +65,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     }
 
     const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
-      ([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc')
+      ([_, instanceEvents]) => instanceEvents
     )
 
     const firstStopId = get(departure, 'stop.originStopId', '')
@@ -156,7 +161,10 @@ export async function createRouteDeparturesResponse(
         `${departure_id}_${day_type}_${extra_departure}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
-    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
+    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
+      groupedDepartures,
+      date
+    )
 
     const routeDepartures = combineDeparturesAndStops(validDepartures, stops, date)
     return filterByExceptions(routeDepartures, exceptions)
@@ -217,7 +225,11 @@ export async function createRouteDeparturesResponse(
     requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
   }`
 
-  const routeDepartures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
+  const routeDepartures = await cacheFetch<Departure[]>(
+    cacheKey,
+    createDepartures,
+    departuresTTL
+  )
 
   if (!routeDepartures || routeDepartures.length === 0) {
     return []
