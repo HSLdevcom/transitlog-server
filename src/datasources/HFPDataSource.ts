@@ -288,7 +288,6 @@ ORDER BY journey_start_time, tst;
   /*
    * Get all departures for a specific stop during a date.
    */
-
   async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
     const legacyQuery = this.db('vehicles')
       .select(
@@ -309,7 +308,7 @@ ORDER BY journey_start_time, tst;
       `
 SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
-WHERE event_type IN ('DEP', 'ARS')
+WHERE event_type = 'DEP'
   AND oday = ?
   AND stop = ?;
 `,
