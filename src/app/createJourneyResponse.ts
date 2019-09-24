@@ -380,13 +380,14 @@ export async function createJourneyResponse(
     Object.entries(stopGroupedEvents),
     async ([stopId, eventsForStop]) => {
       const departure: Departure | undefined = departures.find((dep) => dep.stopId === stopId)
-      let stop: Stop | null = null
+      let stop: Stop | null = get(departure, 'stop', null)
 
-      if (!departure) {
+      if (!stop) {
         stop = await getStop(stopId)
-      } else {
+      }
+
+      if (departure) {
         setAlertsOnDeparture(departure, journeyAlerts)
-        stop = departure.stop
       }
 
       const doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')

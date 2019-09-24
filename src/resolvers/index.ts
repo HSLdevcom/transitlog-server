@@ -22,11 +22,14 @@ export const resolvers: StringIndexed<any> = {
         return 'PlannedStopEvent'
       }
 
-      if (typeof obj.isCancelled !== 'undefined') {
+      if (
+        typeof obj.isCancelled !== 'undefined' &&
+        typeof obj.cancellationType !== 'undefined'
+      ) {
         return 'JourneyCancellationEvent'
       }
 
-      if (obj.plannedDateTime && obj.recordedAt) {
+      if (obj.stopId && obj.recordedAt) {
         return 'JourneyStopEvent'
       }
 

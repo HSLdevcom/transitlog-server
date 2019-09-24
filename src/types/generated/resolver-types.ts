@@ -1780,6 +1780,8 @@ export namespace JourneyStopEventResolvers {
     index?: IndexResolver<Maybe<number>, TypeParent, TContext>
 
     stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
+
+    unplannedStop?: UnplannedStopResolver<boolean, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = JourneyStopEvent, TContext = {}> = Resolver<
@@ -1869,6 +1871,11 @@ export namespace JourneyStopEventResolvers {
   > = Resolver<R, Parent, TContext>
   export type StopResolver<
     R = Maybe<Stop>,
+    Parent = JourneyStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type UnplannedStopResolver<
+    R = boolean,
     Parent = JourneyStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>

@@ -12,7 +12,7 @@ import {
 } from '../../types/generated/schema-types'
 import { TIME_FORMAT, TZ } from '../../constants'
 import moment from 'moment-timezone'
-import { getJourneyEventTime } from '../../utils/time'
+import { getDateFromDateTime, getJourneyEventTime } from '../../utils/time'
 import { Vehicles } from '../../types/EventsDb'
 import { createJourneyId } from '../../utils/createJourneyId'
 import { get } from 'lodash'
@@ -104,7 +104,7 @@ export function createJourneyStopEventObject(
   const id = createJourneyId(event)
   const unix = parseInt(event.tsi, 10)
   const ts = moment.tz(event.tst, TZ).toISOString(true)
-  const stopData = !departure ? stop : departure.stop
+  const stopData = stop ? stop : departure ? departure.stop : null
 
   const plannedTimeDiff = !departure
     ? 0
@@ -114,6 +114,8 @@ export function createJourneyStopEventObject(
         departure.departureDate,
         event.event_type === 'ARR'
       )
+
+  const eventPlannedMoment = getDateFromDateTime(event.oday, event.journey_start_time || '')
 
   return {
     id: `journey_stop_event_${event.event_type}_${id}_${unix}`,
@@ -125,15 +127,28 @@ export function createJourneyStopEventObject(
     nextStopId: (event.next_stop_id || '') + '',
     stopped,
     doorsOpened,
-    plannedDate: get(departure, 'plannedDepartureTime.departureDate', null),
-    plannedTime: get(departure, 'plannedDepartureTime.departureTime', null),
-    plannedDateTime: get(departure, 'plannedDepartureTime.departureDateTime', null),
+    plannedDate: get(departure, 'plannedDepartureTime.departureDate', event.oday),
+    plannedTime: get(
+      departure,
+      'plannedDepartureTime.departureTime',
+      event.journey_start_time
+    ),
+    plannedDateTime: get(
+      departure,
+      'plannedDepartureTime.departureDateTime',
+      eventPlannedMoment.toISOString(true)
+    ),
     plannedTimeDifference: plannedTimeDiff,
-    isNextDay: get(departure, 'isNextDay', null),
+    isNextDay: get(
+      departure,
+      'isNextDay',
+      event.oday !== eventPlannedMoment.format('YYYY-MM-DD')
+    ),
     departureId: get(departure, 'departureId', null),
     isTimingStop: get(departure, 'isTimingStop', get(stop, 'isTimingStop', false)),
-    index: get(departure, 'index', 0),
+    index: get(departure, 'index', -1),
     stop: stopData,
+    unplannedStop: !departure,
   }
 }
 

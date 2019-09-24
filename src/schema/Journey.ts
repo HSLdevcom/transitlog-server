@@ -49,6 +49,7 @@ export const Journey = gql`
     isTimingStop: Boolean!
     index: Int
     stop: Stop
+    unplannedStop: Boolean!
   }
 
   type PlannedStopEvent {

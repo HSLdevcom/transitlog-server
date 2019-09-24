@@ -671,6 +671,8 @@ export interface JourneyStopEvent {
   index?: Maybe<number>
 
   stop?: Maybe<Stop>
+
+  unplannedStop: boolean
 }
 
 export interface PlannedDeparture {
