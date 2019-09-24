@@ -367,7 +367,7 @@ export async function createJourneyResponse(
   const patchedStopEvents = unionBy(
     stopEvents,
     virtualStopEvents,
-    (event) => event.event_type + event.stop + event.next_stop_id
+    (event) => event.event_type + event.stop
   )
 
   // Get a listing of all stops visited during this journey, regardless of whether or not
