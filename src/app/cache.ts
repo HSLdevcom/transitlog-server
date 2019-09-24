@@ -26,6 +26,11 @@ export async function getRedis() {
   return redisClient
 }
 
+export async function clearAll() {
+  const client = await getRedis()
+  return client.flushall()
+}
+
 export async function setItem<T>(key: string, value: T, ttlConfig?: string | any[]) {
   const client = await getRedis()
   const setValue = JSON.stringify(value)
