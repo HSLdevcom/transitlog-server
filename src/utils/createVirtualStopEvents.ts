@@ -18,8 +18,8 @@ export const createVirtualStopEvents = (vehiclePositions, departures) => {
     const stopArrival = getLegacyStopArrivalEvent(stopEvents)
     const stopDeparture = getStopDepartureEvent(stopEvents)
 
-    const arrivalEvent = stopArrival ? createVirtualEvent(stopArrival, 'ARR') : null
-    const departureEvent = stopDeparture ? createVirtualEvent(stopDeparture, 'DEP') : null
+    const arrivalEvent = stopArrival ? createVirtualEvent(stopArrival, 'ARS') : null
+    const departureEvent = stopDeparture ? createVirtualEvent(stopDeparture, 'PDE') : null
     const doorOpenEvent =
       stopArrival && stopArrival.drst ? createVirtualEvent(stopArrival, 'DOO') : null
 

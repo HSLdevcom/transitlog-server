@@ -15,7 +15,7 @@ export function getStopArrivalData(
   stopDeparture: Departure,
   date?: string
 ): ObservedArrival | null {
-  const arrivalEvent = stopEvents.find((event) => event.event_type === 'ARR')
+  const arrivalEvent = stopEvents.find((event) => event.event_type === 'ARS')
 
   if (!arrivalEvent) {
     return null

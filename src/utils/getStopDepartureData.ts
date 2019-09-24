@@ -50,7 +50,7 @@ export const getStopDepartureData = (
 }
 
 export const getStopDepartureEvent = (events) => {
-  let departureEvent = events.find((event) => event.event_type === 'DEP')
+  let departureEvent = events.find((event) => event.event_type === 'PDE')
 
   if (!departureEvent) {
     departureEvent = events[0]

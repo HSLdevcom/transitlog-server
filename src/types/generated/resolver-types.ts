@@ -2265,6 +2265,8 @@ export namespace JourneyEventResolvers {
     recordedAtUnix?: RecordedAtUnixResolver<number, TypeParent, TContext>
 
     recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
+
+    stopId?: StopIdResolver<Maybe<string>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = JourneyEvent, TContext = {}> = Resolver<
@@ -2292,6 +2294,11 @@ export namespace JourneyEventResolvers {
     Parent,
     TContext
   >
+  export type StopIdResolver<
+    R = Maybe<string>,
+    Parent = JourneyEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 export namespace JourneyCancellationEventResolvers {

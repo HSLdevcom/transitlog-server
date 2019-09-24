@@ -11,6 +11,7 @@ export const Journey = gql`
     recordedAt: DateTime!
     recordedAtUnix: Int!
     recordedTime: Time!
+    stopId: String
   }
 
   type JourneyCancellationEvent {

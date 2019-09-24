@@ -29,7 +29,7 @@ export const resolvers: StringIndexed<any> = {
         return 'JourneyCancellationEvent'
       }
 
-      if (obj.stopId && obj.recordedAt) {
+      if (obj.stopId && obj.recordedAt && obj.plannedDateTime) {
         return 'JourneyStopEvent'
       }
 

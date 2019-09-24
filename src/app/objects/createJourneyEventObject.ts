@@ -32,6 +32,7 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
+    stopId: event.stop || null,
   }
 }
 
@@ -112,7 +113,7 @@ export function createJourneyStopEventObject(
         event,
         departure,
         departure.departureDate,
-        event.event_type === 'ARR'
+        event.event_type === 'ARS'
       )
 
   const eventPlannedMoment = getDateFromDateTime(event.oday, event.journey_start_time || '')

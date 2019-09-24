@@ -795,6 +795,8 @@ export interface JourneyEvent {
   recordedAtUnix: number
 
   recordedTime: Time
+
+  stopId?: Maybe<string>
 }
 
 export interface JourneyCancellationEvent {
