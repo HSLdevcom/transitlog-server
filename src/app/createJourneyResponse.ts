@@ -338,7 +338,7 @@ export async function createJourneyResponse(
     (groups: { [key: string]: Vehicles[] }, event) => {
       if (event.event_type === 'VP') {
         groups.vehiclePositions.push(event)
-      } else if (['ARS', 'DOO', 'DOC', 'PDE', 'PAS'].includes(event.event_type)) {
+      } else if (['ARS', 'DOO', 'DOC', 'DEP', 'PAS'].includes(event.event_type)) {
         groups.stopEvents.push(event)
       } else {
         groups.events.push(event)
@@ -359,7 +359,7 @@ export async function createJourneyResponse(
 
   const journeyEquipment = get(fetchedEquipment, '[0]', null) || null
 
-  // Create virtual ARS and PDE stop events from the vehicle positions.
+  // Create virtual ARS and DEP stop events from the vehicle positions.
   const virtualStopEvents = createVirtualStopEvents(vehiclePositions, departures)
 
   // Patch the stop events collection with virtual stop
@@ -394,7 +394,7 @@ export async function createJourneyResponse(
       const stopped = eventsForStop.some((evt) => evt.event_type !== 'PAS')
 
       return eventsForStop.map((event) =>
-        ['ARS', 'PDE'].includes(event.event_type)
+        ['ARS', 'DEP'].includes(event.event_type)
           ? createJourneyStopEventObject(event, departure || null, stop, doorsOpened, stopped)
           : createJourneyEventObject(event)
       )

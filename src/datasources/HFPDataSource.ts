@@ -182,7 +182,7 @@ ORDER BY tst ASC;
     const eventsQuery = this.db.raw(
       `SELECT DISTINCT ON (journey_start_time) ${vehicleFields.join(',')}
 FROM vehicles
-WHERE event_type = 'PDE'
+WHERE event_type = 'DEP'
   AND oday = ?
   AND unique_vehicle_id = ?
 ORDER BY journey_start_time, tst;
@@ -309,7 +309,7 @@ ORDER BY journey_start_time, tst;
       `
 SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
-WHERE event_type IN ('PDE', 'ARS')
+WHERE event_type IN ('DEP', 'ARS')
   AND oday = ?
   AND stop = ?;
 `,
@@ -361,7 +361,7 @@ WHERE event_type IN ('PDE', 'ARS')
     const eventsQuery = this.db.raw(
       `SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
-WHERE event_type = 'PDE'
+WHERE event_type = 'DEP'
   AND oday = ?
   AND stop = ?
   AND route_id = ?
