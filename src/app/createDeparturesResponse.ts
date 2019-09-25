@@ -123,24 +123,30 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
   return compact(departuresWithStops)
 }
 
-export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
+export const combineDeparturesAndEvents = (
+  departures,
+  events,
+  date,
+  origin = true
+): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the "instances" of the journey.
   const departuresWithEvents: Departure[][] = departures.map((departure) => {
-    const originDepartureTime = get(departure, 'originDepartureTime.departureTime', null)
+    const departureTimePath = origin ? 'originDepartureTime' : 'plannedDepartureTime'
+    const departureTime = get(departure, departureTimePath + '.departureTime', null)
 
     // The departures are matched to events through the "journey start time", ie the time that
     // the vehicle is planned to depart from the first stop. Thus we need the departure time
     // from the first stop for the journey that this departure belongs to in order to match
     // it with an event. If we don't have the origin departure time, we can't match the
     // departure to an event.
-    if (!originDepartureTime) {
+    if (!departureTime) {
       return [departure]
     }
 
     // We can use info that the departure happened during "the next day" when calculating
     // the 24h+ time of the event.
-    const departureIsNextDay = get(departure, 'originDepartureTime.isNextDay', false)
+    const departureIsNextDay = get(departure, departureTimePath + '.isNextDay', false)
     const routeId = get(departure, 'routeId', '')
     const direction = getDirection(get(departure, 'direction'))
 
@@ -151,7 +157,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
         getDirection(event.direction_id) === direction &&
         // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
         // for the event to match it with the 24h+ time of the origin departure.
-        getJourneyStartTime(event) === originDepartureTime
+        getJourneyStartTime(event) === departureTime
     )
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
@@ -165,7 +171,6 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     const firstStopId = get(departure, 'stop.originStopId', '')
 
     return eventsPerVehicleJourney.map((events, index, instances) => {
-      const stopArrival = departure ? getStopArrivalData(events, departure, date) : null
       const stopDeparture = departure ? getStopDepartureData(events, departure, date) : null
 
       const departureJourney = createDepartureJourneyObject(
@@ -180,7 +185,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
         ...departure,
         id: index > 0 ? departure.id + '_' + index : departure.id,
         journey: departureJourney,
-        observedArrivalTime: stopArrival,
+        observedArrivalTime: null,
         observedDepartureTime: stopDeparture,
       }
     })
@@ -235,8 +240,14 @@ export async function createDeparturesResponse(
         `${route_id}_${direction}_${departure_id}_${stop_id}_${day_type}_${extra_departure}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
-    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
-    return filterByExceptions(combineDeparturesAndStops(validDepartures, stops, date), exceptions)
+    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
+      groupedDepartures,
+      date
+    )
+    return filterByExceptions(
+      combineDeparturesAndStops(validDepartures, stops, date),
+      exceptions
+    )
   }
 
   const createDepartures: CachedFetcher<Departure[]> = async () => {
@@ -282,7 +293,7 @@ export async function createDeparturesResponse(
       return orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
     }
 
-    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date)
+    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date, true)
   }
 
   const departuresTTL: number = isToday(date) ? 5 : 30 * 24 * 60 * 60

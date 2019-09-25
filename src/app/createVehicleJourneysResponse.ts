@@ -20,16 +20,9 @@ export const createVehicleJourneysResponse = async (
       return false
     }
 
-    const journeyEvents: Vehicles[] = compact(
-      map(
-        groupBy(orderBy(vehicleJourneys, 'journey_start_time'), 'journey_start_time'),
-        findJourneyStartEvent
-      )
-    )
-
     const alerts = await getAlerts(date, { allRoutes: true, route: true })
 
-    return journeyEvents.map((journey) => {
+    return vehicleJourneys.map((journey) => {
       const journeyAlerts = alerts.filter((alert) => {
         if (!isWithinRange(journey.tst, alert.startDateTime, alert.endDateTime)) {
           return false

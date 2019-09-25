@@ -5,17 +5,86 @@ import { gql } from 'apollo-server'
  */
 
 export const Journey = gql`
-  type JourneyEvent implements Position {
+  type JourneyEvent {
     id: ID!
-    receivedAt: DateTime!
+    type: String!
+    recordedAt: DateTime!
+    recordedAtUnix: Int!
+    recordedTime: Time!
+    stopId: String
+  }
+
+  type JourneyCancellationEvent {
+    id: ID!
+    type: String!
+    recordedAt: DateTime!
+    recordedAtUnix: Int!
+    recordedTime: Time!
+    plannedDate: Date
+    plannedTime: Time
+    title: String!
+    description: String!
+    category: AlertCategory!
+    subCategory: CancellationSubcategory!
+    isCancelled: Boolean!
+    cancellationType: CancellationType!
+    cancellationEffect: CancellationEffect!
+  }
+
+  type JourneyStopEvent {
+    id: ID!
+    type: String!
+    recordedAt: DateTime!
+    recordedAtUnix: Int!
+    recordedTime: Time!
+    nextStopId: String!
+    stopId: String
+    doorsOpened: Boolean
+    stopped: Boolean
+    plannedDate: Date
+    plannedTime: Time
+    plannedDateTime: DateTime
+    plannedTimeDifference: Int
+    isNextDay: Boolean
+    departureId: Int
+    isTimingStop: Boolean!
+    isOrigin: Boolean
+    index: Int
+    stop: Stop
+    unplannedStop: Boolean!
+  }
+
+  type PlannedStopEvent {
+    id: ID!
+    type: String!
+    stopId: String
+    plannedDate: Date
+    plannedTime: Time
+    plannedDateTime: DateTime
+    isNextDay: Boolean
+    departureId: Int
+    isTimingStop: Boolean!
+    isOrigin: Boolean
+    index: Int
+    stop: Stop
+  }
+
+  union JourneyEventType =
+      JourneyEvent
+    | JourneyStopEvent
+    | JourneyCancellationEvent
+    | PlannedStopEvent
+
+  type VehiclePosition implements Position {
+    id: ID!
     recordedAt: DateTime!
     recordedAtUnix: Int!
     recordedTime: Time!
     nextStopId: String
     lat: Float
     lng: Float
-    doorStatus: Boolean
     velocity: Float
+    doorStatus: Boolean
     delay: Int
     heading: Int
   }
@@ -35,8 +104,9 @@ export const Journey = gql`
     name: String
     mode: String
     equipment: Equipment
-    events: [JourneyEvent!]!
-    departures: [Departure!]!
+    vehiclePositions: [VehiclePosition!]!
+    events: [JourneyEventType!]!
+    departure: Departure
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!
@@ -55,7 +125,6 @@ export const Journey = gql`
     vehicleId: String
     headsign: String
     mode: String
-    receivedAt: DateTime!
     recordedAt: DateTime!
     recordedAtUnix: Int!
     recordedTime: Time!
@@ -78,7 +147,7 @@ export const Journey = gql`
     vehicleId: String
     headsign: String
     mode: String
-    events: [JourneyEvent]!
+    vehiclePositions: [VehiclePosition]!
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!

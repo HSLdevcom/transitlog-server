@@ -1,5 +1,10 @@
 import { getLatestCancellationState } from './getLatestCancellationState'
-import { Alert, AlertDistribution, Cancellation, Departure } from '../types/generated/schema-types'
+import {
+  Alert,
+  AlertDistribution,
+  Cancellation,
+  Departure,
+} from '../types/generated/schema-types'
 import { isWithinRange, parse } from 'date-fns'
 
 export const setCancellationsOnDeparture = (
@@ -73,5 +78,5 @@ export const setAlertsOnDeparture = (departure: Departure, alerts: Alert[]) => {
     departure.stop.alerts = stopAlerts
   }
 
-  return alerts
+  return { departureAlerts, stopAlerts }
 }

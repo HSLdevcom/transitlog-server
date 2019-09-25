@@ -33,13 +33,14 @@ export function createAlert(alert: DBAlert, language: string = 'fi'): Alert {
 
   const descriptions = get(alertData, 'descriptions', [])
   const description =
-    descriptions.find((description) => description.language === alertLanguage) || descriptions[0]
+    descriptions.find((description) => description.language === alertLanguage) ||
+    descriptions[0]
 
   const urls = get(alertData, 'urls', [])
   const url = urls.find((url) => url.language === alertLanguage) || urls[0]
 
   return {
-    id: alert.id,
+    id: alert.id + alertLanguage,
     level: get(alertData, 'priority', AlertLevel.Info),
     category: get(alertData, 'category', AlertCategory.Other),
     distribution,

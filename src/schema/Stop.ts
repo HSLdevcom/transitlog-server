@@ -21,6 +21,7 @@ export const Stop = gql`
     radius: Float
     routes: [StopRoute!]!
     modes: [String]!
+    isTimingStop: Boolean!
     _matchScore: Float
     alerts: [Alert!]!
   }

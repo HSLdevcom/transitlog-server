@@ -4,7 +4,11 @@ import { getDirection } from '../../utils/getDirection'
 import get from 'lodash/get'
 import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 import { TZ } from '../../constants'
-import { getDateFromDateTime, getJourneyEventTime, getJourneyStartTime } from '../../utils/time'
+import {
+  getDateFromDateTime,
+  getJourneyEventTime,
+  getJourneyStartTime,
+} from '../../utils/time'
 import moment from 'moment-timezone'
 import { Vehicles } from '../../types/EventsDb'
 
@@ -31,7 +35,6 @@ export const createVehicleJourneyObject = (
     vehicleId: get(event, 'vehicle_number', '') + '',
     headsign: get(event, 'headsign', ''),
     mode: get(event, 'mode', 'BUS'),
-    receivedAt: observedDepartureTime.toISOString(true),
     recordedAt: observedDepartureTime.toISOString(true),
     recordedAtUnix: parseInt(event.tsi, 10),
     recordedTime: getJourneyEventTime(event),

@@ -2,6 +2,7 @@ import {
   AlertCategory,
   Cancellation,
   CancellationSubcategory,
+  Direction,
 } from '../types/generated/schema-types'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import { DBCancellation } from '../types/EventsDb'
@@ -13,6 +14,9 @@ import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { AuthenticatedUser } from '../types/Authentication'
 import { requireUser } from '../auth/requireUser'
+import { secondsToTimeObject, timeToSeconds } from '../utils/time'
+import { JoreDepartureOperator } from '../types/Jore'
+import { isToday } from 'date-fns'
 
 export type CancellationSearchProps = {
   all?: boolean
@@ -25,10 +29,17 @@ export type CancellationSearchProps = {
 export const getCancellations = async (
   user: AuthenticatedUser,
   fetchCancellations: (date: string) => DBCancellation[],
+  fetchOperators: () => Promise<JoreDepartureOperator[]>,
   date: string,
   cancellationSearchProps: CancellationSearchProps
 ): Promise<Cancellation[]> => {
-  const { routeId, departureTime, direction, all, latestOnly = false } = cancellationSearchProps
+  const {
+    routeId,
+    departureTime,
+    direction,
+    all,
+    latestOnly = false,
+  } = cancellationSearchProps
   const onlyDate = moment.tz(date, TZ).format('YYYY-MM-DD')
 
   const cancellationFetcher: CachedFetcher<Cancellation[]> = async () => {
@@ -41,23 +52,70 @@ export const getCancellations = async (
     return cancellations.map((cancellation) => createCancellation(cancellation))
   }
 
+  const operatorFetcher: CachedFetcher<JoreDepartureOperator[]> = async () => {
+    const operators = await fetchOperators()
+
+    if (operators.length === 0) {
+      return false
+    }
+
+    return operators
+  }
+
   const cancellationsCacheKey = `cancellations_${onlyDate}`
   let cancellations = await cacheFetch<Cancellation[]>(
     cancellationsCacheKey,
     cancellationFetcher,
-    24 * 60 * 60
+    isToday(onlyDate) ? 5 * 60 : 24 * 60 * 60
   )
 
   if (!cancellations) {
     return []
   }
 
+  // Cleans the data behind authorization if the user is not logged in or part of HSL.
   if (!requireUser(user, 'HSL')) {
+    let operators: JoreDepartureOperator[] = []
+
+    // Fetch departures if there is a user. Unnecessary to fetch otherwise.
+    if (user) {
+      const operatorsCacheKey = `cancellation_operators_${onlyDate}`
+      const operatorDepartures = await cacheFetch<JoreDepartureOperator[]>(
+        operatorsCacheKey,
+        operatorFetcher,
+        24 * 60 * 60
+      )
+
+      operators = operatorDepartures || []
+    }
+
     cancellations = cancellations.map((cancellation) => {
-      cancellation.title = ''
-      cancellation.description = ''
-      cancellation.category = AlertCategory.Hidden
-      cancellation.subCategory = CancellationSubcategory.Hidden
+      let operatorGroup = 'HSL'
+
+      if (user) {
+        const { journeyStartTime, routeId, direction } = cancellation
+        const [hours, minutes] = (journeyStartTime || '')
+          .split(':')
+          .map((val) => parseInt(val, 10))
+
+        const operator = operators.find((operator) => {
+          return (
+            operator.route_id === routeId &&
+            getDirection(operator.direction) === direction &&
+            operator.hours === hours &&
+            operator.minutes === minutes
+          )
+        })
+
+        operatorGroup = !operator ? 'HSL' : 'op_' + parseInt(operator.operator_id, 10)
+      }
+
+      if (!requireUser(user, operatorGroup)) {
+        cancellation.title = ''
+        cancellation.description = ''
+        cancellation.category = AlertCategory.Hidden
+        cancellation.subCategory = CancellationSubcategory.Hidden
+      }
 
       return cancellation
     })

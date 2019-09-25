@@ -11,7 +11,6 @@ export const Departure = gql`
 
   type ObservedDeparture {
     id: ID!
-    departureEvent: JourneyEvent!
     departureDate: Date!
     departureTime: Time!
     departureDateTime: DateTime!
@@ -28,16 +27,15 @@ export const Departure = gql`
 
   type ObservedArrival {
     id: ID!
-    arrivalEvent: JourneyEvent!
     arrivalDate: Date!
     arrivalTime: Time!
     arrivalDateTime: DateTime!
     arrivalTimeDifference: Int!
-    doorDidOpen: Boolean!
   }
 
   type DepartureJourney {
     id: ID!
+    type: String!
     lineId: String
     routeId: String!
     direction: Direction!
@@ -46,7 +44,7 @@ export const Departure = gql`
     departureTime: Time!
     uniqueVehicleId: VehicleId
     mode: String
-    events: [JourneyEvent!]
+    events: [VehiclePosition!]
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!
@@ -73,11 +71,13 @@ export const Departure = gql`
     isTimingStop: Boolean!
     index: Int
     mode: String!
-    stop: RouteSegment!
+    stop: Stop!
     journey: DepartureJourney
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!
+    isOrigin: Boolean
+    departureEvent: JourneyStopEvent
     originDepartureTime: PlannedDeparture
     plannedArrivalTime: PlannedArrival!
     observedArrivalTime: ObservedArrival

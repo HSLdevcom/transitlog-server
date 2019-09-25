@@ -7,12 +7,12 @@ import {
   saveAutoGroups,
   setUIMessage,
 } from '../../datasources/transitlogServer'
-import { get, find, uniq, difference, last, compact } from 'lodash'
+import { compact, difference, get, last, uniq } from 'lodash'
 import join from 'proper-url-join'
 import { PATH_PREFIX } from '../../constants'
 import pMap from 'p-map'
 import { createGroup, requestGroups } from '../../auth/authService'
-import isRegExpSupported from 'jest-haste-map/build/lib/isRegExpSupported'
+import { clearAll } from '../cache'
 
 export const adminController = async (adminPath) => {
   await initSettings()
@@ -49,6 +49,11 @@ export const adminController = async (adminPath) => {
         return allGroups
       }, [])
   }
+
+  adminRouter.post('/clear-cache', async (req, res) => {
+    await clearAll()
+    res.redirect(prefixedAdminPath)
+  })
 
   adminRouter.post('/set-ui-message', async (req, res) => {
     const message = get(req, 'body.ui_message', '') || ''

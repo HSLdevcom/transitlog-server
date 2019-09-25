@@ -24,6 +24,7 @@ export function createStopObject(
     modes,
     routes: stopRoutes,
     alerts,
+    isTimingStop: !!stop.timing_stop_type,
     _matchScore: get(stop, '_matchScore', 0),
   }
 }

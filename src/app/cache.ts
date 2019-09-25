@@ -26,6 +26,11 @@ export async function getRedis() {
   return redisClient
 }
 
+export async function clearAll() {
+  const client = await getRedis()
+  return client.flushall()
+}
+
 export async function setItem<T>(key: string, value: T, ttlConfig?: string | any[]) {
   const client = await getRedis()
   const setValue = JSON.stringify(value)
@@ -56,7 +61,7 @@ export async function cacheFetch<DataType = any>(
   }
 
   // The cacheKey function should be able to return a cacheKey without the data if
-  // it is supposed to be useful for retrieving data.
+  // the cacheKey is supposed to be useful for retrieving data.
   const computedCacheKey = typeof cacheKey === 'function' ? cacheKey() : cacheKey
 
   const fetchFromCacheOrDb = async (usingCacheKey) => {

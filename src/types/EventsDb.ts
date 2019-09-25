@@ -58,7 +58,31 @@ export interface DBAlert {
 
 export type Maybe<T> = T | null
 
+export type JourneyType = 'journey' | 'signoff' | 'deadrun'
+
+export type EventType =
+  | 'VP'
+  | 'DUE'
+  | 'ARR'
+  | 'DEP'
+  | 'ARS'
+  | 'PDE'
+  | 'PAS'
+  | 'WAIT'
+  | 'DOO'
+  | 'DOC'
+  | 'TLR'
+  | 'TLA'
+  | 'DA'
+  | 'DOUT'
+  | 'BA'
+  | 'BOUT'
+  | 'VJA'
+  | 'VJOUT'
+
 export interface Vehicles {
+  journey_type: JourneyType
+  event_type: EventType
   desi: Maybe<string>
   direction_id: Maybe<number>
   dl: Maybe<number>
@@ -71,6 +95,7 @@ export interface Vehicles {
   line: Maybe<number>
   long: Maybe<number>
   mode: Maybe<string>
+  stop: Maybe<string>
   next_stop_id: Maybe<string>
   oday: string
   odo: number

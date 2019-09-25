@@ -115,7 +115,10 @@ type UserContext = {
   const adminRouter = await adminController(adminPath)
   app.use(adminPath, requireUserMiddleware(HSL_GROUP_NAME), adminRouter)
 
-  app.listen({ port: 4000 }, () =>
+  const expressServer = app.listen({ port: 4000 }, () =>
     console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
   )
+
+  // Set a generous timeout. 1200 seconds is used in Azure and nginx.
+  expressServer.setTimeout(1200 * 1000)
 })()

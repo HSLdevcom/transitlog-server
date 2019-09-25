@@ -1,15 +1,21 @@
 import moment from 'moment-timezone'
-import { DEBUG, TZ } from '../constants'
-import { isNextDay } from '../utils/time'
+import { TZ } from '../constants'
+import { getNormalTime, isNextDay } from '../utils/time'
 import { Direction } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
 import { DBAlert, DBCancellation, Vehicles } from '../types/EventsDb'
 import { databases, getKnex } from '../knex'
+import { isBefore } from 'date-fns'
 
 const knex: Knex = getKnex(databases.HFP)
 
+// Data from before this date doesn't necessarily have other events than VP.
+const EVENTS_CUTOFF_DATE = '2019-09-18'
+
 const vehicleFields = [
+  'journey_type',
+  'event_type',
   'mode',
   'owner_operator_id',
   'vehicle_number',
@@ -18,6 +24,7 @@ const vehicleFields = [
   'direction_id',
   'headsign',
   'journey_start_time',
+  'stop',
   'next_stop_id',
   'geohash_level',
   'desi',
@@ -33,10 +40,13 @@ const vehicleFields = [
 ]
 
 const routeDepartureFields = [
+  'journey_type',
+  'event_type',
   'unique_vehicle_id',
   'route_id',
   'direction_id',
   'journey_start_time',
+  'stop',
   'next_stop_id',
   'tst',
   'tsi',
@@ -95,14 +105,22 @@ export class HFPDataSource extends SQLDataSource {
     this.knex = knex
   }
 
+  /*
+   * Query for which vehicles were in traffic (ie have events) for a specific day.
+   *
+   * Optimization:
+   * Materialized continuous view
+   */
+
   async getAvailableVehicles(date): Promise<Vehicles[]> {
     const query = this.db.raw(
       `
 SELECT distinct on (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
 owner_operator_id
-FROM vehicle_continuous_aggregate
+FROM vehicles
 WHERE oday = :date
+  AND event_type = 'VJA'
 ORDER BY unique_vehicle_id;
 `,
       { date }
@@ -111,6 +129,13 @@ ORDER BY unique_vehicle_id;
     return this.getBatched(query)
   }
 
+  /*
+   * Query for all vehicle events inside a specific area and timeframe.
+   *
+   * Index:
+   * CREATE INDEX vehicle_journeys_idx ON vehicles (tst ASC, oday, unique_vehicle_id);
+   */
+
   async getAreaJourneys(minTime, maxTime, bbox, date): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
@@ -118,17 +143,17 @@ ORDER BY unique_vehicle_id;
       `
 SELECT ${vehicleFields.join(',')}
 FROM vehicles
-WHERE oday = :date
-  AND geohash_level <= 4 -- Limit the amount of data coming into the app
-  AND tsi BETWEEN :minTime AND :maxTime
+WHERE event_type = 'VP'
+  AND oday = :date
+  AND tst BETWEEN :minTime AND :maxTime
   AND lat BETWEEN :minLat AND :maxLat
   AND long BETWEEN :minLng AND :maxLng
 ORDER BY tst ASC;
     `,
       {
         date,
-        minTime: moment.tz(minTime, TZ).unix(),
-        maxTime: moment.tz(maxTime, TZ).unix(),
+        minTime: moment.tz(minTime, TZ).toISOString(true),
+        maxTime: moment.tz(maxTime, TZ).toISOString(true),
         minLat,
         maxLat,
         minLng,
@@ -142,6 +167,9 @@ ORDER BY tst ASC;
   /*
    * Get the journeys for a vehicle. Only journey start time required. Shown in the sidebar
    * list of vehicle journeys when a vehicle is selected.
+   *
+   * Index:
+   * CREATE INDEX vehicle_journeys_idx ON vehicles (tst ASC, oday, unique_vehicle_id);
    */
 
   async getJourneysForVehicle(uniqueVehicleId, date): Promise<Vehicles[]> {
@@ -151,13 +179,35 @@ ORDER BY tst ASC;
 
     const queryVehicleId = `${operatorId}/${vehicleId}`
 
-    const query = this.db('vehicles')
+    const eventsQuery = this.db.raw(
+      `SELECT DISTINCT ON (journey_start_time) ${vehicleFields.join(',')}
+FROM vehicles
+WHERE event_type = 'DEP'
+  AND oday = ?
+  AND unique_vehicle_id = ?
+ORDER BY journey_start_time, tst;
+`,
+      [date, queryVehicleId]
+    )
+
+    const legacyQuery = this.db('vehicles')
       .select(vehicleFields)
+      .where('event_type', 'VP')
       .where('oday', date)
       .where('unique_vehicle_id', queryVehicleId)
       .orderBy('tst', 'ASC')
 
-    return this.getBatched(query)
+    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
+      return this.getBatched(legacyQuery)
+    }
+
+    const eventsResult = await this.getBatched(eventsQuery)
+
+    if (eventsResult.length === 0) {
+      return this.getBatched(legacyQuery)
+    }
+
+    return eventsResult
   }
 
   /*
@@ -181,18 +231,22 @@ ORDER BY tst ASC;
    */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
-    // Disable until we can optimize this query.
-    return []
-
     const query = this.db('vehicles')
       .select(routeJourneyFields)
+      .where('event_type', 'VP')
       .where('oday', date)
       .where('route_id', routeId)
       .where('direction_id', direction)
-      .orderBy('tst', 'ASC')
 
     return this.getBatched(query)
   }
+
+  /*
+   * Get all the events for a specific journey.
+   *
+   * Index:
+   * CREATE INDEX single_journey_events_idx ON vehicles (tst ASC, oday, route_id, direction_id, journey_start_time, unique_vehicle_id);
+   */
 
   async getJourneyEvents(
     routeId,
@@ -215,17 +269,25 @@ ORDER BY tst ASC;
       .where('oday', departureDate)
       .where('route_id', routeId)
       .where('direction_id', direction)
-      .where('journey_start_time', departureTime)
+      .where('journey_start_time', getNormalTime(departureTime))
       .orderBy('tst', 'ASC')
 
-    // TODO: Test without uniqueVehicleId
     if (uniqueVehicleId) {
       query = query.where('unique_vehicle_id', `${operatorId}/${vehicleId}`)
     }
 
-    // TODO: Test next day departures
+    // Ensure the correct events are returned by limiting the results to timestamps
+    // after the departure date if we are dealing with a 24h+ journey.
     if (isNextDay(departureTime)) {
-      query = query.where('tst', '>', moment.tz(departureDate, TZ).toISOString())
+      // Note that tst is UTC time so we should not give it a time with a timezone.
+      query = query.where(
+        'tst',
+        '>',
+        moment
+          .tz(departureDate, TZ)
+          .endOf('day')
+          .toISOString()
+      )
     }
 
     let vehicles: Vehicles[] = await this.getBatched(query)
@@ -238,23 +300,52 @@ ORDER BY tst ASC;
     return vehicles
   }
 
+  /*
+   * Get all departures for a specific stop during a date.
+   */
   async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
-    const query = this.db('vehicles')
+    const legacyQuery = this.db('vehicles')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
         )
       )
+      .where('event_type', 'VP')
       .where('oday', date)
-      .where('next_stop_id', stopId)
+      .where('stop', stopId)
       .orderBy([
         { column: 'journey_start_time', order: 'asc' },
         { column: 'unique_vehicle_id', order: 'asc' },
         { column: 'tst', order: 'desc' },
       ])
 
-    return this.getBatched(query)
+    const eventsQuery = this.db.raw(
+      `
+SELECT ${routeDepartureFields.join(',')}
+FROM vehicles
+WHERE event_type IN ('DEP', 'PDE')
+  AND oday = ?
+  AND stop = ?;
+`,
+      [date, stopId]
+    )
+
+    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
+      return this.getBatched(legacyQuery)
+    }
+
+    const eventsResult = await this.getBatched(eventsQuery)
+
+    if (eventsResult.length === 0) {
+      return this.getBatched(legacyQuery)
+    }
+
+    return eventsResult
   }
+
+  /*
+   * Get all departures for a specific route (from the origin stop) during a date.
+   */
 
   async getRouteDepartureEvents(
     stopId: string,
@@ -262,7 +353,7 @@ ORDER BY tst ASC;
     routeId: string,
     direction: Direction
   ): Promise<Vehicles[]> {
-    const query = this.db('vehicles')
+    const legacyQuery = this.db('vehicles')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
@@ -270,58 +361,49 @@ ORDER BY tst ASC;
           )}`
         )
       )
+      .where('event_type', 'VP')
       .where('oday', date)
-      .where('next_stop_id', stopId)
       .where('route_id', routeId)
       .where('direction_id', direction)
+      .where('stop', stopId)
       .orderBy([
         { column: 'journey_start_time', order: 'asc' },
         { column: 'unique_vehicle_id', order: 'asc' },
         { column: 'tst', order: 'desc' },
       ])
 
-    return this.getBatched(query)
-  }
+    const eventsQuery = this.db.raw(
+      `SELECT ${routeDepartureFields.join(',')}
+FROM vehicles
+WHERE event_type = 'DEP'
+  AND oday = ?
+  AND stop = ?
+  AND route_id = ?
+  AND direction_id = ?;
+`,
+      [date, stopId, routeId, direction]
+    )
 
-  async getWeeklyDepartureEvents(
-    stopId: string,
-    date: string,
-    routeId: string,
-    direction: Direction
-  ): Promise<Vehicles[]> {
-    const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
-    const maxDateMoment = minDateMoment.clone().endOf('isoWeek')
+    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
+      return this.getBatched(legacyQuery)
+    }
 
-    const query = this.db('vehicles')
-      .select(
-        this.db.raw(
-          `DISTINCT ON ("oday", "journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
-            ','
-          )}`
-        )
-      )
-      .whereBetween('oday', [
-        minDateMoment.format('YYYY-MM-DD'),
-        maxDateMoment.format('YYYY-MM-DD'),
-      ])
-      .where('next_stop_id', stopId)
-      .where('route_id', routeId)
-      .where('direction_id', direction)
-      .orderBy([
-        { column: 'oday', order: 'asc' },
-        { column: 'journey_start_time', order: 'asc' },
-        { column: 'unique_vehicle_id', order: 'asc' },
-        { column: 'tst', order: 'desc' },
-      ])
+    const eventsResult = await this.getBatched(eventsQuery)
 
-    return this.getBatched(query)
+    if (eventsResult.length === 0) {
+      return this.getBatched(legacyQuery)
+    }
+
+    return eventsResult
   }
 
   getAlerts = async (minDate: string, maxDate: string): Promise<DBAlert[]> => {
     const query = this.db('alert')
       .select(
         this.db.raw(
-          `DISTINCT ON ("valid_from", "valid_to", "stop_id", "route_id") ${alertFields.join(',')}`
+          `DISTINCT ON ("valid_from", "valid_to", "stop_id", "route_id") ${alertFields.join(
+            ','
+          )}`
         )
       )
       .where((builder) =>
@@ -345,7 +427,10 @@ ORDER BY tst ASC;
     const query = this.db('cancellation')
       .select(cancellationFields)
       .where('start_date', date)
-      .orderBy([{ column: 'last_modified', order: 'desc' }, { column: 'start_time', order: 'asc' }])
+      .orderBy([
+        { column: 'last_modified', order: 'desc' },
+        { column: 'start_time', order: 'asc' },
+      ])
 
     return this.getBatched(query)
   }

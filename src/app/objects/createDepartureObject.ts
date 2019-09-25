@@ -12,6 +12,7 @@ import {
   PlannedArrival,
   PlannedDeparture,
   RouteSegment,
+  Stop,
 } from '../../types/generated/schema-types'
 import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../../utils/time'
 import { createJourneyId } from '../../utils/createJourneyId'
@@ -37,7 +38,10 @@ export function createDepartureId(departure, date = '') {
   return departure.id
 }
 
-export function createPlannedArrivalTimeObject(departure: JoreDeparture, date): PlannedArrival {
+export function createPlannedArrivalTimeObject(
+  departure: JoreDeparture,
+  date
+): PlannedArrival {
   const arrivalTime = getDepartureTime(departure, true)
   const departureId = createDepartureId(departure)
 
@@ -80,6 +84,7 @@ export function createDepartureJourneyObject(
 
   return {
     id: `departure_journey_${id}`,
+    type: event.event_type,
     routeId: event.route_id || '',
     direction: event.direction_id,
     originStopId,
@@ -97,10 +102,11 @@ export function createDepartureJourneyObject(
 
 export function createPlannedDepartureObject(
   departure: JoreRouteDepartureData | JoreDepartureWithOrigin,
-  stop: RouteSegment,
+  stop: Stop,
   departureDate: string,
   prefix = '',
-  alerts: Alert[] = []
+  alerts: Alert[] = [],
+  isOrigin: boolean = false
 ): Departure {
   const departureId = createDepartureId(departure, departureDate)
   const plannedDepartureTime = createPlannedDepartureTimeObject(departure, departureDate)
@@ -130,6 +136,7 @@ export function createPlannedDepartureObject(
     alerts,
     cancellations: [],
     isCancelled: false,
+    isOrigin: isOrigin || get(departure, 'origin_departure.stop_id', '') === departure.stop_id,
     originDepartureTime: departure.origin_departure
       ? createPlannedDepartureTimeObject(departure.origin_departure, departureDate)
       : null,
