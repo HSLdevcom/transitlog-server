@@ -1381,6 +1381,8 @@ export namespace DepartureResolvers {
 
     isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
 
+    isOrigin?: IsOriginResolver<Maybe<boolean>, TypeParent, TContext>
+
     departureEvent?: DepartureEventResolver<Maybe<JourneyStopEvent>, TypeParent, TContext>
 
     originDepartureTime?: OriginDepartureTimeResolver<
@@ -1526,6 +1528,11 @@ export namespace DepartureResolvers {
     Parent,
     TContext
   >
+  export type IsOriginResolver<
+    R = Maybe<boolean>,
+    Parent = Departure,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type DepartureEventResolver<
     R = Maybe<JourneyStopEvent>,
     Parent = Departure,
@@ -1562,6 +1569,8 @@ export namespace DepartureJourneyResolvers {
   export interface Resolvers<TContext = {}, TypeParent = DepartureJourney> {
     id?: IdResolver<string, TypeParent, TContext>
 
+    type?: TypeResolver<string, TypeParent, TContext>
+
     lineId?: LineIdResolver<Maybe<string>, TypeParent, TContext>
 
     routeId?: RouteIdResolver<string, TypeParent, TContext>
@@ -1590,6 +1599,11 @@ export namespace DepartureJourneyResolvers {
   }
 
   export type IdResolver<R = string, Parent = DepartureJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type TypeResolver<R = string, Parent = DepartureJourney, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

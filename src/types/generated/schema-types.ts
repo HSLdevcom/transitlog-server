@@ -568,6 +568,8 @@ export interface Departure {
 
   isCancelled: boolean
 
+  isOrigin?: Maybe<boolean>
+
   departureEvent?: Maybe<JourneyStopEvent>
 
   originDepartureTime?: Maybe<PlannedDeparture>
@@ -583,6 +585,8 @@ export interface Departure {
 
 export interface DepartureJourney {
   id: string
+
+  type: string
 
   lineId?: Maybe<string>
 

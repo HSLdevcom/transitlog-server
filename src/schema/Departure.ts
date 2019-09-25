@@ -35,6 +35,7 @@ export const Departure = gql`
 
   type DepartureJourney {
     id: ID!
+    type: String!
     lineId: String
     routeId: String!
     direction: Direction!
@@ -75,6 +76,7 @@ export const Departure = gql`
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!
+    isOrigin: Boolean
     departureEvent: JourneyStopEvent
     originDepartureTime: PlannedDeparture
     plannedArrivalTime: PlannedArrival!

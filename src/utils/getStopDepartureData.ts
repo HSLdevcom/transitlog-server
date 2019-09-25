@@ -23,7 +23,10 @@ export const getStopDepartureData = (
   stopDeparture: Departure,
   date?: string
 ): ObservedDeparture | null => {
-  const departureEvent = getStopDepartureEvent(stopEvents)
+  // Timing stops and origin stops use DEP (exit stop radius) as the
+  // departure event, but normal stops use PDE (doors closed).
+  const useDEP = stopDeparture.isTimingStop || stopDeparture.isOrigin
+  const departureEvent = getStopDepartureEvent(stopEvents, useDEP ? 'DEP' : 'PDE')
 
   if (!departureEvent) {
     return null
@@ -49,8 +52,8 @@ export const getStopDepartureData = (
   }
 }
 
-export const getStopDepartureEvent = (events) => {
-  let departureEvent = events.find((event) => event.event_type === 'DEP')
+export const getStopDepartureEvent = (events, departureEventType: 'DEP' | 'PDE' = 'PDE') => {
+  let departureEvent = events.find((event) => event.event_type === departureEventType)
 
   if (!departureEvent) {
     departureEvent = events[0]

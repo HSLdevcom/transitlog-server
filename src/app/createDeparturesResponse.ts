@@ -132,10 +132,8 @@ export const combineDeparturesAndEvents = (
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the "instances" of the journey.
   const departuresWithEvents: Departure[][] = departures.map((departure) => {
-    const departureTimePath = origin
-      ? 'originDepartureTime.departureTime'
-      : 'plannedDepartureTime.departureTime'
-    const departureTime = get(departure, departureTimePath, null)
+    const departureTimePath = origin ? 'originDepartureTime' : 'plannedDepartureTime'
+    const departureTime = get(departure, departureTimePath + '.departureTime', null)
 
     // The departures are matched to events through the "journey start time", ie the time that
     // the vehicle is planned to depart from the first stop. Thus we need the departure time
@@ -148,7 +146,7 @@ export const combineDeparturesAndEvents = (
 
     // We can use info that the departure happened during "the next day" when calculating
     // the 24h+ time of the event.
-    const departureIsNextDay = get(departure, 'originDepartureTime.isNextDay', false)
+    const departureIsNextDay = get(departure, departureTimePath + '.isNextDay', false)
     const routeId = get(departure, 'routeId', '')
     const direction = getDirection(get(departure, 'direction'))
 

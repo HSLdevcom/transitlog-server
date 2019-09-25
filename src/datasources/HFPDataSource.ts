@@ -308,7 +308,7 @@ ORDER BY journey_start_time, tst;
       `
 SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
-WHERE event_type = 'DEP'
+WHERE event_type IN ('DEP', 'PDE')
   AND oday = ?
   AND stop = ?;
 `,
