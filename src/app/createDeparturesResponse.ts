@@ -123,7 +123,7 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
   return compact(departuresWithStops)
 }
 
-const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
+export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the "instances" of the journey.
   const departuresWithEvents: Departure[][] = departures.map((departure) => {
@@ -165,7 +165,6 @@ const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
     const firstStopId = get(departure, 'stop.originStopId', '')
 
     return eventsPerVehicleJourney.map((events, index, instances) => {
-      const stopArrival = departure ? getStopArrivalData(events, departure, date) : null
       const stopDeparture = departure ? getStopDepartureData(events, departure, date) : null
 
       const departureJourney = createDepartureJourneyObject(
@@ -180,7 +179,7 @@ const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
         ...departure,
         id: index > 0 ? departure.id + '_' + index : departure.id,
         journey: departureJourney,
-        observedArrivalTime: stopArrival,
+        observedArrivalTime: null,
         observedDepartureTime: stopDeparture,
       }
     })
