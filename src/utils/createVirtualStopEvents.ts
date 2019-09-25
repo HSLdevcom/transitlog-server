@@ -2,6 +2,7 @@ import { getStopEvents } from './getStopEvents'
 import { getLegacyStopArrivalEvent } from './getStopArrivalData'
 import { getStopDepartureEvent } from './getStopDepartureData'
 import { EventType, Vehicles } from '../types/EventsDb'
+import { get } from 'lodash'
 
 export const createVirtualStopEvents = (vehiclePositions, departures) => {
   const virtualStopEvents: Vehicles[] = []
@@ -21,8 +22,12 @@ export const createVirtualStopEvents = (vehiclePositions, departures) => {
     const arrivalEvent = stopArrival ? createVirtualEvent(stopArrival, 'ARS') : null
     const departureEvent = stopDeparture ? createVirtualEvent(stopDeparture, 'DEP') : null
 
+    const isMetro = get(arrivalEvent, 'mode', get(departureEvent, 'mode', '')) === 'metro'
+
     const doorOpenEvent =
-      stopArrival && stopArrival.drst ? createVirtualEvent(stopArrival, 'DOO') : null
+      stopArrival && (stopArrival.drst || isMetro)
+        ? createVirtualEvent(stopArrival, 'DOO')
+        : null
 
     if (arrivalEvent) {
       virtualStopEvents.push(arrivalEvent)
