@@ -48,6 +48,7 @@ export const Journey = gql`
     isNextDay: Boolean
     departureId: Int
     isTimingStop: Boolean!
+    isOrigin: Boolean
     index: Int
     stop: Stop
     unplannedStop: Boolean!
@@ -63,6 +64,7 @@ export const Journey = gql`
     isNextDay: Boolean
     departureId: Int
     isTimingStop: Boolean!
+    isOrigin: Boolean
     index: Int
     stop: Stop
   }

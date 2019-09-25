@@ -13,14 +13,18 @@ export const createVirtualStopEvents = (vehiclePositions, departures) => {
     // event will then be the first element in the array.
     const stopEvents = getStopEvents(vehiclePositions, departure.stopId)
 
+    const useDEP = departure.isTimingStop || departure.isOrigin || false
+
     // Although they have a similar signature, the arrival and departure filters do not
     // work the same way. The arrival looks at door openings and the departure uses the
     // desc-sorted events array.
     const stopArrival = getLegacyStopArrivalEvent(stopEvents)
-    const stopDeparture = getStopDepartureEvent(stopEvents)
+    const stopDeparture = getStopDepartureEvent(stopEvents, useDEP ? 'DEP' : 'PDE')
 
     const arrivalEvent = stopArrival ? createVirtualEvent(stopArrival, 'ARS') : null
-    const departureEvent = stopDeparture ? createVirtualEvent(stopDeparture, 'DEP') : null
+    const departureEvent = stopDeparture
+      ? createVirtualEvent(stopDeparture, useDEP ? 'DEP' : 'PDE')
+      : null
 
     const isMetro = get(arrivalEvent, 'mode', get(departureEvent, 'mode', '')) === 'metro'
 

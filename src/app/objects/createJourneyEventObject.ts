@@ -89,6 +89,7 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
     isNextDay,
     departureId: departure.departureId,
     isTimingStop: departure.isTimingStop,
+    isOrigin: departure.isOrigin || false,
     index: departure.index,
     stop: departure.stop,
   }
@@ -138,6 +139,7 @@ export function createJourneyStopEventObject(
     ),
     departureId: get(departure, 'departureId', null),
     isTimingStop: get(departure, 'isTimingStop', get(stop, 'isTimingStop', false)),
+    isOrigin: get(departure, 'isOrigin', false),
     index: get(departure, 'index', -1),
     stop: stopData,
     unplannedStop: !departure,

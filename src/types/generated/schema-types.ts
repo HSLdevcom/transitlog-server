@@ -672,6 +672,8 @@ export interface JourneyStopEvent {
 
   isTimingStop: boolean
 
+  isOrigin?: Maybe<boolean>
+
   index?: Maybe<number>
 
   stop?: Maybe<Stop>
@@ -851,6 +853,8 @@ export interface PlannedStopEvent {
   departureId?: Maybe<number>
 
   isTimingStop: boolean
+
+  isOrigin?: Maybe<boolean>
 
   index?: Maybe<number>
 

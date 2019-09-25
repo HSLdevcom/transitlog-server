@@ -1791,6 +1791,8 @@ export namespace JourneyStopEventResolvers {
 
     isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
 
+    isOrigin?: IsOriginResolver<Maybe<boolean>, TypeParent, TContext>
+
     index?: IndexResolver<Maybe<number>, TypeParent, TContext>
 
     stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
@@ -1875,6 +1877,11 @@ export namespace JourneyStopEventResolvers {
   > = Resolver<R, Parent, TContext>
   export type IsTimingStopResolver<
     R = boolean,
+    Parent = JourneyStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsOriginResolver<
+    R = Maybe<boolean>,
     Parent = JourneyStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
@@ -2438,6 +2445,8 @@ export namespace PlannedStopEventResolvers {
 
     isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
 
+    isOrigin?: IsOriginResolver<Maybe<boolean>, TypeParent, TContext>
+
     index?: IndexResolver<Maybe<number>, TypeParent, TContext>
 
     stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
@@ -2485,6 +2494,11 @@ export namespace PlannedStopEventResolvers {
   > = Resolver<R, Parent, TContext>
   export type IsTimingStopResolver<
     R = boolean,
+    Parent = PlannedStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type IsOriginResolver<
+    R = Maybe<boolean>,
     Parent = PlannedStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>

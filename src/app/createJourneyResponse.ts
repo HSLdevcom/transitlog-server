@@ -172,7 +172,14 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     }
 
     const stop = createStopObject(stopSegment)
-    return createPlannedDepartureObject(departure, stop, date, 'journey')
+    return createPlannedDepartureObject(
+      departure,
+      stop,
+      date,
+      'journey',
+      [],
+      originDeparture.stop_id === departure.stop_id
+    )
   })
 
   // Return both the route and the departures that we put so much work into parsing.
@@ -344,7 +351,7 @@ export async function createJourneyResponse(
     (groups: { [key: string]: Vehicles[] }, event) => {
       if (event.event_type === 'VP') {
         groups.vehiclePositions.push(event)
-      } else if (['ARS', 'DOO', 'DOC', 'DEP', 'PAS'].includes(event.event_type)) {
+      } else if (['ARS', 'DOO', 'DOC', 'DEP', 'PDE', 'PAS'].includes(event.event_type)) {
         groups.stopEvents.push(event)
       } else {
         groups.events.push(event)
@@ -409,8 +416,10 @@ export async function createJourneyResponse(
       const doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
       const stopped = eventsForStop.some((evt) => evt.event_type !== 'PAS')
 
+      const useDEP = get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
+
       return eventsForStop.map((event) =>
-        ['ARS', 'DEP'].includes(event.event_type)
+        ['ARS', useDEP ? 'DEP' : 'PDE'].includes(event.event_type)
           ? createJourneyStopEventObject(event, departure || null, stop, doorsOpened, stopped)
           : createJourneyEventObject(event)
       )
