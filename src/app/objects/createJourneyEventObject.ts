@@ -128,8 +128,8 @@ export function createJourneyStopEventObject(
     stopped,
     doorsOpened,
     plannedDate: get(departure, 'plannedDepartureTime.departureDate', event.oday),
-    plannedTime: null,
-    plannedDateTime: null,
+    plannedTime: get(departure, 'plannedDepartureTime.departureTime', null),
+    plannedDateTime: get(departure, 'plannedDepartureTime.departureDateTime', null),
     plannedTimeDifference: plannedTimeDiff,
     isNextDay: get(
       departure,
