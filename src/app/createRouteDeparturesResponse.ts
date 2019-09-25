@@ -155,7 +155,7 @@ export async function createRouteDeparturesResponse(
       return orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
     }
 
-    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date)
+    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date, false)
   }
 
   const departuresTTL: number = isToday(date) ? 5 : 30 * 24 * 60 * 60

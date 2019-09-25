@@ -123,18 +123,26 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
   return compact(departuresWithStops)
 }
 
-export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
+export const combineDeparturesAndEvents = (
+  departures,
+  events,
+  date,
+  origin = true
+): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the "instances" of the journey.
   const departuresWithEvents: Departure[][] = departures.map((departure) => {
-    const originDepartureTime = get(departure, 'originDepartureTime.departureTime', null)
+    const departureTimePath = origin
+      ? 'originDepartureTime.departureTime'
+      : 'plannedDepartureTime.departureTime'
+    const departureTime = get(departure, departureTimePath, null)
 
     // The departures are matched to events through the "journey start time", ie the time that
     // the vehicle is planned to depart from the first stop. Thus we need the departure time
     // from the first stop for the journey that this departure belongs to in order to match
     // it with an event. If we don't have the origin departure time, we can't match the
     // departure to an event.
-    if (!originDepartureTime) {
+    if (!departureTime) {
       return [departure]
     }
 
@@ -151,7 +159,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
         getDirection(event.direction_id) === direction &&
         // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
         // for the event to match it with the 24h+ time of the origin departure.
-        getJourneyStartTime(event) === originDepartureTime
+        getJourneyStartTime(event) === departureTime
     )
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
@@ -287,7 +295,7 @@ export async function createDeparturesResponse(
       return orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
     }
 
-    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date)
+    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date, true)
   }
 
   const departuresTTL: number = isToday(date) ? 5 : 30 * 24 * 60 * 60
