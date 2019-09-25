@@ -18,7 +18,10 @@ export const resolvers: StringIndexed<any> = {
   Direction: DirectionScalar,
   JourneyEventType: {
     __resolveType(obj) {
-      if (obj.plannedDateTime && !obj.recordedAt) {
+      if (
+        typeof obj.plannedDateTime !== 'undefined' &&
+        typeof obj.recordedAt === 'undefined'
+      ) {
         return 'PlannedStopEvent'
       }
 
@@ -29,7 +32,11 @@ export const resolvers: StringIndexed<any> = {
         return 'JourneyCancellationEvent'
       }
 
-      if (obj.stopId && obj.recordedAt && obj.plannedDateTime) {
+      if (
+        typeof obj.stopId !== 'undefined' &&
+        typeof obj.recordedAt !== 'undefined' &&
+        typeof obj.plannedDate !== 'undefined'
+      ) {
         return 'JourneyStopEvent'
       }
 

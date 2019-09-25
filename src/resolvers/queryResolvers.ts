@@ -248,7 +248,7 @@ const journey = async (
   const getRouteData = () =>
     dataSources.JoreAPI.getDepartureData(routeId, direction, departureDate)
 
-  const getStopData = (stopId) => stop(root, { stopId, date: departureDate }, { dataSources })
+  const getStopData = (stopId) => dataSources.JoreAPI.getSimpleStop(stopId)
 
   const getJourneyEvents = () =>
     dataSources.HFPAPI.getJourneyEvents(

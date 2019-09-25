@@ -1,7 +1,6 @@
 import {
   AlertDistribution,
   Cancellation,
-  CancellationSubcategory,
   Departure,
   JourneyCancellationEvent,
   JourneyEvent,
@@ -124,21 +123,13 @@ export function createJourneyStopEventObject(
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
-    stopId: (event.stop || event.next_stop_id || '') + '',
+    stopId: get(event, 'stop', get(stop, 'stopId', get(departure, 'stopId'))) + '',
     nextStopId: (event.next_stop_id || '') + '',
     stopped,
     doorsOpened,
     plannedDate: get(departure, 'plannedDepartureTime.departureDate', event.oday),
-    plannedTime: get(
-      departure,
-      'plannedDepartureTime.departureTime',
-      event.journey_start_time
-    ),
-    plannedDateTime: get(
-      departure,
-      'plannedDepartureTime.departureDateTime',
-      eventPlannedMoment.toISOString(true)
-    ),
+    plannedTime: null,
+    plannedDateTime: null,
     plannedTimeDifference: plannedTimeDiff,
     isNextDay: get(
       departure,

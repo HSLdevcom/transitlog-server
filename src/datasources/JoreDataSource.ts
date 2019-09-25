@@ -156,6 +156,26 @@ WHERE stop.stop_id = :stopId;`,
     return this.getBatched(query)
   }
 
+  async getSimpleStop(stopId: string): Promise<JoreStop | null> {
+    const query = this.db.raw(
+      `
+      SELECT stop.stop_id,
+             stop.short_id,
+             stop.lat,
+             stop.lon,
+             stop.name_fi,
+             stop.stop_radius,
+             modes.modes
+      FROM :schema:.stop stop, :schema:.stop_modes(stop, null) modes
+        WHERE stop.stop_id = :stopId;
+    `,
+      { schema: SCHEMA, stopId }
+    )
+
+    const result = await this.getBatched(query)
+    return result[0] || null
+  }
+
   async getStops(date?: string): Promise<JoreStop[]> {
     const query = date
       ? this.db.raw(

@@ -1,6 +1,12 @@
-import { JoreEquipment, JoreRouteDepartureData, JoreStopSegment } from '../types/Jore'
+import {
+  JoreEquipment,
+  JoreRouteDepartureData,
+  JoreStop,
+  JoreStopSegment,
+} from '../types/Jore'
 import { cacheFetch } from './cache'
 import {
+  AlertDistribution,
   Departure,
   Direction,
   ExceptionDay,
@@ -15,7 +21,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, differenceBy, flatten, get, groupBy, orderBy, unionBy } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy, unionBy } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -200,7 +206,7 @@ export async function createJourneyResponse(
     vehicleId: string | number,
     operatorId: string | number
   ) => Promise<JoreEquipment[]>,
-  getStop: (stopId: string) => Promise<Stop | null>,
+  getStop: (stopId: string) => Promise<JoreStop | null>,
   getCancellations,
   getAlerts,
   exceptions: ExceptionDay[],
@@ -383,7 +389,17 @@ export async function createJourneyResponse(
       let stop: Stop | null = get(departure, 'stop', null)
 
       if (!stop) {
-        stop = await getStop(stopId)
+        const joreStop = await getStop(stopId)
+
+        if (joreStop) {
+          const stopAlerts = journeyAlerts.filter(
+            (alert) =>
+              alert.distribution === AlertDistribution.AllStops ||
+              alert.affectedId === joreStop.stop_id
+          )
+
+          stop = createStopObject(joreStop, [], stopAlerts)
+        }
       }
 
       if (departure) {
@@ -407,8 +423,7 @@ export async function createJourneyResponse(
     stopEventObjects
   )
 
-  // Exclude planned stops that did end up having events attached to them. Those are
-  // included on the stopEventObjects collection.
+  // Exclude planned stops that did end up having events attached to them.
   const stopsWithoutEvents = plannedStopEvents.reduce(
     (deduplicated: PlannedStopEvent[], plannedEvent) => {
       const stopWithEvent = flatStopEventObjects.some(
