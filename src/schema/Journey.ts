@@ -93,9 +93,10 @@ export const Journey = gql`
 
   type Journey {
     id: ID!
+    journeyType: String!
     lineId: String
-    routeId: String!
-    direction: Direction!
+    routeId: String
+    direction: Direction
     originStopId: String
     departureDate: Date!
     departureTime: Time!
@@ -116,9 +117,10 @@ export const Journey = gql`
 
   type VehicleJourney {
     id: ID!
+    journeyType: String!
     lineId: String
-    routeId: String!
-    direction: Direction!
+    routeId: String
+    direction: Direction
     originStopId: String
     departureDate: Date!
     departureTime: Time!
@@ -131,7 +133,7 @@ export const Journey = gql`
     recordedAtUnix: Int!
     recordedTime: Time!
     timeDifference: Int!
-    nextStopId: String!
+    nextStopId: String
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!

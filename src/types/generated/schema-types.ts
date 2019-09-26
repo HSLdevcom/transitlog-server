@@ -586,13 +586,15 @@ export interface Departure {
 export interface DepartureJourney {
   id: string
 
+  journeyType: string
+
   type: string
 
   lineId?: Maybe<string>
 
-  routeId: string
+  routeId?: Maybe<string>
 
-  direction: Direction
+  direction?: Maybe<Direction>
 
   originStopId?: Maybe<string>
 
@@ -756,11 +758,13 @@ export interface ExceptionDay {
 export interface Journey {
   id: string
 
+  journeyType: string
+
   lineId?: Maybe<string>
 
-  routeId: string
+  routeId?: Maybe<string>
 
-  direction: Direction
+  direction?: Maybe<Direction>
 
   originStopId?: Maybe<string>
 
@@ -868,11 +872,13 @@ export interface PlannedStopEvent {
 export interface VehicleJourney {
   id: string
 
+  journeyType: string
+
   lineId?: Maybe<string>
 
-  routeId: string
+  routeId?: Maybe<string>
 
-  direction: Direction
+  direction?: Maybe<Direction>
 
   originStopId?: Maybe<string>
 
@@ -898,7 +904,7 @@ export interface VehicleJourney {
 
   timeDifference: number
 
-  nextStopId: string
+  nextStopId?: Maybe<string>
 
   alerts: Alert[]
 

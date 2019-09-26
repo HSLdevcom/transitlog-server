@@ -3531,6 +3531,18 @@
             "deprecationReason": null
           },
           {
+            "name": "journeyType",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": { "kind": "SCALAR", "name": "String", "ofType": null }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "type",
             "description": "",
             "args": [],
@@ -3554,11 +3566,7 @@
             "name": "routeId",
             "description": "",
             "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": { "kind": "SCALAR", "name": "String", "ofType": null }
-            },
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -3566,11 +3574,7 @@
             "name": "direction",
             "description": "",
             "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
-            },
+            "type": { "kind": "SCALAR", "name": "Direction", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -4457,15 +4461,7 @@
             "deprecationReason": null
           },
           {
-            "name": "lineId",
-            "description": "",
-            "args": [],
-            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "routeId",
+            "name": "journeyType",
             "description": "",
             "args": [],
             "type": {
@@ -4477,14 +4473,26 @@
             "deprecationReason": null
           },
           {
+            "name": "lineId",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "routeId",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "direction",
             "description": "",
             "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
-            },
+            "type": { "kind": "SCALAR", "name": "Direction", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -5084,15 +5092,7 @@
             "deprecationReason": null
           },
           {
-            "name": "lineId",
-            "description": "",
-            "args": [],
-            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "routeId",
+            "name": "journeyType",
             "description": "",
             "args": [],
             "type": {
@@ -5104,14 +5104,26 @@
             "deprecationReason": null
           },
           {
+            "name": "lineId",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "routeId",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "direction",
             "description": "",
             "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
-            },
+            "type": { "kind": "SCALAR", "name": "Direction", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },
@@ -5239,11 +5251,7 @@
             "name": "nextStopId",
             "description": "",
             "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": { "kind": "SCALAR", "name": "String", "ofType": null }
-            },
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },
