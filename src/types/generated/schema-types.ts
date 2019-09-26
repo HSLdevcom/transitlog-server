@@ -910,11 +910,13 @@ export interface VehicleJourney {
 export interface AreaJourney {
   id: string
 
+  journeyType: string
+
   lineId?: Maybe<string>
 
-  routeId: string
+  routeId?: Maybe<string>
 
-  direction: Direction
+  direction?: Maybe<Direction>
 
   departureDate: Date
 
@@ -1042,6 +1044,8 @@ export interface JourneyQueryArgs {
   departureDate: Date
 
   uniqueVehicleId?: Maybe<VehicleId>
+
+  unsignedEvents?: Maybe<boolean>
 }
 export interface JourneysQueryArgs {
   routeId: string
@@ -1054,6 +1058,8 @@ export interface VehicleJourneysQueryArgs {
   uniqueVehicleId: VehicleId
 
   date: Date
+
+  unsignedEvents?: Maybe<boolean>
 }
 export interface EventsByBboxQueryArgs {
   minTime: DateTime
@@ -1065,6 +1071,8 @@ export interface EventsByBboxQueryArgs {
   date: Date
 
   filters?: Maybe<AreaEventsFilterInput>
+
+  unsignedEvents?: Maybe<boolean>
 }
 export interface AlertsQueryArgs {
   time?: Maybe<string>

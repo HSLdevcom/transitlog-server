@@ -21,7 +21,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, flatten, get, groupBy, orderBy, unionBy } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy, unionBy, last } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -51,6 +51,7 @@ import { isToday, parse } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
 import { AuthenticatedUser } from '../types/Authentication'
 import { requireUser } from '../auth/requireUser'
+import { isWithinRange } from '../utils/isWithinRange'
 
 type JourneyRoute = {
   route: Route | null
@@ -276,24 +277,24 @@ export async function createJourneyResponse(
     }
   )
 
-  const vehicleId = uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
   let unsignedEvents: Vehicles[] = []
 
-  if (vehicleId && user) {
-    const [operator] = uniqueVehicleId.split('/')
-    const operatorGroup = 'op_' + parseInt(operator, 10)
+  const vehicleId = uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
+  const [operator] = uniqueVehicleId.split('/')
+  const operatorGroup = 'op_' + parseInt(operator, 10)
+  const unsignedEventsAuthorized =
+    (user && requireUser(user, 'HSL')) || requireUser(user, operatorGroup)
 
-    if (requireUser(user, 'HSL') || requireUser(user, operatorGroup)) {
-      const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
-      const unsignedResults = await cacheFetch(
-        unsignedKey,
-        () => getUnsignedEvents(vehicleId),
-        isToday(departureDate) ? 30 : 24 * 60 * 60
-      )
+  if (vehicleId && unsignedEventsAuthorized) {
+    const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
+    const unsignedResults = await cacheFetch(
+      unsignedKey,
+      () => getUnsignedEvents(vehicleId),
+      isToday(departureDate) ? 30 : 24 * 60 * 60
+    )
 
-      if (unsignedResults && unsignedResults.length !== 0) {
-        unsignedEvents = unsignedResults
-      }
+    if (unsignedResults && unsignedResults.length !== 0) {
+      unsignedEvents = unsignedResults
     }
   }
 
@@ -489,8 +490,23 @@ export async function createJourneyResponse(
     'asc'
   )
 
+  if (user) {
+  }
+  const firstEvent = flatStopEventObjects[0]
+  const lastEvent = last(flatStopEventObjects)
+
+  // Get a unix timestamp (for sorting) 60 minutes before the journey started
+  const minDate = (firstEvent ? firstEvent.recordedAtUnix : departureDateTime.unix()) - 60 * 60
+  // Get a uniz timestamp 30 minutes after the journey ended (or 1.5 hours after the scheduled start)
+  const maxDate =
+    (lastEvent ? lastEvent.recordedAtUnix : departureDateTime.unix() + 60 * 60) + 30 * 60
+
+  const unsignedAroundJourney = unsignedEvents.filter(({ tsi }) =>
+    isWithinRange(tsi, minDate, maxDate)
+  )
+
   const signedAndUnsignedPositions = orderBy(
-    [...vehiclePositions, ...unsignedEvents],
+    [...vehiclePositions, ...unsignedAroundJourney],
     'tsi',
     'asc'
   )

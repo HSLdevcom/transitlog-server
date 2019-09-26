@@ -40,6 +40,20 @@ export function requireUser(user: AuthenticatedUser, group?: string | string[]) 
   return true
 }
 
+export function getUserGroups(user) {
+  if (
+    !user ||
+    !user.accessToken ||
+    !user.groups ||
+    !Array.isArray(user.groups) ||
+    user.groups.length === 0
+  ) {
+    return []
+  }
+
+  return user.groups
+}
+
 export const requireUserMiddleware = (group?: string | string[]) => (
   req: Request,
   res: Response,

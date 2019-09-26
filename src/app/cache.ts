@@ -65,20 +65,20 @@ export async function cacheFetch<DataType = any>(
   const computedCacheKey = typeof cacheKey === 'function' ? cacheKey() : cacheKey
 
   const fetchFromCacheOrDb = async (usingCacheKey) => {
-    if (usingCacheKey) {
+    /*if (usingCacheKey) {
       const cachedData = await getItem<DataType>(usingCacheKey)
 
       if (cachedData) {
         return cachedData
       }
-    }
+    }*/
 
     let data
 
     try {
       data = await fetchData()
     } catch (err) {
-      console.trace()
+      console.log(err)
       console.log(usingCacheKey, get(err, 'message', 'Data fetching error!'))
     }
 

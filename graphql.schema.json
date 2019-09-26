@@ -565,6 +565,12 @@
                 "description": "",
                 "type": { "kind": "SCALAR", "name": "VehicleId", "ofType": null },
                 "defaultValue": null
+              },
+              {
+                "name": "unsignedEvents",
+                "description": "",
+                "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
+                "defaultValue": null
               }
             ],
             "type": { "kind": "OBJECT", "name": "Journey", "ofType": null },
@@ -641,6 +647,12 @@
                   "ofType": { "kind": "SCALAR", "name": "Date", "ofType": null }
                 },
                 "defaultValue": null
+              },
+              {
+                "name": "unsignedEvents",
+                "description": "",
+                "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
+                "defaultValue": null
               }
             ],
             "type": {
@@ -707,6 +719,12 @@
                   "name": "AreaEventsFilterInput",
                   "ofType": null
                 },
+                "defaultValue": null
+              },
+              {
+                "name": "unsignedEvents",
+                "description": "",
+                "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
                 "defaultValue": null
               }
             ],
@@ -5328,15 +5346,7 @@
             "deprecationReason": null
           },
           {
-            "name": "lineId",
-            "description": "",
-            "args": [],
-            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "routeId",
+            "name": "journeyType",
             "description": "",
             "args": [],
             "type": {
@@ -5348,14 +5358,26 @@
             "deprecationReason": null
           },
           {
+            "name": "lineId",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "routeId",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "direction",
             "description": "",
             "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": { "kind": "SCALAR", "name": "Direction", "ofType": null }
-            },
+            "type": { "kind": "SCALAR", "name": "Direction", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },

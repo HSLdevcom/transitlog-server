@@ -313,10 +313,24 @@ const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources, user })
   return createVehicleJourneysResponse(getVehicleJourneys, fetchAlerts, uniqueVehicleId, date)
 }
 
-const eventsByBbox = (root, { minTime, maxTime, bbox, date, filters }, { dataSources }) => {
+const eventsByBbox = (
+  root,
+  { minTime, maxTime, bbox, date, filters, unsignedEvents = true },
+  { dataSources, user }
+) => {
   const getAreaJourneys = () =>
-    dataSources.HFPAPI.getAreaJourneys(minTime, maxTime, bbox, date)
-  return createAreaJourneysResponse(getAreaJourneys, minTime, maxTime, bbox, date, filters)
+    dataSources.HFPAPI.getAreaJourneys(minTime, maxTime, bbox, date, !!user && unsignedEvents)
+
+  return createAreaJourneysResponse(
+    getAreaJourneys,
+    minTime,
+    maxTime,
+    bbox,
+    date,
+    filters,
+    unsignedEvents,
+    user
+  )
 }
 
 const exceptionDays = (root, { year }, { dataSources }) => {

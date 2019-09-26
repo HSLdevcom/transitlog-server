@@ -152,7 +152,7 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
   const ts = moment.tz(event.tst, TZ).toISOString(true)
 
   return {
-    id: `vehicle_position_event_${useId}_${unix}`,
+    id: `vehicle_position_event_${useId}_${unix}_${event.lat}_${event.long}`,
     journeyType:
       event.journey_type ||
       (typeof event.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),

@@ -512,6 +512,8 @@ export namespace QueryResolvers {
     departureDate: Date
 
     uniqueVehicleId?: Maybe<VehicleId>
+
+    unsignedEvents?: Maybe<boolean>
   }
 
   export type JourneysResolver<
@@ -536,6 +538,8 @@ export namespace QueryResolvers {
     uniqueVehicleId: VehicleId
 
     date: Date
+
+    unsignedEvents?: Maybe<boolean>
   }
 
   export type EventsByBboxResolver<
@@ -553,6 +557,8 @@ export namespace QueryResolvers {
     date: Date
 
     filters?: Maybe<AreaEventsFilterInput>
+
+    unsignedEvents?: Maybe<boolean>
   }
 
   export type AlertsResolver<R = Alert[], Parent = {}, TContext = {}> = Resolver<
@@ -2677,11 +2683,13 @@ export namespace AreaJourneyResolvers {
   export interface Resolvers<TContext = {}, TypeParent = AreaJourney> {
     id?: IdResolver<string, TypeParent, TContext>
 
+    journeyType?: JourneyTypeResolver<string, TypeParent, TContext>
+
     lineId?: LineIdResolver<Maybe<string>, TypeParent, TContext>
 
-    routeId?: RouteIdResolver<string, TypeParent, TContext>
+    routeId?: RouteIdResolver<Maybe<string>, TypeParent, TContext>
 
-    direction?: DirectionResolver<Direction, TypeParent, TContext>
+    direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
 
     departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
 
@@ -2715,21 +2723,26 @@ export namespace AreaJourneyResolvers {
     Parent,
     TContext
   >
+  export type JourneyTypeResolver<R = string, Parent = AreaJourney, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type LineIdResolver<
     R = Maybe<string>,
     Parent = AreaJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type RouteIdResolver<R = string, Parent = AreaJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DirectionResolver<R = Direction, Parent = AreaJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
+  export type RouteIdResolver<
+    R = Maybe<string>,
+    Parent = AreaJourney,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type DirectionResolver<
+    R = Maybe<Direction>,
+    Parent = AreaJourney,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type DepartureDateResolver<R = Date, Parent = AreaJourney, TContext = {}> = Resolver<
     R,
     Parent,

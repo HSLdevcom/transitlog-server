@@ -152,7 +152,13 @@ ORDER BY unique_vehicle_id;
    * CREATE INDEX vehicle_journeys_idx ON vehicles (tst ASC, oday, unique_vehicle_id);
    */
 
-  async getAreaJourneys(minTime, maxTime, bbox, date): Promise<Vehicles[]> {
+  async getAreaJourneys(
+    minTime,
+    maxTime,
+    bbox,
+    date,
+    unsignedEvents: boolean = false
+  ): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
     const query = this.db.raw(
@@ -160,7 +166,7 @@ ORDER BY unique_vehicle_id;
 SELECT ${vehicleFields.join(',')}
 FROM vehicles
 WHERE event_type = 'VP'
-  AND oday = :date
+  ${!unsignedEvents ? `AND journey_type = 'journey'` : ''}
   AND tst BETWEEN :minTime AND :maxTime
   AND lat BETWEEN :minLat AND :maxLat
   AND long BETWEEN :minLng AND :maxLng
