@@ -618,11 +618,15 @@ export interface DepartureJourney {
 export interface VehiclePosition extends Position {
   id: string
 
+  journeyType: string
+
   recordedAt: DateTime
 
   recordedAtUnix: number
 
   recordedTime: Time
+
+  stop?: Maybe<string>
 
   nextStopId?: Maybe<string>
 

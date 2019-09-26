@@ -119,11 +119,11 @@ export function getJourneyStartTime(event: JourneyType): string {
 }
 
 export function getJourneyEventTime(event: Vehicles) {
-  if (!event.journey_start_time) {
-    return ''
-  }
-
   const timestampMoment = moment.tz(event.tst, TZ)
+
+  if (!event.journey_start_time) {
+    return timestampMoment.format('HH:mm:ss')
+  }
 
   let hours = timestampMoment.hours()
   const minutes = timestampMoment.minutes()

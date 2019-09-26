@@ -1679,11 +1679,15 @@ export namespace VehiclePositionResolvers {
   export interface Resolvers<TContext = {}, TypeParent = VehiclePosition> {
     id?: IdResolver<string, TypeParent, TContext>
 
+    journeyType?: JourneyTypeResolver<string, TypeParent, TContext>
+
     recordedAt?: RecordedAtResolver<DateTime, TypeParent, TContext>
 
     recordedAtUnix?: RecordedAtUnixResolver<number, TypeParent, TContext>
 
     recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
+
+    stop?: StopResolver<Maybe<string>, TypeParent, TContext>
 
     nextStopId?: NextStopIdResolver<Maybe<string>, TypeParent, TContext>
 
@@ -1705,6 +1709,11 @@ export namespace VehiclePositionResolvers {
     Parent,
     TContext
   >
+  export type JourneyTypeResolver<
+    R = string,
+    Parent = VehiclePosition,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type RecordedAtResolver<
     R = DateTime,
     Parent = VehiclePosition,
@@ -1717,6 +1726,11 @@ export namespace VehiclePositionResolvers {
   > = Resolver<R, Parent, TContext>
   export type RecordedTimeResolver<
     R = Time,
+    Parent = VehiclePosition,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type StopResolver<
+    R = Maybe<string>,
     Parent = VehiclePosition,
     TContext = {}
   > = Resolver<R, Parent, TContext>

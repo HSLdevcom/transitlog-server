@@ -153,15 +153,19 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
 
   return {
     id: `vehicle_position_event_${useId}_${unix}`,
+    journeyType:
+      event.journey_type ||
+      (typeof event.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
-    nextStopId: event.next_stop_id + '',
+    stop: (event.stop || '') + '',
+    nextStopId: (event.next_stop_id || '') + '',
     lat: event.lat,
     lng: event.long,
     doorStatus: event.drst,
     velocity: event.spd,
-    delay: event.dl,
+    delay: event.dl || 0,
     heading: event.hdg,
   }
 }

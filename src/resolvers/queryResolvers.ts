@@ -19,7 +19,6 @@ import { Alert, Cancellation } from '../types/generated/schema-types'
 import { getAlerts } from '../app/getAlerts'
 import { getCancellations } from '../app/getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
-import { createUnsignedJourneysResponse } from '../app/createUnsignedJourneysResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -159,13 +158,13 @@ const routeDepartures = async (
 
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
-  if (routeId === 'unsigned') {
+  /*if (routeId === 'unsigned') {
     return createUnsignedJourneysResponse(
       user,
       () => dataSources.HFPAPI.getUnsignedEvents(date),
       date
     )
-  }
+  }*/
 
   const getDepartures = () =>
     dataSources.JoreAPI.getDeparturesForRoute(stopId, routeId, direction, date)
@@ -268,6 +267,9 @@ const journey = async (
       uniqueVehicleId
     )
 
+  const getUnsignedEvents = (vehicleId: string) =>
+    dataSources.HFPAPI.getUnsignedEventsForVehicle(departureDate, vehicleId)
+
   const getJourneyEquipment = (vehicleId, operatorId) =>
     dataSources.JoreAPI.getEquipmentById(vehicleId, operatorId)
 
@@ -285,6 +287,7 @@ const journey = async (
     getJourneyEvents,
     getJourneyEquipment,
     getStopData,
+    getUnsignedEvents,
     fetchCancellations,
     fetchAlerts,
     exceptions,
@@ -302,7 +305,7 @@ const journeys = (root, { routeId, direction, departureDate }, { dataSources }) 
   return createRouteJourneysResponse(getJourney, routeId, direction, departureDate)
 }
 
-const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources }) => {
+const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources, user }) => {
   const getVehicleJourneys = () =>
     dataSources.HFPAPI.getJourneysForVehicle(uniqueVehicleId, date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)

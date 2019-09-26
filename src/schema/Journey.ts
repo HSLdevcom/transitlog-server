@@ -77,9 +77,11 @@ export const Journey = gql`
 
   type VehiclePosition implements Position {
     id: ID!
+    journeyType: String!
     recordedAt: DateTime!
     recordedAtUnix: Int!
     recordedTime: Time!
+    stop: String
     nextStopId: String
     lat: Float
     lng: Float

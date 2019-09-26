@@ -47,7 +47,7 @@ import pMap from 'p-map'
 import { createStopObject } from './objects/createStopObject'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
-import { parse } from 'date-fns'
+import { isToday, parse } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
 
 type JourneyRoute = {
@@ -197,6 +197,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param fetchJourneyEvents Async function that fetches the HFP events
  * @param fetchJourneyEquipment Async function that fetches the equipment that operated this journey.
  * @param getStop
+ * @param getUnsignedEvents
  * @param getCancellations Async function that returns cancellations
  * @param getAlerts Async function that returns alerts
  * @param exceptions Exceptions in effect during departureDate
@@ -214,6 +215,7 @@ export async function createJourneyResponse(
     operatorId: string | number
   ) => Promise<JoreEquipment[]>,
   getStop: (stopId: string) => Promise<JoreStop | null>,
+  getUnsignedEvents: (vehicleId: string) => Promise<Vehicles[]>,
   getCancellations,
   getAlerts,
   exceptions: ExceptionDay[],
@@ -269,6 +271,22 @@ export async function createJourneyResponse(
       return 24 * 60 * 60
     }
   )
+
+  const vehicleId = uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
+  let unsignedEvents: Vehicles[] = []
+
+  if (vehicleId) {
+    const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
+    const unsignedResults = await cacheFetch(
+      unsignedKey,
+      () => getUnsignedEvents(vehicleId),
+      isToday(departureDate) ? 30 : 24 * 60 * 60
+    )
+
+    if (unsignedResults && unsignedResults.length !== 0) {
+      unsignedEvents = unsignedResults
+    }
+  }
 
   // The journey key was used to fetch the journey, and now we need it to fetch the departures.
   const journeyKey = getJourneyEventsKey(journeyEvents)
@@ -462,9 +480,15 @@ export async function createJourneyResponse(
     'asc'
   )
 
+  const signedAndUnsignedPositions = orderBy(
+    [...vehiclePositions, ...unsignedEvents],
+    'tsi',
+    'asc'
+  )
+
   // Everything is baked into a Journey object.
   return createJourneyObject(
-    vehiclePositions,
+    signedAndUnsignedPositions,
     allJourneyEvents,
     route,
     originDeparture,

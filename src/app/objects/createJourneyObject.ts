@@ -29,7 +29,7 @@ export function createJourneyObject(
   alerts: Alert[] = [],
   cancellations: Cancellation[] = []
 ): Journey {
-  const journey = vehiclePositions[0]
+  const journey = vehiclePositions.find((event) => event.journey_type === 'journey')
 
   const departureDate = get(originDeparture, 'plannedDepartureTime.departureDate', '')
   const departureTime = !journey
