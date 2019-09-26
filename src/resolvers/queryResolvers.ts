@@ -295,7 +295,8 @@ const journey = async (
     direction,
     departureDate,
     departureTime,
-    uniqueVehicleId
+    uniqueVehicleId,
+    user
   )
 }
 

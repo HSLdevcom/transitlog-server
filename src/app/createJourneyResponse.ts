@@ -49,6 +49,8 @@ import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { isToday, parse } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
+import { AuthenticatedUser } from '../types/Authentication'
+import { requireUser } from '../auth/requireUser'
 
 type JourneyRoute = {
   route: Route | null
@@ -206,6 +208,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param departureDate The operation date of the journey
  * @param departureTime The journey's departure from the first stop.
  * @param uniqueVehicleId
+ * @param user
  */
 export async function createJourneyResponse(
   fetchRouteData: () => Promise<JourneyRouteData>,
@@ -223,7 +226,8 @@ export async function createJourneyResponse(
   direction: Direction,
   departureDate: string,
   departureTime: string,
-  uniqueVehicleId: VehicleId
+  uniqueVehicleId: VehicleId,
+  user: AuthenticatedUser | null
 ): Promise<Journey | null> {
   // If a vehicle ID is not provided, we need to figure out which vehicle operated the
   // journey based on the data as the vehicle ID is part of the journey key. If an
@@ -275,16 +279,21 @@ export async function createJourneyResponse(
   const vehicleId = uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
   let unsignedEvents: Vehicles[] = []
 
-  if (vehicleId) {
-    const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
-    const unsignedResults = await cacheFetch(
-      unsignedKey,
-      () => getUnsignedEvents(vehicleId),
-      isToday(departureDate) ? 30 : 24 * 60 * 60
-    )
+  if (vehicleId && user) {
+    const [operator] = uniqueVehicleId.split('/')
+    const operatorGroup = 'op_' + parseInt(operator, 10)
 
-    if (unsignedResults && unsignedResults.length !== 0) {
-      unsignedEvents = unsignedResults
+    if (requireUser(user, 'HSL') || requireUser(user, operatorGroup)) {
+      const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
+      const unsignedResults = await cacheFetch(
+        unsignedKey,
+        () => getUnsignedEvents(vehicleId),
+        isToday(departureDate) ? 30 : 24 * 60 * 60
+      )
+
+      if (unsignedResults && unsignedResults.length !== 0) {
+        unsignedEvents = unsignedResults
+      }
     }
   }
 
