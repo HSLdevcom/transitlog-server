@@ -70,6 +70,7 @@ const routeDepartureFields = [
 ]
 
 const routeJourneyFields = [
+  'journey_type',
   'geohash_level',
   'route_id',
   'direction_id',
