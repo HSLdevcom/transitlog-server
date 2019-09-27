@@ -124,15 +124,12 @@ export class HFPDataSource extends SQLDataSource {
 
   /*
    * Query for which vehicles were in traffic (ie have events) for a specific day.
-   *
-   * Optimization:
-   * Materialized continuous view
    */
 
   async getAvailableVehicles(date): Promise<Vehicles[]> {
     const query = this.db.raw(
       `
-SELECT distinct on (unique_vehicle_id) unique_vehicle_id,
+SELECT DISTINCT ON (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
 owner_operator_id
 FROM vehicles
