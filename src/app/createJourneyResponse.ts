@@ -280,10 +280,10 @@ export async function createJourneyResponse(
   let unsignedEvents: Vehicles[] = []
 
   const vehicleId = uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
-  const [operator] = uniqueVehicleId.split('/')
+  const [operator = ''] = vehicleId.split('/')
   const operatorGroup = 'op_' + parseInt(operator, 10)
   const unsignedEventsAuthorized =
-    (user && requireUser(user, 'HSL')) || requireUser(user, operatorGroup)
+    (user && requireUser(user, 'HSL')) || (operator && requireUser(user, operatorGroup))
 
   if (vehicleId && unsignedEventsAuthorized) {
     const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`

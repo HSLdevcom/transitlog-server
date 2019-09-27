@@ -321,6 +321,12 @@ export namespace QueryResolvers {
       TContext
     >
 
+    unsignedVehicleEvents?: UnsignedVehicleEventsResolver<
+      Array<Maybe<VehiclePosition>>,
+      TypeParent,
+      TContext
+    >
+
     eventsByBbox?: EventsByBboxResolver<Array<Maybe<AreaJourney>>, TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
@@ -540,6 +546,17 @@ export namespace QueryResolvers {
     date: Date
 
     unsignedEvents?: Maybe<boolean>
+  }
+
+  export type UnsignedVehicleEventsResolver<
+    R = Array<Maybe<VehiclePosition>>,
+    Parent = {},
+    TContext = {}
+  > = Resolver<R, Parent, TContext, UnsignedVehicleEventsArgs>
+  export interface UnsignedVehicleEventsArgs {
+    uniqueVehicleId: VehicleId
+
+    date: Date
   }
 
   export type EventsByBboxResolver<
@@ -1704,6 +1721,12 @@ export namespace VehiclePositionResolvers {
 
     nextStopId?: NextStopIdResolver<Maybe<string>, TypeParent, TContext>
 
+    uniqueVehicleId?: UniqueVehicleIdResolver<Maybe<VehicleId>, TypeParent, TContext>
+
+    operatorId?: OperatorIdResolver<Maybe<string>, TypeParent, TContext>
+
+    vehicleId?: VehicleIdResolver<Maybe<string>, TypeParent, TContext>
+
     lat?: LatResolver<Maybe<number>, TypeParent, TContext>
 
     lng?: LngResolver<Maybe<number>, TypeParent, TContext>
@@ -1715,6 +1738,8 @@ export namespace VehiclePositionResolvers {
     delay?: DelayResolver<Maybe<number>, TypeParent, TContext>
 
     heading?: HeadingResolver<Maybe<number>, TypeParent, TContext>
+
+    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = VehiclePosition, TContext = {}> = Resolver<
@@ -1752,6 +1777,21 @@ export namespace VehiclePositionResolvers {
     Parent = VehiclePosition,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type UniqueVehicleIdResolver<
+    R = Maybe<VehicleId>,
+    Parent = VehiclePosition,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type OperatorIdResolver<
+    R = Maybe<string>,
+    Parent = VehiclePosition,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type VehicleIdResolver<
+    R = Maybe<string>,
+    Parent = VehiclePosition,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type LatResolver<
     R = Maybe<number>,
     Parent = VehiclePosition,
@@ -1779,6 +1819,11 @@ export namespace VehiclePositionResolvers {
   > = Resolver<R, Parent, TContext>
   export type HeadingResolver<
     R = Maybe<number>,
+    Parent = VehiclePosition,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type ModeResolver<
+    R = Maybe<string>,
     Parent = VehiclePosition,
     TContext = {}
   > = Resolver<R, Parent, TContext>

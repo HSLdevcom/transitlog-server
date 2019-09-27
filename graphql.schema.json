@@ -668,6 +668,43 @@
             "deprecationReason": null
           },
           {
+            "name": "unsignedVehicleEvents",
+            "description": "",
+            "args": [
+              {
+                "name": "uniqueVehicleId",
+                "description": "",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": { "kind": "SCALAR", "name": "VehicleId", "ofType": null }
+                },
+                "defaultValue": null
+              },
+              {
+                "name": "date",
+                "description": "",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": { "kind": "SCALAR", "name": "Date", "ofType": null }
+                },
+                "defaultValue": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": { "kind": "OBJECT", "name": "VehiclePosition", "ofType": null }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "eventsByBbox",
             "description": "",
             "args": [
@@ -3800,6 +3837,30 @@
             "deprecationReason": null
           },
           {
+            "name": "uniqueVehicleId",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "VehicleId", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "operatorId",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "vehicleId",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "lat",
             "description": "",
             "args": [],
@@ -3844,6 +3905,14 @@
             "description": "",
             "args": [],
             "type": { "kind": "SCALAR", "name": "Int", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "mode",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "String", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           }

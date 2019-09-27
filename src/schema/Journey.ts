@@ -83,12 +83,16 @@ export const Journey = gql`
     recordedTime: Time!
     stop: String
     nextStopId: String
+    uniqueVehicleId: VehicleId
+    operatorId: String
+    vehicleId: String
     lat: Float
     lng: Float
     velocity: Float
     doorStatus: Boolean
     delay: Int
     heading: Int
+    mode: String
   }
 
   type Journey {
