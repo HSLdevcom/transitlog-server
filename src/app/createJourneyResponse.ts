@@ -490,30 +490,29 @@ export async function createJourneyResponse(
     'asc'
   )
 
-  if (user) {
+  let finalPositions = vehiclePositions
+
+  if (unsignedEventsAuthorized) {
+    const firstEvent = flatStopEventObjects[0]
+    const lastEvent = last(flatStopEventObjects)
+
+    // Get a unix timestamp (for sorting) 60 minutes before the journey started
+    const minDate =
+      (firstEvent ? firstEvent.recordedAtUnix : departureDateTime.unix()) - 60 * 60
+    // Get a unix timestamp 30 minutes after the journey ended (or 1.5 hours after the scheduled start)
+    const maxDate =
+      (lastEvent ? lastEvent.recordedAtUnix : departureDateTime.unix() + 60 * 60) + 30 * 60
+
+    const unsignedAroundJourney = unsignedEvents.filter(({ tsi }) =>
+      isWithinRange(tsi, minDate, maxDate)
+    )
+
+    finalPositions = orderBy([...vehiclePositions, ...unsignedAroundJourney], 'tsi', 'asc')
   }
-  const firstEvent = flatStopEventObjects[0]
-  const lastEvent = last(flatStopEventObjects)
-
-  // Get a unix timestamp (for sorting) 60 minutes before the journey started
-  const minDate = (firstEvent ? firstEvent.recordedAtUnix : departureDateTime.unix()) - 60 * 60
-  // Get a uniz timestamp 30 minutes after the journey ended (or 1.5 hours after the scheduled start)
-  const maxDate =
-    (lastEvent ? lastEvent.recordedAtUnix : departureDateTime.unix() + 60 * 60) + 30 * 60
-
-  const unsignedAroundJourney = unsignedEvents.filter(({ tsi }) =>
-    isWithinRange(tsi, minDate, maxDate)
-  )
-
-  const signedAndUnsignedPositions = orderBy(
-    [...vehiclePositions, ...unsignedAroundJourney],
-    'tsi',
-    'asc'
-  )
 
   // Everything is baked into a Journey object.
   return createJourneyObject(
-    signedAndUnsignedPositions,
+    finalPositions,
     allJourneyEvents,
     route,
     originDeparture,
