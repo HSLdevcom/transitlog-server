@@ -254,6 +254,7 @@ ORDER BY journey_start_time, tst;
     const query = this.db('vehicles')
       .select(routeJourneyFields)
       .where('event_type', 'VP')
+      .where('journey_type', 'journey')
       .where('oday', date)
       .where('route_id', routeId)
       .where('direction_id', direction)
