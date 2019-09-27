@@ -21,7 +21,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, flatten, get, groupBy, orderBy, unionBy, last } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy, unionBy, last, reverse } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -51,7 +51,7 @@ import { isToday, parse } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
 import { AuthenticatedUser } from '../types/Authentication'
 import { requireUser } from '../auth/requireUser'
-import { isWithinRange } from '../utils/isWithinRange'
+import { intval, isWithinRange } from '../utils/isWithinRange'
 
 type JourneyRoute = {
   route: Route | null
@@ -493,21 +493,43 @@ export async function createJourneyResponse(
   let finalPositions = vehiclePositions
 
   if (unsignedEventsAuthorized) {
-    const firstEvent = flatStopEventObjects[0]
-    const lastEvent = last(flatStopEventObjects)
+    const firstEvent = vehiclePositions[0]
+    const lastEvent = last(vehiclePositions)
 
-    // Get a unix timestamp (for sorting) 60 minutes before the journey started
-    const minDate =
-      (firstEvent ? firstEvent.recordedAtUnix : departureDateTime.unix()) - 60 * 60
-    // Get a unix timestamp 30 minutes after the journey ended (or 1.5 hours after the scheduled start)
-    const maxDate =
-      (lastEvent ? lastEvent.recordedAtUnix : departureDateTime.unix() + 60 * 60) + 30 * 60
+    // Journey start
+    const minDate = firstEvent ? intval(firstEvent.tsi) : departureDateTime.unix()
+    // Journey end timestamp (or scheduled start)
+    const maxDate = lastEvent ? intval(lastEvent.tsi) : departureDateTime.unix()
 
-    const unsignedAroundJourney = unsignedEvents.filter(({ tsi }) =>
-      isWithinRange(tsi, minDate, maxDate)
-    )
+    const unsignedAroundJourney = groupBy(unsignedEvents, ({ tsi }) => {
+      const intTsi = intval(tsi)
+      return intTsi <= minDate ? 'before' : intTsi >= maxDate ? 'after' : 'during'
+    })
 
-    finalPositions = orderBy([...vehiclePositions, ...unsignedAroundJourney], 'tsi', 'asc')
+    const validUnsigned: Vehicles[] = []
+
+    for (const [group, events] of Object.entries(unsignedAroundJourney)) {
+      let prevUnsigned: Vehicles | null = null
+      let prevTime = 0
+
+      const eventsArr = group === 'before' ? reverse(events) : events
+
+      for (const event of eventsArr) {
+        let diff = 0
+
+        if (prevUnsigned) {
+          diff = Math.abs(intval(event.tsi) - prevTime)
+        }
+
+        if (diff <= 30 * 60) {
+          prevUnsigned = event
+          prevTime = intval(event.tsi)
+          validUnsigned.push(event)
+        }
+      }
+    }
+
+    finalPositions = orderBy([...vehiclePositions, ...validUnsigned], 'tsi', 'asc')
   }
 
   // Everything is baked into a Journey object.
