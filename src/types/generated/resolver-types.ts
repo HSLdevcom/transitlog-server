@@ -722,6 +722,8 @@ export namespace StopResolvers {
 
     isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
 
+    stopIndex?: StopIndexResolver<Maybe<number>, TypeParent, TContext>
+
     _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
@@ -773,6 +775,11 @@ export namespace StopResolvers {
     TContext
   >
   export type IsTimingStopResolver<R = boolean, Parent = Stop, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type StopIndexResolver<R = Maybe<number>, Parent = Stop, TContext = {}> = Resolver<
     R,
     Parent,
     TContext

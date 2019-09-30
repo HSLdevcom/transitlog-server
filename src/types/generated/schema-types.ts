@@ -350,6 +350,8 @@ export interface Stop extends Position {
 
   isTimingStop: boolean
 
+  stopIndex?: Maybe<number>
+
   _matchScore?: Maybe<number>
 
   alerts: Alert[]

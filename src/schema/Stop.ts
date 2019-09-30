@@ -22,6 +22,7 @@ export const Stop = gql`
     routes: [StopRoute!]!
     modes: [String]!
     isTimingStop: Boolean!
+    stopIndex: Int
     _matchScore: Float
     alerts: [Alert!]!
   }

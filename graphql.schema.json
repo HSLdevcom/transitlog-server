@@ -1237,6 +1237,14 @@
             "deprecationReason": null
           },
           {
+            "name": "stopIndex",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Int", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "_matchScore",
             "description": "",
             "args": [],
