@@ -80,8 +80,6 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
     )
   })
 
-  console.log(departure.index)
-
   return {
     id: `journey_planned_stop_event_${id}`,
     type: 'PLANNED',
