@@ -105,7 +105,7 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (
 const fetchValidUnsignedEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
   const events = await fetcher()
 
-  if (events.length === 0) {
+  if (!events || events.length === 0) {
     return false
   }
 
@@ -287,37 +287,12 @@ export async function createJourneyResponse(
     () => fetchValidJourneyEvents(fetchJourneyEvents),
     (data) => {
       if (journeyInProgress(data)) {
+        console.log('Journey in progress')
         return 1
       }
       return 24 * 60 * 60
     }
   )
-
-  let unsignedEvents: Vehicles[] = []
-
-  const vehicleId = uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
-  const [operator = ''] = vehicleId.split('/')
-  const operatorGroup = 'op_' + parseInt(operator, 10)
-  const unsignedEventsAuthorized =
-    (user && requireUser(user, 'HSL')) || (operator && requireUser(user, operatorGroup))
-
-  if (vehicleId && unsignedEventsAuthorized) {
-    const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
-    const unsignedResults = await cacheFetch(
-      unsignedKey,
-      () => fetchValidUnsignedEvents(() => getUnsignedEvents(vehicleId)),
-      (data) => {
-        if (journeyInProgress(data)) {
-          return 5
-        }
-        return 24 * 60 * 60
-      }
-    )
-
-    if (unsignedResults && unsignedResults.length !== 0) {
-      unsignedEvents = unsignedResults
-    }
-  }
 
   // The journey key was used to fetch the journey, and now we need it to fetch the departures.
   const journeyKey = getJourneyEventsKey(journeyEvents)
@@ -333,6 +308,31 @@ export async function createJourneyResponse(
   // If both of our fetches failed we'll just bail here with null.
   if (!journeyEvents && (!routeAndDepartures || routeAndDepartures.departures.length === 0)) {
     return null
+  }
+
+  let unsignedEvents: Vehicles[] = []
+
+  const vehicleId = createValidVehicleId(
+    uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
+  )
+
+  const [operator = ''] = vehicleId.split('/')
+  const operatorGroup = 'op_' + parseInt(operator, 10)
+  const unsignedEventsAuthorized =
+    (user && requireUser(user, 'HSL')) || (operator && requireUser(user, operatorGroup))
+
+  if (vehicleId && unsignedEventsAuthorized) {
+    const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
+
+    const unsignedResults = await cacheFetch(
+      unsignedKey,
+      () => fetchValidUnsignedEvents(() => getUnsignedEvents(vehicleId)),
+      isToday(departureDate) ? 30 : 24 * 60 * 60
+    )
+
+    if (unsignedResults && unsignedResults.length !== 0) {
+      unsignedEvents = unsignedResults
+    }
   }
 
   const { route = null, departures = [] }: JourneyRoute = routeAndDepartures || {

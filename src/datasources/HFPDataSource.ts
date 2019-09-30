@@ -429,8 +429,7 @@ WHERE event_type = 'DEP'
       FROM vehicles
       WHERE journey_type IN ('deadrun', 'signoff')
         AND unique_vehicle_id = :vehicleId
-        AND tst BETWEEN :minDate AND :maxDate
-      ORDER BY tst ASC;
+        AND tst BETWEEN :minDate AND :maxDate;
     `,
       { vehicleId: `${operatorId}/${vehicleId}`, minDate, maxDate }
     )

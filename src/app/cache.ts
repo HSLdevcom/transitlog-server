@@ -89,6 +89,7 @@ export async function cacheFetch<DataType = any>(
     const ttlValue = typeof ttl === 'function' ? ttl(data) : ttl
     const ttlConfig = ttlValue > 0 ? ['EX', ttlValue] : []
 
+    // Create a cache key based on the data if a function was provided.
     const useCacheKey = typeof cacheKey === 'function' ? cacheKey(data) : usingCacheKey
 
     if (useCacheKey) {
@@ -107,7 +108,10 @@ export async function cacheFetch<DataType = any>(
   }
 
   data = await queryPromise
-  currentQueries.delete(computedCacheKey)
+
+  if (currentQueries.size > 100) {
+    currentQueries.delete(Array.from(currentQueries.keys())[0])
+  }
 
   return data
 }

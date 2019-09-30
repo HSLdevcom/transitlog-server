@@ -6,6 +6,7 @@ import { Vehicles } from '../types/EventsDb'
 import { createUnsignedVehiclePositionObject } from './objects/createJourneyEventObject'
 import { requireUser } from '../auth/requireUser'
 import { AuthenticatedUser } from '../types/Authentication'
+import { createUniqueVehicleId, createValidVehicleId } from '../utils/createUniqueVehicleId'
 
 export const createUnsignedVehicleEventsResponse = async (
   getUnsignedEvents: () => Promise<Vehicles[] | null>,
@@ -20,11 +21,11 @@ export const createUnsignedVehicleEventsResponse = async (
   const fetchUnsignedEvents: CachedFetcher<VehiclePosition[]> = async () => {
     const unsignedEvents = await getUnsignedEvents()
 
-    if (!unsignedEvents) {
+    if (!unsignedEvents || unsignedEvents.length === 0) {
       return false
     }
 
-    const validUnsignedEvents = unsignedEvents.filter(({ lat, long }) => !!lat && !!long)
+    const validUnsignedEvents = unsignedEvents.filter((evt) => !!evt.lat && !!evt.long)
 
     if (validUnsignedEvents.length === 0) {
       return false
@@ -33,7 +34,7 @@ export const createUnsignedVehicleEventsResponse = async (
     return validUnsignedEvents.map((event) => createUnsignedVehiclePositionObject(event))
   }
 
-  const [operator = ''] = uniqueVehicleId.split('/')
+  const [operator = ''] = createValidVehicleId(uniqueVehicleId).split('/')
   const operatorGroup = 'op_' + parseInt(operator, 10)
   const unsignedEventsAuthorized = requireUser(user, 'HSL') || requireUser(user, operatorGroup)
 
