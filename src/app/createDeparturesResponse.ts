@@ -61,11 +61,12 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
     const stop = createStopObject(segment)
 
     return {
+      ...stop,
       destination: segment.destination_fi || '',
       distanceFromPrevious: segment.distance_from_previous,
       distanceFromStart: segment.distance_from_start,
       duration: segment.duration,
-      stopIndex: segment.stop_index,
+      stopIndex: get(segment, 'stop_index', 0) || 0,
       isTimingStop: !!segment.timing_stop_type, // very important
       lineId: get(segment, 'line_id', ''),
       originStopId: get(segment, 'originstop_id', ''),
@@ -73,7 +74,6 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
       direction: getDirection(segment.direction),
       mode: stop.modes[0],
       cancellations: [],
-      ...stop,
     }
   })
 }
