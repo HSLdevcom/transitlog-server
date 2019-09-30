@@ -96,7 +96,23 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (
     journeyEvents = instanceGroup[1]
   }
 
-  const validEvents = journeyEvents.filter((pos) => !!pos.journey_start_time)
+  const validEvents = journeyEvents.filter(
+    (pos) => !!pos.lat && !!pos.long && !!pos.journey_start_time
+  )
+  return validEvents.length !== 0 ? validEvents : false
+}
+
+const fetchValidUnsignedEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
+  const events = await fetcher()
+
+  if (events.length === 0) {
+    return false
+  }
+
+  const validEvents = events.filter(
+    (pos) => !!pos.lat && !!pos.long && !!pos.unique_vehicle_id
+  )
+
   return validEvents.length !== 0 ? validEvents : false
 }
 
@@ -289,7 +305,7 @@ export async function createJourneyResponse(
     const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
     const unsignedResults = await cacheFetch(
       unsignedKey,
-      () => getUnsignedEvents(vehicleId),
+      () => fetchValidUnsignedEvents(() => getUnsignedEvents(vehicleId)),
       (data) => {
         if (journeyInProgress(data)) {
           return 5

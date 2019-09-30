@@ -15,7 +15,7 @@ import { AuthenticatedUser } from '../types/Authentication'
 import { getUserGroups, requireUser } from '../auth/requireUser'
 
 export const createAreaJourneysResponse = async (
-  getAreaJourneys: () => Promise<Vehicles[] | null>,
+  getAreaEvents: () => Promise<Vehicles[] | null>,
   minTime: DateTime,
   maxTime: DateTime,
   bbox: PreciseBBox,
@@ -25,14 +25,18 @@ export const createAreaJourneysResponse = async (
   user: AuthenticatedUser | null = null
 ): Promise<AreaJourney[]> => {
   const fetchJourneys: CachedFetcher<AreaJourney[]> = async () => {
-    const areaJourneys = await getAreaJourneys()
+    const areaEvents = await getAreaEvents()
 
-    if (!areaJourneys || areaJourneys.length === 0) {
+    if (!areaEvents || areaEvents.length === 0) {
       return false
     }
 
+    const validEvents = areaEvents.filter(
+      (pos) => !!pos.lat && !!pos.long && !!pos.unique_vehicle_id
+    )
+
     return map(
-      groupBy(areaJourneys, (event) => {
+      groupBy(validEvents, (event) => {
         if (event.journey_type === 'journey') {
           return createJourneyId(event)
         }
