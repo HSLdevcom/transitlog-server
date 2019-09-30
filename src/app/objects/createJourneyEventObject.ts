@@ -18,6 +18,7 @@ import { get } from 'lodash'
 import { createDepartureId } from './createDepartureObject'
 import { isWithinRange } from 'date-fns'
 import { diffDepartureJourney } from '../../utils/diffDepartureJourney'
+import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 
 export function createJourneyEventObject(event: Vehicles): JourneyEvent {
   const id = createJourneyId(event)
@@ -78,6 +79,8 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
       alert.affectedId === departure.stopId
     )
   })
+
+  console.log(departure.index)
 
   return {
     id: `journey_planned_stop_event_${id}`,
@@ -152,16 +155,42 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
   const ts = moment.tz(event.tst, TZ).toISOString(true)
 
   return {
-    id: `vehicle_position_event_${useId}_${unix}`,
+    id: `vehicle_position_event_${useId}_${unix}_${event.lat}_${event.long}`,
+    journeyType:
+      event.journey_type ||
+      (typeof event.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
-    nextStopId: event.next_stop_id + '',
+    stop: (event.stop || '') + '',
+    nextStopId: (event.next_stop_id || '') + '',
     lat: event.lat,
     lng: event.long,
     doorStatus: event.drst,
     velocity: event.spd,
-    delay: event.dl,
+    delay: event.dl || 0,
     heading: event.hdg,
+    mode: event.mode,
+  }
+}
+
+export function createUnsignedVehiclePositionObject(event: Vehicles): VehiclePosition {
+  const unix = parseInt(event.tsi, 10)
+  const ts = moment.tz(event.tst, TZ).toISOString(true)
+
+  return {
+    id: `unsigned_position_${event.unique_vehicle_id}_${unix}_${event.lat}_${event.long}`,
+    journeyType: event.journey_type,
+    recordedAt: ts,
+    recordedAtUnix: unix,
+    recordedTime: getJourneyEventTime(event),
+    // uniqueVehicleId: createUniqueVehicleId(event.owner_operator_id, event.vehicle_number),
+    lat: event.lat,
+    lng: event.long,
+    doorStatus: event.drst,
+    velocity: event.spd,
+    delay: event.dl || 0,
+    heading: event.hdg,
+    mode: event.mode,
   }
 }

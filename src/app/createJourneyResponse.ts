@@ -21,7 +21,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, flatten, get, groupBy, orderBy, unionBy } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy, unionBy, last, reverse } from 'lodash'
 import { createJourneyObject } from './objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -47,8 +47,11 @@ import pMap from 'p-map'
 import { createStopObject } from './objects/createStopObject'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
-import { parse } from 'date-fns'
+import { isToday, parse } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
+import { AuthenticatedUser } from '../types/Authentication'
+import { requireUser } from '../auth/requireUser'
+import { intval, isWithinRange } from '../utils/isWithinRange'
 
 type JourneyRoute = {
   route: Route | null
@@ -93,7 +96,23 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (
     journeyEvents = instanceGroup[1]
   }
 
-  const validEvents = journeyEvents.filter((pos) => !!pos.journey_start_time)
+  const validEvents = journeyEvents.filter(
+    (pos) => !!pos.lat && !!pos.long && !!pos.journey_start_time
+  )
+  return validEvents.length !== 0 ? validEvents : false
+}
+
+const fetchValidUnsignedEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
+  const events = await fetcher()
+
+  if (events.length === 0) {
+    return false
+  }
+
+  const validEvents = events.filter(
+    (pos) => !!pos.lat && !!pos.long && !!pos.unique_vehicle_id
+  )
+
   return validEvents.length !== 0 ? validEvents : false
 }
 
@@ -197,6 +216,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param fetchJourneyEvents Async function that fetches the HFP events
  * @param fetchJourneyEquipment Async function that fetches the equipment that operated this journey.
  * @param getStop
+ * @param getUnsignedEvents
  * @param getCancellations Async function that returns cancellations
  * @param getAlerts Async function that returns alerts
  * @param exceptions Exceptions in effect during departureDate
@@ -205,6 +225,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param departureDate The operation date of the journey
  * @param departureTime The journey's departure from the first stop.
  * @param uniqueVehicleId
+ * @param user
  */
 export async function createJourneyResponse(
   fetchRouteData: () => Promise<JourneyRouteData>,
@@ -214,6 +235,7 @@ export async function createJourneyResponse(
     operatorId: string | number
   ) => Promise<JoreEquipment[]>,
   getStop: (stopId: string) => Promise<JoreStop | null>,
+  getUnsignedEvents: (vehicleId: string) => Promise<Vehicles[]>,
   getCancellations,
   getAlerts,
   exceptions: ExceptionDay[],
@@ -221,7 +243,8 @@ export async function createJourneyResponse(
   direction: Direction,
   departureDate: string,
   departureTime: string,
-  uniqueVehicleId: VehicleId
+  uniqueVehicleId: VehicleId,
+  user: AuthenticatedUser | null
 ): Promise<Journey | null> {
   // If a vehicle ID is not provided, we need to figure out which vehicle operated the
   // journey based on the data as the vehicle ID is part of the journey key. If an
@@ -264,11 +287,37 @@ export async function createJourneyResponse(
     () => fetchValidJourneyEvents(fetchJourneyEvents),
     (data) => {
       if (journeyInProgress(data)) {
-        return 0
+        return 1
       }
       return 24 * 60 * 60
     }
   )
+
+  let unsignedEvents: Vehicles[] = []
+
+  const vehicleId = uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
+  const [operator = ''] = vehicleId.split('/')
+  const operatorGroup = 'op_' + parseInt(operator, 10)
+  const unsignedEventsAuthorized =
+    (user && requireUser(user, 'HSL')) || (operator && requireUser(user, operatorGroup))
+
+  if (vehicleId && unsignedEventsAuthorized) {
+    const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
+    const unsignedResults = await cacheFetch(
+      unsignedKey,
+      () => fetchValidUnsignedEvents(() => getUnsignedEvents(vehicleId)),
+      (data) => {
+        if (journeyInProgress(data)) {
+          return 5
+        }
+        return 24 * 60 * 60
+      }
+    )
+
+    if (unsignedResults && unsignedResults.length !== 0) {
+      unsignedEvents = unsignedResults
+    }
+  }
 
   // The journey key was used to fetch the journey, and now we need it to fetch the departures.
   const journeyKey = getJourneyEventsKey(journeyEvents)
@@ -462,9 +511,51 @@ export async function createJourneyResponse(
     'asc'
   )
 
+  let finalPositions = vehiclePositions
+
+  if (unsignedEventsAuthorized) {
+    const firstEvent = vehiclePositions[0]
+    const lastEvent = last(vehiclePositions)
+
+    // Journey start
+    const minDate = firstEvent ? intval(firstEvent.tsi) : departureDateTime.unix()
+    // Journey end timestamp (or scheduled start)
+    const maxDate = lastEvent ? intval(lastEvent.tsi) : departureDateTime.unix()
+
+    const unsignedAroundJourney = groupBy(unsignedEvents, ({ tsi }) => {
+      const intTsi = intval(tsi)
+      return intTsi <= minDate ? 'before' : intTsi >= maxDate ? 'after' : 'during'
+    })
+
+    const validUnsigned: Vehicles[] = []
+
+    for (const [group, events] of Object.entries(unsignedAroundJourney)) {
+      let prevUnsigned: Vehicles | null = null
+      let prevTime = 0
+
+      const eventsArr = group === 'before' ? reverse(events) : events
+
+      for (const event of eventsArr) {
+        let diff = 0
+
+        if (prevUnsigned) {
+          diff = Math.abs(intval(event.tsi) - prevTime)
+        }
+
+        if (diff <= 30 * 60) {
+          prevUnsigned = event
+          prevTime = intval(event.tsi)
+          validUnsigned.push(event)
+        }
+      }
+    }
+
+    finalPositions = orderBy([...vehiclePositions, ...validUnsigned], 'tsi', 'asc')
+  }
+
   // Everything is baked into a Journey object.
   return createJourneyObject(
-    vehiclePositions,
+    finalPositions,
     allJourneyEvents,
     route,
     originDeparture,

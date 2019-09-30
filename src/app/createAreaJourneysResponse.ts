@@ -11,34 +11,79 @@ import { createAreaJourneyObject } from './objects/createAreaJourneyObject'
 import { createBBoxString } from '../utils/createBBoxString'
 import { createJourneyId } from '../utils/createJourneyId'
 import { Vehicles } from '../types/EventsDb'
+import { AuthenticatedUser } from '../types/Authentication'
+import { getUserGroups, requireUser } from '../auth/requireUser'
 
 export const createAreaJourneysResponse = async (
-  getAreaJourneys: () => Promise<Vehicles[] | null>,
+  getAreaEvents: () => Promise<Vehicles[] | null>,
   minTime: DateTime,
   maxTime: DateTime,
   bbox: PreciseBBox,
   date: string,
-  filters: AreaEventsFilterInput
+  filters: AreaEventsFilterInput,
+  unsignedEvents: boolean = true,
+  user: AuthenticatedUser | null = null
 ): Promise<AreaJourney[]> => {
   const fetchJourneys: CachedFetcher<AreaJourney[]> = async () => {
-    const areaJourneys = await getAreaJourneys()
+    const areaEvents = await getAreaEvents()
 
-    if (!areaJourneys || areaJourneys.length === 0) {
+    if (!areaEvents || areaEvents.length === 0) {
       return false
     }
 
-    return map(groupBy(areaJourneys, createJourneyId), (events: Vehicles[]) =>
-      createAreaJourneyObject(events)
+    const validEvents = areaEvents.filter(
+      (pos) => !!pos.lat && !!pos.long && !!pos.unique_vehicle_id
+    )
+
+    return map(
+      groupBy(validEvents, (event) => {
+        if (event.journey_type === 'journey') {
+          return createJourneyId(event)
+        }
+
+        return `${event.journey_type}_${event.unique_vehicle_id}`
+      }),
+      (events: Vehicles[]) => createAreaJourneyObject(events)
     )
   }
 
   // Cache for when a link containing an area query is shared.
-  const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}`
+  const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}_${
+    !!user && unsignedEvents ? 'unsigned' : ''
+  }`
   const journeys = await cacheFetch<AreaJourney[]>(cacheKey, fetchJourneys, 10 * 60)
 
   if (!journeys) {
     return []
   }
 
-  return journeys
+  // HSL users are allowed to see all events
+  if (requireUser(user, 'HSL')) {
+    return journeys
+  }
+
+  let authorizedJourneys = journeys
+
+  const operatorGroups: string[] = getUserGroups(user)
+    .map((group) => group.replace('op_', ''))
+    .filter((group) => !!group)
+
+  authorizedJourneys = authorizedJourneys.filter((journey) => {
+    if (journey.journeyType === 'journey') {
+      return true
+    }
+
+    if (operatorGroups.length === 0) {
+      return false
+    }
+
+    if (journey.operatorId) {
+      const operator = journey.operatorId
+      return operatorGroups.includes(operator)
+    }
+
+    return false
+  })
+
+  return authorizedJourneys
 }

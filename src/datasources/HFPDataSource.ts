@@ -39,6 +39,22 @@ const vehicleFields = [
   'oday',
 ]
 
+const unsignedEventFields = [
+  'journey_type',
+  'event_type',
+  'unique_vehicle_id',
+  'tst',
+  'tsi',
+  'drst',
+  'spd',
+  'hdg',
+  'lat',
+  'long',
+  'owner_operator_id',
+  'vehicle_number',
+  'mode',
+]
+
 const routeDepartureFields = [
   'journey_type',
   'event_type',
@@ -54,6 +70,7 @@ const routeDepartureFields = [
 ]
 
 const routeJourneyFields = [
+  'journey_type',
   'geohash_level',
   'route_id',
   'direction_id',
@@ -107,15 +124,12 @@ export class HFPDataSource extends SQLDataSource {
 
   /*
    * Query for which vehicles were in traffic (ie have events) for a specific day.
-   *
-   * Optimization:
-   * Materialized continuous view
    */
 
   async getAvailableVehicles(date): Promise<Vehicles[]> {
     const query = this.db.raw(
       `
-SELECT distinct on (unique_vehicle_id) unique_vehicle_id,
+SELECT DISTINCT ON (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
 owner_operator_id
 FROM vehicles
@@ -136,7 +150,13 @@ ORDER BY unique_vehicle_id;
    * CREATE INDEX vehicle_journeys_idx ON vehicles (tst ASC, oday, unique_vehicle_id);
    */
 
-  async getAreaJourneys(minTime, maxTime, bbox, date): Promise<Vehicles[]> {
+  async getAreaJourneys(
+    minTime,
+    maxTime,
+    bbox,
+    date,
+    unsignedEvents: boolean = false
+  ): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
     const query = this.db.raw(
@@ -144,7 +164,7 @@ ORDER BY unique_vehicle_id;
 SELECT ${vehicleFields.join(',')}
 FROM vehicles
 WHERE event_type = 'VP'
-  AND oday = :date
+  ${!unsignedEvents ? `AND journey_type = 'journey'` : ''}
   AND tst BETWEEN :minTime AND :maxTime
   AND lat BETWEEN :minLat AND :maxLat
   AND long BETWEEN :minLng AND :maxLng
@@ -183,6 +203,7 @@ ORDER BY tst ASC;
       `SELECT DISTINCT ON (journey_start_time) ${vehicleFields.join(',')}
 FROM vehicles
 WHERE event_type = 'DEP'
+  AND journey_type = 'journey'
   AND oday = ?
   AND unique_vehicle_id = ?
 ORDER BY journey_start_time, tst;
@@ -219,6 +240,7 @@ ORDER BY journey_start_time, tst;
     const query = this.db('vehicles')
       .select(routeJourneyFields)
       .where('event_type', 'VP')
+      .where('journey_type', 'journey')
       .where('oday', date)
       .where('route_id', routeId)
       .where('direction_id', direction)
@@ -380,6 +402,40 @@ WHERE event_type = 'DEP'
     }
 
     return eventsResult
+  }
+
+  getUnsignedEventsForVehicle = async (
+    date: string,
+    uniqueVehicleId: string
+  ): Promise<Vehicles[]> => {
+    const minDate = moment
+      .tz(date, TZ)
+      .startOf('day')
+      .toISOString()
+
+    const maxDate = moment
+      .tz(date, TZ)
+      .endOf('day')
+      .add(4.5, 'hours')
+      .toISOString()
+
+    const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
+    const operatorId = parseInt(operatorPart, 10)
+    const vehicleId = parseInt(vehiclePart, 10)
+
+    const query = this.db.raw(
+      `
+      SELECT ${unsignedEventFields.join(',')}
+      FROM vehicles
+      WHERE journey_type IN ('deadrun', 'signoff')
+        AND unique_vehicle_id = :vehicleId
+        AND tst BETWEEN :minDate AND :maxDate
+      ORDER BY tst ASC;
+    `,
+      { vehicleId: `${operatorId}/${vehicleId}`, minDate, maxDate }
+    )
+
+    return this.getBatched(query)
   }
 
   getAlerts = async (minDate: string, maxDate: string): Promise<DBAlert[]> => {

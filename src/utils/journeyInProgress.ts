@@ -8,7 +8,7 @@ function isHfp(event: Vehicles | JourneyEvent): event is Vehicles {
 }
 
 export const journeyInProgress = (events: Vehicles[] | JourneyEvent[] | null) => {
-  if (!events) {
+  if (!events || events.length === 0) {
     return false
   }
 

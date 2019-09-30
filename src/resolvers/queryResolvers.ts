@@ -19,6 +19,7 @@ import { Alert, Cancellation } from '../types/generated/schema-types'
 import { getAlerts } from '../app/getAlerts'
 import { getCancellations } from '../app/getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
+import { createUnsignedVehicleEventsResponse } from '../app/createUnsignedVehicleEventsResponse'
 
 const equipment = (root, { filter, date }, { dataSources }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -155,6 +156,7 @@ const routeDepartures = async (
   { dataSources, user }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
+  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   const getDepartures = () =>
     dataSources.JoreAPI.getDeparturesForRoute(stopId, routeId, direction, date)
@@ -170,8 +172,6 @@ const routeDepartures = async (
     dataSources.HFPAPI.getCancellations,
     () => dataSources.JoreAPI.getDepartureOperators(date)
   )
-
-  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   return createRouteDeparturesResponse(
     user,
@@ -259,6 +259,9 @@ const journey = async (
       uniqueVehicleId
     )
 
+  const getUnsignedEvents = (vehicleId: string) =>
+    dataSources.HFPAPI.getUnsignedEventsForVehicle(departureDate, vehicleId)
+
   const getJourneyEquipment = (vehicleId, operatorId) =>
     dataSources.JoreAPI.getEquipmentById(vehicleId, operatorId)
 
@@ -276,6 +279,7 @@ const journey = async (
     getJourneyEvents,
     getJourneyEquipment,
     getStopData,
+    getUnsignedEvents,
     fetchCancellations,
     fetchAlerts,
     exceptions,
@@ -283,7 +287,8 @@ const journey = async (
     direction,
     departureDate,
     departureTime,
-    uniqueVehicleId
+    uniqueVehicleId,
+    user
   )
 }
 
@@ -293,17 +298,38 @@ const journeys = (root, { routeId, direction, departureDate }, { dataSources }) 
   return createRouteJourneysResponse(getJourney, routeId, direction, departureDate)
 }
 
-const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources }) => {
+const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources, user }) => {
   const getVehicleJourneys = () =>
     dataSources.HFPAPI.getJourneysForVehicle(uniqueVehicleId, date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
   return createVehicleJourneysResponse(getVehicleJourneys, fetchAlerts, uniqueVehicleId, date)
 }
 
-const eventsByBbox = (root, { minTime, maxTime, bbox, date, filters }, { dataSources }) => {
+const unsignedVehicleEvents = (root, { uniqueVehicleId, date }, { dataSources, user }) => {
+  const getUnsignedEvents = () =>
+    dataSources.HFPAPI.getUnsignedEventsForVehicle(date, uniqueVehicleId)
+
+  return createUnsignedVehicleEventsResponse(getUnsignedEvents, uniqueVehicleId, date, user)
+}
+
+const eventsByBbox = (
+  root,
+  { minTime, maxTime, bbox, date, filters, unsignedEvents = true },
+  { dataSources, user }
+) => {
   const getAreaJourneys = () =>
-    dataSources.HFPAPI.getAreaJourneys(minTime, maxTime, bbox, date)
-  return createAreaJourneysResponse(getAreaJourneys, minTime, maxTime, bbox, date, filters)
+    dataSources.HFPAPI.getAreaJourneys(minTime, maxTime, bbox, date, !!user && unsignedEvents)
+
+  return createAreaJourneysResponse(
+    getAreaJourneys,
+    minTime,
+    maxTime,
+    bbox,
+    date,
+    filters,
+    unsignedEvents,
+    user
+  )
 }
 
 const exceptionDays = (root, { year }, { dataSources }) => {
@@ -349,6 +375,7 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   weeklyDepartures,
   journey,
   vehicleJourneys,
+  unsignedVehicleEvents,
   journeys,
   eventsByBbox,
   exceptionDays,

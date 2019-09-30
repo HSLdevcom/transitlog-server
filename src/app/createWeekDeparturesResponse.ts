@@ -190,7 +190,10 @@ export const createWeekDeparturesResponse = async (
         `${departure_id}_${extra_departure}_${day_type}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
-    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(groupedDepartures, date)
+    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
+      groupedDepartures,
+      date
+    )
     return combineDeparturesAndStops(validDepartures, stops, exceptions, date)
   }
 
@@ -233,7 +236,9 @@ export const createWeekDeparturesResponse = async (
     }
 
     return Promise.all(requests).then((events) =>
-      flatten(events.map((dayEvents) => (!dayEvents || dayEvents.length === 0 ? [] : dayEvents)))
+      flatten(
+        events.map((dayEvents) => (!dayEvents || dayEvents.length === 0 ? [] : dayEvents))
+      )
     )
   }
 

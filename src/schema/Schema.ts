@@ -35,7 +35,11 @@ export const Schema = gql`
     routes(filter: RouteFilterInput, line: String, date: Date): [Route]!
     routeGeometry(routeId: String!, direction: Direction!, date: Date!): RouteGeometry
     routeSegments(routeId: String!, direction: Direction!, date: Date!): [RouteSegment]!
-    lines(filter: LineFilterInput, date: Date, includeLinesWithoutRoutes: Boolean = false): [Line]!
+    lines(
+      filter: LineFilterInput
+      date: Date
+      includeLinesWithoutRoutes: Boolean = false
+    ): [Line]!
     departures(filter: DepartureFilterInput, stopId: String!, date: Date!): [Departure]!
     routeDepartures(
       stopId: String!
@@ -56,15 +60,22 @@ export const Schema = gql`
       departureTime: Time!
       departureDate: Date!
       uniqueVehicleId: VehicleId
+      unsignedEvents: Boolean
     ): Journey
     journeys(routeId: String!, direction: Direction!, departureDate: Date!): [Journey]!
-    vehicleJourneys(uniqueVehicleId: VehicleId!, date: Date!): [VehicleJourney]!
+    vehicleJourneys(
+      uniqueVehicleId: VehicleId!
+      date: Date!
+      unsignedEvents: Boolean
+    ): [VehicleJourney]!
+    unsignedVehicleEvents(uniqueVehicleId: VehicleId!, date: Date!): [VehiclePosition]!
     eventsByBbox(
       minTime: DateTime!
       maxTime: DateTime!
       bbox: PreciseBBox!
       date: Date!
       filters: AreaEventsFilterInput
+      unsignedEvents: Boolean
     ): [AreaJourney]!
     alerts(time: String, language: String!, alertSearch: AlertSearchInput): [Alert!]!
     cancellations(date: Date, cancellationSearch: CancellationSearchInput): [Cancellation!]!

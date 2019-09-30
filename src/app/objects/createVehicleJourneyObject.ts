@@ -18,13 +18,17 @@ export const createVehicleJourneyObject = (
 ): VehicleJourney => {
   const observedDepartureTime = moment.tz(event.tst, TZ)
   const departureTime = getJourneyStartTime(event)
-  const departureDate = get(event, 'oday')
+  const journeyDate = moment.tz(event.tst, TZ).format('YYYY-MM-DD')
+  const departureDate = get(event, 'oday', journeyDate) || journeyDate
 
   const plannedDepartureTime = getDateFromDateTime(departureDate, getJourneyStartTime(event))
   const departureDiff = observedDepartureTime.diff(plannedDepartureTime, 'seconds')
 
   return {
     id: createJourneyId(event),
+    journeyType:
+      event.journey_type ||
+      (typeof event.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
     routeId: get(event, 'route_id', '') || '',
     direction: getDirection(event.direction_id),
     originStopId: get(event, 'next_stop_id', ''), // TODO: get the correct one

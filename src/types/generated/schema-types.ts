@@ -292,6 +292,8 @@ export interface Query {
 
   vehicleJourneys: Array<Maybe<VehicleJourney>>
 
+  unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
+
   eventsByBbox: Array<Maybe<AreaJourney>>
 
   alerts: Alert[]
@@ -347,6 +349,8 @@ export interface Stop extends Position {
   modes: Array<Maybe<string>>
 
   isTimingStop: boolean
+
+  stopIndex?: Maybe<number>
 
   _matchScore?: Maybe<number>
 
@@ -586,13 +590,15 @@ export interface Departure {
 export interface DepartureJourney {
   id: string
 
+  journeyType: string
+
   type: string
 
   lineId?: Maybe<string>
 
-  routeId: string
+  routeId?: Maybe<string>
 
-  direction: Direction
+  direction?: Maybe<Direction>
 
   originStopId?: Maybe<string>
 
@@ -618,13 +624,23 @@ export interface DepartureJourney {
 export interface VehiclePosition extends Position {
   id: string
 
+  journeyType: string
+
   recordedAt: DateTime
 
   recordedAtUnix: number
 
   recordedTime: Time
 
+  stop?: Maybe<string>
+
   nextStopId?: Maybe<string>
+
+  uniqueVehicleId?: Maybe<VehicleId>
+
+  operatorId?: Maybe<string>
+
+  vehicleId?: Maybe<string>
 
   lat?: Maybe<number>
 
@@ -637,6 +653,8 @@ export interface VehiclePosition extends Position {
   delay?: Maybe<number>
 
   heading?: Maybe<number>
+
+  mode?: Maybe<string>
 }
 
 export interface JourneyStopEvent {
@@ -752,11 +770,13 @@ export interface ExceptionDay {
 export interface Journey {
   id: string
 
+  journeyType: string
+
   lineId?: Maybe<string>
 
-  routeId: string
+  routeId?: Maybe<string>
 
-  direction: Direction
+  direction?: Maybe<Direction>
 
   originStopId?: Maybe<string>
 
@@ -864,11 +884,13 @@ export interface PlannedStopEvent {
 export interface VehicleJourney {
   id: string
 
+  journeyType: string
+
   lineId?: Maybe<string>
 
-  routeId: string
+  routeId?: Maybe<string>
 
-  direction: Direction
+  direction?: Maybe<Direction>
 
   originStopId?: Maybe<string>
 
@@ -894,7 +916,7 @@ export interface VehicleJourney {
 
   timeDifference: number
 
-  nextStopId: string
+  nextStopId?: Maybe<string>
 
   alerts: Alert[]
 
@@ -906,11 +928,13 @@ export interface VehicleJourney {
 export interface AreaJourney {
   id: string
 
+  journeyType: string
+
   lineId?: Maybe<string>
 
-  routeId: string
+  routeId?: Maybe<string>
 
-  direction: Direction
+  direction?: Maybe<Direction>
 
   departureDate: Date
 
@@ -1038,6 +1062,8 @@ export interface JourneyQueryArgs {
   departureDate: Date
 
   uniqueVehicleId?: Maybe<VehicleId>
+
+  unsignedEvents?: Maybe<boolean>
 }
 export interface JourneysQueryArgs {
   routeId: string
@@ -1047,6 +1073,13 @@ export interface JourneysQueryArgs {
   departureDate: Date
 }
 export interface VehicleJourneysQueryArgs {
+  uniqueVehicleId: VehicleId
+
+  date: Date
+
+  unsignedEvents?: Maybe<boolean>
+}
+export interface UnsignedVehicleEventsQueryArgs {
   uniqueVehicleId: VehicleId
 
   date: Date
@@ -1061,6 +1094,8 @@ export interface EventsByBboxQueryArgs {
   date: Date
 
   filters?: Maybe<AreaEventsFilterInput>
+
+  unsignedEvents?: Maybe<boolean>
 }
 export interface AlertsQueryArgs {
   time?: Maybe<string>

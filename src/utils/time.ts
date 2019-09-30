@@ -87,11 +87,16 @@ export function getDateFromDateTime(date: string, time: string = '00:00:00'): Mo
 
 // Get the (potentially) 24h+ time of the journey.
 export function getJourneyStartTime(event: JourneyType): string {
-  const operationDay = get(event, 'oday', get(event, 'departureDate', false))
   const journeyStartTime = get(event, 'journey_start_time', get(event, 'departureTime', false))
   const recordedAtTimestamp = get(event, 'tst', get(event, 'events[0].recordedAt', 0))
-
   const eventDate = moment.tz(recordedAtTimestamp, TZ)
+
+  if (!journeyStartTime) {
+    return eventDate.format('HH:mm:ss')
+  }
+
+  const operationDay = get(event, 'oday', get(event, 'departureDate', false))
+
   const odayDate = getDateFromDateTime(operationDay)
   const diff = eventDate.diff(odayDate, 'seconds')
 
@@ -119,11 +124,11 @@ export function getJourneyStartTime(event: JourneyType): string {
 }
 
 export function getJourneyEventTime(event: Vehicles) {
-  if (!event.journey_start_time) {
-    return ''
-  }
-
   const timestampMoment = moment.tz(event.tst, TZ)
+
+  if (!event.journey_start_time) {
+    return timestampMoment.format('HH:mm:ss')
+  }
 
   let hours = timestampMoment.hours()
   const minutes = timestampMoment.minutes()

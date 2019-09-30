@@ -11,7 +11,6 @@ import {
   DepartureJourney,
   PlannedArrival,
   PlannedDeparture,
-  RouteSegment,
   Stop,
 } from '../../types/generated/schema-types'
 import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../../utils/time'
@@ -21,6 +20,8 @@ import { get } from 'lodash'
 import { getDirection } from '../../utils/getDirection'
 import { doubleDigit } from '../../utils/doubleDigit'
 import { Vehicles } from '../../types/EventsDb'
+import { TZ } from '../../constants'
+import moment from 'moment-timezone'
 
 function createJoreDepartureId(departure: JoreDeparture, date) {
   return `${departure.route_id}_${departure.direction}_${doubleDigit(
@@ -81,14 +82,19 @@ export function createDepartureJourneyObject(
 ): DepartureJourney {
   const event = events[0] || events
   const id = createJourneyId(event)
+  const journeyDate = moment.tz(event.tst, TZ).format('YYYY-MM-DD')
+  const departureDate = get(event, 'oday', journeyDate) || journeyDate
 
   return {
     id: `departure_journey_${id}`,
+    journeyType:
+      event.journey_type ||
+      (typeof event.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
     type: event.event_type,
     routeId: event.route_id || '',
     direction: event.direction_id,
     originStopId,
-    departureDate: event.oday,
+    departureDate,
     departureTime: getJourneyStartTime(event),
     uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
     mode: mode || null,

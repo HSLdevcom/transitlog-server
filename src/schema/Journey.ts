@@ -77,23 +77,30 @@ export const Journey = gql`
 
   type VehiclePosition implements Position {
     id: ID!
+    journeyType: String!
     recordedAt: DateTime!
     recordedAtUnix: Int!
     recordedTime: Time!
+    stop: String
     nextStopId: String
+    uniqueVehicleId: VehicleId
+    operatorId: String
+    vehicleId: String
     lat: Float
     lng: Float
     velocity: Float
     doorStatus: Boolean
     delay: Int
     heading: Int
+    mode: String
   }
 
   type Journey {
     id: ID!
+    journeyType: String!
     lineId: String
-    routeId: String!
-    direction: Direction!
+    routeId: String
+    direction: Direction
     originStopId: String
     departureDate: Date!
     departureTime: Time!
@@ -114,9 +121,10 @@ export const Journey = gql`
 
   type VehicleJourney {
     id: ID!
+    journeyType: String!
     lineId: String
-    routeId: String!
-    direction: Direction!
+    routeId: String
+    direction: Direction
     originStopId: String
     departureDate: Date!
     departureTime: Time!
@@ -129,7 +137,7 @@ export const Journey = gql`
     recordedAtUnix: Int!
     recordedTime: Time!
     timeDifference: Int!
-    nextStopId: String!
+    nextStopId: String
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!
@@ -137,9 +145,10 @@ export const Journey = gql`
 
   type AreaJourney {
     id: ID!
+    journeyType: String!
     lineId: String
-    routeId: String!
-    direction: Direction!
+    routeId: String
+    direction: Direction
     departureDate: Date!
     departureTime: Time!
     uniqueVehicleId: VehicleId
