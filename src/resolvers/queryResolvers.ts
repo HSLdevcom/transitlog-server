@@ -156,16 +156,7 @@ const routeDepartures = async (
   { dataSources, user }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
-
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-
-  /*if (routeId === 'unsigned') {
-    return createUnsignedJourneysResponse(
-      user,
-      () => dataSources.HFPAPI.getUnsignedEvents(date),
-      date
-    )
-  }*/
 
   const getDepartures = () =>
     dataSources.JoreAPI.getDeparturesForRoute(stopId, routeId, direction, date)
