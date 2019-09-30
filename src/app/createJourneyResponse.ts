@@ -271,7 +271,7 @@ export async function createJourneyResponse(
     () => fetchValidJourneyEvents(fetchJourneyEvents),
     (data) => {
       if (journeyInProgress(data)) {
-        return 0
+        return 1
       }
       return 24 * 60 * 60
     }
@@ -290,7 +290,12 @@ export async function createJourneyResponse(
     const unsignedResults = await cacheFetch(
       unsignedKey,
       () => getUnsignedEvents(vehicleId),
-      isToday(departureDate) ? 30 : 24 * 60 * 60
+      (data) => {
+        if (journeyInProgress(data)) {
+          return 5
+        }
+        return 24 * 60 * 60
+      }
     )
 
     if (unsignedResults && unsignedResults.length !== 0) {
