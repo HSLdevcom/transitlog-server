@@ -225,6 +225,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param departureDate The operation date of the journey
  * @param departureTime The journey's departure from the first stop.
  * @param uniqueVehicleId
+ * @param shouldFetchUnsignedEvents
  * @param user
  */
 export async function createJourneyResponse(
@@ -244,6 +245,7 @@ export async function createJourneyResponse(
   departureDate: string,
   departureTime: string,
   uniqueVehicleId: VehicleId,
+  shouldFetchUnsignedEvents: boolean = true,
   user: AuthenticatedUser | null
 ): Promise<Journey | null> {
   // If a vehicle ID is not provided, we need to figure out which vehicle operated the
@@ -316,22 +318,26 @@ export async function createJourneyResponse(
     uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
   )
 
-  const [operator = ''] = vehicleId.split('/')
-  const operatorGroup = 'op_' + parseInt(operator, 10)
-  const unsignedEventsAuthorized =
-    (user && requireUser(user, 'HSL')) || (operator && requireUser(user, operatorGroup))
+  let unsignedEventsAuthorized: boolean = false
 
-  if (vehicleId && unsignedEventsAuthorized) {
-    const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
+  if (user && shouldFetchUnsignedEvents) {
+    const [operator = ''] = vehicleId.split('/')
+    const operatorGroup = 'op_' + parseInt(operator, 10)
+    unsignedEventsAuthorized =
+      requireUser(user, 'HSL') || (!!operator && requireUser(user, operatorGroup))
 
-    const unsignedResults = await cacheFetch(
-      unsignedKey,
-      () => fetchValidUnsignedEvents(() => getUnsignedEvents(vehicleId)),
-      isToday(departureDate) ? 30 : 24 * 60 * 60
-    )
+    if (vehicleId && unsignedEventsAuthorized) {
+      const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
 
-    if (unsignedResults && unsignedResults.length !== 0) {
-      unsignedEvents = unsignedResults
+      const unsignedResults = await cacheFetch(
+        unsignedKey,
+        () => fetchValidUnsignedEvents(() => getUnsignedEvents(vehicleId)),
+        isToday(departureDate) ? 30 : 30 * 24 * 60 * 60
+      )
+
+      if (unsignedResults && unsignedResults.length !== 0) {
+        unsignedEvents = unsignedResults
+      }
     }
   }
 

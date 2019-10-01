@@ -240,7 +240,7 @@ const weeklyDepartures = async (
 
 const journey = async (
   root,
-  { routeId, direction, departureTime, departureDate, uniqueVehicleId },
+  { routeId, direction, departureTime, departureDate, uniqueVehicleId, unsignedEvents },
   { dataSources, user }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(departureDate)
@@ -288,6 +288,7 @@ const journey = async (
     departureDate,
     departureTime,
     uniqueVehicleId,
+    unsignedEvents,
     user
   )
 }

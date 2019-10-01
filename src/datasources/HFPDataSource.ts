@@ -425,10 +425,10 @@ WHERE event_type = 'DEP'
       `
       SELECT ${unsignedEventFields.join(',')}
       FROM vehicles
-      WHERE tst >= :minDate
-        AND tst <= :maxDate
+      WHERE tst BETWEEN :minDate AND :maxDate
         AND journey_type IN ('deadrun', 'signoff')
-        AND unique_vehicle_id = :vehicleId;
+        AND unique_vehicle_id = :vehicleId
+      ORDER BY unique_vehicle_id, tst;
     `,
       { vehicleId: `${operatorId}/${vehicleId}`, minDate, maxDate }
     )
