@@ -51,7 +51,8 @@ export const createAreaJourneysResponse = async (
   const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}_${
     !!user && unsignedEvents ? 'unsigned' : ''
   }`
-  const journeys = await cacheFetch<AreaJourney[]>(cacheKey, fetchJourneys, 10 * 60)
+
+  const journeys = await cacheFetch<AreaJourney[]>(cacheKey, fetchJourneys, 24 * 60 * 60)
 
   if (!journeys) {
     return []
