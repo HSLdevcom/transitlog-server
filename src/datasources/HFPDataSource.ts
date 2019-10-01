@@ -132,10 +132,8 @@ export class HFPDataSource extends SQLDataSource {
 SELECT DISTINCT ON (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
 owner_operator_id
-FROM vehicles
-WHERE oday = :date
-  AND event_type = 'VJA'
-ORDER BY unique_vehicle_id;
+FROM vehicle_continuous_aggregate
+WHERE oday = :date;
 `,
       { date }
     )
