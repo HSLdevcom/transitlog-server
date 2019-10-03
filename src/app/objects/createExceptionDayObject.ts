@@ -3,7 +3,9 @@ import { ExceptionDay } from '../../types/generated/schema-types'
 import { getMode } from '../../utils/getMode'
 import { compact, uniq } from 'lodash'
 
-export const createExceptionDayObject = (config: JoreExceptionDay | null): ExceptionDay | null => {
+export const createExceptionDayObject = (
+  config: JoreExceptionDay | null
+): ExceptionDay | null => {
   if (!config) {
     return null
   }

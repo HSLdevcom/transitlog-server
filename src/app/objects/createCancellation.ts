@@ -1,4 +1,8 @@
-import { CancellationDataType, DBCancellation, DBCancellationStatus } from '../../types/EventsDb'
+import {
+  CancellationDataType,
+  DBCancellation,
+  DBCancellationStatus,
+} from '../../types/EventsDb'
 import {
   AlertCategory,
   Cancellation,

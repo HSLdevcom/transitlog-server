@@ -102,20 +102,6 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (
   return validEvents.length !== 0 ? validEvents : false
 }
 
-const fetchValidUnsignedEvents: CachedFetcher<Vehicles[]> = async (fetcher) => {
-  const events = await fetcher()
-
-  if (!events || events.length === 0) {
-    return false
-  }
-
-  const validEvents = events.filter(
-    (pos) => !!pos.lat && !!pos.long && !!pos.unique_vehicle_id
-  )
-
-  return validEvents.length !== 0 ? validEvents : false
-}
-
 /**
  * Fetch the full route data with segments, stops and departures, and reduce that down to
  * a list of planned departures for each stop of the route. Returns the basic route data and
@@ -245,7 +231,7 @@ export async function createJourneyResponse(
   departureDate: string,
   departureTime: string,
   uniqueVehicleId: VehicleId,
-  shouldFetchUnsignedEvents: boolean = true,
+  shouldFetchUnsignedEvents: boolean = false,
   user: AuthenticatedUser | null
 ): Promise<Journey | null> {
   // If a vehicle ID is not provided, we need to figure out which vehicle operated the
@@ -321,6 +307,20 @@ export async function createJourneyResponse(
   let unsignedEventsAuthorized: boolean = false
 
   if (user && shouldFetchUnsignedEvents) {
+    const fetchValidUnsignedEvents: CachedFetcher<Vehicles[]> = async (fetchVehicleId) => {
+      const events = await getUnsignedEvents(fetchVehicleId)
+
+      if (!events || events.length === 0) {
+        return false
+      }
+
+      const validEvents = events.filter(
+        (pos) => !!pos.lat && !!pos.long && !!pos.unique_vehicle_id
+      )
+
+      return validEvents.length !== 0 ? validEvents : false
+    }
+
     const [operator = ''] = vehicleId.split('/')
     const operatorGroup = 'op_' + parseInt(operator, 10)
     unsignedEventsAuthorized =
@@ -331,7 +331,7 @@ export async function createJourneyResponse(
 
       const unsignedResults = await cacheFetch(
         unsignedKey,
-        () => fetchValidUnsignedEvents(() => getUnsignedEvents(vehicleId)),
+        () => fetchValidUnsignedEvents(vehicleId),
         isToday(departureDate) ? 30 : 30 * 24 * 60 * 60
       )
 

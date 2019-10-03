@@ -108,10 +108,7 @@ export async function cacheFetch<DataType = any>(
   }
 
   data = await queryPromise
-
-  if (currentQueries.size > 100) {
-    currentQueries.delete(Array.from(currentQueries.keys())[0])
-  }
+  currentQueries.delete(computedCacheKey)
 
   return data
 }

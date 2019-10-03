@@ -34,7 +34,8 @@ export const createUnsignedVehicleEventsResponse = async (
     return validUnsignedEvents.map((event) => createUnsignedVehiclePositionObject(event))
   }
 
-  const [operator = ''] = createValidVehicleId(uniqueVehicleId).split('/')
+  const vehicleId = createValidVehicleId(uniqueVehicleId)
+  const [operator = ''] = vehicleId.split('/')
   const operatorGroup = 'op_' + parseInt(operator, 10)
   const unsignedEventsAuthorized = requireUser(user, 'HSL') || requireUser(user, operatorGroup)
 
@@ -42,7 +43,7 @@ export const createUnsignedVehicleEventsResponse = async (
     return []
   }
 
-  const unsignedKey = `unsigned_events_${uniqueVehicleId}_${date}`
+  const unsignedKey = `unsigned_events_${vehicleId}_${date}`
   const unsignedResults = await cacheFetch(
     unsignedKey,
     fetchUnsignedEvents,

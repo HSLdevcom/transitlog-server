@@ -42,7 +42,9 @@ export async function createRouteSegmentsResponse(
     // the stops, since stops are otherwise oblivious to route-specific things.
     return sortedRouteSegments.map(
       (routeSegment): RouteSegment => {
-        const segmentAlerts = alerts.filter((alert) => alert.affectedId === routeSegment.stop_id)
+        const segmentAlerts = alerts.filter(
+          (alert) => alert.affectedId === routeSegment.stop_id
+        )
 
         // Merge the route segment and the stop data, picking what we need from the segment and
         // splatting the stop. What we really need from the segment is the timing stop type and

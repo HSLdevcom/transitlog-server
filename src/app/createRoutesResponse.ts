@@ -69,13 +69,17 @@ export async function createRoutesResponse(
     const alerts = await getAlerts(date, { allRoutes: true, route: true })
     const cancellations = await getCancellations(date, { all: true })
 
-    const groupedRoutes = groupBy(routes, ({ route_id, direction }) => `${route_id}.${direction}`)
+    const groupedRoutes = groupBy(
+      routes,
+      ({ route_id, direction }) => `${route_id}.${direction}`
+    )
     const filteredRoutes = filterByDateChains<JoreRoute>(groupedRoutes, date)
 
     return filteredRoutes.map((route) => {
       const routeAlerts = alerts.filter(
         (alert) =>
-          alert.distribution === AlertDistribution.AllRoutes || alert.affectedId === route.route_id
+          alert.distribution === AlertDistribution.AllRoutes ||
+          alert.affectedId === route.route_id
       )
 
       const routeCancellations = cancellations.filter(
@@ -88,7 +92,9 @@ export async function createRoutesResponse(
     })
   }
 
-  const cacheKey = `routes_${date}_${requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'}`
+  const cacheKey = `routes_${date}_${
+    requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
+  }`
   const validRoutes = await cacheFetch<Route[]>(cacheKey, fetchAndValidate, 24 * 60 * 60)
 
   if (!validRoutes) {

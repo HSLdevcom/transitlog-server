@@ -8,4 +8,14 @@ import { Line } from './schema/Line'
 import { ExceptionDays } from './schema/ExceptionDay'
 import { Alerts } from './schema/Alerts'
 
-export default [Route, Line, Stop, Departure, Journey, Equipment, ExceptionDays, Alerts, Schema]
+export default [
+  Route,
+  Line,
+  Stop,
+  Departure,
+  Journey,
+  Equipment,
+  ExceptionDays,
+  Alerts,
+  Schema,
+]

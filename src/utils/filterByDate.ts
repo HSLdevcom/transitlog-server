@@ -6,7 +6,9 @@ export function filterByDate<ItemType extends ValidityRange>(
   items: ItemType[],
   date: string
 ): ItemType[] {
-  const validItems = items.filter((item) => isWithinRange(date, item.date_begin, item.date_end))
+  const validItems = items.filter((item) =>
+    isWithinRange(date, item.date_begin, item.date_end)
+  )
 
   if (validItems.length === 0) {
     return []

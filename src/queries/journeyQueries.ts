@@ -61,7 +61,11 @@ export const JOURNEY_EVENTS_QUERY = gql`
 `
 
 export const ROUTE_JOURNEY_EVENTS_QUERY = gql`
-  query RouteJourneyEventsQuery($departureDate: date!, $routeId: String!, $direction: smallint!) {
+  query RouteJourneyEventsQuery(
+    $departureDate: date!
+    $routeId: String!
+    $direction: smallint!
+  ) {
     vehicles(
       order_by: { tst: asc }
       where: {
