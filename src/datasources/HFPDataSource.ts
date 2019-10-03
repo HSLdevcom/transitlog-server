@@ -409,13 +409,15 @@ WHERE event_type = 'DEP'
     const minDate = moment
       .tz(date, TZ)
       .startOf('day')
-      .toISOString()
+      .utc()
+      .format('YYYY-MM-DD HH:mm:ss.SSSSSS')
 
     const maxDate = moment
       .tz(date, TZ)
       .endOf('day')
       .add(4.5, 'hours')
-      .toISOString()
+      .utc()
+      .format('YYYY-MM-DD HH:mm:ss.SSSSSS')
 
     const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
     const operatorId = parseInt(operatorPart, 10)
@@ -425,8 +427,8 @@ WHERE event_type = 'DEP'
       `
       SELECT ${unsignedEventFields.join(',')}
       FROM vehicles
-      WHERE tst BETWEEN :minDate AND :maxDate
-        AND journey_type IN ('deadrun', 'signoff')
+      WHERE tst >= :minDate AND tst < :maxDate
+        AND journey_type = 'deadrun'
         AND unique_vehicle_id = :vehicleId
       ORDER BY unique_vehicle_id, tst;
     `,
