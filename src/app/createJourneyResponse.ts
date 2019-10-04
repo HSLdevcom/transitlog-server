@@ -275,7 +275,6 @@ export async function createJourneyResponse(
     () => fetchValidJourneyEvents(fetchJourneyEvents),
     (data) => {
       if (journeyInProgress(data)) {
-        console.log('Journey in progress')
         return 1
       }
       return 24 * 60 * 60
