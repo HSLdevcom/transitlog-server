@@ -11,6 +11,7 @@ import {
 } from '../constants'
 import join from 'proper-url-join'
 import { AuthenticatedUser } from '../types/Authentication'
+import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 
 export function getUserFromReq(req) {
   const { email = '', groups = [], accessToken = '' } = req.session || {}
@@ -52,6 +53,22 @@ export function getUserGroups(user) {
   }
 
   return user.groups
+}
+
+export const requireVehicleAuthorization = (user: AuthenticatedUser, vehicleId: string) => {
+  if (!user) {
+    return false
+  }
+
+  if (requireUser(user, 'HSL')) {
+    return true
+  }
+
+  const validVehicleId = createValidVehicleId(vehicleId)
+  const [operator = ''] = validVehicleId.split('/')
+  const operatorGroup = 'op_' + parseInt(operator, 10)
+
+  return requireUser(user, operatorGroup)
 }
 
 export const requireUserMiddleware = (group?: string | string[]) => (
