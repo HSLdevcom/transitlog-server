@@ -310,7 +310,14 @@ const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources, user })
   const getVehicleJourneys = () =>
     dataSources.HFPAPI.getJourneysForVehicle(uniqueVehicleId, date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-  return createVehicleJourneysResponse(getVehicleJourneys, fetchAlerts, uniqueVehicleId, date)
+
+  return createVehicleJourneysResponse(
+    getVehicleJourneys,
+    fetchAlerts,
+    uniqueVehicleId,
+    date,
+    user
+  )
 }
 
 const unsignedVehicleEvents = (root, { uniqueVehicleId, date }, { dataSources, user }) => {

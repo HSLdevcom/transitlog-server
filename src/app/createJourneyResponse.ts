@@ -303,6 +303,8 @@ export async function createJourneyResponse(
     uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
   )
 
+  // TODO: Use requireVehicleAuthorization()
+
   let unsignedEventsAuthorized: boolean = false
 
   if (user && shouldFetchUnsignedEvents) {

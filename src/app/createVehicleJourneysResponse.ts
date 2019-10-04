@@ -4,12 +4,15 @@ import { cacheFetch } from './cache'
 import { createVehicleJourneyObject } from './objects/createVehicleJourneyObject'
 import { isToday, isWithinRange } from 'date-fns'
 import { Vehicles } from '../types/EventsDb'
+import { AuthenticatedUser } from '../types/Authentication'
+import { requireVehicleAuthorization } from '../auth/requireUser'
 
 export const createVehicleJourneysResponse = async (
   getVehicleJourneys: () => Promise<Vehicles[] | null>,
   getAlerts,
   uniqueVehicleId: VehicleId,
-  date: string
+  date: string,
+  user: AuthenticatedUser
 ): Promise<VehicleJourney[]> => {
   const fetchJourneys: CachedFetcher<VehicleJourney[]> = async () => {
     const vehicleJourneys = await getVehicleJourneys()
@@ -31,6 +34,10 @@ export const createVehicleJourneysResponse = async (
 
       return createVehicleJourneyObject(event, journeyAlerts)
     })
+  }
+
+  if (!requireVehicleAuthorization(user, uniqueVehicleId)) {
+    return []
   }
 
   // Cache events for the current day for 5 seconds, otherwise 24 hours.

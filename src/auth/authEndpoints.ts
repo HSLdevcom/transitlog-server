@@ -113,7 +113,7 @@ const devLogin = (req: express.Request, res: express.Response) => {
   } else if (req.session) {
     req.session.accessToken = 'dev'
     req.session.email = 'dev@hsl.fi'
-    req.session.groups = ['Admin', 'HSL', 'HSL-admin']
+    req.session.groups = ['Admin', 'HSL']
 
     const response: IAuthResponse = {
       isOk: true,
