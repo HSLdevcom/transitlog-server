@@ -235,6 +235,9 @@ ORDER BY journey_start_time, tst;
    */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
+    // Disable temporarily
+    return []
+
     const query = this.db('vehicles')
       .select(routeJourneyFields)
       .where('event_type', 'VP')
