@@ -1,6 +1,7 @@
 import { isWithinRange } from './isWithinRange'
 import { ValidityRange } from '../types/ValidityRange'
-import { orderBy } from 'lodash'
+import { orderBy, get } from 'lodash'
+import moment from 'moment'
 
 export function filterByDate<ItemType extends ValidityRange>(
   items: ItemType[],
@@ -18,10 +19,26 @@ export function filterByDate<ItemType extends ValidityRange>(
     return validItems
   }
 
-  let orderedItems = validItems
+  let orderedItems: ItemType[] = validItems
 
-  if (validItems.every(({ date_modified }) => !!date_modified)) {
-    orderedItems = orderBy<ItemType>(validItems, 'date_modified', 'desc')
+  if (
+    validItems.every((item) => !!get(item, 'date_modified', get(item, 'date_imported', false)))
+  ) {
+    orderedItems = orderBy<ItemType>(
+      validItems,
+      (item) => {
+        let date
+
+        if (typeof item.date_modified !== 'undefined') {
+          date = item.date_modified
+        } else {
+          date = item.date_imported
+        }
+
+        return moment(date).unix()
+      },
+      'desc'
+    )
   } else {
     orderedItems = orderBy<ItemType>(validItems, ['date_begin', 'date_end'], ['desc', 'asc'])
   }
