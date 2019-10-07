@@ -303,10 +303,10 @@ export async function createJourneyResponse(
     uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
   )
 
-  let unsignedEventsAuthorized: boolean = false
+  let userAuthorizedForVehicle: boolean = false
 
   if (shouldFetchUnsignedEvents && requireVehicleAuthorization(user, vehicleId)) {
-    unsignedEventsAuthorized = true
+    userAuthorizedForVehicle = true
 
     const fetchValidUnsignedEvents: CachedFetcher<Vehicles[]> = async (fetchVehicleId) => {
       const events = await getUnsignedEvents(fetchVehicleId)
@@ -342,6 +342,13 @@ export async function createJourneyResponse(
 
   // The origin departure of the journey is the first departure in the array.
   const originDeparture = departures[0] || null
+
+  // Terminal and recovery time needs to be hidden from unauthorized users.
+  if (!requireVehicleAuthorization(user, vehicleId)) {
+    originDeparture.recoveryTime = null
+    originDeparture.terminalTime = null
+  }
+
   const departureDateTime = getDateFromDateTime(departureDate, departureTime)
 
   // The current alerts for this journey
@@ -411,15 +418,19 @@ export async function createJourneyResponse(
     { vehiclePositions: [], stopEvents: [], events: [] }
   )
 
-  // Get the ID of the vehicle that actually operated this journey and fetch its data.
-  const { owner_operator_id, vehicle_number } = vehiclePositions[0]
-  const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
+  let journeyEquipment = null
 
-  const fetchedEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
-    fetchJourneyEquipment(vehicle_number, owner_operator_id)
-  )
+  if (requireVehicleAuthorization(user, vehicleId)) {
+    // Get the ID of the vehicle that actually operated this journey and fetch its data.
+    const { owner_operator_id, vehicle_number } = vehiclePositions[0]
+    const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
 
-  const journeyEquipment = get(fetchedEquipment, '[0]', null) || null
+    const fetchedEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
+      fetchJourneyEquipment(vehicle_number, owner_operator_id)
+    )
+
+    journeyEquipment = get(fetchedEquipment, '[0]', null) || null
+  }
 
   // Create virtual ARS and DEP stop events from the vehicle positions.
   const virtualStopEvents = createVirtualStopEvents(vehiclePositions, departures)
@@ -513,7 +524,7 @@ export async function createJourneyResponse(
 
   let finalPositions = vehiclePositions
 
-  if (unsignedEventsAuthorized) {
+  if (userAuthorizedForVehicle) {
     const firstEvent = vehiclePositions[0]
     const lastEvent = last(vehiclePositions)
 

@@ -19,7 +19,6 @@ import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData } from '../utils/getStopDepartureData'
 import { filterDepartures } from './filters/filterDepartures'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
-import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { Dictionary } from '../types/Dictionary'
 import { isToday } from 'date-fns'
 import { filterByExceptions } from '../utils/filterByExceptions'
@@ -28,7 +27,6 @@ import {
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
-import pMap from 'p-map'
 import { requireUser } from '../auth/requireUser'
 
 /*
