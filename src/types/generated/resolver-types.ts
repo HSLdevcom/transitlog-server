@@ -380,6 +380,8 @@ export namespace QueryResolvers {
     filter?: Maybe<StopFilterInput>
 
     bbox: PreciseBBox
+
+    date: Date
   }
 
   export type RouteResolver<R = Maybe<Route>, Parent = {}, TContext = {}> = Resolver<

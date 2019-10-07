@@ -30,7 +30,7 @@ export const Schema = gql`
     equipment(filter: EquipmentFilterInput, date: Date): [Equipment]!
     stop(stopId: String!, date: Date!): Stop
     stops(date: Date, filter: StopFilterInput): [Stop]!
-    stopsByBbox(filter: StopFilterInput, bbox: PreciseBBox!): [Stop]!
+    stopsByBbox(filter: StopFilterInput, bbox: PreciseBBox!, date: Date!): [Stop]!
     route(routeId: String!, direction: Direction!, date: Date!): Route
     routes(filter: RouteFilterInput, line: String, date: Date): [Route]!
     routeGeometry(routeId: String!, direction: Direction!, date: Date!): RouteGeometry

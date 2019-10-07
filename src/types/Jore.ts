@@ -93,7 +93,7 @@ export interface JoreStop {
   stop_zone?: Maybe<string>
   stop_tariff?: Maybe<string>
   point?: Maybe<string>
-  modes: Maybe<Mode[]>
+  modes: Maybe<Mode[] | Mode>
   timing_stop_type?: number
   route_id?: string
   direction?: string

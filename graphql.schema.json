@@ -119,6 +119,16 @@
                   "ofType": { "kind": "SCALAR", "name": "PreciseBBox", "ofType": null }
                 },
                 "defaultValue": null
+              },
+              {
+                "name": "date",
+                "description": "",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": { "kind": "SCALAR", "name": "Date", "ofType": null }
+                },
+                "defaultValue": null
               }
             ],
             "type": {

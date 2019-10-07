@@ -20,7 +20,6 @@ import { cacheFetch } from '../app/cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
 import { databases, getKnex } from '../knex'
-import { secondsToTimeObject, timeToSeconds } from '../utils/time'
 
 const SCHEMA = 'jore'
 const knex = getKnex(databases.JORE)
@@ -204,9 +203,8 @@ WHERE stop.stop_id = :stopId;`,
              route_segment.timing_stop_type,
              modes.modes
       FROM :schema:.stop stop,
-           :schema:.stop_route_segments_for_date(stop, :date) route_segment,
-           :schema:.stop_modes(stop, :date) modes;
-    `,
+           :schema:.stop_modes(stop, :date) modes,
+           :schema:.stop_route_segments_for_date(stop, :date) route_segment;`,
           { schema: SCHEMA, date }
         )
       : this.db.raw(
