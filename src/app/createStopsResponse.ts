@@ -104,6 +104,7 @@ export async function createStopsResponse(
 
     let stopData = fetchedStops
 
+    // The stop data also contains route segments which we must filter by validity date.
     if (date && fetchedStops.some(({ date_begin, date_end }) => !!date_begin && !!date_end)) {
       const filteredStops = filterByDateChains<JoreStop & ValidityRange>(
         groupBy(
@@ -113,9 +114,12 @@ export async function createStopsResponse(
         date
       )
 
+      // The stops and route segments are cross-merged in the query, so now we need to
+      // combine distinct stops with all routes that go through them.
       stopData = filteredStops.reduce((stopsWithRoutes: JoreStop[], stop) => {
         const existingStop = stopsWithRoutes.find(({ stop_id }) => stop_id === stop.stop_id)
 
+        // If there's no route info then the routes array on the stop object should be empty.
         if (
           (typeof stop.route_id === 'undefined' || typeof stop.direction === 'undefined') &&
           !existingStop
@@ -125,9 +129,12 @@ export async function createStopsResponse(
           return stopsWithRoutes
         }
 
+        // Either add the route data from the current item to an existing stop object
+        // or use the current item as a new stop object.
         const useStop = existingStop || stop
         useStop.routes = useStop.routes || []
 
+        // We only need some route data for the stop response.
         const route: StopRoute | null = stop.route_id
           ? {
               id: `stop_route_${stop.route_id}_${stop.route_id}_${stop.date_begin}_${
@@ -136,9 +143,11 @@ export async function createStopsResponse(
               routeId: stop.route_id || '',
               direction: getDirection(stop.direction),
               isTimingStop: !!stop.timing_stop_type,
+              mode: Array.isArray(stop.modes) ? stop.modes[0] : stop.modes,
             }
           : null
 
+        // Add the route to the stop if it doesn't have it already
         if (
           route &&
           !useStop.routes.find(

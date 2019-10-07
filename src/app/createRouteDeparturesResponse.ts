@@ -122,7 +122,7 @@ export async function createRouteDeparturesResponse(
       return []
     }
 
-    // Cache events for the current day for 10 seconds only.
+    // Cache events for the current day for 5 seconds only.
     // Older dates can be cached for longer.
     const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
 

@@ -988,6 +988,8 @@ export interface StopsByBboxQueryArgs {
   filter?: Maybe<StopFilterInput>
 
   bbox: PreciseBBox
+
+  date: Date
 }
 export interface RouteQueryArgs {
   routeId: string

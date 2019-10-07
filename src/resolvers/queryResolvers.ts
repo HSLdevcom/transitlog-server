@@ -33,10 +33,10 @@ const stops = (root, { filter, date }, { dataSources }) => {
   return createStopsResponse(getStops, fetchAlerts, date, filter)
 }
 
-const stopsByBbox = (root, { filter, bbox }, { dataSources }) => {
-  const getStops = () => dataSources.JoreAPI.getStops()
+const stopsByBbox = (root, { filter, bbox, date }, { dataSources }) => {
+  const getStops = () => dataSources.JoreAPI.getStops(date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-  return createStopsResponse(getStops, fetchAlerts, '', filter, bbox)
+  return createStopsResponse(getStops, fetchAlerts, date, filter, bbox)
 }
 
 const stop = (root, { stopId, date }, { dataSources }) => {

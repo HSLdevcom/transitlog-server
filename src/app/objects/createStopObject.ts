@@ -1,13 +1,14 @@
 import { JoreRouteDepartureData, JoreStop, JoreStopSegment, Mode } from '../../types/Jore'
 import { Alert, Stop, StopRoute } from '../../types/generated/schema-types'
-import { get, uniq, compact } from 'lodash'
+import { compact, get, uniq } from 'lodash'
 
 export function createStopObject(
   stop: JoreStop | JoreRouteDepartureData | JoreStopSegment,
   stopRoutes: StopRoute[] = [],
   alerts: Alert[] = []
 ): Stop {
-  const modes = uniq(compact(stopRoutes.map(({ mode }) => mode)))
+  const stopModes = stop.modes && Array.isArray(stop.modes) ? stop.modes : [stop.modes]
+  const modes = uniq([...stopModes, ...compact(stopRoutes.map(({ mode }) => mode))])
 
   if (modes.length === 0) {
     modes.push(Mode.Bus)
