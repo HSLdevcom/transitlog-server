@@ -4,7 +4,7 @@ import { cacheFetch } from './cache'
 import { isToday } from 'date-fns'
 import { Vehicles } from '../types/EventsDb'
 import { createUnsignedVehiclePositionObject } from './objects/createJourneyEventObject'
-import { requireUser } from '../auth/requireUser'
+import { requireUser, requireVehicleAuthorization } from '../auth/requireUser'
 import { AuthenticatedUser } from '../types/Authentication'
 import { createUniqueVehicleId, createValidVehicleId } from '../utils/createUniqueVehicleId'
 
@@ -35,11 +35,8 @@ export const createUnsignedVehicleEventsResponse = async (
   }
 
   const vehicleId = createValidVehicleId(uniqueVehicleId)
-  const [operator = ''] = vehicleId.split('/')
-  const operatorGroup = 'op_' + parseInt(operator, 10)
-  const unsignedEventsAuthorized = requireUser(user, 'HSL') || requireUser(user, operatorGroup)
 
-  if (!unsignedEventsAuthorized) {
+  if (!requireVehicleAuthorization(user, vehicleId)) {
     return []
   }
 

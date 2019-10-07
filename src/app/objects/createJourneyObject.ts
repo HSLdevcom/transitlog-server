@@ -45,7 +45,7 @@ export function createJourneyObject(
 
   return {
     id,
-    journeyType: 'journey', // TODO: unsigned journeys?
+    journeyType: 'journey',
     lineId: get(journeyRoute, 'lineId', ''),
     routeId: get<Vehicles, any, string>(journey, 'route_id', get(journeyRoute, 'routeId', '')),
     originStopId: get(journeyRoute, 'originStopId', ''),

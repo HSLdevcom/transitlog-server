@@ -50,7 +50,7 @@ import { TZ } from '../constants'
 import { isToday, parse } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
 import { AuthenticatedUser } from '../types/Authentication'
-import { requireUser } from '../auth/requireUser'
+import { requireUser, requireVehicleAuthorization } from '../auth/requireUser'
 import { intval, isWithinRange } from '../utils/isWithinRange'
 
 type JourneyRoute = {
@@ -303,11 +303,11 @@ export async function createJourneyResponse(
     uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
   )
 
-  // TODO: Use requireVehicleAuthorization()
+  let userAuthorizedForVehicle: boolean = false
 
-  let unsignedEventsAuthorized: boolean = false
+  if (shouldFetchUnsignedEvents && requireVehicleAuthorization(user, vehicleId)) {
+    userAuthorizedForVehicle = true
 
-  if (user && shouldFetchUnsignedEvents) {
     const fetchValidUnsignedEvents: CachedFetcher<Vehicles[]> = async (fetchVehicleId) => {
       const events = await getUnsignedEvents(fetchVehicleId)
 
@@ -322,23 +322,16 @@ export async function createJourneyResponse(
       return validEvents.length !== 0 ? validEvents : false
     }
 
-    const [operator = ''] = vehicleId.split('/')
-    const operatorGroup = 'op_' + parseInt(operator, 10)
-    unsignedEventsAuthorized =
-      requireUser(user, 'HSL') || (!!operator && requireUser(user, operatorGroup))
+    const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
 
-    if (vehicleId && unsignedEventsAuthorized) {
-      const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
+    const unsignedResults = await cacheFetch(
+      unsignedKey,
+      () => fetchValidUnsignedEvents(vehicleId),
+      isToday(departureDate) ? 30 : 30 * 24 * 60 * 60
+    )
 
-      const unsignedResults = await cacheFetch(
-        unsignedKey,
-        () => fetchValidUnsignedEvents(vehicleId),
-        isToday(departureDate) ? 30 : 30 * 24 * 60 * 60
-      )
-
-      if (unsignedResults && unsignedResults.length !== 0) {
-        unsignedEvents = unsignedResults
-      }
+    if (unsignedResults && unsignedResults.length !== 0) {
+      unsignedEvents = unsignedResults
     }
   }
 
@@ -349,6 +342,13 @@ export async function createJourneyResponse(
 
   // The origin departure of the journey is the first departure in the array.
   const originDeparture = departures[0] || null
+
+  // Terminal and recovery time needs to be hidden from unauthorized users.
+  if (!requireVehicleAuthorization(user, vehicleId)) {
+    originDeparture.recoveryTime = null
+    originDeparture.terminalTime = null
+  }
+
   const departureDateTime = getDateFromDateTime(departureDate, departureTime)
 
   // The current alerts for this journey
@@ -418,15 +418,19 @@ export async function createJourneyResponse(
     { vehiclePositions: [], stopEvents: [], events: [] }
   )
 
-  // Get the ID of the vehicle that actually operated this journey and fetch its data.
-  const { owner_operator_id, vehicle_number } = vehiclePositions[0]
-  const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
+  let journeyEquipment = null
 
-  const fetchedEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
-    fetchJourneyEquipment(vehicle_number, owner_operator_id)
-  )
+  if (requireVehicleAuthorization(user, vehicleId)) {
+    // Get the ID of the vehicle that actually operated this journey and fetch its data.
+    const { owner_operator_id, vehicle_number } = vehiclePositions[0]
+    const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
 
-  const journeyEquipment = get(fetchedEquipment, '[0]', null) || null
+    const fetchedEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
+      fetchJourneyEquipment(vehicle_number, owner_operator_id)
+    )
+
+    journeyEquipment = get(fetchedEquipment, '[0]', null) || null
+  }
 
   // Create virtual ARS and DEP stop events from the vehicle positions.
   const virtualStopEvents = createVirtualStopEvents(vehiclePositions, departures)
@@ -520,7 +524,7 @@ export async function createJourneyResponse(
 
   let finalPositions = vehiclePositions
 
-  if (unsignedEventsAuthorized) {
+  if (userAuthorizedForVehicle) {
     const firstEvent = vehiclePositions[0]
     const lastEvent = last(vehiclePositions)
 
