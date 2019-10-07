@@ -50,7 +50,7 @@ import { TZ } from '../constants'
 import { isToday, parse } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
 import { AuthenticatedUser } from '../types/Authentication'
-import { requireUser } from '../auth/requireUser'
+import { requireUser, requireVehicleAuthorization } from '../auth/requireUser'
 import { intval, isWithinRange } from '../utils/isWithinRange'
 
 type JourneyRoute = {
@@ -303,11 +303,11 @@ export async function createJourneyResponse(
     uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
   )
 
-  // TODO: Use requireVehicleAuthorization()
-
   let unsignedEventsAuthorized: boolean = false
 
-  if (user && shouldFetchUnsignedEvents) {
+  if (shouldFetchUnsignedEvents && requireVehicleAuthorization(user, vehicleId)) {
+    unsignedEventsAuthorized = true
+
     const fetchValidUnsignedEvents: CachedFetcher<Vehicles[]> = async (fetchVehicleId) => {
       const events = await getUnsignedEvents(fetchVehicleId)
 
@@ -322,23 +322,16 @@ export async function createJourneyResponse(
       return validEvents.length !== 0 ? validEvents : false
     }
 
-    const [operator = ''] = vehicleId.split('/')
-    const operatorGroup = 'op_' + parseInt(operator, 10)
-    unsignedEventsAuthorized =
-      requireUser(user, 'HSL') || (!!operator && requireUser(user, operatorGroup))
+    const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
 
-    if (vehicleId && unsignedEventsAuthorized) {
-      const unsignedKey = `unsigned_events_${vehicleId}_${departureDate}`
+    const unsignedResults = await cacheFetch(
+      unsignedKey,
+      () => fetchValidUnsignedEvents(vehicleId),
+      isToday(departureDate) ? 30 : 30 * 24 * 60 * 60
+    )
 
-      const unsignedResults = await cacheFetch(
-        unsignedKey,
-        () => fetchValidUnsignedEvents(vehicleId),
-        isToday(departureDate) ? 30 : 30 * 24 * 60 * 60
-      )
-
-      if (unsignedResults && unsignedResults.length !== 0) {
-        unsignedEvents = unsignedResults
-      }
+    if (unsignedResults && unsignedResults.length !== 0) {
+      unsignedEvents = unsignedResults
     }
   }
 
