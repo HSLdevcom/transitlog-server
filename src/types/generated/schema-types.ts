@@ -696,6 +696,10 @@ export interface JourneyStopEvent {
 
   stop?: Maybe<Stop>
 
+  lat?: Maybe<number>
+
+  lng?: Maybe<number>
+
   unplannedStop: boolean
 }
 
@@ -823,6 +827,10 @@ export interface JourneyEvent {
   recordedTime: Time
 
   stopId?: Maybe<string>
+
+  lat?: Maybe<number>
+
+  lng?: Maybe<number>
 }
 
 export interface JourneyCancellationEvent {

@@ -1878,6 +1878,10 @@ export namespace JourneyStopEventResolvers {
 
     stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
 
+    lat?: LatResolver<Maybe<number>, TypeParent, TContext>
+
+    lng?: LngResolver<Maybe<number>, TypeParent, TContext>
+
     unplannedStop?: UnplannedStopResolver<boolean, TypeParent, TContext>
   }
 
@@ -1973,6 +1977,16 @@ export namespace JourneyStopEventResolvers {
   > = Resolver<R, Parent, TContext>
   export type StopResolver<
     R = Maybe<Stop>,
+    Parent = JourneyStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type LatResolver<
+    R = Maybe<number>,
+    Parent = JourneyStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type LngResolver<
+    R = Maybe<number>,
     Parent = JourneyStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
@@ -2376,6 +2390,10 @@ export namespace JourneyEventResolvers {
     recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
 
     stopId?: StopIdResolver<Maybe<string>, TypeParent, TContext>
+
+    lat?: LatResolver<Maybe<number>, TypeParent, TContext>
+
+    lng?: LngResolver<Maybe<number>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = JourneyEvent, TContext = {}> = Resolver<
@@ -2408,6 +2426,16 @@ export namespace JourneyEventResolvers {
     Parent = JourneyEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type LatResolver<R = Maybe<number>, Parent = JourneyEvent, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type LngResolver<R = Maybe<number>, Parent = JourneyEvent, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
 }
 
 export namespace JourneyCancellationEventResolvers {

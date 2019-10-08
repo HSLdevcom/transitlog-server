@@ -18,7 +18,6 @@ import { get } from 'lodash'
 import { createDepartureId } from './createDepartureObject'
 import { isWithinRange } from 'date-fns'
 import { diffDepartureJourney } from '../../utils/diffDepartureJourney'
-import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 
 export function createJourneyEventObject(event: Vehicles): JourneyEvent {
   const id = createJourneyId(event)
@@ -33,6 +32,8 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
     stopId: event.stop || null,
+    lat: event.lat,
+    lng: event.long,
   }
 }
 
@@ -144,6 +145,8 @@ export function createJourneyStopEventObject(
     index: get(departure, 'index', -1),
     stop: stopData,
     unplannedStop: !departure,
+    lat: event.lat,
+    lng: event.long,
   }
 }
 

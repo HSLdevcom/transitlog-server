@@ -12,6 +12,8 @@ export const Journey = gql`
     recordedAtUnix: Int!
     recordedTime: Time!
     stopId: String
+    lat: Float
+    lng: Float
   }
 
   type JourneyCancellationEvent {
@@ -51,6 +53,8 @@ export const Journey = gql`
     isOrigin: Boolean
     index: Int
     stop: Stop
+    lat: Float
+    lng: Float
     unplannedStop: Boolean!
   }
 
