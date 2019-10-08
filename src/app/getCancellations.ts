@@ -2,7 +2,6 @@ import {
   AlertCategory,
   Cancellation,
   CancellationSubcategory,
-  Direction,
 } from '../types/generated/schema-types'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import { DBCancellation } from '../types/EventsDb'
@@ -14,7 +13,6 @@ import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { AuthenticatedUser } from '../types/Authentication'
 import { requireUser } from '../auth/requireUser'
-import { secondsToTimeObject, timeToSeconds } from '../utils/time'
 import { JoreDepartureOperator } from '../types/Jore'
 import { isToday } from 'date-fns'
 
@@ -31,7 +29,8 @@ export const getCancellations = async (
   fetchCancellations: (date: string) => DBCancellation[],
   fetchOperators: () => Promise<JoreDepartureOperator[]>,
   date: string,
-  cancellationSearchProps: CancellationSearchProps
+  cancellationSearchProps: CancellationSearchProps,
+  skipCache: boolean = false
 ): Promise<Cancellation[]> => {
   const {
     routeId,
@@ -66,7 +65,8 @@ export const getCancellations = async (
   let cancellations = await cacheFetch<Cancellation[]>(
     cancellationsCacheKey,
     cancellationFetcher,
-    isToday(onlyDate) ? 5 * 60 : 24 * 60 * 60
+    isToday(onlyDate) ? 5 * 60 : 24 * 60 * 60,
+    skipCache
   )
 
   if (!cancellations) {

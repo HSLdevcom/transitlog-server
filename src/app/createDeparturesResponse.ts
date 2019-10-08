@@ -208,7 +208,8 @@ export async function createDeparturesResponse(
   exceptions: ExceptionDay[],
   stopId: string,
   date: string,
-  filters: DepartureFilterInput
+  filters: DepartureFilterInput,
+  skipCache: boolean = false
 ) {
   // Fetches the departures and stop data for the stop and validates them.
   const fetchDepartures: CachedFetcher<Departure[]> = async () => {

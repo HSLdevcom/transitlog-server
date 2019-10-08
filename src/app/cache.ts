@@ -53,7 +53,8 @@ const currentQueries = new Map()
 export async function cacheFetch<DataType = any>(
   cacheKey: false | string | ((data?: DataType) => string | false),
   fetchData: () => Promise<DataType | false | null>,
-  ttl: number | ((data: DataType) => number) = 30 * 24 * 60 * 60
+  ttl: number | ((data: DataType) => number) = 30 * 24 * 60 * 60,
+  forceFetch: boolean = false
 ): Promise<DataType | null> {
   if (!cacheKey) {
     const uncachedData = await fetchData()
@@ -65,7 +66,7 @@ export async function cacheFetch<DataType = any>(
   const computedCacheKey = typeof cacheKey === 'function' ? cacheKey() : cacheKey
 
   const fetchFromCacheOrDb = async (usingCacheKey) => {
-    if (usingCacheKey) {
+    if (usingCacheKey && !forceFetch) {
       const cachedData = await getItem<DataType>(usingCacheKey)
 
       if (cachedData) {

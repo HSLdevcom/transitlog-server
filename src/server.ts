@@ -33,8 +33,9 @@ type User = {
   accessToken: string
 }
 
-type UserContext = {
+type RequestContext = {
   user: null | User
+  skipCache: boolean
 }
 ;(async () => {
   const server = new ApolloServer({
@@ -44,8 +45,9 @@ type UserContext = {
       JoreAPI: new JoreDataSource(),
       HFPAPI: new HFPDataSource(),
     }),
-    context: ({ req }): UserContext => {
-      return { user: getUserFromReq(req) }
+    context: ({ req }): RequestContext => {
+      const skipCache = req.header('x-skip-cache') === 'true'
+      return { user: getUserFromReq(req), skipCache }
     },
   })
 

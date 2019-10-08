@@ -121,7 +121,11 @@ const lines = async (root, { filter, date }, { dataSources }) => {
   return createLinesResponse(getLines, date, filter)
 }
 
-const departures = async (root, { filter, stopId, date }, { dataSources, user }) => {
+const departures = async (
+  root,
+  { filter, stopId, date },
+  { dataSources, user, skipCache }
+) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
   const getDepartures = () => dataSources.JoreAPI.getDeparturesForStop(stopId, date)
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
@@ -146,14 +150,15 @@ const departures = async (root, { filter, stopId, date }, { dataSources, user })
     exceptions,
     stopId,
     date,
-    filter
+    filter,
+    skipCache
   )
 }
 
 const routeDepartures = async (
   root,
   { routeId, direction, stopId, date },
-  { dataSources, user }
+  { dataSources, user, skipCache }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
@@ -184,7 +189,8 @@ const routeDepartures = async (
     stopId,
     routeId,
     direction,
-    date
+    date,
+    skipCache
   )
 }
 
@@ -352,21 +358,26 @@ const exceptionDays = (root, { year }, { dataSources }) => {
   return dataSources.JoreAPI.getExceptions(year)
 }
 
-const alerts = (root, { time, language, alertSearch }, { dataSources }): Promise<Alert[]> => {
-  return getAlerts(dataSources.HFPAPI.getAlerts, time, alertSearch, language)
+const alerts = (
+  root,
+  { time, language, alertSearch },
+  { dataSources, skipCache }
+): Promise<Alert[]> => {
+  return getAlerts(dataSources.HFPAPI.getAlerts, time, alertSearch, language, skipCache)
 }
 
 const cancellations = (
   root,
   { date, cancellationSearch },
-  { dataSources, user }
+  { dataSources, user, skipCache }
 ): Promise<Cancellation[]> => {
   return getCancellations(
     user,
     dataSources.HFPAPI.getCancellations,
     () => dataSources.JoreAPI.getDepartureOperators(date),
     date,
-    cancellationSearch
+    cancellationSearch,
+    skipCache
   )
 }
 

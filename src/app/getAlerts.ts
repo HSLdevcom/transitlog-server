@@ -21,7 +21,8 @@ export const getAlerts = async (
   fetchAlerts: (startDate: string, endDate: string) => Promise<DBAlert[]>,
   dateTime: Moment | string,
   searchProps: AlertSearchProps = {},
-  language: string = 'fi'
+  language: string = 'fi',
+  skipCache: boolean = false
 ): Promise<Alert[]> => {
   const startTimeMoment = moment.tz(dateTime, TZ).startOf('day')
   const endTimeMoment = moment
@@ -47,7 +48,8 @@ export const getAlerts = async (
   const alerts = await cacheFetch<Alert[]>(
     alertsCacheKey,
     alertsFetcher,
-    dateIsToday ? 5 * 60 : 24 * 60 * 60
+    dateIsToday ? 5 * 60 : 24 * 60 * 60,
+    skipCache
   )
 
   if (!alerts) {
