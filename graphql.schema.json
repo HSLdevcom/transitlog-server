@@ -485,6 +485,12 @@
                   "ofType": { "kind": "SCALAR", "name": "Date", "ofType": null }
                 },
                 "defaultValue": null
+              },
+              {
+                "name": "lastStopArrival",
+                "description": "",
+                "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
+                "defaultValue": null
               }
             ],
             "type": {

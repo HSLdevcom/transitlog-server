@@ -493,6 +493,8 @@ export namespace QueryResolvers {
     direction: Direction
 
     date: Date
+
+    lastStopArrival?: Maybe<boolean>
   }
 
   export type ExceptionDaysResolver<

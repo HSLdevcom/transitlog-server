@@ -1058,6 +1058,8 @@ export interface WeeklyDeparturesQueryArgs {
   direction: Direction
 
   date: Date
+
+  lastStopArrival?: Maybe<boolean>
 }
 export interface ExceptionDaysQueryArgs {
   year: string

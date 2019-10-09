@@ -52,6 +52,7 @@ export const Schema = gql`
       routeId: String!
       direction: Direction!
       date: Date!
+      lastStopArrival: Boolean
     ): [Departure]!
     exceptionDays(year: String!): [ExceptionDay]!
     journey(
