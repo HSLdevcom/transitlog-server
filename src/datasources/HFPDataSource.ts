@@ -447,23 +447,21 @@ WHERE event_type = :event
     const query = this.db('alert')
       .select(
         this.db.raw(
-          `DISTINCT ON ("valid_from", "valid_to", "stop_id", "route_id") ${alertFields.join(
-            ','
-          )}`
+          `DISTINCT ON (
+"valid_from", "valid_to", "affects_all_routes", "affects_all_stops", "stop_id", "route_id"
+) ${alertFields.join(',')}`
         )
       )
-      .where((builder) =>
-        builder.where('valid_from', '<=', minDate).andWhere('valid_to', '>=', minDate)
-      )
-      .orWhere((builder) =>
-        builder.where('valid_from', '<=', maxDate).andWhere('valid_to', '>=', maxDate)
-      )
+      .where('valid_from', '>=', minDate)
+      .andWhere('valid_from', '<', maxDate)
       .orderBy([
         { column: 'valid_from', order: 'asc' },
-        { column: 'valid_to', order: 'desc' },
+        { column: 'valid_to', order: 'asc' },
+        { column: 'affects_all_routes', order: 'asc' },
+        { column: 'affects_all_stops', order: 'asc' },
         { column: 'stop_id', order: 'asc' },
         { column: 'route_id', order: 'asc' },
-        { column: 'last_modified', order: 'desc' },
+        { column: 'created_at', order: 'desc' },
       ])
 
     return this.getBatched(query)
