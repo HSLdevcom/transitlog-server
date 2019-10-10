@@ -7,6 +7,7 @@ import { DBAlert } from '../types/EventsDb'
 import { createAlert } from './objects/createAlert'
 import { cacheFetch } from './cache'
 import { isToday } from 'date-fns'
+import { uniqBy } from 'lodash'
 
 export type AlertSearchProps = {
   all?: boolean
@@ -56,11 +57,17 @@ export const getAlerts = async (
     return []
   }
 
+  const mergedAlerts: Alert[] = uniqBy(
+    alerts,
+    ({ level, distribution, affectedId, startDateTime, endDateTime, title }) =>
+      level + distribution + affectedId + startDateTime + endDateTime + title
+  )
+
   if (!searchProps || searchProps.all) {
-    return alerts
+    return mergedAlerts
   }
 
-  return alerts.filter(({ distribution, affectedId }) => {
+  return mergedAlerts.filter(({ distribution, affectedId }) => {
     let match = false
 
     if (searchProps.route) {

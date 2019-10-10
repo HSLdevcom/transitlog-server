@@ -445,23 +445,15 @@ WHERE event_type = :event
 
   getAlerts = async (minDate: string, maxDate: string): Promise<DBAlert[]> => {
     const query = this.db('alert')
-      .select(
-        this.db.raw(
-          `DISTINCT ON (
-"valid_from", "valid_to", "affects_all_routes", "affects_all_stops", "stop_id", "route_id"
-) ${alertFields.join(',')}`
-        )
-      )
+      .select(alertFields)
       .where('valid_from', '>=', minDate)
-      .andWhere('valid_from', '<', maxDate)
+      .orWhere('valid_to', '<=', maxDate)
       .orderBy([
         { column: 'valid_from', order: 'asc' },
         { column: 'valid_to', order: 'asc' },
-        { column: 'affects_all_routes', order: 'asc' },
-        { column: 'affects_all_stops', order: 'asc' },
-        { column: 'stop_id', order: 'asc' },
-        { column: 'route_id', order: 'asc' },
         { column: 'created_at', order: 'desc' },
+        { column: 'modified_at', order: 'desc' },
+        { column: 'last_modified', order: 'desc' },
       ])
 
     return this.getBatched(query)
