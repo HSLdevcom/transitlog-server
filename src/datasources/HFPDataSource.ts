@@ -453,7 +453,6 @@ WHERE event_type = :event
         { column: 'valid_to', order: 'asc' },
         { column: 'created_at', order: 'desc' },
         { column: 'modified_at', order: 'desc' },
-        { column: 'last_modified', order: 'desc' },
       ])
 
     return this.getBatched(query)

@@ -59,8 +59,7 @@ export const getAlerts = async (
 
   const mergedAlerts: Alert[] = uniqBy(
     alerts,
-    ({ level, distribution, affectedId, startDateTime, endDateTime, title }) =>
-      level + distribution + affectedId + startDateTime + endDateTime + title
+    ({ level, distribution, affectedId, title }) => level + distribution + affectedId + title
   )
 
   if (!searchProps || searchProps.all) {
