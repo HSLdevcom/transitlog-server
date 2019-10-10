@@ -359,7 +359,8 @@ WHERE event_type IN ('DEP', 'PDE')
     stopId: string,
     date: string,
     routeId: string,
-    direction: Direction
+    direction: Direction,
+    lastStopArrival: boolean = false
   ): Promise<Vehicles[]> {
     const legacyQuery = this.db('vehicles')
       .select(
@@ -383,22 +384,23 @@ WHERE event_type IN ('DEP', 'PDE')
     const eventsQuery = this.db.raw(
       `SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
-WHERE event_type = 'DEP'
-  AND oday = ?
-  AND stop = ?
-  AND route_id = ?
-  AND direction_id = ?;
+WHERE event_type = :event
+  AND oday = :date
+  AND stop = :stopId
+  AND route_id = :routeId
+  AND direction_id = :direction;
 `,
-      [date, stopId, routeId, direction]
+      { event: !lastStopArrival ? 'DEP' : 'ARS', date, stopId, routeId, direction }
     )
 
-    if (isBefore(date, EVENTS_CUTOFF_DATE)) {
+    // Legacy query does not support lastStopArrival
+    if (!lastStopArrival && isBefore(date, EVENTS_CUTOFF_DATE)) {
       return this.getBatched(legacyQuery)
     }
 
     const eventsResult = await this.getBatched(eventsQuery)
 
-    if (eventsResult.length === 0) {
+    if (!lastStopArrival && eventsResult.length === 0) {
       return this.getBatched(legacyQuery)
     }
 

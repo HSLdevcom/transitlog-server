@@ -83,10 +83,10 @@ export function createDepartureJourneyObject(
   const event = events[0] || events
   const id = createJourneyId(event)
   const journeyDate = moment.tz(event.tst, TZ).format('YYYY-MM-DD')
-  const departureDate = get(event, 'oday', journeyDate) || journeyDate
+  const eventOday = get(event, 'oday', journeyDate) || journeyDate
 
   return {
-    id: `departure_journey_${id}`,
+    id: `departure_journey_${id}_${event.event_type}`,
     journeyType:
       event.journey_type ||
       (typeof event.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
@@ -94,7 +94,7 @@ export function createDepartureJourneyObject(
     routeId: event.route_id || '',
     direction: event.direction_id,
     originStopId,
-    departureDate,
+    departureDate: eventOday,
     departureTime: getJourneyStartTime(event),
     uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
     mode: mode || null,
@@ -115,6 +115,8 @@ export function createPlannedDepartureObject(
   isOrigin: boolean = false
 ): Departure {
   const departureId = createDepartureId(departure, departureDate)
+
+  const plannedArrivalTime = createPlannedArrivalTimeObject(departure, departureDate)
   const plannedDepartureTime = createPlannedDepartureTimeObject(departure, departureDate)
 
   return {
@@ -146,7 +148,7 @@ export function createPlannedDepartureObject(
     originDepartureTime: departure.origin_departure
       ? createPlannedDepartureTimeObject(departure.origin_departure, departureDate)
       : null,
-    plannedArrivalTime: createPlannedArrivalTimeObject(departure, departureDate),
+    plannedArrivalTime,
     plannedDepartureTime,
   }
 }

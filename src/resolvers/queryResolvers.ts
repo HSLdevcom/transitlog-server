@@ -196,7 +196,7 @@ const routeDepartures = async (
 
 const weeklyDepartures = async (
   root,
-  { routeId, direction, stopId, date },
+  { routeId, direction, stopId, date, lastStopArrival },
   { dataSources, user }
 ) => {
   const weekDates = getWeekDates(date)
@@ -208,7 +208,7 @@ const weeklyDepartures = async (
   let exceptionsForWeek = await Promise.all(exceptionPromises)
   exceptionsForWeek = flatten(exceptionsForWeek)
 
-  const exceptionDayTypes = compact(
+  const exceptionDayTypes: string[] = compact(
     flatten(exceptionsForWeek.map(({ effectiveDayTypes }) => effectiveDayTypes))
   )
 
@@ -218,7 +218,13 @@ const weeklyDepartures = async (
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
 
   const getDepartureEvents = (fetchDate) =>
-    dataSources.HFPAPI.getRouteDepartureEvents(stopId, fetchDate, routeId, direction)
+    dataSources.HFPAPI.getRouteDepartureEvents(
+      stopId,
+      fetchDate,
+      routeId,
+      direction,
+      lastStopArrival
+    )
 
   const fetchCancellations = getCancellations.bind(
     null,
@@ -240,7 +246,8 @@ const weeklyDepartures = async (
     stopId,
     routeId,
     direction,
-    date
+    date,
+    lastStopArrival
   )
 }
 

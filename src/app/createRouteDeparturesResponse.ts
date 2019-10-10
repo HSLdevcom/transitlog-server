@@ -1,5 +1,5 @@
-import { compact, flatten, get, groupBy, orderBy } from 'lodash'
-import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
+import { compact, groupBy, orderBy } from 'lodash'
+import { JoreDepartureWithOrigin, JoreStopSegment } from '../types/Jore'
 import {
   Departure,
   Direction,
@@ -17,13 +17,7 @@ import {
   fetchStops,
 } from './createDeparturesResponse'
 import { getDirection } from '../utils/getDirection'
-import {
-  createDepartureJourneyObject,
-  createPlannedDepartureObject,
-} from './objects/createDepartureObject'
-import { getJourneyStartTime } from '../utils/time'
-import { groupEventsByInstances } from '../utils/groupEventsByInstances'
-import { getStopDepartureData } from '../utils/getStopDepartureData'
+import { createPlannedDepartureObject } from './objects/createDepartureObject'
 import { filterByExceptions } from '../utils/filterByExceptions'
 import {
   setAlertsOnDeparture,
@@ -70,7 +64,8 @@ export async function createRouteDeparturesResponse(
   routeId: string,
   direction: Direction,
   date: string,
-  skipCache: boolean = false
+  skipCache: boolean = false,
+  lastStopArrival: boolean = false
 ): Promise<Departure[]> {
   // Fetches the departures and stop data for the stop and validates them.
   const fetchDepartures: CachedFetcher<Departure[]> = async () => {
@@ -129,7 +124,9 @@ export async function createRouteDeparturesResponse(
 
     // The departure events are fetched with the route and direction so they need to be
     // included in the cache key.
-    const eventsCacheKey = `departure_events_${stopId}_${date}_${routeId}_${direction}`
+    const eventsCacheKey = `departure_events_${stopId}_${date}_${routeId}_${direction}_${
+      lastStopArrival ? 'dest_arrival' : 'orig_departure'
+    }`
     const departureEvents = await cacheFetch<Vehicles[]>(
       eventsCacheKey,
       () => fetchEvents(getEvents),
@@ -163,7 +160,7 @@ export async function createRouteDeparturesResponse(
   const departuresTTL: number = isToday(date) ? 60 : 30 * 24 * 60 * 60
   const cacheKey = `route_departures_${stopId}_${routeId}_${direction}_${date}_${
     requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
-  }`
+  }_${lastStopArrival ? 'dest_arrival' : 'orig_departure'}`
 
   const routeDepartures = await cacheFetch<Departure[]>(
     cacheKey,

@@ -28,6 +28,7 @@ import {
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { requireUser } from '../auth/requireUser'
+import { createOriginDeparture } from '../utils/createOriginDeparture'
 
 /*
   Common functions for route departures and stop departures.
@@ -103,18 +104,7 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
       return null
     }
 
-    departure.origin_departure = {
-      hours: departure.origin_hours || 0,
-      minutes: departure.origin_minutes || 0,
-      stop_id: departure.origin_stop_id || '',
-      departure_id: departure.origin_departure_id || 0,
-      is_next_day: departure.origin_is_next_day || false,
-      extra_departure: departure.origin_extra_departure || 'N',
-      day_type: departure.day_type,
-      route_id: departure.route_id,
-      direction: departure.direction,
-    }
-
+    departure.origin_departure = createOriginDeparture(departure)
     return createPlannedDepartureObject(departure, stop, date)
   })
 
