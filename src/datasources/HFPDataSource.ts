@@ -40,7 +40,7 @@ const vehicleFields = [
 ]
 
 const unsignedEventFields = [
-  'journey_type',
+  // 'journey_type',
   'unique_vehicle_id',
   'tst',
   'tsi',
