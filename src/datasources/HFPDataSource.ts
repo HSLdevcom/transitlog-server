@@ -414,6 +414,7 @@ WHERE event_type = :event
     const minDate = moment
       .tz(date, TZ)
       .startOf('day')
+      .add(4.5, 'hours')
       .utc()
       .format('YYYY-MM-DD HH:mm:ss.SSSSSS')
 
@@ -434,8 +435,7 @@ WHERE event_type = :event
       FROM vehicles
       WHERE tst >= :minDate AND tst < :maxDate
         AND journey_type = 'deadrun'
-        AND unique_vehicle_id = :vehicleId
-      ORDER BY unique_vehicle_id, tst;
+        AND unique_vehicle_id = :vehicleId;
     `,
       { vehicleId: `${operatorId}/${vehicleId}`, minDate, maxDate }
     )
