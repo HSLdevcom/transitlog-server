@@ -41,7 +41,6 @@ const vehicleFields = [
 
 const unsignedEventFields = [
   'journey_type',
-  'event_type',
   'unique_vehicle_id',
   'tst',
   'tsi',
@@ -50,8 +49,6 @@ const unsignedEventFields = [
   'hdg',
   'lat',
   'long',
-  'owner_operator_id',
-  'vehicle_number',
   'mode',
 ]
 
@@ -435,7 +432,8 @@ WHERE event_type = :event
       FROM vehicles
       WHERE tst >= :minDate AND tst < :maxDate
         AND journey_type = 'deadrun'
-        AND unique_vehicle_id = :vehicleId;
+        AND unique_vehicle_id = :vehicleId
+      ORDER BY unique_vehicle_id, tst;
     `,
       { vehicleId: `${operatorId}/${vehicleId}`, minDate, maxDate }
     )
