@@ -67,16 +67,13 @@ const routeDepartureFields = [
 ]
 
 const routeJourneyFields = [
-  'journey_type',
-  'geohash_level',
   'route_id',
   'direction_id',
   'oday',
   'tst',
   'tsi',
   'journey_start_time',
-  'owner_operator_id',
-  'vehicle_number',
+  'unique_vehicle_id',
   'lat',
   'long',
   'drst',
@@ -232,13 +229,8 @@ ORDER BY journey_start_time, tst;
    */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
-    // Disable temporarily
-    return []
-
-    const query = this.db('vehicles')
+    const query = this.db('route_events_continuous_aggregate')
       .select(routeJourneyFields)
-      .where('event_type', 'VP')
-      .where('journey_type', 'journey')
       .where('oday', date)
       .where('route_id', routeId)
       .where('direction_id', direction)
@@ -429,9 +421,8 @@ WHERE event_type = :event
     const query = this.db.raw(
       `
       SELECT ${unsignedEventFields.join(',')}
-      FROM vehicles
+      FROM unsigned_events_continuous_aggregate
       WHERE tst >= :minDate AND tst < :maxDate
-        AND journey_type = 'deadrun'
         AND unique_vehicle_id = :vehicleId
       ORDER BY unique_vehicle_id, tst;
     `,

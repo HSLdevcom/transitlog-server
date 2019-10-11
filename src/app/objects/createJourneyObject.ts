@@ -1,5 +1,5 @@
 import { createJourneyId } from '../../utils/createJourneyId'
-import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
+import { createUniqueVehicleId, createValidVehicleId } from '../../utils/createUniqueVehicleId'
 import {
   Alert,
   Cancellation,
@@ -43,6 +43,9 @@ export function createJourneyObject(
   const isCancelled =
     cancellations.length !== 0 && getLatestCancellationState(cancellations)[0].isCancelled
 
+  const vehicleId = createValidVehicleId(get(journey, 'unique_vehicle_id', ''))
+  const [operator = '0000', vehicleNumber = '00'] = vehicleId.split('/')
+
   return {
     id,
     journeyType: 'journey',
@@ -58,11 +61,9 @@ export function createJourneyObject(
     ),
     departureDate: get(journey, 'oday', departureDate),
     departureTime,
-    uniqueVehicleId: !journey
-      ? ''
-      : createUniqueVehicleId(journey.owner_operator_id, journey.vehicle_number),
-    operatorId: !journey ? '' : journey.owner_operator_id + '',
-    vehicleId: !journey ? '' : journey.vehicle_number + '',
+    uniqueVehicleId: vehicleId,
+    operatorId: operator,
+    vehicleId: vehicleNumber,
     headsign: !journey ? '' : journey.headsign,
     name: get(journeyRoute, 'name', ''),
     mode: (get(journeyRoute, 'mode', get(journey, 'mode', '')) || '').toUpperCase(),
