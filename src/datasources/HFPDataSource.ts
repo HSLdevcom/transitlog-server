@@ -370,6 +370,11 @@ WHERE event_type IN ('DEP', 'PDE')
         { column: 'tst', order: 'desc' },
       ])
 
+    // Legacy query does not support lastStopArrival
+    if (!lastStopArrival && isBefore(date, EVENTS_CUTOFF_DATE)) {
+      return this.getBatched(legacyQuery)
+    }
+
     const eventsQuery = this.db.raw(
       `SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
@@ -381,11 +386,6 @@ WHERE event_type = :event
 `,
       { event: !lastStopArrival ? 'DEP' : 'ARS', date, stopId, routeId, direction }
     )
-
-    // Legacy query does not support lastStopArrival
-    if (!lastStopArrival && isBefore(date, EVENTS_CUTOFF_DATE)) {
-      return this.getBatched(legacyQuery)
-    }
 
     const eventsResult = await this.getBatched(eventsQuery)
 

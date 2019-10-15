@@ -31,7 +31,6 @@ import {
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
-import { requireUser } from '../auth/requireUser'
 import { AuthenticatedUser } from '../types/Authentication'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
@@ -265,101 +264,63 @@ export const createWeekDeparturesResponse = async (
     return []
   }
 
-  const fetchDepartureEvents: CachedFetcher<Vehicles[]> = async () => {
-    const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
-    const requests: Array<Promise<Vehicles[] | null>> = []
+  const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
+  const requests: Array<Promise<Vehicles[] | null>> = []
 
-    let i = 0
+  let i = 0
 
-    while (i < 7) {
-      const fetchMoment = minDateMoment.clone().add(i, 'day')
-      const fetchDate = fetchMoment.format('YYYY-MM-DD')
+  while (i < 7) {
+    const fetchMoment = minDateMoment.clone().add(i, 'day')
+    const fetchDate = fetchMoment.format('YYYY-MM-DD')
 
-      // Unnecessary to fetch dates too far into the future
-      if (isAfter(fetchDate, startOfTomorrow())) {
-        break
-      }
-
-      const journeyTTL: number = isToday(fetchDate) ? 5 * 60 : 24 * 60 * 60
-      const eventsCacheKey = `departure_events_${stopId}_${fetchDate}_${routeId}_${direction}_${
-        lastStopArrival ? 'dest_arrival' : 'orig_departure'
-      }`
-      const eventsPromise = cacheFetch<Vehicles[]>(
-        eventsCacheKey,
-        () => getEvents(fetchDate),
-        journeyTTL
-      )
-
-      requests.push(eventsPromise)
-      i++
+    // Unnecessary to fetch dates too far into the future
+    if (isAfter(fetchDate, startOfTomorrow())) {
+      break
     }
 
-    return Promise.all(requests).then((events) =>
-      flatten(
-        events.map((dayEvents) => (!dayEvents || dayEvents.length === 0 ? [] : dayEvents))
-      )
+    const journeyTTL: number = isToday(fetchDate) ? 5 * 60 : 24 * 60 * 60
+    const eventsCacheKey = `departure_events_${stopId}_${fetchDate}_${routeId}_${direction}_${
+      lastStopArrival ? 'dest_arrival' : 'orig_departure'
+    }`
+    const eventsPromise = cacheFetch<Vehicles[]>(
+      eventsCacheKey,
+      () => getEvents(fetchDate),
+      journeyTTL
     )
+
+    requests.push(eventsPromise)
+    i++
   }
 
-  const journeyTTL: number = 10 * 60
-  const eventsCacheKey = `week_departure_events_${stopId}_${weekNumber}_${routeId}_${direction}_${
-    lastStopArrival ? 'dest_arrival' : 'orig_departure'
-  }`
-
-  const departureEvents = await cacheFetch<Vehicles[]>(
-    eventsCacheKey,
-    fetchDepartureEvents,
-    journeyTTL
+  const departureEvents = await Promise.all(requests).then((events) =>
+    flatten(events.map((dayEvents) => (!dayEvents || dayEvents.length === 0 ? [] : dayEvents)))
   )
 
-  const createDepartureResults = async () => {
-    let routeDepartures: Departure[] = []
+  let routeDepartures: Departure[] = []
 
-    // We can still return planned departures without observed events.
-    if (!departureEvents || departureEvents.length === 0) {
-      routeDepartures = orderBy(departures, 'plannedDepartureTime.departureTime')
-    } else {
-      routeDepartures = combineDeparturesAndEvents(
-        departures,
-        departureEvents,
-        lastStopArrival
-      )
-    }
-
-    if (!routeDepartures || routeDepartures.length === 0) {
-      return []
-    }
-
-    const alerts = await getAlerts(date, {
-      allStops: true,
-      allRoutes: true,
-      stop: stopId,
-      route: routeId,
-    })
-
-    const cancellations = await getCancellations(date, { routeId, direction })
-
-    return routeDepartures.map((departure) => {
-      setAlertsOnDeparture(departure, alerts)
-      setCancellationsOnDeparture(departure, cancellations)
-      return departure
-    })
+  // We can still return planned departures without observed events.
+  if (!departureEvents || departureEvents.length === 0) {
+    routeDepartures = orderBy(departures, 'plannedDepartureTime.departureTime')
+  } else {
+    routeDepartures = combineDeparturesAndEvents(departures, departureEvents, lastStopArrival)
   }
 
-  const resultsTTL: number = 10 * 60
-  const resultsCacheKey = `week_departure_results_${stopId}_${routeId}_${direction}_${weekNumber}_${
-    requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
-  }_${lastStopArrival ? 'dest_arrival' : 'orig_departure'}`
-
-  const weekDepartures = await cacheFetch<Departure[]>(
-    resultsCacheKey,
-    createDepartureResults,
-    resultsTTL
-  )
-
-  if (!weekDepartures || weekDepartures.length === 0) {
+  if (!routeDepartures || routeDepartures.length === 0) {
     return []
   }
 
-  return weekDepartures
+  const alerts = await getAlerts(date, {
+    allStops: true,
+    allRoutes: true,
+    stop: stopId,
+    route: routeId,
+  })
+
+  const cancellations = await getCancellations(date, { routeId, direction })
+
+  return routeDepartures.map((departure) => {
+    setAlertsOnDeparture(departure, alerts)
+    setCancellationsOnDeparture(departure, cancellations)
+    return departure
+  })
 }
