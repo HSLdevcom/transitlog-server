@@ -111,16 +111,15 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
   return compact(departuresWithStops)
 }
 
-export const combineDeparturesAndEvents = (
-  departures,
-  events,
-  date,
-  origin = true
-): Departure[] => {
+export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the "instances" of the journey.
   const departuresWithEvents: Departure[][] = departures.map((departure) => {
-    const departureTimePath = origin ? 'originDepartureTime' : 'plannedDepartureTime'
+    const departureTimePath =
+      typeof departure.originDepartureTime !== 'undefined'
+        ? 'originDepartureTime'
+        : 'plannedDepartureTime'
+
     const departureTime = get(departure, departureTimePath + '.departureTime', null)
 
     // The departures are matched to events through the "journey start time", ie the time that
@@ -282,7 +281,7 @@ export async function createDeparturesResponse(
       return orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
     }
 
-    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date, true)
+    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date)
   }
 
   const departuresTTL: number = isToday(date) ? 5 : 30 * 24 * 60 * 60

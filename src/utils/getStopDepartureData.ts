@@ -53,13 +53,20 @@ export const getStopDepartureData = (
 }
 
 export const getStopDepartureEvent = (events, departureEventType: 'DEP' | 'PDE' = 'PDE') => {
-  let departureEvent = events.find((event) => event.event_type === departureEventType)
+  let lookForType = departureEventType
+  let departureEvent = events.find((event) => event.event_type === lookForType)
 
   if (!departureEvent) {
-    departureEvent = events[0]
+    // Fall back to other type of event
+    lookForType = departureEventType === 'DEP' ? 'PDE' : 'DEP'
+    departureEvent = events.find((event) => event.event_type === lookForType)
 
     if (!departureEvent) {
-      return null
+      departureEvent = events[0]
+
+      if (!departureEvent) {
+        return null
+      }
     }
   }
 
