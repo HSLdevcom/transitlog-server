@@ -426,16 +426,17 @@ SELECT stop.stop_id,
        route_segment.stop_index,
        route_segment.next_stop_id,
        route_segment.timing_stop_type,
-       route.originstop_id,
+       route.destination_fi,
+       route.origin_fi,
        route.name_fi as route_name,
        line.line_id,
        mode.mode
-FROM :schema:.stop stop
-     LEFT OUTER JOIN :schema:.route_segment route_segment USING (stop_id),
-     :schema:.route_segment_route(route_segment, :date) route,
+FROM :schema:.route_segment route_segment
+     LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
+     :schema:.route_segment_route(route_segment, null) route,
      :schema:.route_mode(route) mode,
      :schema:.route_line(route) line
-WHERE stop.stop_id = :stopId;`,
+WHERE route_segment.stop_id = :stopId;`,
       { schema: SCHEMA, stopId, date }
     )
 

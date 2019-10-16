@@ -31,7 +31,6 @@ import {
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
-import { AuthenticatedUser } from '../types/Authentication'
 import { getStopArrivalData } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 
@@ -190,7 +189,6 @@ export const combineDeparturesAndStops = (
 }
 
 export const createWeekDeparturesResponse = async (
-  user: AuthenticatedUser,
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
   getEvents: (date: string) => Promise<Vehicles[]>,
@@ -201,8 +199,9 @@ export const createWeekDeparturesResponse = async (
   routeId: string,
   direction: Direction,
   date: string,
-  lastStopArrival: boolean = false
-) => {
+  lastStopArrival: boolean = false,
+  skipCache: boolean = false
+): Promise<Departure[]> => {
   const weekNumber = getISOWeek(date)
 
   // Fetches the departures and stop data for the stop and validates them.
@@ -285,7 +284,8 @@ export const createWeekDeparturesResponse = async (
     const eventsPromise = cacheFetch<Vehicles[]>(
       eventsCacheKey,
       () => getEvents(fetchDate),
-      journeyTTL
+      journeyTTL,
+      skipCache
     )
 
     requests.push(eventsPromise)
@@ -296,31 +296,54 @@ export const createWeekDeparturesResponse = async (
     flatten(events.map((dayEvents) => (!dayEvents || dayEvents.length === 0 ? [] : dayEvents)))
   )
 
-  let routeDepartures: Departure[] = []
+  const processedWeekDepartures = async () => {
+    let routeDepartures: Departure[] = []
 
-  // We can still return planned departures without observed events.
-  if (!departureEvents || departureEvents.length === 0) {
-    routeDepartures = orderBy(departures, 'plannedDepartureTime.departureTime')
-  } else {
-    routeDepartures = combineDeparturesAndEvents(departures, departureEvents, lastStopArrival)
+    // We can still return planned departures without observed events.
+    if (!departureEvents || departureEvents.length === 0) {
+      routeDepartures = orderBy(departures, 'plannedDepartureTime.departureTime')
+    } else {
+      routeDepartures = combineDeparturesAndEvents(
+        departures,
+        departureEvents,
+        lastStopArrival
+      )
+    }
+
+    if (!routeDepartures || routeDepartures.length === 0) {
+      return []
+    }
+
+    const alerts = await getAlerts(date, {
+      allStops: true,
+      allRoutes: true,
+      stop: stopId,
+      route: routeId,
+    })
+
+    const cancellations = await getCancellations(date, { routeId, direction })
+
+    return routeDepartures.map((departure) => {
+      setAlertsOnDeparture(departure, alerts)
+      setCancellationsOnDeparture(departure, cancellations)
+      return departure
+    })
   }
 
-  if (!routeDepartures || routeDepartures.length === 0) {
+  const weekDeparturesCacheKey = `week_departures_events_${stopId}_${routeId}_${direction}_${weekNumber}_${
+    lastStopArrival ? 'dest_arrival' : 'orig_departure'
+  }`
+
+  const allWeekDepartures = await cacheFetch(
+    weekDeparturesCacheKey,
+    processedWeekDepartures,
+    5 * 60,
+    skipCache
+  )
+
+  if (!allWeekDepartures || allWeekDepartures.length === 0) {
     return []
   }
 
-  const alerts = await getAlerts(date, {
-    allStops: true,
-    allRoutes: true,
-    stop: stopId,
-    route: routeId,
-  })
-
-  const cancellations = await getCancellations(date, { routeId, direction })
-
-  return routeDepartures.map((departure) => {
-    setAlertsOnDeparture(departure, alerts)
-    setCancellationsOnDeparture(departure, cancellations)
-    return departure
-  })
+  return allWeekDepartures
 }

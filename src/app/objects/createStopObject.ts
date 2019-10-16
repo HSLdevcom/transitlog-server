@@ -7,7 +7,15 @@ export function createStopObject(
   stopRoutes: StopRoute[] = [],
   alerts: Alert[] = []
 ): Stop {
-  const stopModes = stop.modes && Array.isArray(stop.modes) ? stop.modes : [stop.modes]
+  const stopModes =
+    stop.modes && Array.isArray(stop.modes)
+      ? stop.modes
+      : typeof stop.modes === 'string'
+      ? [stop.modes]
+      : stop.mode
+      ? [stop.mode]
+      : []
+
   const modes = uniq([...stopModes, ...compact(stopRoutes.map(({ mode }) => mode))])
 
   if (modes.length === 0) {
