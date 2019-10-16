@@ -233,7 +233,7 @@ ORDER BY journey_start_time, tst;
       `SELECT ${routeJourneyFields.join(',')}
       FROM route_events_continuous_aggregate
       WHERE route_id = :routeId
-        AND direction = :direction
+        AND direction_id = :direction
         AND oday = :date
       ORDER BY tst ASC;
     `,
