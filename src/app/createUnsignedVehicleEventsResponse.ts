@@ -4,9 +4,9 @@ import { cacheFetch } from './cache'
 import { isToday } from 'date-fns'
 import { Vehicles } from '../types/EventsDb'
 import { createUnsignedVehiclePositionObject } from './objects/createJourneyEventObject'
-import { requireUser, requireVehicleAuthorization } from '../auth/requireUser'
+import { requireVehicleAuthorization } from '../auth/requireUser'
 import { AuthenticatedUser } from '../types/Authentication'
-import { createUniqueVehicleId, createValidVehicleId } from '../utils/createUniqueVehicleId'
+import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 
 export const createUnsignedVehicleEventsResponse = async (
   getUnsignedEvents: () => Promise<Vehicles[] | null>,

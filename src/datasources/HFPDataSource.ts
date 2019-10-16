@@ -229,11 +229,16 @@ ORDER BY journey_start_time, tst;
    */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
-    const query = this.db('route_events_continuous_aggregate')
-      .select(routeJourneyFields)
-      .where('oday', date)
-      .where('route_id', routeId)
-      .where('direction_id', direction)
+    const query = this.db.raw(
+      `SELECT ${routeJourneyFields.join(',')}
+      FROM route_events_continuous_aggregate
+      WHERE route_id = :routeId
+        AND direction = :direction
+        AND oday = :date
+      ORDER BY tst ASC;
+    `,
+      { date, routeId, direction }
+    )
 
     return this.getBatched(query)
   }

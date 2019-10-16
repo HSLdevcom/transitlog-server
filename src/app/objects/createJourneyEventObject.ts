@@ -18,6 +18,7 @@ import { get } from 'lodash'
 import { createDepartureId } from './createDepartureObject'
 import { isWithinRange } from 'date-fns'
 import { diffDepartureJourney } from '../../utils/diffDepartureJourney'
+import { createValidVehicleId } from '../../utils/createUniqueVehicleId'
 
 export function createJourneyEventObject(event: Vehicles): JourneyEvent {
   const id = createJourneyId(event)
@@ -155,11 +156,15 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
   const unix = parseInt(event.tsi, 10)
   const ts = moment.tz(event.tst, TZ).toISOString(true)
 
+  const journeyType = !event.journey_type
+    ? typeof event.journey_start_time === 'undefined'
+      ? 'deadrun'
+      : 'journey'
+    : event.journey_type
+
   return {
     id: `vehicle_position_event_${useId}_${unix}_${event.lat}_${event.long}`,
-    journeyType:
-      event.journey_type ||
-      (typeof event.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
+    journeyType,
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
@@ -181,11 +186,11 @@ export function createUnsignedVehiclePositionObject(event: Vehicles): VehiclePos
 
   return {
     id: `unsigned_position_${event.unique_vehicle_id}_${unix}_${event.lat}_${event.long}`,
-    journeyType: event.journey_type,
+    journeyType: event.journey_type || 'deadrun',
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
-    // uniqueVehicleId: createUniqueVehicleId(event.owner_operator_id, event.vehicle_number),
+    uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
     lat: event.lat,
     lng: event.long,
     doorStatus: event.drst,
