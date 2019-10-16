@@ -524,6 +524,7 @@ export async function createJourneyResponse(
 
   let finalPositions = vehiclePositions
 
+  // Get unsigned events that happened before and after the journey.
   if (userAuthorizedForVehicle) {
     const firstEvent = vehiclePositions[0]
     const lastEvent = last(vehiclePositions)

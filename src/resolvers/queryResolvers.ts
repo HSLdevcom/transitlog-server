@@ -308,7 +308,7 @@ const journey = async (
     departureDate,
     departureTime,
     uniqueVehicleId,
-    false,
+    unsignedEvents,
     user
   )
 }
