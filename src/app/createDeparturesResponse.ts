@@ -115,10 +115,9 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
   // Link observed events to departures. Events are ultimately grouped by vehicle ID
   // to separate the "instances" of the journey.
   const departuresWithEvents: Departure[][] = departures.map((departure) => {
-    const departureTimePath =
-      typeof departure.originDepartureTime !== 'undefined'
-        ? 'originDepartureTime'
-        : 'plannedDepartureTime'
+    const departureTimePath = !!departure.originDepartureTime
+      ? 'originDepartureTime'
+      : 'plannedDepartureTime'
 
     const departureTime = get(departure, departureTimePath + '.departureTime', null)
 
