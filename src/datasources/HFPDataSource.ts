@@ -67,6 +67,8 @@ const routeDepartureFields = [
 ]
 
 const routeJourneyFields = [
+  'journey_type',
+  'event_type',
   'route_id',
   'direction_id',
   'oday',
@@ -108,6 +110,29 @@ const alertFields = [
   'data',
   'ext_id_bulletin',
 ]
+
+type TstRange = {
+  minTime: string
+  maxTime: string
+}
+
+function createTstRange(date): TstRange {
+  const minTime = moment
+    .tz(date, TZ)
+    .startOf('day')
+    .add(4, 'hours')
+    .utc()
+    .format('YYYY-MM-DD HH:mm:ss.SSSSSS')
+
+  const maxTime = moment
+    .tz(date, TZ)
+    .endOf('day')
+    .add(5, 'hours')
+    .utc()
+    .format('YYYY-MM-DD HH:mm:ss.SSSSSS')
+
+  return { minTime, maxTime }
+}
 
 export class HFPDataSource extends SQLDataSource {
   constructor() {
@@ -190,21 +215,25 @@ ORDER BY tst ASC;
     const vehicleId = parseInt(vehiclePart, 10)
 
     const queryVehicleId = `${operatorId}/${vehicleId}`
+    const { minTime, maxTime } = createTstRange(date)
 
     const eventsQuery = this.db.raw(
       `SELECT DISTINCT ON (journey_start_time) ${vehicleFields.join(',')}
 FROM vehicles
-WHERE event_type = 'DEP'
+WHERE tst >= :minTime
+  AND tst < :maxTime
+  AND event_type = 'DEP'
   AND journey_type = 'journey'
-  AND oday = ?
-  AND unique_vehicle_id = ?
+  AND oday = :date
+  AND unique_vehicle_id = :vehicleId
 ORDER BY journey_start_time, tst;
 `,
-      [date, queryVehicleId]
+      { date, minTime, maxTime, vehicleId: queryVehicleId }
     )
 
     const legacyQuery = this.db('vehicles')
       .select(vehicleFields)
+      .whereBetween('tst', [minTime, maxTime])
       .where('event_type', 'VP')
       .where('oday', date)
       .where('unique_vehicle_id', queryVehicleId)
@@ -230,16 +259,20 @@ ORDER BY journey_start_time, tst;
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
     return []
+    const { minTime, maxTime } = createTstRange(date)
 
     const query = this.db.raw(
       `SELECT ${routeJourneyFields.join(',')}
       FROM vehicles
-      WHERE route_id = :routeId
+      WHERE tst >= :minTime
+        AND tst < :maxTime
+        AND event_type = 'VP'
+        AND journey_type = 'journey'
+        AND route_id = :routeId
         AND direction_id = :direction
-        AND oday = :date
-      ORDER BY tst ASC;
+      ORDER BY tst;
     `,
-      { date, routeId, direction }
+      { date, minTime, maxTime, routeId, direction }
     )
 
     return this.getBatched(query)
@@ -268,8 +301,11 @@ ORDER BY journey_start_time, tst;
       vehicleId = parseInt(vehiclePart, 10)
     }
 
+    const { minTime, maxTime } = createTstRange(departureDate)
+
     let query = this.db('vehicles')
       .select(vehicleFields)
+      .whereBetween('tst', [minTime, maxTime])
       .where('oday', departureDate)
       .where('route_id', routeId)
       .where('direction_id', direction)
@@ -308,12 +344,15 @@ ORDER BY journey_start_time, tst;
    * Get all departures for a specific stop during a date.
    */
   async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
+    const { minTime, maxTime } = createTstRange(date)
+
     const legacyQuery = this.db('vehicles')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
         )
       )
+      .whereBetween('tst', [minTime, maxTime])
       .where('event_type', 'VP')
       .where('oday', date)
       .where('stop', stopId)
@@ -327,11 +366,13 @@ ORDER BY journey_start_time, tst;
       `
 SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
-WHERE event_type IN ('DEP', 'PDE')
-  AND oday = ?
-  AND stop = ?;
+WHERE tst >= :minTime
+  AND tst < :maxTime
+  AND event_type IN ('DEP', 'PDE')
+  AND oday = :date
+  AND stop = :stopId;
 `,
-      [date, stopId]
+      { date, stopId, minTime, maxTime }
     )
 
     if (isBefore(date, EVENTS_CUTOFF_DATE)) {
@@ -358,6 +399,8 @@ WHERE event_type IN ('DEP', 'PDE')
     direction: Direction,
     lastStopArrival: boolean = false
   ): Promise<Vehicles[]> {
+    const { minTime, maxTime } = createTstRange(date)
+
     const legacyQuery = this.db('vehicles')
       .select(
         this.db.raw(
@@ -366,6 +409,7 @@ WHERE event_type IN ('DEP', 'PDE')
           )}`
         )
       )
+      .whereBetween('tst', [minTime, maxTime])
       .where('event_type', 'VP')
       .where('oday', date)
       .where('route_id', routeId)
@@ -385,13 +429,24 @@ WHERE event_type IN ('DEP', 'PDE')
     const eventsQuery = this.db.raw(
       `SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
-WHERE event_type = :event
+WHERE tst >= :minTime
+  AND tst < :maxTime
+  AND event_type = :event
   AND oday = :date
   AND stop = :stopId
   AND route_id = :routeId
-  AND direction_id = :direction;
+  AND direction_id = :direction
+ORDER BY tst;
 `,
-      { event: !lastStopArrival ? 'DEP' : 'ARS', date, stopId, routeId, direction }
+      {
+        event: !lastStopArrival ? 'DEP' : 'ARS',
+        minTime,
+        maxTime,
+        date,
+        stopId,
+        routeId,
+        direction,
+      }
     )
 
     const eventsResult = await this.getBatched(eventsQuery)
@@ -407,19 +462,7 @@ WHERE event_type = :event
     date: string,
     uniqueVehicleId: string
   ): Promise<Vehicles[]> => {
-    const minDate = moment
-      .tz(date, TZ)
-      .startOf('day')
-      .add(4.5, 'hours')
-      .utc()
-      .format('YYYY-MM-DD HH:mm:ss.SSSSSS')
-
-    const maxDate = moment
-      .tz(date, TZ)
-      .endOf('day')
-      .add(4.5, 'hours')
-      .utc()
-      .format('YYYY-MM-DD HH:mm:ss.SSSSSS')
+    const { minTime, maxTime } = createTstRange(date)
 
     const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
     const operatorId = parseInt(operatorPart, 10)
@@ -429,11 +472,11 @@ WHERE event_type = :event
       `
       SELECT ${unsignedEventFields.join(',')}
       FROM unsigned_events_continuous_aggregate
-      WHERE tst >= :minDate AND tst < :maxDate
+      WHERE tst >= :minTime AND tst < :maxTime
         AND unique_vehicle_id = :vehicleId
-      ORDER BY unique_vehicle_id, tst;
+      ORDER BY tst, unique_vehicle_id;
     `,
-      { vehicleId: `${operatorId}/${vehicleId}`, minDate, maxDate }
+      { vehicleId: `${operatorId}/${vehicleId}`, minTime, maxTime }
     )
 
     return this.getBatched(query)

@@ -37,7 +37,12 @@ export const createRouteJourneysResponse = async (
   const journeysTTL: number = isToday(date) ? 60 : 24 * 60 * 60
   const journeysKey = `route_journeys_${routeId}_${direction}_${date}`
 
-  const journeys = await cacheFetch<Journey[]>(journeysKey, fetchAllJourneys, journeysTTL)
+  const journeys = await cacheFetch<Journey[]>(
+    journeysKey,
+    fetchAllJourneys,
+    journeysTTL,
+    true
+  )
 
   if (!journeys || journeys.length === 0) {
     return []
