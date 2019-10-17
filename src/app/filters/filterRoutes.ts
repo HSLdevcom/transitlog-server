@@ -1,4 +1,3 @@
-import { JoreRoute } from '../../types/Jore'
 import { get } from 'lodash'
 import { Route, RouteFilterInput } from '../../types/generated/schema-types'
 import { search } from './search'

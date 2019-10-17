@@ -229,9 +229,11 @@ ORDER BY journey_start_time, tst;
    */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
+    return []
+
     const query = this.db.raw(
       `SELECT ${routeJourneyFields.join(',')}
-      FROM route_events_continuous_aggregate
+      FROM vehicles
       WHERE route_id = :routeId
         AND direction_id = :direction
         AND oday = :date

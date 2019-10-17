@@ -95,6 +95,7 @@ export async function createRoutesResponse(
   const cacheKey = `routes_${date}_${
     requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
   }`
+
   const validRoutes = await cacheFetch<Route[]>(cacheKey, fetchAndValidate, 24 * 60 * 60)
 
   if (!validRoutes) {
