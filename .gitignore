@@ -9,3 +9,5 @@ schema.graphql
 secrets
 data
 ssh_tunnel.sh
+greylog_dev.sh
+greylog_stage.sh
