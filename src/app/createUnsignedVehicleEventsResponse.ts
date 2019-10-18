@@ -18,7 +18,7 @@ export const createUnsignedVehicleEventsResponse = async (
     return []
   }
 
-  const fetchUnsignedEvents: CachedFetcher<VehiclePosition[]> = async () => {
+  const fetchUnsignedEvents: CachedFetcher<Vehicles[]> = async () => {
     const unsignedEvents = await getUnsignedEvents()
 
     if (!unsignedEvents || unsignedEvents.length === 0) {
@@ -31,7 +31,7 @@ export const createUnsignedVehicleEventsResponse = async (
       return false
     }
 
-    return validUnsignedEvents.map((event) => createUnsignedVehiclePositionObject(event))
+    return validUnsignedEvents
   }
 
   const vehicleId = createValidVehicleId(uniqueVehicleId)
@@ -41,7 +41,7 @@ export const createUnsignedVehicleEventsResponse = async (
   }
 
   const unsignedKey = `unsigned_events_${vehicleId}_${date}`
-  const unsignedResults = await cacheFetch(
+  const unsignedResults = await cacheFetch<Vehicles[]>(
     unsignedKey,
     fetchUnsignedEvents,
     isToday(date) ? 30 : 30 * 24 * 60 * 60
@@ -51,5 +51,5 @@ export const createUnsignedVehicleEventsResponse = async (
     return []
   }
 
-  return unsignedResults
+  return unsignedResults.map((event) => createUnsignedVehiclePositionObject(event))
 }

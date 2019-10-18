@@ -29,7 +29,8 @@ export function createJourneyObject(
   alerts: Alert[] = [],
   cancellations: Cancellation[] = []
 ): Journey {
-  const journey = vehiclePositions.find((event) => event.journey_type === 'journey')
+  const journey =
+    vehiclePositions.find((event) => event.journey_type === 'journey') || vehiclePositions[0]
 
   const departureDate = get(originDeparture, 'plannedDepartureTime.departureDate', '')
   const departureTime = !journey
@@ -56,7 +57,7 @@ export function createJourneyObject(
       get(
         journey,
         'direction_id',
-        get(originDeparture, 'direction', get(journeyRoute, 'direction', 0))
+        get(originDeparture, 'direction', get(journeyRoute, 'direction', 1))
       )
     ),
     departureDate: get(journey, 'oday', departureDate),

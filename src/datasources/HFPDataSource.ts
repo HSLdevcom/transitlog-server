@@ -40,7 +40,8 @@ const vehicleFields = [
 ]
 
 const unsignedEventFields = [
-  // 'journey_type',
+  /*'journey_type',
+  'event_type',*/
   'unique_vehicle_id',
   'tst',
   'tsi',
@@ -474,8 +475,10 @@ ORDER BY tst;
       SELECT ${unsignedEventFields.join(',')}
       FROM unsigned_events_continuous_aggregate
       WHERE tst >= :minTime AND tst < :maxTime
+        -- AND journey_type = 'deadrun'
+        -- AND event_type = 'VP'
         AND unique_vehicle_id = :vehicleId
-      ORDER BY tst, unique_vehicle_id;
+      ORDER BY tst;
     `,
       { vehicleId: `${operatorId}/${vehicleId}`, minTime, maxTime }
     )
