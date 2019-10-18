@@ -212,7 +212,7 @@ export const createWeekDeparturesResponse = async (
     const stopsPromise = cacheFetch<RouteSegment[]>(
       stopsCacheKey,
       () => fetchStops(getStops, date),
-      24 * 60 * 60
+      30 * 24 * 60 * 60
     )
 
     const departuresPromise: Promise<JoreDepartureWithOrigin[]> = getDepartures()
