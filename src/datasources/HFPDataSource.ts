@@ -234,6 +234,7 @@ ORDER BY journey_start_time, tst;
     const legacyQuery = this.db('vehicles')
       .select(vehicleFields)
       .whereBetween('tst', [minTime, maxTime])
+      .where('journey_type', 'journey')
       .where('event_type', 'VP')
       .where('oday', date)
       .where('unique_vehicle_id', queryVehicleId)

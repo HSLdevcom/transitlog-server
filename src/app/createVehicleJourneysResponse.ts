@@ -6,6 +6,8 @@ import { isToday, isWithinRange } from 'date-fns'
 import { Vehicles } from '../types/EventsDb'
 import { AuthenticatedUser } from '../types/Authentication'
 import { requireVehicleAuthorization } from '../auth/requireUser'
+import { compact, map, groupBy, orderBy } from 'lodash'
+import { findJourneyStartEvent } from '../utils/findJourneyStartEvent'
 
 export const createVehicleJourneysResponse = async (
   getVehicleJourneys: () => Promise<Vehicles[] | null>,
@@ -21,9 +23,20 @@ export const createVehicleJourneysResponse = async (
       return false
     }
 
+    let departureEvents: Vehicles[] = vehicleJourneys
+
+    if (vehicleJourneys.some((evt) => evt.event_type === 'VP')) {
+      departureEvents = compact(
+        map(
+          groupBy(orderBy(vehicleJourneys, 'journey_start_time'), 'journey_start_time'),
+          findJourneyStartEvent
+        )
+      )
+    }
+
     const alerts = await getAlerts(date, { allRoutes: true, route: true })
 
-    return vehicleJourneys.map((event) => {
+    return departureEvents.map((event) => {
       const journeyAlerts = alerts.filter((alert) => {
         if (!isWithinRange(event.tst, alert.startDateTime, alert.endDateTime)) {
           return false

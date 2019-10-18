@@ -322,6 +322,7 @@ const journeys = (root, { routeId, direction, departureDate }, { dataSources }) 
 const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources, user }) => {
   const getVehicleJourneys = () =>
     dataSources.HFPAPI.getJourneysForVehicle(uniqueVehicleId, date)
+
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   return createVehicleJourneysResponse(
