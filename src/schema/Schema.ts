@@ -69,15 +69,15 @@ export const Schema = gql`
       date: Date!
       unsignedEvents: Boolean
     ): [VehicleJourney]!
-    unsignedVehicleEvents(uniqueVehicleId: VehicleId!, date: Date!): [VehiclePosition]!
-    eventsByBbox(
+    journeysByBbox(
       minTime: DateTime!
       maxTime: DateTime!
       bbox: PreciseBBox!
       date: Date!
       filters: AreaEventsFilterInput
       unsignedEvents: Boolean
-    ): [AreaJourney]!
+    ): [Journey]!
+    unsignedVehicleEvents(uniqueVehicleId: VehicleId!, date: Date!): [VehiclePosition]!
     alerts(time: String, language: String!, alertSearch: AlertSearchInput): [Alert!]!
     cancellations(date: Date, cancellationSearch: CancellationSearchInput): [Cancellation!]!
     uiMessage: UIMessage!

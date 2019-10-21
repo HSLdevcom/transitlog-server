@@ -16,11 +16,11 @@ import { JoreDataSource } from './datasources/JoreDataSource'
 import { HFPDataSource } from './datasources/HFPDataSource'
 import authEndpoints from './auth/authEndpoints'
 import { checkAccessMiddleware } from './auth/authService'
-import { getRedis } from './app/cache'
+import { getRedis } from './cache'
 import path from 'path'
 import { createEngine } from 'express-react-views'
 import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
-import { adminController } from './app/admin/adminController'
+import { adminController } from './admin/adminController'
 
 const session = require('express-session')
 const RedisSession = require('connect-redis')(session)

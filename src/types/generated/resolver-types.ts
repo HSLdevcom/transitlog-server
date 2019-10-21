@@ -321,13 +321,13 @@ export namespace QueryResolvers {
       TContext
     >
 
+    journeysByBbox?: JourneysByBboxResolver<Array<Maybe<Journey>>, TypeParent, TContext>
+
     unsignedVehicleEvents?: UnsignedVehicleEventsResolver<
       Array<Maybe<VehiclePosition>>,
       TypeParent,
       TContext
     >
-
-    eventsByBbox?: EventsByBboxResolver<Array<Maybe<AreaJourney>>, TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
@@ -552,23 +552,12 @@ export namespace QueryResolvers {
     unsignedEvents?: Maybe<boolean>
   }
 
-  export type UnsignedVehicleEventsResolver<
-    R = Array<Maybe<VehiclePosition>>,
+  export type JourneysByBboxResolver<
+    R = Array<Maybe<Journey>>,
     Parent = {},
     TContext = {}
-  > = Resolver<R, Parent, TContext, UnsignedVehicleEventsArgs>
-  export interface UnsignedVehicleEventsArgs {
-    uniqueVehicleId: VehicleId
-
-    date: Date
-  }
-
-  export type EventsByBboxResolver<
-    R = Array<Maybe<AreaJourney>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, EventsByBboxArgs>
-  export interface EventsByBboxArgs {
+  > = Resolver<R, Parent, TContext, JourneysByBboxArgs>
+  export interface JourneysByBboxArgs {
     minTime: DateTime
 
     maxTime: DateTime
@@ -580,6 +569,17 @@ export namespace QueryResolvers {
     filters?: Maybe<AreaEventsFilterInput>
 
     unsignedEvents?: Maybe<boolean>
+  }
+
+  export type UnsignedVehicleEventsResolver<
+    R = Array<Maybe<VehiclePosition>>,
+    Parent = {},
+    TContext = {}
+  > = Resolver<R, Parent, TContext, UnsignedVehicleEventsArgs>
+  export interface UnsignedVehicleEventsArgs {
+    uniqueVehicleId: VehicleId
+
+    date: Date
   }
 
   export type AlertsResolver<R = Alert[], Parent = {}, TContext = {}> = Resolver<
@@ -2233,8 +2233,6 @@ export namespace JourneyResolvers {
 
     journeyType?: JourneyTypeResolver<string, TypeParent, TContext>
 
-    lineId?: LineIdResolver<Maybe<string>, TypeParent, TContext>
-
     routeId?: RouteIdResolver<Maybe<string>, TypeParent, TContext>
 
     direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
@@ -2278,11 +2276,6 @@ export namespace JourneyResolvers {
     TContext
   >
   export type JourneyTypeResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LineIdResolver<R = Maybe<string>, Parent = Journey, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
@@ -2644,8 +2637,6 @@ export namespace VehicleJourneyResolvers {
 
     direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
 
-    originStopId?: OriginStopIdResolver<Maybe<string>, TypeParent, TContext>
-
     departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
 
     departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
@@ -2667,8 +2658,6 @@ export namespace VehicleJourneyResolvers {
     recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
 
     timeDifference?: TimeDifferenceResolver<number, TypeParent, TContext>
-
-    nextStopId?: NextStopIdResolver<Maybe<string>, TypeParent, TContext>
 
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
@@ -2699,11 +2688,6 @@ export namespace VehicleJourneyResolvers {
   > = Resolver<R, Parent, TContext>
   export type DirectionResolver<
     R = Maybe<Direction>,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OriginStopIdResolver<
-    R = Maybe<string>,
     Parent = VehicleJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>
@@ -2762,11 +2746,6 @@ export namespace VehicleJourneyResolvers {
     Parent = VehicleJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-  export type NextStopIdResolver<
-    R = Maybe<string>,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
   export type AlertsResolver<R = Alert[], Parent = VehicleJourney, TContext = {}> = Resolver<
     R,
     Parent,
@@ -2782,127 +2761,6 @@ export namespace VehicleJourneyResolvers {
     Parent = VehicleJourney,
     TContext = {}
   > = Resolver<R, Parent, TContext>
-}
-
-export namespace AreaJourneyResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = AreaJourney> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    journeyType?: JourneyTypeResolver<string, TypeParent, TContext>
-
-    lineId?: LineIdResolver<Maybe<string>, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<Maybe<string>, TypeParent, TContext>
-
-    direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
-
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
-
-    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
-
-    uniqueVehicleId?: UniqueVehicleIdResolver<Maybe<VehicleId>, TypeParent, TContext>
-
-    operatorId?: OperatorIdResolver<Maybe<string>, TypeParent, TContext>
-
-    vehicleId?: VehicleIdResolver<Maybe<string>, TypeParent, TContext>
-
-    headsign?: HeadsignResolver<Maybe<string>, TypeParent, TContext>
-
-    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
-
-    vehiclePositions?: VehiclePositionsResolver<
-      Array<Maybe<VehiclePosition>>,
-      TypeParent,
-      TContext
-    >
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-
-    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
-
-    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = AreaJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type JourneyTypeResolver<R = string, Parent = AreaJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LineIdResolver<
-    R = Maybe<string>,
-    Parent = AreaJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RouteIdResolver<
-    R = Maybe<string>,
-    Parent = AreaJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DirectionResolver<
-    R = Maybe<Direction>,
-    Parent = AreaJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureDateResolver<R = Date, Parent = AreaJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DepartureTimeResolver<R = Time, Parent = AreaJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type UniqueVehicleIdResolver<
-    R = Maybe<VehicleId>,
-    Parent = AreaJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OperatorIdResolver<
-    R = Maybe<string>,
-    Parent = AreaJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type VehicleIdResolver<
-    R = Maybe<string>,
-    Parent = AreaJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type HeadsignResolver<
-    R = Maybe<string>,
-    Parent = AreaJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ModeResolver<R = Maybe<string>, Parent = AreaJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type VehiclePositionsResolver<
-    R = Array<Maybe<VehiclePosition>>,
-    Parent = AreaJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type AlertsResolver<R = Alert[], Parent = AreaJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type CancellationsResolver<
-    R = Cancellation[],
-    Parent = AreaJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsCancelledResolver<R = boolean, Parent = AreaJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
 }
 
 export namespace UiMessageResolvers {
@@ -3038,7 +2896,6 @@ export type IResolvers<TContext = {}> = {
   JourneyCancellationEvent?: JourneyCancellationEventResolvers.Resolvers<TContext>
   PlannedStopEvent?: PlannedStopEventResolvers.Resolvers<TContext>
   VehicleJourney?: VehicleJourneyResolvers.Resolvers<TContext>
-  AreaJourney?: AreaJourneyResolvers.Resolvers<TContext>
   UiMessage?: UiMessageResolvers.Resolvers<TContext>
   Position?: PositionResolvers.Resolvers
   JourneyEventType?: JourneyEventTypeResolvers.Resolvers

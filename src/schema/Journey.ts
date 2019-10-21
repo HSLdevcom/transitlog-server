@@ -102,7 +102,6 @@ export const Journey = gql`
   type Journey {
     id: ID!
     journeyType: String!
-    lineId: String
     routeId: String
     direction: Direction
     originStopId: String
@@ -129,7 +128,6 @@ export const Journey = gql`
     lineId: String
     routeId: String
     direction: Direction
-    originStopId: String
     departureDate: Date!
     departureTime: Time!
     uniqueVehicleId: VehicleId
@@ -141,26 +139,6 @@ export const Journey = gql`
     recordedAtUnix: Int!
     recordedTime: Time!
     timeDifference: Int!
-    nextStopId: String
-    alerts: [Alert!]!
-    cancellations: [Cancellation!]!
-    isCancelled: Boolean!
-  }
-
-  type AreaJourney {
-    id: ID!
-    journeyType: String!
-    lineId: String
-    routeId: String
-    direction: Direction
-    departureDate: Date!
-    departureTime: Time!
-    uniqueVehicleId: VehicleId
-    operatorId: String
-    vehicleId: String
-    headsign: String
-    mode: String
-    vehiclePositions: [VehiclePosition]!
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!
