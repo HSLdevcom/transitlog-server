@@ -138,18 +138,6 @@ export interface JoreGeometry {
   date_end: string
 }
 
-export interface JoreLine {
-  line_id: string
-  name_fi: string
-  name_se?: Maybe<string>
-  origin_fi: string
-  origin_se?: Maybe<string>
-  destination_fi?: Maybe<string>
-  destination_se?: Maybe<string>
-  date_begin: string
-  date_end: string
-}
-
 export interface JoreRouteSegment {
   stop_id: string
   next_stop_id?: Maybe<string>

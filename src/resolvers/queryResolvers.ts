@@ -1,5 +1,4 @@
 import { QueryResolvers } from '../types/generated/resolver-types'
-import { createLinesResponse } from '../creators/createLinesResponse'
 import { createRouteResponse, createRoutesResponse } from '../creators/createRoutesResponse'
 import { createStopResponse, createStopsResponse } from '../creators/createStopsResponse'
 import { createRouteGeometryResponse } from '../creators/createRouteGeometryResponse'
@@ -33,12 +32,6 @@ const stops = (root, { filter, date }, { dataSources }) => {
   return createStopsResponse(getStops, fetchAlerts, date, filter)
 }
 
-const stopsByBbox = (root, { filter, bbox, date }, { dataSources }) => {
-  const getStops = () => dataSources.JoreAPI.getStops(date)
-  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-  return createStopsResponse(getStops, fetchAlerts, date, filter, bbox)
-}
-
 const stop = (root, { stopId, date }, { dataSources }) => {
   const getStopSegments = () => dataSources.JoreAPI.getStopSegments(stopId, date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
@@ -66,7 +59,7 @@ const route = async (root, { routeId, direction, date }, { dataSources, user }) 
   )
 }
 
-const routes = async (root, { filter, line, date }, { dataSources, user }) => {
+const routes = async (root, { filter, date }, { dataSources, user }) => {
   const getRoutes = () => dataSources.JoreAPI.getRoutes()
 
   const fetchCancellations = getCancellations.bind(
@@ -77,15 +70,7 @@ const routes = async (root, { filter, line, date }, { dataSources, user }) => {
   )
 
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-  return createRoutesResponse(
-    user,
-    getRoutes,
-    fetchCancellations,
-    fetchAlerts,
-    date,
-    line,
-    filter
-  )
+  return createRoutesResponse(user, getRoutes, fetchCancellations, fetchAlerts, date, filter)
 }
 
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
@@ -114,11 +99,6 @@ const routeSegments = (root, { routeId, direction, date }, { dataSources, user }
     routeId,
     direction
   )
-}
-
-const lines = async (root, { filter, date }, { dataSources }) => {
-  const getLines = () => dataSources.JoreAPI.getLines()
-  return createLinesResponse(getLines, date, filter)
 }
 
 const departures = async (
@@ -398,12 +378,10 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   equipment,
   stop,
   stops,
-  stopsByBbox,
   route,
   routes,
   routeGeometry,
   routeSegments,
-  lines,
   departures,
   routeDepartures,
   weeklyDepartures,
@@ -411,7 +389,6 @@ export const queryResolvers: QueryResolvers.Resolvers = {
   vehicleJourneys,
   unsignedVehicleEvents,
   journeys,
-  // @ts-ignore
   journeysByBbox,
   exceptionDays,
   alerts,

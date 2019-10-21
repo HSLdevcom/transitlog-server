@@ -3,7 +3,6 @@ import { gql } from 'apollo-server'
 export const Route = gql`
   type Route {
     id: ID!
-    lineId: String!
     routeId: String!
     direction: Direction!
     destination: String
@@ -19,7 +18,6 @@ export const Route = gql`
 
   type RouteSegment implements Position {
     id: ID!
-    lineId: String
     routeId: String!
     direction: Direction!
     originStopId: String

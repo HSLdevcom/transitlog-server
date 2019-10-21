@@ -4,7 +4,6 @@ export const Stop = gql`
   type StopRoute {
     id: ID!
     originStopId: String
-    lineId: String
     routeId: String!
     direction: Direction!
     isTimingStop: Boolean!

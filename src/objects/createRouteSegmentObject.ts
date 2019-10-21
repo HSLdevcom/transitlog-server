@@ -19,7 +19,6 @@ export const createRouteSegmentObject = (
   return {
     ...createStopObject({ ...routeSegment, modes: routeSegment.mode || Mode.Bus }),
     id: createSegmentId({ ...route, ...routeSegment }),
-    lineId: get(routeSegment, 'line_id', get(route, 'line_id', '')),
     routeId: routeSegment.route_id,
     direction: getDirection(routeSegment.direction),
     originStopId: get(routeSegment, 'originstop_id', get(route, 'originstop_id', '')),

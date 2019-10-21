@@ -5,7 +5,7 @@ import {
   StopFilterInput,
   StopRoute,
 } from '../types/generated/schema-types'
-import { JoreLine, JoreRoute, JoreRouteSegment, JoreStop } from '../types/Jore'
+import { JoreRoute, JoreRouteSegment, JoreStop } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { createStopObject } from '../objects/createStopObject'
 import { search } from '../filters/search'
@@ -19,7 +19,7 @@ import { ValidityRange } from '../types/ValidityRange'
 import { Dictionary } from '../types/Dictionary'
 
 // Result from the query is a join of a stop and route segments.
-type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute & JoreLine
+type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute
 
 export async function createStopResponse(
   getStops: () => Promise<JoreCombinedStop[]>,
@@ -54,7 +54,6 @@ export async function createStopResponse(
           id: `stop_route_${stopRouteData.route_id}_${stopRouteData.direction}_${
             stopRouteData.date_begin
           }_${stopRouteData.date_end}`,
-          lineId: stopRouteData.line_id,
           direction: getDirection(stopRouteData.direction),
           routeId: stopRouteData.route_id,
           isTimingStop: !!stopRouteData.timing_stop_type,

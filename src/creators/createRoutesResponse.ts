@@ -56,7 +56,6 @@ export async function createRoutesResponse(
   getCancellations,
   getAlerts,
   date: string,
-  line?: string,
   filter?: RouteFilterInput
 ): Promise<Route[]> {
   const fetchAndValidate: CachedFetcher<Route[]> = async () => {
@@ -102,5 +101,5 @@ export async function createRoutesResponse(
     return []
   }
 
-  return filterRoutes(validRoutes, line, filter)
+  return filterRoutes(validRoutes, filter)
 }

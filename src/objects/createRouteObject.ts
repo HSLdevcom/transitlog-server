@@ -14,7 +14,6 @@ export function createRouteObject(
 ): Route {
   return {
     id: createRouteId(route),
-    lineId: get(route, 'line_id', ''),
     routeId: route.route_id,
     direction: getDirection(route.direction),
     origin: route.origin_fi,

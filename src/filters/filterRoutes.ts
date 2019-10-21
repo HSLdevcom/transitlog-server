@@ -3,11 +3,7 @@ import { Route, RouteFilterInput } from '../types/generated/schema-types'
 import { search } from './search'
 import { getDirection } from '../utils/getDirection'
 
-export function filterRoutes(routes: Route[], line?: string, filter?: RouteFilterInput) {
-  if (line) {
-    return routes.filter((route) => get(route, 'lineId', '') === line)
-  }
-
+export function filterRoutes(routes: Route[], filter?: RouteFilterInput) {
   const routeIdFilter = get(filter, 'routeId', '')
   const directionFilter = getDirection(get(filter, 'direction', ''))
 
