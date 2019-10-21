@@ -27,7 +27,6 @@ export const createVehicleJourneyObject = (
       (typeof event.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
     routeId: get(event, 'route_id', '') || '',
     direction: getDirection(event.direction_id),
-    originStopId: get(event, 'next_stop_id', ''), // TODO: get the correct one
     departureDate,
     departureTime,
     uniqueVehicleId: createUniqueVehicleId(event.owner_operator_id, event.vehicle_number),
@@ -39,7 +38,6 @@ export const createVehicleJourneyObject = (
     recordedAtUnix: parseInt(event.tsi, 10),
     recordedTime: getJourneyEventTime(event),
     timeDifference: departureDiff,
-    nextStopId: get(event, 'next_stop_id', '') || '',
     alerts,
     cancellations: [],
     isCancelled: false,
