@@ -32,7 +32,7 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
-    stopId: event.stop || null,
+    stopId: (event.stop || '') + '' || null,
     lat: event.lat,
     lng: event.long,
   }
@@ -127,7 +127,7 @@ export function createJourneyStopEventObject(
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
-    stopId: get(event, 'stop', get(stop, 'stopId', get(departure, 'stopId'))) + '',
+    stopId: get(stopData, 'stopId', get(event, 'stopId')) + '',
     nextStopId: (event.next_stop_id || '') + '',
     stopped,
     doorsOpened,

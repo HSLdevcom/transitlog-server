@@ -121,7 +121,7 @@ export function createPlannedDepartureObject(
 
   return {
     id: prefix + '/' + departureId,
-    stopId: get(departure, 'stop_id', get(stop, 'stopId', '')),
+    stopId: get(departure, 'stop_id', get(stop, 'stopId', '')) + '',
     dayType: departure.day_type,
     equipmentType: departure.equipment_type,
     equipmentIsRequired: !!departure.equipment_required,

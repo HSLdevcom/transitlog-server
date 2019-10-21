@@ -21,7 +21,17 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, flatten, get, groupBy, orderBy, unionBy, last, reverse } from 'lodash'
+import {
+  compact,
+  flatten,
+  get,
+  groupBy,
+  last,
+  orderBy,
+  reverse,
+  uniqBy,
+  unionBy,
+} from 'lodash'
 import { createJourneyObject } from '../objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -43,15 +53,17 @@ import {
   createJourneyStopEventObject,
   createPlannedStopEventObject,
 } from '../objects/createJourneyEventObject'
-import pMap from 'p-map'
 import { createStopObject } from '../objects/createStopObject'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { isToday, parse } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
 import { AuthenticatedUser } from '../types/Authentication'
-import { requireUser, requireVehicleAuthorization } from '../auth/requireUser'
-import { intval, isWithinRange } from '../utils/isWithinRange'
+import { requireVehicleAuthorization } from '../auth/requireUser'
+import { intval } from '../utils/isWithinRange'
+import BoundingBox from 'boundingbox'
+import { toLatLngBounds } from '../geometry/LatLngBounds'
+import { toLatLng } from '../geometry/LatLng'
 
 type JourneyRoute = {
   route: Route | null
@@ -432,7 +444,7 @@ export async function createJourneyResponse(
     journeyEquipment = get(fetchedEquipment, '[0]', null) || null
   }
 
-  // Create virtual ARS and DEP stop events from the vehicle positions.
+  // Create virtual ARS, DEP/PDE and DOO stop events from the vehicle positions.
   const virtualStopEvents = createVirtualStopEvents(vehiclePositions, departures)
 
   // Patch the stop events collection with virtual stop
@@ -440,54 +452,83 @@ export async function createJourneyResponse(
   const patchedStopEvents = unionBy(
     stopEvents,
     virtualStopEvents,
-    (event) => event.event_type + event.stop
+    (event: Vehicles) => `${event.event_type}_${event.stop}`
   )
 
-  // Get a listing of all stops visited during this journey, regardless of whether or not
-  // the stop was planned.
-  const stopGroupedEvents = groupBy(patchedStopEvents, (event) =>
-    event.stop ? event.stop : event.next_stop_id
+  // Get a listing of all stops visited during this journey,
+  // regardless of whether or not the stop was planned.
+  const stopGroupedEvents: { [key: string]: Vehicles[] } = groupBy(patchedStopEvents, (evt) =>
+    evt.stop ? evt.stop + '' : evt.next_stop_id ? evt.next_stop_id : 'unknown'
   )
 
-  const stopEventObjects = await pMap(
-    Object.entries(stopGroupedEvents),
-    async ([stopId, eventsForStop]) => {
-      const departure: Departure | undefined = departures.find((dep) => dep.stopId === stopId)
-      let stop: Stop | null = get(departure, 'stop', null)
+  const stopEventObjects: Array<JourneyEvent | JourneyStopEvent> = []
 
-      if (!stop) {
-        const joreStop = await getStop(stopId)
+  for (const [stopId, eventsForStop] of Object.entries(stopGroupedEvents)) {
+    const stopIdString = (stopId || '') + ''
 
-        if (joreStop) {
-          const stopAlerts = journeyAlerts.filter(
-            (alert) =>
-              alert.distribution === AlertDistribution.AllStops ||
-              alert.affectedId === joreStop.stop_id
-          )
+    const departure: Departure | undefined = departures.find((dep) => {
+      if (stopIdString !== 'unknown') {
+        return dep.stopId === stopIdString
+      }
 
-          stop = createStopObject(joreStop, [], stopAlerts)
+      if (!dep.stop) {
+        return false
+      }
+
+      console.log('Finding from stop location')
+
+      const { lat, lng } = dep.stop
+      const stopArea = toLatLng(lat, lng).toBounds(100)
+
+      for (const evt of eventsForStop) {
+        if (stopArea.contains([evt.lat, evt.long])) {
+          console.log('found event stop')
+          return true
         }
       }
 
-      if (departure) {
-        setAlertsOnDeparture(departure, journeyAlerts)
+      return false
+    })
+
+    let stop: Stop | null = get(departure, 'stop', null)
+
+    if (!stop) {
+      const joreStop = await getStop(stopIdString)
+
+      if (joreStop) {
+        const stopAlerts = journeyAlerts.filter(
+          (alert) =>
+            alert.distribution === AlertDistribution.AllStops ||
+            alert.affectedId === joreStop.stop_id
+        )
+
+        stop = createStopObject(joreStop, [], stopAlerts)
       }
-
-      const doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
-      const stopped = eventsForStop.some((evt) => evt.event_type !== 'PAS')
-
-      const useDEP = get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
-
-      return eventsForStop.map((event) =>
-        ['ARS', useDEP ? 'DEP' : 'PDE'].includes(event.event_type)
-          ? createJourneyStopEventObject(event, departure || null, stop, doorsOpened, stopped)
-          : createJourneyEventObject(event)
-      )
     }
-  )
+
+    if (departure) {
+      setAlertsOnDeparture(departure, journeyAlerts)
+    }
+
+    const doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
+    const stopped = eventsForStop.some((evt) => evt.event_type !== 'PAS')
+
+    const useDEP = get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
+
+    const stopEvents = eventsForStop.map((event) =>
+      stop && ['ARS', useDEP ? 'DEP' : 'PDE'].includes(event.event_type)
+        ? createJourneyStopEventObject(event, departure || null, stop, doorsOpened, stopped)
+        : createJourneyEventObject(event)
+    )
+
+    for (const stopEvent of stopEvents) {
+      stopEventObjects.push(stopEvent)
+    }
+  }
 
   // Create event objects from other events
   const otherEvents = events.map((event) => createJourneyEventObject(event))
+
   const flatStopEventObjects: Array<JourneyEvent | JourneyStopEvent> = flatten(
     stopEventObjects
   )

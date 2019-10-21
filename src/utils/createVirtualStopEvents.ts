@@ -4,7 +4,7 @@ import { getStopDepartureEvent } from './getStopDepartureData'
 import { EventType, Vehicles } from '../types/EventsDb'
 import { get } from 'lodash'
 
-export const createVirtualStopEvents = (vehiclePositions, departures) => {
+export const createVirtualStopEvents = (vehiclePositions, departures): Vehicles[] => {
   const virtualStopEvents: Vehicles[] = []
 
   for (const departure of departures) {
@@ -50,9 +50,12 @@ export const createVirtualStopEvents = (vehiclePositions, departures) => {
 }
 
 function createVirtualEvent(positionEvent: Vehicles, type: EventType): Vehicles {
+  const stopId: number | null = positionEvent.stop
+
   return {
     ...positionEvent,
     event_type: type,
-    stop: positionEvent.stop || positionEvent.next_stop_id || null,
+    stop: stopId,
+    next_stop_id: null,
   }
 }

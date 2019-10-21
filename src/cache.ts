@@ -1,5 +1,5 @@
 import Redis, { Redis as RedisType } from 'ioredis'
-import { REDIS_HOST, REDIS_PORT } from './constants'
+import { REDIS_HOST, REDIS_PORT, DISABLE_CACHE } from './constants'
 import { get } from 'lodash'
 
 let redisClient: RedisType | null = null
@@ -56,6 +56,10 @@ export async function cacheFetch<DataType = any>(
   ttl: number | ((data: DataType) => number) = 30 * 24 * 60 * 60,
   forceFetch: boolean = false
 ): Promise<DataType | null> {
+  // Force a fetch, circumventing the cache, if cache is disabled from env
+  // or for this specific call. The result will still be cached for future use.
+  const useTheForce = DISABLE_CACHE || forceFetch
+
   if (!cacheKey) {
     const uncachedData = await fetchData()
     return uncachedData || null
@@ -66,7 +70,9 @@ export async function cacheFetch<DataType = any>(
   const computedCacheKey = typeof cacheKey === 'function' ? cacheKey() : cacheKey
 
   const fetchFromCacheOrDb = async (usingCacheKey) => {
-    if (usingCacheKey && !forceFetch) {
+    // If useTheForce is true we skip getting the data
+    // from the cache and proceed to fetching it.
+    if (usingCacheKey && !useTheForce) {
       const cachedData = await getItem<DataType>(usingCacheKey)
 
       if (cachedData) {

@@ -1941,10 +1941,10 @@ body-parser@1.18.3, body-parser@^1.18.3:
     raw-body "2.3.3"
     type-is "~1.6.16"
 
-boundingbox@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundingbox/-/boundingbox-1.1.0.tgz#94b7121295299f65267eb9c2ab65c648e4f17e79"
-  integrity sha512-97umxPJiSKKO7TiYpwYbVnpk3KKpTM7l+GdI2bn5HgxWPXTeoh73N30S2H9feFmme7dAQOyJWZWL+oxHts36xg==
+boundingbox@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/boundingbox/-/boundingbox-1.2.0.tgz#ed5cebada33483fe6640458da29e8ef6d26ee302"
+  integrity sha512-2Wx6ZJ/9+pCs9+/SgXVzqFDOxfWlXZHSb2dsBaSc1wtoTsj9k4g6tKD9dZIwnGYpj6ly4BMx/+ccpZl6ZnIPuQ==
   dependencies:
     geojson-bounds "*"
     haversine "^1.1.1"

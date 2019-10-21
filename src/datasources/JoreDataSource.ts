@@ -162,7 +162,7 @@ WHERE stop.stop_id = :stopId;`,
       FROM :schema:.stop stop, :schema:.stop_modes(stop, null) modes
         WHERE stop.stop_id = :stopId;
     `,
-      { schema: SCHEMA, stopId }
+      { schema: SCHEMA, stopId: (stopId || '') + '' }
     )
 
     const result = await this.getBatched(query)

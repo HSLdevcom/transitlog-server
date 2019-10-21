@@ -24,7 +24,7 @@ export function createStopObject(
 
   return {
     id: stop.stop_id,
-    stopId: stop.stop_id,
+    stopId: stop.stop_id + '',
     shortId: stop.short_id,
     lat: stop.lat,
     lng: stop.lon,
