@@ -20,12 +20,6 @@ export interface RouteFilterInput {
   search?: Maybe<string>
 }
 
-export interface LineFilterInput {
-  search?: Maybe<string>
-
-  includeLinesWithoutRoutes?: Maybe<boolean>
-}
-
 export interface DepartureFilterInput {
   routeId?: Maybe<string>
 
@@ -225,14 +219,14 @@ export type Direction = any
 /** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
 export type DateTime = any
 
-/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
-export type PreciseBBox = any
-
 /** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. The timezone is assumed to be Europe/Helsinki */
 export type Time = any
 
 /** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */
 export type VehicleId = any
+
+/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
+export type PreciseBBox = any
 
 /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
 export type BBox = any
@@ -266,8 +260,6 @@ export interface Query {
 
   stops: Array<Maybe<Stop>>
 
-  stopsByBbox: Array<Maybe<Stop>>
-
   route?: Maybe<Route>
 
   routes: Array<Maybe<Route>>
@@ -275,8 +267,6 @@ export interface Query {
   routeGeometry?: Maybe<RouteGeometry>
 
   routeSegments: Array<Maybe<RouteSegment>>
-
-  lines: Array<Maybe<Line>>
 
   departures: Array<Maybe<Departure>>
 
@@ -292,9 +282,9 @@ export interface Query {
 
   vehicleJourneys: Array<Maybe<VehicleJourney>>
 
-  unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
+  journeysByBbox: Array<Maybe<Journey>>
 
-  eventsByBbox: Array<Maybe<AreaJourney>>
+  unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
 
   alerts: Alert[]
 
@@ -362,8 +352,6 @@ export interface StopRoute {
 
   originStopId?: Maybe<string>
 
-  lineId?: Maybe<string>
-
   routeId: string
 
   direction: Direction
@@ -401,8 +389,6 @@ export interface Alert {
 
 export interface Route {
   id: string
-
-  lineId: string
 
   routeId: string
 
@@ -472,8 +458,6 @@ export interface RouteGeometryPoint extends Position {
 export interface RouteSegment extends Position {
   id: string
 
-  lineId?: Maybe<string>
-
   routeId: string
 
   direction: Direction
@@ -509,18 +493,6 @@ export interface RouteSegment extends Position {
   alerts: Alert[]
 
   cancellations: Cancellation[]
-}
-
-export interface Line {
-  id: string
-
-  lineId: string
-
-  name?: Maybe<string>
-
-  routesCount?: Maybe<number>
-
-  _matchScore?: Maybe<number>
 }
 
 export interface Departure {
@@ -593,8 +565,6 @@ export interface DepartureJourney {
   journeyType: string
 
   type: string
-
-  lineId?: Maybe<string>
 
   routeId?: Maybe<string>
 
@@ -776,8 +746,6 @@ export interface Journey {
 
   journeyType: string
 
-  lineId?: Maybe<string>
-
   routeId?: Maybe<string>
 
   direction?: Maybe<Direction>
@@ -894,13 +862,9 @@ export interface VehicleJourney {
 
   journeyType: string
 
-  lineId?: Maybe<string>
-
   routeId?: Maybe<string>
 
   direction?: Maybe<Direction>
-
-  originStopId?: Maybe<string>
 
   departureDate: Date
 
@@ -923,42 +887,6 @@ export interface VehicleJourney {
   recordedTime: Time
 
   timeDifference: number
-
-  nextStopId?: Maybe<string>
-
-  alerts: Alert[]
-
-  cancellations: Cancellation[]
-
-  isCancelled: boolean
-}
-
-export interface AreaJourney {
-  id: string
-
-  journeyType: string
-
-  lineId?: Maybe<string>
-
-  routeId?: Maybe<string>
-
-  direction?: Maybe<Direction>
-
-  departureDate: Date
-
-  departureTime: Time
-
-  uniqueVehicleId?: Maybe<VehicleId>
-
-  operatorId?: Maybe<string>
-
-  vehicleId?: Maybe<string>
-
-  headsign?: Maybe<string>
-
-  mode?: Maybe<string>
-
-  vehiclePositions: Array<Maybe<VehiclePosition>>
 
   alerts: Alert[]
 
@@ -992,13 +920,6 @@ export interface StopsQueryArgs {
 
   filter?: Maybe<StopFilterInput>
 }
-export interface StopsByBboxQueryArgs {
-  filter?: Maybe<StopFilterInput>
-
-  bbox: PreciseBBox
-
-  date: Date
-}
 export interface RouteQueryArgs {
   routeId: string
 
@@ -1008,8 +929,6 @@ export interface RouteQueryArgs {
 }
 export interface RoutesQueryArgs {
   filter?: Maybe<RouteFilterInput>
-
-  line?: Maybe<string>
 
   date?: Maybe<Date>
 }
@@ -1026,13 +945,6 @@ export interface RouteSegmentsQueryArgs {
   direction: Direction
 
   date: Date
-}
-export interface LinesQueryArgs {
-  filter?: Maybe<LineFilterInput>
-
-  date?: Maybe<Date>
-
-  includeLinesWithoutRoutes?: boolean
 }
 export interface DeparturesQueryArgs {
   filter?: Maybe<DepartureFilterInput>
@@ -1091,12 +1003,7 @@ export interface VehicleJourneysQueryArgs {
 
   unsignedEvents?: Maybe<boolean>
 }
-export interface UnsignedVehicleEventsQueryArgs {
-  uniqueVehicleId: VehicleId
-
-  date: Date
-}
-export interface EventsByBboxQueryArgs {
+export interface JourneysByBboxQueryArgs {
   minTime: DateTime
 
   maxTime: DateTime
@@ -1108,6 +1015,11 @@ export interface EventsByBboxQueryArgs {
   filters?: Maybe<AreaEventsFilterInput>
 
   unsignedEvents?: Maybe<boolean>
+}
+export interface UnsignedVehicleEventsQueryArgs {
+  uniqueVehicleId: VehicleId
+
+  date: Date
 }
 export interface AlertsQueryArgs {
   time?: Maybe<string>

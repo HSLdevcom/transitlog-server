@@ -6,7 +6,7 @@ import { DATE_FORMAT, TZ } from '../constants'
 import { Departure, ObservedArrival } from '../types/generated/schema-types'
 import { get, reverse } from 'lodash'
 import { createJourneyId } from './createJourneyId'
-import { createDepartureId } from '../app/objects/createDepartureObject'
+import { createDepartureId } from '../objects/createDepartureObject'
 import { Vehicles } from '../types/EventsDb'
 import { getJourneyEventTime } from './time'
 

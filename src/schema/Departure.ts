@@ -37,7 +37,6 @@ export const Departure = gql`
     id: ID!
     journeyType: String!
     type: String!
-    lineId: String
     routeId: String
     direction: Direction
     originStopId: String

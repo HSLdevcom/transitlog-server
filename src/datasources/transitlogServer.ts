@@ -1,5 +1,5 @@
 import { databases, getKnex } from '../knex'
-import { createDatabase } from '../app/admin/createDatabase'
+import { createDatabase } from '../admin/createDatabase'
 import { merge } from 'lodash'
 import { Transaction } from 'knex'
 

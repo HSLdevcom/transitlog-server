@@ -3,7 +3,6 @@ import {
   JoreDepartureWithOrigin,
   JoreEquipment,
   JoreExceptionDay,
-  JoreLine,
   JoreRoute,
   JoreRouteData,
   JoreRouteDepartureData,
@@ -14,11 +13,11 @@ import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { orderBy, uniq } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
-import { JourneyRouteData } from '../app/createJourneyResponse'
+import { JourneyRouteData } from '../creators/createJourneyResponse'
 import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'date-fns'
-import { cacheFetch } from '../app/cache'
+import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
-import { createExceptionDayObject } from '../app/objects/createExceptionDayObject'
+import { createExceptionDayObject } from '../objects/createExceptionDayObject'
 import { databases, getKnex } from '../knex'
 
 const SCHEMA = 'jore'
@@ -35,21 +34,11 @@ export class JoreDataSource extends SQLDataSource {
     this.knex = knex
   }
 
-  async getLines(): Promise<JoreLine[]> {
-    const query = this.db
-      .withSchema(SCHEMA)
-      .select()
-      .from('line')
-
-    return this.getBatched(query)
-  }
-
   async getRoutes(): Promise<JoreRoute[]> {
     const query = this.db.raw(
       `
       SELECT
         route.route_id,
-        line.line_id,
         route.direction,
         route.destination_fi,
         route.destinationstop_id,
@@ -62,8 +51,7 @@ export class JoreDataSource extends SQLDataSource {
         route.date_modified,
         mode.mode
       FROM :schema:.route route,
-           :schema:.route_mode(route) mode,
-           :schema:.route_line(route) line;
+           :schema:.route_mode(route) mode;
     `,
       { schema: SCHEMA }
     )
@@ -76,7 +64,6 @@ export class JoreDataSource extends SQLDataSource {
       `
       SELECT
         route.route_id,
-        line.line_id,
         route.direction,
         route.destination_fi,
         route.destinationstop_id,
@@ -89,8 +76,7 @@ export class JoreDataSource extends SQLDataSource {
         route.date_modified,
         mode.mode
       FROM :schema:.route route,
-           :schema:.route_mode(route) mode,
-           :schema:.route_line(route) line
+           :schema:.route_mode(route) mode
       WHERE route.route_id = :routeId
         AND route.direction = :direction;
     `,
@@ -140,7 +126,6 @@ WHERE route.route_id = :routeId
        route.direction,
        route.originstop_id,
        route.name_fi as route_name,
-       line.line_id,
        mode.mode,
        route_segment.date_begin,
        route_segment.date_end,
@@ -155,7 +140,6 @@ WHERE route.route_id = :routeId
        stop.stop_radius
 FROM :schema:.stop stop,
      :schema:.stop_route_segments_for_date(stop, :date) route_segment,
-     :schema:.route_segment_line(route_segment) line,
      :schema:.route_segment_route(route_segment, :date) route,
      :schema:.route_mode(route) as mode
 WHERE stop.stop_id = :stopId;`,
@@ -265,7 +249,6 @@ WHERE stop.stop_id = :stopId;`,
        route.destinationstop_id,
        route.originstop_id,
        mode.mode,
-       line.line_id,
        route_segment.next_stop_id,
        route_segment.date_begin,
        route_segment.date_end,
@@ -284,7 +267,6 @@ WHERE stop.stop_id = :stopId;`,
        stop.stop_radius
 FROM :schema:.route route,
      :schema:.route_mode(route) mode,
-     :schema:.route_line(route) line,
      :schema:.route_route_segments(route) route_segment
 LEFT OUTER JOIN :schema:.stop stop ON stop.stop_id = route_segment.stop_id
 WHERE route.route_id = :routeId AND route.direction = :direction ${
@@ -378,13 +360,11 @@ SELECT stop.stop_id,
        route.destination_fi,
        route.origin_fi,
        route.name_fi as route_name,
-       line.line_id,
        mode.mode
 FROM :schema:.route_segment route_segment
      LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
      :schema:.route_segment_route(route_segment, :date) route,
-     :schema:.route_mode(route) mode,
-     :schema:.route_line(route) line
+     :schema:.route_mode(route) mode
 WHERE route_segment.route_id = :routeId
   AND route_segment.direction = :direction;`,
       { schema: SCHEMA, routeId, direction: direction + '', date }
@@ -429,13 +409,11 @@ SELECT stop.stop_id,
        route.destination_fi,
        route.origin_fi,
        route.name_fi as route_name,
-       line.line_id,
        mode.mode
 FROM :schema:.route_segment route_segment
      LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
      :schema:.route_segment_route(route_segment, null) route,
-     :schema:.route_mode(route) mode,
-     :schema:.route_line(route) line
+     :schema:.route_mode(route) mode
 WHERE route_segment.stop_id = :stopId;`,
       { schema: SCHEMA, stopId, date }
     )
