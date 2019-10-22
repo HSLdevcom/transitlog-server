@@ -452,7 +452,7 @@ export async function createJourneyResponse(
   const stopEventObjects: Array<JourneyEvent | JourneyStopEvent> = []
 
   for (const [stopId, eventsForStop] of Object.entries(stopGroupedEvents)) {
-    const stopIdString: string = (stopId || '') + ''
+    // Use matchedStopId to search for a stop if none is attached to the departure.
     let matchedStopId: string = ''
     let departure: Departure | undefined
     let stop: Stop | null = null
@@ -461,7 +461,9 @@ export async function createJourneyResponse(
       // If the event has no stopId (= unknown), match a departure to each event in
       // the group by matching the event and departure stop locations.
       if (stopId === 'unknown') {
+        // Reset matchedStopId because events in the "unknown" group may not belong to the same stop.
         matchedStopId = ''
+        // Match events without stopIds to stops by location.
         departure = departures.find((dep) => {
           // If the departure has no stop (very unlikely)
           // we can't match with the stop location
@@ -471,7 +473,7 @@ export async function createJourneyResponse(
 
           // Match the departure to the event by stop and event location
           const { lat, lng } = dep.stop
-          const stopArea = toLatLng(lat, lng).toBounds(100)
+          const stopArea = toLatLng(lat, lng).toBounds(200) // Search around 100m in each direction
 
           if (stopArea.contains([eventItem.lat, eventItem.long])) {
             return true
@@ -484,15 +486,8 @@ export async function createJourneyResponse(
           matchedStopId = departure.stopId || ''
         }
       } else if (!departure) {
-        matchedStopId = stopIdString
-        departure = departures.find((dep) => dep.stopId === stopIdString)
-      }
-
-      // If we don't have a departure at this point it's probably not a stop event after all.
-      if (!departure) {
-        const eventObj = createJourneyEventObject(eventItem)
-        stopEventObjects.push(eventObj)
-        continue
+        matchedStopId = stopId + ''
+        departure = departures.find((dep) => dep.stopId === stopId + '')
       }
 
       // Try to get the stop from the departure
@@ -500,7 +495,7 @@ export async function createJourneyResponse(
         stop = get(departure, 'stop', null)
       }
 
-      // If that didn't work, fetch the stop with the stopId we have.
+      // If that didn't work, fetch the stop from JORE with the stopId we have.
       if (!stop && matchedStopId) {
         const joreStop = await getStop(matchedStopId)
 
@@ -515,25 +510,34 @@ export async function createJourneyResponse(
         }
       }
 
-      setAlertsOnDeparture(departure, journeyAlerts)
+      if (departure) {
+        setAlertsOnDeparture(departure, journeyAlerts)
+      }
 
       const doorsOpened = eventItem.event_type === 'DOO'
       const stopped = eventItem.event_type !== 'PAS'
 
       const useDEP = get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
+      const shouldCreateStopEventObject =
+        !!stop && ['ARS', useDEP ? 'DEP' : 'PDE'].includes(eventItem.event_type)
 
-      const stopEventObject =
-        stop && ['ARS', useDEP ? 'DEP' : 'PDE'].includes(eventItem.event_type)
-          ? createJourneyStopEventObject(
-              eventItem,
-              departure || null,
-              stop,
-              doorsOpened,
-              stopped
-            )
-          : createJourneyEventObject(eventItem)
+      let eventObject: JourneyStopEvent | JourneyEvent | null = null
 
-      stopEventObjects.push(stopEventObject)
+      if (!shouldCreateStopEventObject) {
+        eventObject = createJourneyEventObject(eventItem)
+      } else if (shouldCreateStopEventObject) {
+        eventObject = createJourneyStopEventObject(
+          eventItem,
+          departure || null,
+          stop,
+          doorsOpened,
+          stopped
+        )
+      }
+
+      if (eventObject) {
+        stopEventObjects.push(eventObject)
+      }
     }
   }
 
@@ -577,7 +581,7 @@ export async function createJourneyResponse(
   let finalPositions = vehiclePositions
 
   // Get unsigned events that happened before and after the journey.
-  if (userAuthorizedForVehicle) {
+  if (userAuthorizedForVehicle && shouldFetchUnsignedEvents) {
     const firstEvent = vehiclePositions[0]
     const lastEvent = last(vehiclePositions)
 
