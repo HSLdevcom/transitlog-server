@@ -41,8 +41,8 @@ const vehicleFields = [
 ]
 
 const unsignedEventFields = [
-  /*'journey_type',
-  'event_type',*/
+  'journey_type',
+  'event_type',
   'unique_vehicle_id',
   'tst',
   'tsi',
@@ -338,8 +338,6 @@ ORDER BY journey_start_time, tst;
       }
     )
 
-    console.log(query.toString())
-
     let vehicles: Vehicles[] = await this.getBatched(query)
 
     if (!uniqueVehicleId && vehicles.length !== 0) {
@@ -481,10 +479,10 @@ ORDER BY tst;
     const query = this.db.raw(
       `
       SELECT ${unsignedEventFields.join(',')}
-      FROM unsigned_events_continuous_aggregate
+      FROM vehicles
       WHERE tst >= :minTime AND tst < :maxTime
-        -- AND journey_type = 'deadrun'
-        -- AND event_type = 'VP'
+        AND journey_type = 'deadrun'
+        AND event_type = 'VP'
         AND unique_vehicle_id = :vehicleId
       ORDER BY tst;
     `,
