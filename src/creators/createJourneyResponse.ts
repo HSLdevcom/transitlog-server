@@ -554,7 +554,7 @@ export async function createJourneyResponse(
       const stopWithEvent = flatStopEventObjects.some(
         (evt) =>
           get(evt, 'stopId', '') === plannedEvent.stopId &&
-          get(evt, 'index', -1) === plannedEvent.index
+          get(evt, 'plannedDateTime', '') === plannedEvent.plannedDateTime
       )
 
       if (!stopWithEvent) {
