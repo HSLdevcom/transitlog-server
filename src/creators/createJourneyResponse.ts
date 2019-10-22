@@ -475,14 +475,11 @@ export async function createJourneyResponse(
         return false
       }
 
-      console.log('Finding from stop location')
-
       const { lat, lng } = dep.stop
       const stopArea = toLatLng(lat, lng).toBounds(100)
 
       for (const evt of eventsForStop) {
         if (stopArea.contains([evt.lat, evt.long])) {
-          console.log('found event stop')
           return true
         }
       }

@@ -323,11 +323,10 @@ ORDER BY journey_start_time, tst;
           AND tst < :maxTime
           AND journey_type = 'journey'
           ${uniqueVehicleId ? `AND unique_vehicle_id = :vehicleId` : ''}
-          AND oday = :departureDate
           AND route_id = :routeId
           AND direction_id = :direction
           AND journey_start_time = :departureTime
-        ORDER BY tst DESC;`,
+        ORDER BY tst ASC;`,
       {
         departureDate,
         departureTime: getNormalTime(departureTime),
