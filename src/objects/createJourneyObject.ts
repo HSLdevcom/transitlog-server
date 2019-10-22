@@ -1,5 +1,5 @@
 import { createJourneyId } from '../utils/createJourneyId'
-import { createUniqueVehicleId, createValidVehicleId } from '../utils/createUniqueVehicleId'
+import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 import {
   Alert,
   Cancellation,

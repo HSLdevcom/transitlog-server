@@ -95,7 +95,7 @@ export interface Vehicles {
   line: Maybe<number>
   long: Maybe<number>
   mode: Maybe<string>
-  stop: Maybe<string>
+  stop: Maybe<number>
   next_stop_id: Maybe<string>
   oday: string
   odo: number

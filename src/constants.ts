@@ -76,3 +76,4 @@ export const DEBUG = secretsEnv.DEBUG || 'false'
 
 export const REDIS_HOST = secretsEnv.REDIS_HOST || '0.0.0.0'
 export const REDIS_PORT = secretsEnv.REDIS_PORT || 6379
+export const DISABLE_CACHE = secretsEnv.DISABLE_CACHE === 'true'

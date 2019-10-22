@@ -41,7 +41,6 @@ const combineDeparturesAndEvents = (
 ): Departure[] => {
   // Link observed events to departures.
   const departuresWithEvents: Departure[] = departures.map((departure) => {
-    let plannedIsNextDay = false
     let plannedDate = ''
     let originDepartureTime = ''
 
@@ -50,13 +49,11 @@ const combineDeparturesAndEvents = (
     const dayType = get(departure, 'dayType', '')
 
     if (lastStopArrival) {
-      plannedIsNextDay = get(departure, 'plannedArrivalTime.isNextDay', false)
       plannedDate = get(departure, 'plannedArrivalTime.arrivalDate', null)
       originDepartureTime = get(departure, 'originDepartureTime.departureTime', null)
     } else {
       // We can use info that the departure happened during "the next day" when calculating
       // the 24h+ time of the event.
-      plannedIsNextDay = get(departure, 'plannedDepartureTime.isNextDay', false)
       originDepartureTime = get(departure, 'plannedDepartureTime.departureTime', null)
       plannedDate = get(departure, 'plannedDepartureTime.departureDate', null)
     }
@@ -99,7 +96,6 @@ const combineDeparturesAndEvents = (
 
     const departureJourney = createDepartureJourneyObject(
       firstInstanceEvents,
-      plannedIsNextDay,
       firstStopId,
       0,
       get(departure, 'mode', Mode.Bus) as Mode

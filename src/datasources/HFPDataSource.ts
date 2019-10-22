@@ -7,6 +7,7 @@ import SQLDataSource from '../utils/SQLDataSource'
 import { DBAlert, DBCancellation, Vehicles } from '../types/EventsDb'
 import { databases, getKnex } from '../knex'
 import { isBefore } from 'date-fns'
+import { Moment } from 'moment'
 
 const knex: Knex = getKnex(databases.HFP)
 
@@ -40,8 +41,8 @@ const vehicleFields = [
 ]
 
 const unsignedEventFields = [
-  /*'journey_type',
-  'event_type',*/
+  'journey_type',
+  'event_type',
   'unique_vehicle_id',
   'tst',
   'tsi',
@@ -117,20 +118,22 @@ type TstRange = {
   maxTime: string
 }
 
-function createTstRange(date): TstRange {
-  const minTime = moment
-    .tz(date, TZ)
+function createTstRange(date: string): TstRange {
+  const minTimeMoment = moment(date)
+    .tz(TZ)
     .startOf('day')
     .add(4, 'hours')
-    .utc()
-    .format('YYYY-MM-DD HH:mm:ss.SSSSSS')
 
-  const maxTime = moment
-    .tz(date, TZ)
-    .endOf('day')
-    .add(5, 'hours')
+  const minTime = minTimeMoment
+    .clone()
     .utc()
-    .format('YYYY-MM-DD HH:mm:ss.SSSSSS')
+    .format('YYYY-MM-DD HH:mm:ss.SSS')
+
+  const maxTime = minTimeMoment
+    .endOf('day')
+    .add(6, 'hours')
+    .utc()
+    .format('YYYY-MM-DD HH:mm:ss.SSS')
 
   return { minTime, maxTime }
 }
@@ -305,32 +308,27 @@ ORDER BY journey_start_time, tst;
 
     const { minTime, maxTime } = createTstRange(departureDate)
 
-    let query = this.db('vehicles')
-      .select(vehicleFields)
-      .whereBetween('tst', [minTime, maxTime])
-      .where('oday', departureDate)
-      .where('route_id', routeId)
-      .where('direction_id', direction)
-      .where('journey_start_time', getNormalTime(departureTime))
-      .orderBy('tst', 'ASC')
-
-    if (uniqueVehicleId) {
-      query = query.where('unique_vehicle_id', `${operatorId}/${vehicleId}`)
-    }
-
-    // Ensure the correct events are returned by limiting the results to timestamps
-    // after the departure date if we are dealing with a 24h+ journey.
-    if (isNextDay(departureTime)) {
-      // Note that tst is UTC time so we should not give it a time with a timezone.
-      query = query.where(
-        'tst',
-        '>',
-        moment
-          .tz(departureDate, TZ)
-          .endOf('day')
-          .toISOString()
-      )
-    }
+    const query = this.db.raw(
+      `SELECT ${vehicleFields.join(',')}
+        FROM vehicles
+        WHERE tst >= :minTime
+          AND tst <= :maxTime
+          AND journey_type = 'journey'
+          ${uniqueVehicleId ? `AND unique_vehicle_id = :vehicleId` : ''}
+          AND route_id = :routeId
+          AND direction_id = :direction
+          AND journey_start_time = :departureTime
+        ORDER BY tst ASC;`,
+      {
+        departureDate,
+        departureTime: getNormalTime(departureTime),
+        minTime,
+        maxTime,
+        routeId,
+        direction,
+        vehicleId: `${operatorId}/${vehicleId}`,
+      }
+    )
 
     let vehicles: Vehicles[] = await this.getBatched(query)
 
@@ -473,10 +471,10 @@ ORDER BY tst;
     const query = this.db.raw(
       `
       SELECT ${unsignedEventFields.join(',')}
-      FROM unsigned_events_continuous_aggregate
+      FROM vehicles
       WHERE tst >= :minTime AND tst < :maxTime
-        -- AND journey_type = 'deadrun'
-        -- AND event_type = 'VP'
+        AND journey_type = 'deadrun'
+        AND event_type = 'VP'
         AND unique_vehicle_id = :vehicleId
       ORDER BY tst;
     `,

@@ -21,7 +21,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, flatten, get, groupBy, orderBy, unionBy, last, reverse } from 'lodash'
+import { compact, flatten, get, groupBy, last, orderBy, reverse, unionBy } from 'lodash'
 import { createJourneyObject } from '../objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -43,15 +43,15 @@ import {
   createJourneyStopEventObject,
   createPlannedStopEventObject,
 } from '../objects/createJourneyEventObject'
-import pMap from 'p-map'
 import { createStopObject } from '../objects/createStopObject'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { isToday, parse } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
 import { AuthenticatedUser } from '../types/Authentication'
-import { requireUser, requireVehicleAuthorization } from '../auth/requireUser'
-import { intval, isWithinRange } from '../utils/isWithinRange'
+import { requireVehicleAuthorization } from '../auth/requireUser'
+import { intval } from '../utils/isWithinRange'
+import { toLatLng } from '../geometry/LatLng'
 
 type JourneyRoute = {
   route: Route | null
@@ -432,7 +432,7 @@ export async function createJourneyResponse(
     journeyEquipment = get(fetchedEquipment, '[0]', null) || null
   }
 
-  // Create virtual ARS and DEP stop events from the vehicle positions.
+  // Create virtual ARS, DEP/PDE and DOO stop events from the vehicle positions.
   const virtualStopEvents = createVirtualStopEvents(vehiclePositions, departures)
 
   // Patch the stop events collection with virtual stop
@@ -440,23 +440,64 @@ export async function createJourneyResponse(
   const patchedStopEvents = unionBy(
     stopEvents,
     virtualStopEvents,
-    (event) => event.event_type + event.stop
+    (event: Vehicles) => `${event.event_type}_${event.stop}`
   )
 
-  // Get a listing of all stops visited during this journey, regardless of whether or not
-  // the stop was planned.
-  const stopGroupedEvents = groupBy(patchedStopEvents, (event) =>
-    event.stop ? event.stop : event.next_stop_id
+  // Get a listing of all stops visited during this journey,
+  // regardless of whether or not the stop was planned.
+  const stopGroupedEvents: { [key: string]: Vehicles[] } = groupBy(patchedStopEvents, (evt) =>
+    evt.stop ? evt.stop + '' : evt.next_stop_id ? evt.next_stop_id : 'unknown'
   )
 
-  const stopEventObjects = await pMap(
-    Object.entries(stopGroupedEvents),
-    async ([stopId, eventsForStop]) => {
-      const departure: Departure | undefined = departures.find((dep) => dep.stopId === stopId)
-      let stop: Stop | null = get(departure, 'stop', null)
+  const stopEventObjects: Array<JourneyEvent | JourneyStopEvent> = []
 
+  for (const [stopId, eventsForStop] of Object.entries(stopGroupedEvents)) {
+    // Use matchedStopId to search for a stop if none is attached to the departure.
+    let matchedStopId: string = ''
+    let departure: Departure | undefined
+    let stop: Stop | null = null
+
+    for (const eventItem of eventsForStop) {
+      // If the event has no stopId (= unknown), match a departure to each event in
+      // the group by matching the event and departure stop locations.
+      if (stopId === 'unknown') {
+        // Reset matchedStopId because events in the "unknown" group may not belong to the same stop.
+        matchedStopId = ''
+        // Match events without stopIds to stops by location.
+        departure = departures.find((dep) => {
+          // If the departure has no stop (very unlikely)
+          // we can't match with the stop location
+          if (!dep.stop) {
+            return false
+          }
+
+          // Match the departure to the event by stop and event location
+          const { lat, lng } = dep.stop
+          const stopArea = toLatLng(lat, lng).toBounds(200) // Search around 100m in each direction
+
+          if (stopArea.contains([eventItem.lat, eventItem.long])) {
+            return true
+          }
+
+          return false
+        })
+
+        if (departure) {
+          matchedStopId = departure.stopId || ''
+        }
+      } else if (!departure) {
+        matchedStopId = stopId + ''
+        departure = departures.find((dep) => dep.stopId === stopId + '')
+      }
+
+      // Try to get the stop from the departure
       if (!stop) {
-        const joreStop = await getStop(stopId)
+        stop = get(departure, 'stop', null)
+      }
+
+      // If that didn't work, fetch the stop from JORE with the stopId we have.
+      if (!stop && matchedStopId) {
+        const joreStop = await getStop(matchedStopId)
 
         if (joreStop) {
           const stopAlerts = journeyAlerts.filter(
@@ -473,21 +514,41 @@ export async function createJourneyResponse(
         setAlertsOnDeparture(departure, journeyAlerts)
       }
 
-      const doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
-      const stopped = eventsForStop.some((evt) => evt.event_type !== 'PAS')
+      let doorsOpened = !!eventItem.drst
+      let stopped = false
+
+      if (stopId !== 'unknown') {
+        doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
+        stopped = eventsForStop.some((evt) => evt.event_type !== 'PAS')
+      }
 
       const useDEP = get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
+      const shouldCreateStopEventObject =
+        !!stop && ['ARS', useDEP ? 'DEP' : 'PDE'].includes(eventItem.event_type)
 
-      return eventsForStop.map((event) =>
-        ['ARS', useDEP ? 'DEP' : 'PDE'].includes(event.event_type)
-          ? createJourneyStopEventObject(event, departure || null, stop, doorsOpened, stopped)
-          : createJourneyEventObject(event)
-      )
+      let eventObject: JourneyStopEvent | JourneyEvent | null = null
+
+      if (!shouldCreateStopEventObject) {
+        eventObject = createJourneyEventObject(eventItem)
+      } else if (shouldCreateStopEventObject) {
+        eventObject = createJourneyStopEventObject(
+          eventItem,
+          departure || null,
+          stop,
+          doorsOpened,
+          stopped
+        )
+      }
+
+      if (eventObject) {
+        stopEventObjects.push(eventObject)
+      }
     }
-  )
+  }
 
   // Create event objects from other events
   const otherEvents = events.map((event) => createJourneyEventObject(event))
+
   const flatStopEventObjects: Array<JourneyEvent | JourneyStopEvent> = flatten(
     stopEventObjects
   )
@@ -498,7 +559,7 @@ export async function createJourneyResponse(
       const stopWithEvent = flatStopEventObjects.some(
         (evt) =>
           get(evt, 'stopId', '') === plannedEvent.stopId &&
-          get(evt, 'index', -1) === plannedEvent.index
+          get(evt, 'plannedDateTime', '') === plannedEvent.plannedDateTime
       )
 
       if (!stopWithEvent) {
@@ -525,7 +586,7 @@ export async function createJourneyResponse(
   let finalPositions = vehiclePositions
 
   // Get unsigned events that happened before and after the journey.
-  if (userAuthorizedForVehicle) {
+  if (userAuthorizedForVehicle && shouldFetchUnsignedEvents) {
     const firstEvent = vehiclePositions[0]
     const lastEvent = last(vehiclePositions)
 

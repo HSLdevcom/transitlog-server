@@ -92,7 +92,7 @@ export function getJourneyStartTime(event: JourneyType): string {
   const eventDate = moment.tz(recordedAtTimestamp, TZ)
 
   if (!journeyStartTime) {
-    return eventDate.format('HH:mm:ss')
+    return ''
   }
 
   const operationDay = get(event, 'oday', get(event, 'departureDate', false))
