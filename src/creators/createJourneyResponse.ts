@@ -514,8 +514,13 @@ export async function createJourneyResponse(
         setAlertsOnDeparture(departure, journeyAlerts)
       }
 
-      const doorsOpened = eventItem.event_type === 'DOO'
-      const stopped = eventItem.event_type !== 'PAS'
+      let doorsOpened = !!eventItem.drst
+      let stopped = false
+
+      if (stopId !== 'unknown') {
+        doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
+        stopped = eventsForStop.some((evt) => evt.event_type !== 'PAS')
+      }
 
       const useDEP = get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
       const shouldCreateStopEventObject =
