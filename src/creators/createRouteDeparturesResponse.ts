@@ -24,7 +24,6 @@ import {
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
-import { requireUser } from '../auth/requireUser'
 
 // Combines departures and stops into PlannedDepartures.
 export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
@@ -44,8 +43,8 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
     // Since we fetched the actual origin departure, use it
     // to create an origin departure time object.
     departure.origin_departure = {
-      hours: departure.hours || 0,
-      minutes: departure.minutes || 0,
+      hours: departure.hours,
+      minutes: departure.minutes,
       stop_id: departure.stop_id || '',
       departure_id: departure.departure_id || 0,
       is_next_day: departure.is_next_day || false,

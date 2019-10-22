@@ -118,20 +118,20 @@ type TstRange = {
   maxTime: string
 }
 
-function createTstRange(date: string, startTime?: Moment): TstRange {
-  const minTimeMoment = startTime
-    ? startTime.clone()
-    : moment
-        .tz(date, TZ)
-        .startOf('day')
-        .add(4, 'hours')
-        .utc()
+function createTstRange(date: string): TstRange {
+  const minTimeMoment = moment(date)
+    .tz(TZ)
+    .startOf('day')
+    .add(4, 'hours')
 
-  const minTime = minTimeMoment.format('YYYY-MM-DD HH:mm:ss.SSS')
+  const minTime = minTimeMoment
+    .clone()
+    .utc()
+    .format('YYYY-MM-DD HH:mm:ss.SSS')
 
   const maxTime = minTimeMoment
     .endOf('day')
-    .add(5, 'hours')
+    .add(6, 'hours')
     .utc()
     .format('YYYY-MM-DD HH:mm:ss.SSS')
 
@@ -306,21 +306,13 @@ ORDER BY journey_start_time, tst;
       vehicleId = parseInt(vehiclePart, 10)
     }
 
-    let startDate: Moment | undefined
-
-    // Ensure the correct events are returned by limiting the results to timestamps
-    // after the departure date if we are dealing with a 24h+ journey.
-    if (isNextDay(departureTime)) {
-      startDate = moment.tz(departureDate, TZ).endOf('day')
-    }
-
-    const { minTime, maxTime } = createTstRange(departureDate, startDate)
+    const { minTime, maxTime } = createTstRange(departureDate)
 
     const query = this.db.raw(
       `SELECT ${vehicleFields.join(',')}
         FROM vehicles
         WHERE tst >= :minTime
-          AND tst < :maxTime
+          AND tst <= :maxTime
           AND journey_type = 'journey'
           ${uniqueVehicleId ? `AND unique_vehicle_id = :vehicleId` : ''}
           AND route_id = :routeId

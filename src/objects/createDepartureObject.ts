@@ -74,7 +74,6 @@ export function createPlannedDepartureTimeObject(
 
 export function createDepartureJourneyObject(
   events: Vehicles | Vehicles[],
-  departureIsNextDay: boolean,
   originStopId: string,
   instanceIndex: number = 0,
   mode = Mode.Bus,

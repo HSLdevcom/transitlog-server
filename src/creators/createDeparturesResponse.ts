@@ -129,9 +129,6 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
       return [departure]
     }
 
-    // We can use info that the departure happened during "the next day" when calculating
-    // the 24h+ time of the event.
-    const departureIsNextDay = get(departure, departureTimePath + '.isNextDay', false)
     const routeId = get(departure, 'routeId', '')
     const direction = getDirection(get(departure, 'direction'))
 
@@ -160,7 +157,6 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
 
       const departureJourney = createDepartureJourneyObject(
         events[0],
-        departureIsNextDay,
         firstStopId,
         instances.length > 1 ? index + 1 : 0,
         get(departure, 'mode', Mode.Bus) as Mode
