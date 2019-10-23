@@ -20,10 +20,10 @@ import { getCancellations } from '../getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
 import { createUnsignedVehicleEventsResponse } from '../creators/createUnsignedVehicleEventsResponse'
 
-const equipment = (root, { filter, date }, { dataSources }) => {
+const equipment = (root, { filter, date }, { dataSources, user }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
   const getObservedVehicles = () => dataSources.HFPAPI.getAvailableVehicles(date)
-  return createEquipmentResponse(getEquipment, getObservedVehicles, filter, date)
+  return createEquipmentResponse(getEquipment, getObservedVehicles, user, date)
 }
 
 const stops = (root, { filter, date }, { dataSources }) => {
