@@ -279,8 +279,7 @@ export async function createJourneyResponse(
         return 1
       }
       return 24 * 60 * 60
-    },
-    true
+    }
   )
 
   // The journey key was used to fetch the journey, and now we need it to fetch the departures.
