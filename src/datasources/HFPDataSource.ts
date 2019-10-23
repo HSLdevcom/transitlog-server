@@ -8,6 +8,7 @@ import { DBAlert, DBCancellation, Vehicles } from '../types/EventsDb'
 import { databases, getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
+import { createHfpVehicleId } from '../utils/createUniqueVehicleId'
 
 const knex: Knex = getKnex(databases.HFP)
 
@@ -464,10 +465,6 @@ ORDER BY tst;
   ): Promise<Vehicles[]> => {
     const { minTime, maxTime } = createTstRange(date)
 
-    const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
-    const operatorId = parseInt(operatorPart, 10)
-    const vehicleId = parseInt(vehiclePart, 10)
-
     const query = this.db.raw(
       `
       SELECT ${unsignedEventFields.join(',')}
@@ -476,9 +473,9 @@ ORDER BY tst;
         AND journey_type = 'deadrun'
         AND event_type = 'VP'
         AND unique_vehicle_id = :vehicleId
-      ORDER BY tst;
+      ORDER BY tst DESC;
     `,
-      { vehicleId: `${operatorId}/${vehicleId}`, minTime, maxTime }
+      { vehicleId: createHfpVehicleId(uniqueVehicleId), minTime, maxTime }
     )
 
     return this.getBatched(query)

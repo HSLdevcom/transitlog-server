@@ -7,6 +7,7 @@ import { createUnsignedVehiclePositionObject } from '../objects/createJourneyEve
 import { requireVehicleAuthorization } from '../auth/requireUser'
 import { AuthenticatedUser } from '../types/Authentication'
 import { createValidVehicleId } from '../utils/createUniqueVehicleId'
+import { orderBy } from 'lodash'
 
 export const createUnsignedVehicleEventsResponse = async (
   getUnsignedEvents: () => Promise<Vehicles[] | null>,
@@ -31,7 +32,7 @@ export const createUnsignedVehicleEventsResponse = async (
       return false
     }
 
-    return validUnsignedEvents
+    return orderBy(validUnsignedEvents, 'tst')
   }
 
   const vehicleId = createValidVehicleId(uniqueVehicleId)

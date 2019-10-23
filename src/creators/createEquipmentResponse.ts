@@ -1,38 +1,19 @@
 import { JoreEquipment } from '../types/Jore'
-import { Equipment, EquipmentFilterInput } from '../types/generated/schema-types'
+import { Equipment } from '../types/generated/schema-types'
 import { cacheFetch } from '../cache'
 import { createEquipmentObject } from '../objects/createEquipmentObject'
-import { get, orderBy } from 'lodash'
-import { search } from '../filters/search'
+import { orderBy } from 'lodash'
 import isToday from 'date-fns/is_today'
-import { createUniqueVehicleId } from '../utils/createUniqueVehicleId'
+import { createUniqueVehicleId, matchOperatorId } from '../utils/createUniqueVehicleId'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { Vehicles } from '../types/EventsDb'
-
-const equipmentToSearchTerms = ({
-  vehicleId,
-  operatorId,
-  operatorName,
-  registryNr,
-  exteriorColor,
-  emissionClass,
-  emissionDesc,
-  type = '',
-}: Equipment): string[] => [
-  vehicleId,
-  operatorId || '',
-  operatorName || '',
-  registryNr,
-  exteriorColor || '',
-  emissionClass || '',
-  emissionDesc || '',
-  type || '',
-]
+import { AuthenticatedUser } from '../types/Authentication'
+import { getUserGroups, requireUser } from '../auth/requireUser'
 
 export async function createEquipmentResponse(
   getEquipment: () => Promise<JoreEquipment[]>,
   getObservedVehicles: () => Promise<Vehicles[]>,
-  filter?: EquipmentFilterInput,
+  user: AuthenticatedUser,
   date?: string
 ): Promise<Equipment[]> {
   const fetchEquipment: CachedFetcher<Equipment[]> = async () => {
@@ -52,41 +33,36 @@ export async function createEquipmentResponse(
     24 * 60 * 60
   )
 
-  if (!equipmentData) {
+  if (!equipmentData || !user) {
     return []
   }
 
-  if (!filter && !date) {
-    return orderBy(equipmentData, ['operatorId', 'vehicleId'], ['asc', 'asc'])
+  const vehiclesList = orderBy(equipmentData, ['operatorId', 'vehicleId'], ['asc', 'asc'])
+
+  if (!date) {
+    return vehiclesList
   }
 
-  const vehicleIdFilter = get(filter, 'vehicleId', '')
-  const operatorIdFilter = get(filter, 'operatorId', '')
-  const searchFilter = get(filter, 'search', '')
+  const userGroups = getUserGroups(user)
+  const authorizedResults = userGroups.includes('HSL') ? vehiclesList : []
 
-  let filteredEquipment = equipmentData
+  if (userGroups.includes('operator')) {
+    const authenticatedOperatorIds = userGroups
+      .filter((group) => group.startsWith('op_'))
+      .map((group) => group.replace('op_', '').padStart(4, '0'))
 
-  if (vehicleIdFilter && operatorIdFilter) {
-    filteredEquipment = equipmentData.filter(
-      (item) => item.operatorId === operatorIdFilter && item.vehicleId === vehicleIdFilter
-    )
-  } else if (searchFilter || (vehicleIdFilter || operatorIdFilter)) {
-    const searchQuery = searchFilter || `${vehicleIdFilter},${operatorIdFilter}`
-    filteredEquipment = search<Equipment>(filteredEquipment, searchQuery, [
-      'vehicleId',
-      'operatorId',
-      'operatorName',
-      'registryNr',
-      'exteriorColor',
-      'emissionClass',
-      'emissionDesc',
-      'type',
-    ])
-  } else {
-    filteredEquipment = orderBy(filteredEquipment, ['operatorId', 'vehicleId'], ['asc', 'asc'])
+    if (authenticatedOperatorIds.length !== 0) {
+      for (const vehicle of vehiclesList) {
+        if (matchOperatorId(authenticatedOperatorIds, vehicle.operatorId)) {
+          authorizedResults.push(vehicle)
+        }
+      }
+    }
   }
 
-  if (date) {
+  let equipmentResponse = authorizedResults
+
+  if (date && equipmentResponse.length !== 0) {
     const vehicleHfpCacheKey = `equipment_observed_${date}`
     const ttl = isToday(date) ? 5 * 60 : 24 * 60 * 60
 
@@ -94,7 +70,7 @@ export async function createEquipmentResponse(
       (await cacheFetch<Vehicles[]>(vehicleHfpCacheKey, getObservedVehicles, ttl)) || []
 
     if (vehicles.length !== 0) {
-      filteredEquipment = filteredEquipment.map((item: Equipment) => {
+      equipmentResponse = equipmentResponse.map((item: Equipment) => {
         const vehicleId = item.id
 
         const observedVehicleId = vehicles.find(({ owner_operator_id, vehicle_number }) => {
@@ -108,5 +84,5 @@ export async function createEquipmentResponse(
     }
   }
 
-  return filteredEquipment
+  return equipmentResponse
 }
