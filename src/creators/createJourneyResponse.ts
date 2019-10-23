@@ -99,7 +99,8 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (
   const validEvents = journeyEvents.filter(
     (pos) => !!pos.lat && !!pos.long && !!pos.journey_start_time
   )
-  return validEvents.length !== 0 ? validEvents : false
+
+  return validEvents.length !== 0 ? orderBy(validEvents, 'tsi', 'asc') : false
 }
 
 /**
@@ -278,7 +279,8 @@ export async function createJourneyResponse(
         return 1
       }
       return 24 * 60 * 60
-    }
+    },
+    true
   )
 
   // The journey key was used to fetch the journey, and now we need it to fetch the departures.
@@ -420,9 +422,11 @@ export async function createJourneyResponse(
 
   let journeyEquipment = null
 
+  const ascVehiclePositions = orderBy(vehiclePositions, 'tsi', 'asc')
+
   if (requireVehicleAuthorization(user, vehicleId)) {
     // Get the ID of the vehicle that actually operated this journey and fetch its data.
-    const { owner_operator_id, vehicle_number } = vehiclePositions[0]
+    const { owner_operator_id, vehicle_number } = ascVehiclePositions[0]
     const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
 
     const fetchedEquipment = await cacheFetch<JoreEquipment[]>(equipmentKey, () =>
@@ -433,20 +437,20 @@ export async function createJourneyResponse(
   }
 
   // Create virtual ARS, DEP/PDE and DOO stop events from the vehicle positions.
-  const virtualStopEvents = createVirtualStopEvents(vehiclePositions, departures)
+  const virtualStopEvents = createVirtualStopEvents(ascVehiclePositions, departures)
 
   // Patch the stop events collection with virtual stop
-  // events that we parsed from the vehiclePositions.
+  // events that we parsed from the ascVehiclePositions.
   const patchedStopEvents = unionBy(
     stopEvents,
     virtualStopEvents,
-    (event: Vehicles) => `${event.event_type}_${event.stop}`
+    (event: Vehicles) => event.event_type + event.stop
   )
 
   // Get a listing of all stops visited during this journey,
   // regardless of whether or not the stop was planned.
   const stopGroupedEvents: { [key: string]: Vehicles[] } = groupBy(patchedStopEvents, (evt) =>
-    evt.stop ? evt.stop + '' : evt.next_stop_id ? evt.next_stop_id : 'unknown'
+    evt.stop ? evt.stop + '' : 'unknown'
   )
 
   const stopEventObjects: Array<JourneyEvent | JourneyStopEvent> = []
@@ -475,11 +479,7 @@ export async function createJourneyResponse(
           const { lat, lng } = dep.stop
           const stopArea = toLatLng(lat, lng).toBounds(200) // Search around 100m in each direction
 
-          if (stopArea.contains([eventItem.lat, eventItem.long])) {
-            return true
-          }
-
-          return false
+          return stopArea.contains([eventItem.lat, eventItem.long])
         })
 
         if (departure) {
@@ -549,17 +549,13 @@ export async function createJourneyResponse(
   // Create event objects from other events
   const otherEvents = events.map((event) => createJourneyEventObject(event))
 
-  const flatStopEventObjects: Array<JourneyEvent | JourneyStopEvent> = flatten(
-    stopEventObjects
-  )
-
   // Exclude planned stops that did end up having events attached to them.
   const stopsWithoutEvents = plannedStopEvents.reduce(
     (deduplicated: PlannedStopEvent[], plannedEvent) => {
-      const stopWithEvent = flatStopEventObjects.some(
+      const stopWithEvent = stopEventObjects.some(
         (evt) =>
           get(evt, 'stopId', '') === plannedEvent.stopId &&
-          get(evt, 'plannedDateTime', '') === plannedEvent.plannedDateTime
+          get(evt, 'index', 0) === plannedEvent.index
       )
 
       if (!stopWithEvent) {
@@ -571,24 +567,25 @@ export async function createJourneyResponse(
     []
   )
 
-  // Combine all created event objects and order by time.
-  const allJourneyEvents = orderBy<EventsType>(
-    compact([
-      ...flatStopEventObjects,
-      ...otherEvents,
-      ...stopsWithoutEvents,
-      ...cancellationEvents,
-    ]),
-    (event) => parse(get(event, 'recordedAt', get(event, 'plannedDateTime'))).getTime() / 1000,
+  const orderedStopEvents = orderBy(
+    [...stopEventObjects, ...stopsWithoutEvents],
+    'index',
     'asc'
   )
 
-  let finalPositions = vehiclePositions
+  // Combine all created event objects and order by time.
+  const allJourneyEvents = orderBy<EventsType>(
+    compact([...orderedStopEvents, ...otherEvents, ...cancellationEvents]),
+    (event) => get(event, 'recordedAtUnix', get(event, 'plannedUnix', 0)),
+    'asc'
+  )
+
+  let finalPositions = ascVehiclePositions
 
   // Get unsigned events that happened before and after the journey.
   if (userAuthorizedForVehicle && shouldFetchUnsignedEvents) {
-    const firstEvent = vehiclePositions[0]
-    const lastEvent = last(vehiclePositions)
+    const firstEvent = ascVehiclePositions[0]
+    const lastEvent = last(ascVehiclePositions)
 
     // Journey start
     const minDate = firstEvent ? intval(firstEvent.tsi) : departureDateTime.unix()
@@ -623,7 +620,7 @@ export async function createJourneyResponse(
       }
     }
 
-    finalPositions = orderBy([...vehiclePositions, ...validUnsigned], 'tsi', 'asc')
+    finalPositions = orderBy([...ascVehiclePositions, ...validUnsigned], 'tsi', 'asc')
   }
 
   // Everything is baked into a Journey object.

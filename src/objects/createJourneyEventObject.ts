@@ -89,6 +89,7 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
     plannedDate: departureDate,
     plannedTime: departureTime,
     plannedDateTime: departureDateTime,
+    plannedUnix: moment.tz(departureDateTime, TZ).unix(),
     isNextDay,
     departureId: departure.departureId,
     isTimingStop: departure.isTimingStop,

@@ -1,6 +1,6 @@
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
-import { getNormalTime, isNextDay } from '../utils/time'
+import { getDateFromDateTime, getNormalTime, isNextDay } from '../utils/time'
 import { Direction } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
@@ -117,26 +117,29 @@ const alertFields = [
 type TstRange = {
   minTime: string
   maxTime: string
+  minTimeMoment: Moment
+  maxTimeMoment: Moment
 }
+
+const TST_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSSSSS ZZ'
 
 function createTstRange(date: string): TstRange {
   const minTimeMoment = moment(date)
     .tz(TZ)
     .startOf('day')
     .add(4, 'hours')
+    .utc()
 
-  const minTime = minTimeMoment
+  const minTime = minTimeMoment.format(TST_FORMAT)
+
+  const maxTimeMoment = minTimeMoment
     .clone()
-    .utc()
-    .format('YYYY-MM-DD HH:mm:ss.SSS')
-
-  const maxTime = minTimeMoment
     .endOf('day')
-    .add(6, 'hours')
-    .utc()
-    .format('YYYY-MM-DD HH:mm:ss.SSS')
+    .add(5, 'hours')
 
-  return { minTime, maxTime }
+  const maxTime = maxTimeMoment.format(TST_FORMAT)
+
+  return { minTime, maxTime, minTimeMoment, maxTimeMoment }
 }
 
 export class HFPDataSource extends SQLDataSource {
@@ -307,7 +310,32 @@ ORDER BY journey_start_time, tst;
       vehicleId = parseInt(vehiclePart, 10)
     }
 
-    const { minTime, maxTime } = createTstRange(departureDate)
+    const { minTime, maxTime, minTimeMoment, maxTimeMoment } = createTstRange(departureDate)
+    const journeyStartMoment: Moment = getDateFromDateTime(departureDate, departureTime)
+
+    let useMinTime = minTime
+    let useMaxTime = maxTime
+
+    // Ensure the query time range fits the journey by moditying the start or end if needed.
+
+    if (journeyStartMoment.isBefore(minTimeMoment)) {
+      useMinTime = journeyStartMoment
+        .clone()
+        .subtract(1, 'hour')
+        .format(TST_FORMAT)
+    }
+
+    if (
+      journeyStartMoment
+        .clone()
+        .add(2, 'hours')
+        .isAfter(maxTimeMoment)
+    ) {
+      useMaxTime = journeyStartMoment
+        .clone()
+        .add(3, 'hours')
+        .format(TST_FORMAT)
+    }
 
     const query = this.db.raw(
       `SELECT ${vehicleFields.join(',')}
@@ -316,15 +344,16 @@ ORDER BY journey_start_time, tst;
           AND tst <= :maxTime
           AND journey_type = 'journey'
           ${uniqueVehicleId ? `AND unique_vehicle_id = :vehicleId` : ''}
+          AND journey_start_time = :departureTime
           AND route_id = :routeId
           AND direction_id = :direction
-          AND journey_start_time = :departureTime
-        ORDER BY tst ASC;`,
+          AND oday = :departureDate
+        ORDER BY tst DESC;`,
       {
         departureDate,
         departureTime: getNormalTime(departureTime),
-        minTime,
-        maxTime,
+        minTime: useMinTime,
+        maxTime: useMaxTime,
         routeId,
         direction,
         vehicleId: `${operatorId}/${vehicleId}`,
@@ -371,7 +400,8 @@ WHERE tst >= :minTime
   AND tst < :maxTime
   AND event_type IN ('DEP', 'PDE')
   AND oday = :date
-  AND stop = :stopId;
+  AND stop = :stopId
+ORDER BY tst DESC;
 `,
       { date, stopId, minTime, maxTime }
     )
@@ -433,11 +463,11 @@ FROM vehicles
 WHERE tst >= :minTime
   AND tst < :maxTime
   AND event_type = :event
-  AND oday = :date
   AND stop = :stopId
   AND route_id = :routeId
   AND direction_id = :direction
-ORDER BY tst;
+  AND oday = :date
+ORDER BY tst DESC;
 `,
       {
         event: !lastStopArrival ? 'DEP' : 'ARS',

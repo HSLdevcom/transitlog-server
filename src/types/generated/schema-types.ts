@@ -844,6 +844,8 @@ export interface PlannedStopEvent {
 
   plannedDateTime?: Maybe<DateTime>
 
+  plannedUnix?: Maybe<number>
+
   isNextDay?: Maybe<boolean>
 
   departureId?: Maybe<number>

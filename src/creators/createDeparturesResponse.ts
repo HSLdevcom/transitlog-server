@@ -232,62 +232,56 @@ export async function createDeparturesResponse(
     )
   }
 
-  const createDepartures: CachedFetcher<Departure[]> = async () => {
-    const departuresCacheKey = `departures_${stopId}_${date}`
-    const departures = await cacheFetch<Departure[]>(
-      departuresCacheKey,
-      fetchDepartures,
-      24 * 60 * 60
-    )
-
-    if (!departures || departures.length === 0) {
-      return []
-    }
-
-    // Cache events for the current day for 10 seconds only.
-    // Older dates can be cached for longer.
-    const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
-
-    const eventsCacheKey = `departure_events_${stopId}_${date}`
-    const departureEvents = await cacheFetch<Vehicles[]>(
-      eventsCacheKey,
-      () => fetchEvents(getEvents),
-      journeyTTL
-    )
-
-    const alerts = await getAlerts(date, {
-      allStops: true,
-      allRoutes: true,
-      stop: true,
-      route: true,
-    })
-
-    const cancellations = await getCancellations(date, { all: true })
-
-    const departuresWithAlerts = departures.map((departure) => {
-      setAlertsOnDeparture(departure, alerts)
-      setCancellationsOnDeparture(departure, cancellations)
-      return departure
-    })
-
-    // We can still return planned departures without observed events.
-    if (!departureEvents || departureEvents.length === 0) {
-      return orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
-    }
-
-    return combineDeparturesAndEvents(departuresWithAlerts, departureEvents, date)
-  }
-
-  const departuresTTL: number = isToday(date) ? 5 : 30 * 24 * 60 * 60
-  const cacheKey = `stop_departures_${stopId}_${date}_${
-    requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
-  }`
-
-  const departures = await cacheFetch<Departure[]>(cacheKey, createDepartures, departuresTTL)
+  const departuresCacheKey = `departures_${stopId}_${date}`
+  const departures = await cacheFetch<Departure[]>(
+    departuresCacheKey,
+    fetchDepartures,
+    24 * 60 * 60
+  )
 
   if (!departures || departures.length === 0) {
     return []
   }
 
-  return filterDepartures(departures, filters)
+  // Cache events for the current day for 10 seconds only.
+  // Older dates can be cached for longer.
+  const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
+
+  const eventsCacheKey = `departure_events_${stopId}_${date}`
+  const departureEvents = await cacheFetch<Vehicles[]>(
+    eventsCacheKey,
+    () => fetchEvents(getEvents),
+    journeyTTL,
+    skipCache
+  )
+
+  const alerts = await getAlerts(date, {
+    allStops: true,
+    allRoutes: true,
+    stop: true,
+    route: true,
+  })
+
+  const cancellations = await getCancellations(date, { all: true })
+
+  const departuresWithAlerts = departures.map((departure) => {
+    setAlertsOnDeparture(departure, alerts)
+    setCancellationsOnDeparture(departure, cancellations)
+    return departure
+  })
+
+  let departuresWithEvents: Departure[] = []
+
+  // We can still return planned departures without observed events.
+  if (!departureEvents || departureEvents.length === 0) {
+    departuresWithEvents = orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
+  } else {
+    departuresWithEvents = combineDeparturesAndEvents(
+      departuresWithAlerts,
+      departureEvents,
+      date
+    )
+  }
+
+  return filterDepartures(departuresWithEvents, filters)
 }

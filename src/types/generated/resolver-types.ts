@@ -2443,6 +2443,8 @@ export namespace PlannedStopEventResolvers {
 
     plannedDateTime?: PlannedDateTimeResolver<Maybe<DateTime>, TypeParent, TContext>
 
+    plannedUnix?: PlannedUnixResolver<Maybe<number>, TypeParent, TContext>
+
     isNextDay?: IsNextDayResolver<Maybe<boolean>, TypeParent, TContext>
 
     departureId?: DepartureIdResolver<Maybe<number>, TypeParent, TContext>
@@ -2483,6 +2485,11 @@ export namespace PlannedStopEventResolvers {
   > = Resolver<R, Parent, TContext>
   export type PlannedDateTimeResolver<
     R = Maybe<DateTime>,
+    Parent = PlannedStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type PlannedUnixResolver<
+    R = Maybe<number>,
     Parent = PlannedStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
