@@ -45,8 +45,7 @@ export const createUnsignedVehicleEventsResponse = async (
   const unsignedResults = await cacheFetch<Vehicles[]>(
     unsignedKey,
     fetchUnsignedEvents,
-    isToday(date) ? 30 : 30 * 24 * 60 * 60,
-    true
+    isToday(date) ? 30 : 30 * 24 * 60 * 60
   )
 
   if (!unsignedResults || unsignedResults.length === 0) {
