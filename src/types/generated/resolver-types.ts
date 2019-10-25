@@ -2134,7 +2134,7 @@ export namespace JourneyResolvers {
 
     departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
 
-    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
+    departureTime?: DepartureTimeResolver<Maybe<Time>, TypeParent, TContext>
 
     uniqueVehicleId?: UniqueVehicleIdResolver<Maybe<VehicleId>, TypeParent, TContext>
 
@@ -2193,11 +2193,11 @@ export namespace JourneyResolvers {
     Parent,
     TContext
   >
-  export type DepartureTimeResolver<R = Time, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
+  export type DepartureTimeResolver<
+    R = Maybe<Time>,
+    Parent = Journey,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type UniqueVehicleIdResolver<
     R = Maybe<VehicleId>,
     Parent = Journey,

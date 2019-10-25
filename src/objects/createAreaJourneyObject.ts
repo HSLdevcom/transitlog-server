@@ -28,7 +28,7 @@ export const createAreaJourneyObject = (events: Vehicles[], alerts: Alert[] = []
     routeId: get(journey, 'route_id', null) || null,
     direction: journey.direction_id ? getDirection(journey.direction_id) : null,
     departureDate,
-    departureTime,
+    departureTime: departureTime || null,
     uniqueVehicleId: createUniqueVehicleId(journey.owner_operator_id, journey.vehicle_number),
     operatorId: get(journey, 'owner_operator_id', '') + '',
     vehicleId: get(journey, 'vehicle_number', '') + '',

@@ -32,8 +32,13 @@ export function requireUser(user: AuthenticatedUser, group?: string | string[]) 
       ? group
       : []
 
+  // If no groups are required, return true
+  if (groups.length === 0) {
+    return true
+  }
+
   // Make sure that the user has all the required group memberships
-  if (intersection(user.groups, groups).length !== groups.length) {
+  if (!groups.every((group) => user.groups.includes(group))) {
     return false
   }
 

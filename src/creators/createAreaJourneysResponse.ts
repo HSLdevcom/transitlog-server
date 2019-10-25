@@ -54,7 +54,7 @@ export const createAreaJourneysResponse = async (
 
   const journeys = await cacheFetch<Journey[]>(cacheKey, fetchJourneys, 24 * 60 * 60)
 
-  if (!journeys) {
+  if (!journeys || journeys.length === 0) {
     return []
   }
 

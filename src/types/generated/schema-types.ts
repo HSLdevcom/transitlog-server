@@ -754,7 +754,7 @@ export interface Journey {
 
   departureDate: Date
 
-  departureTime: Time
+  departureTime?: Maybe<Time>
 
   uniqueVehicleId?: Maybe<VehicleId>
 

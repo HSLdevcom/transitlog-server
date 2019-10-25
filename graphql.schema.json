@@ -4409,11 +4409,7 @@
             "name": "departureTime",
             "description": "",
             "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": { "kind": "SCALAR", "name": "Time", "ofType": null }
-            },
+            "type": { "kind": "SCALAR", "name": "Time", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           },
