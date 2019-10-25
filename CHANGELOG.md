@@ -1,5 +1,9 @@
 # Transitlog server changelog
 
+## Version 1.3.1, deployed 2019-10-25 @ 09:00
+
+- Allow nullable departureTime field for Journey objects.
+
 ## Version 1.3.0, deployed 2019-10-25 @ 08:00
 
 - Add lat and long to other journey events than VP events (vehicle position).
