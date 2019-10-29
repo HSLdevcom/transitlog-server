@@ -11,7 +11,7 @@ import {
 
 const authHash = Buffer.from(`${API_CLIENT_ID}:${API_CLIENT_SECRET}`).toString('base64')
 
-interface IAccessToken {
+export interface IAccessToken {
   access_token: string
   token_type: string
   expires_in: number
@@ -19,11 +19,12 @@ interface IAccessToken {
   scope: string
 }
 
-interface IUserInfo {
+export interface IUserInfo {
   userId: string
   email: string
   emailVerified: string
   groups: string[]
+  accessToken: string
 }
 
 const checkAccessMiddleware = (
@@ -50,21 +51,30 @@ const requestAccessToken = async (
   return (await response.json()) as IAccessToken
 }
 
-const requestUserInfo = async (accessToken: string): Promise<IUserInfo> => {
+const requestUserInfo = async (accessToken: string): Promise<IUserInfo | null> => {
   const url = `${LOGIN_PROVIDER_URI}/openid/userinfo`
-  const response = await nodeFetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  })
-  const responseJson = await response.json()
 
-  return {
-    userId: responseJson.sub,
-    email: responseJson.email,
-    emailVerified: responseJson.email_verified,
-    groups: responseJson['https://oneportal.trivore.com/claims/groups'],
+  try {
+    const response = await nodeFetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+
+    const responseJson = await response.json()
+
+    return {
+      userId: responseJson.sub,
+      email: responseJson.email,
+      emailVerified: responseJson.email_verified,
+      groups: responseJson['https://oneportal.trivore.com/claims/groups'],
+      accessToken,
+    }
+  } catch (err) {
+    console.error(err)
   }
+
+  return null
 }
 
 const logoutFromIdentityProvider = async (accessToken: string): Promise<Object> => {
@@ -112,6 +122,7 @@ const setGroup = async (userId: string, groups: string[]): Promise<Response> => 
 
 const requestGroups = async (): Promise<Response> => {
   const url = `${LOGIN_PROVIDER_URI}/api/rest/v1/group`
+
   const groupsResponse = await nodeFetch(url, {
     method: 'GET',
     headers: {
