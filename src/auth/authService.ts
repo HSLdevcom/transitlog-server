@@ -5,6 +5,9 @@ import {
   CLIENT_SECRET,
   REDIRECT_URI,
   LOGIN_PROVIDER_URI,
+  TESTING_CLIENT_ID,
+  TESTING_CLIENT_SECRET,
+  TESTING_LOGIN_PROVIDER_URI,
   API_CLIENT_ID,
   API_CLIENT_SECRET,
 } from '../constants'
@@ -51,8 +54,12 @@ const requestAccessToken = async (
   return (await response.json()) as IAccessToken
 }
 
-const requestUserInfo = async (accessToken: string): Promise<IUserInfo | null> => {
-  const url = `${LOGIN_PROVIDER_URI}/openid/userinfo`
+const requestUserInfo = async (
+  accessToken: string,
+  isTest = false
+): Promise<IUserInfo | null> => {
+  const useProviderUrl = isTest ? TESTING_LOGIN_PROVIDER_URI : LOGIN_PROVIDER_URI
+  const url = `${useProviderUrl}/openid/userinfo`
 
   try {
     const response = await nodeFetch(url, {

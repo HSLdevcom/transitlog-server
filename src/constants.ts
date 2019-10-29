@@ -55,13 +55,17 @@ export const PATH_PREFIX = secretsEnv.PATH_PREFIX || '/'
 
 // HSL ID authentication
 export const CLIENT_ID = secretsEnv.CLIENT_ID
+export const TESTING_CLIENT_ID = secretsEnv.TESTING_CLIENT_ID
 export const CLIENT_SECRET = secretsEnv.CLIENT_SECRET
+export const TESTING_CLIENT_SECRET = secretsEnv.TESTING_CLIENT_SECRET
 export const REDIRECT_URI = secretsEnv.REDIRECT_URI
 export const LOGIN_PROVIDER_URI = secretsEnv.LOGIN_PROVIDER_URI
+export const TESTING_LOGIN_PROVIDER_URI = secretsEnv.TESTING_LOGIN_PROVIDER_URI
 
 // HSL ID for logging into the admin UI
 export const ADMIN_REDIRECT_URI = secretsEnv.ADMIN_REDIRECT_URI
 export const AUTH_URI = secretsEnv.AUTH_URI
+export const TESTING_AUTH_URI = secretsEnv.TESTING_AUTH_URI
 export const AUTH_SCOPE = secretsEnv.AUTH_SCOPE
 
 // The HSL ID API ID and secret

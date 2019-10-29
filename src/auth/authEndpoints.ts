@@ -48,10 +48,10 @@ const authorize = async (req: express.Request, res: express.Response) => {
 
   if (req.session && accessToken) {
     req.session.accessToken = accessToken
-    const userInfo = await AuthService.requestUserInfo(accessToken)
+    const userInfo = await AuthService.requestUserInfo(accessToken, isTest)
 
     if (userInfo) {
-      userEmail = get(userInfo, 'email')
+      userEmail = get(userInfo, 'email', isTest ? 'testing@hsl.fi' : '')
 
       req.session.email = userEmail
       req.session.groups = get(userInfo, 'groups')
