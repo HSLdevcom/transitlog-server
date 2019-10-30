@@ -56,6 +56,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
       req.session.email = userEmail
       req.session.groups = get(userInfo, 'groups')
       req.session.userId = get(userInfo, 'userId')
+      req.session._test = isTest
 
       await assignUserToGroups(userInfo)
     }

@@ -13,9 +13,9 @@ import join from 'proper-url-join'
 import { AuthenticatedUser } from '../types/Authentication'
 import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 
-export function getUserFromReq(req) {
-  const { email = '', groups = [], accessToken = '' } = req.session || {}
-  return !accessToken ? null : { email, groups, accessToken }
+export function getUserFromReq(req): AuthenticatedUser {
+  const { email = '', groups = [], accessToken = '', _test = false } = req.session || {}
+  return !accessToken ? null : { email, groups, accessToken, _test }
 }
 
 export function requireUser(user: AuthenticatedUser, group?: string | string[]) {
