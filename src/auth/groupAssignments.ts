@@ -9,6 +9,10 @@ import { getSettings } from '../datasources/transitlogServer'
 import { groupBy, flatten, uniq, difference, compact, get, map } from 'lodash'
 
 export async function assignUserToGroups(userInfo: IUserInfo) {
+  if (!userInfo.email) {
+    return
+  }
+
   const settings = await getSettings()
   const domainGroups = settings.domain_groups
   const autoDomainGroups = settings.auto_domain_groups
