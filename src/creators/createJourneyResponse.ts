@@ -65,7 +65,6 @@ export type JourneyRouteData = {
 
 /**
  * Fetch the journey events and filter out the invalid ones.
- * The value from this function is not cached, but it could be.
  * @param fetcher async function that fetches the journey events
  * @param uniqueVehicleId string that identifies the requested vehicle
  * @returns Promise<Vehicles[]> the filtered events
@@ -74,7 +73,7 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (
   fetcher,
   uniqueVehicleId
 ) => {
-  const events = await fetcher()
+  const events: Vehicles[] = await fetcher()
 
   if (events.length === 0) {
     return false
@@ -440,11 +439,18 @@ export async function createJourneyResponse(
 
   // Patch the stop events collection with virtual stop
   // events that we parsed from the ascVehiclePositions.
-  const patchedStopEvents = unionBy(
-    stopEvents,
-    virtualStopEvents,
-    (event: Vehicles) => event.event_type + event.stop
-  )
+  let patchedStopEvents = [...stopEvents]
+
+  for (const virtualStopEvent of virtualStopEvents) {
+    const eventId = virtualStopEvent.event_type + virtualStopEvent.stop
+    const eventExists = patchedStopEvents.some((evt) => evt.event_type + evt.stop === eventId)
+
+    if (!eventExists) {
+      patchedStopEvents.push(virtualStopEvent)
+    }
+  }
+
+  patchedStopEvents = orderBy(patchedStopEvents, 'tsi', 'asc')
 
   // Get a listing of all stops visited during this journey,
   // regardless of whether or not the stop was planned.

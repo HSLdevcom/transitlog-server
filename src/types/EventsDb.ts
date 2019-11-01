@@ -106,4 +106,5 @@ export interface Vehicles {
   tst: string
   unique_vehicle_id: string
   vehicle_number: number
+  _is_virtual?: boolean
 }

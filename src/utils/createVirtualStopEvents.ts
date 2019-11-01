@@ -57,5 +57,6 @@ function createVirtualEvent(positionEvent: Vehicles, type: EventType): Vehicles 
     event_type: type,
     stop: stopId,
     next_stop_id: null,
+    _is_virtual: true,
   }
 }
