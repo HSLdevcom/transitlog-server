@@ -226,7 +226,7 @@ ORDER BY tst ASC;
     const { minTime, maxTime } = createTstRange(date)
 
     const eventsQuery = this.db.raw(
-      `SELECT DISTINCT ON (journey_start_time) ${vehicleFields.join(',')}
+      `SELECT ${vehicleFields.join(',')}
 FROM vehicles
 WHERE tst >= :minTime
   AND tst < :maxTime
@@ -234,7 +234,7 @@ WHERE tst >= :minTime
   AND journey_type = 'journey'
   AND oday = :date
   AND unique_vehicle_id = :vehicleId
-ORDER BY journey_start_time, tst;
+ORDER BY tst ASC;
 `,
       { date, minTime, maxTime, vehicleId: queryVehicleId }
     )

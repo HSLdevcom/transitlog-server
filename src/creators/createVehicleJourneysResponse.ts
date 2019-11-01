@@ -6,7 +6,7 @@ import { isToday, isWithinRange } from 'date-fns'
 import { Vehicles } from '../types/EventsDb'
 import { AuthenticatedUser } from '../types/Authentication'
 import { requireVehicleAuthorization } from '../auth/requireUser'
-import { compact, map, groupBy, orderBy } from 'lodash'
+import { compact, map, groupBy, orderBy, get } from 'lodash'
 import { findJourneyStartEvent } from '../utils/findJourneyStartEvent'
 
 export const createVehicleJourneysResponse = async (
@@ -36,7 +36,21 @@ export const createVehicleJourneysResponse = async (
 
     const alerts = await getAlerts(date, { allRoutes: true, route: true })
 
-    return departureEvents.map((event) => {
+    const deduplicatedDepartureEvents = Object.values(
+      groupBy(departureEvents, (evt: Vehicles) =>
+        // @ts-ignore the object is NOT possibly null.
+        evt !== null ? evt.journey_start_time + evt.route_id : ''
+      )
+    ).map((departureGroup) => {
+      const firstStopId = departureGroup[0].stop
+      return orderBy(
+        departureGroup.filter((evt) => evt.stop === firstStopId),
+        'tsi',
+        'desc'
+      )[0]
+    })
+
+    return orderBy(deduplicatedDepartureEvents, 'tsi', 'asc').map((event) => {
       const journeyAlerts = alerts.filter((alert) => {
         if (!isWithinRange(event.tst, alert.startDateTime, alert.endDateTime)) {
           return false
@@ -57,7 +71,7 @@ export const createVehicleJourneysResponse = async (
   const cacheTTL: number = isToday(date) ? 5 : 24 * 60 * 60
 
   const cacheKey = `vehicle_journeys_${uniqueVehicleId}_${date}`
-  const journeys = await cacheFetch<VehicleJourney[]>(cacheKey, fetchJourneys, cacheTTL)
+  const journeys = await cacheFetch<VehicleJourney[]>(cacheKey, fetchJourneys, cacheTTL, true)
 
   if (!journeys) {
     return []
