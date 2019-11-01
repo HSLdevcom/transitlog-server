@@ -155,15 +155,20 @@ export class HFPDataSource extends SQLDataSource {
    */
 
   async getAvailableVehicles(date): Promise<Vehicles[]> {
+    const { minTime, maxTime } = createTstRange(date)
+
     const query = this.db.raw(
       `
 SELECT DISTINCT ON (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
 owner_operator_id
-FROM vehicle_continuous_aggregate
-WHERE oday = :date;
+FROM otherevent
+WHERE tst >= :minTime
+  AND tst < :maxTime
+  AND event_type = 'VJA'
+ORDER BY unique_vehicle_id, tst DESC;
 `,
-      { date }
+      { date, minTime, maxTime }
     )
 
     return this.getBatched(query)
@@ -505,10 +510,8 @@ ORDER BY tst DESC;
     const query = this.db.raw(
       `
       SELECT ${unsignedEventFields.join(',')}
-      FROM vehicles
+      FROM unsignedevent
       WHERE tst >= :minTime AND tst < :maxTime
-        AND journey_type = 'deadrun'
-        AND event_type = 'VP'
         AND unique_vehicle_id = :vehicleId
         AND is_ongoing = true
       ORDER BY tst DESC;
