@@ -291,7 +291,7 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
     direction: Direction,
     date: string
   ): Promise<JoreRouteDepartureData[]> {
-    const dayTypes = await this.getDayTypesForDate(date)
+    const dayTypes = await this.getDayTypesForDate(date, routeId)
 
     const query = this.db.raw(
       `
@@ -438,29 +438,6 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     return this.getCachedAndBatched(query, 24 * 60 * 60)
   }
 
-  async getDayTypesForDate(date): Promise<string[]> {
-    const exceptions = await this.getExceptions(date)
-    let dayTypes: string[] = []
-
-    if (exceptions && exceptions.length !== 0) {
-      dayTypes = uniq(
-        exceptions.reduce(
-          (exceptionDayTypes: string[], { effectiveDayTypes }) => [
-            ...exceptionDayTypes,
-            ...effectiveDayTypes,
-          ],
-          []
-        )
-      )
-    }
-
-    if (dayTypes.length === 0) {
-      dayTypes = [getDayTypeFromDate(date)]
-    }
-
-    return dayTypes
-  }
-
   departureFields = `
     departure.route_id,
     departure.direction,
@@ -486,6 +463,7 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
 
   async getDeparturesForStop(stopId, date): Promise<JoreDepartureWithOrigin[]> {
     const dayTypes = await this.getDayTypesForDate(date)
+
     const query = this.db.raw(
       `
 SELECT ${this.departureFields},
@@ -516,7 +494,7 @@ ORDER BY departure.hours ASC,
     direction,
     date
   ): Promise<JoreDepartureWithOrigin[]> {
-    const dayTypes = await this.getDayTypesForDate(date)
+    const dayTypes = await this.getDayTypesForDate(date, routeId)
 
     const query = this.db.raw(
       `
@@ -646,5 +624,62 @@ ORDER BY ex_day.date_in_effect ASC;
     }
 
     return exceptionDays
+  }
+
+  async getDayTypesForDate(date: string, routeId?: string): Promise<string[]> {
+    let routeType: null | string = null
+
+    if (routeId) {
+      routeType = await this.getTypeOfRoute(routeId, date)
+    }
+
+    const exceptions = await this.getExceptions(date)
+    let dayTypes: string[] = []
+
+    if (exceptions && exceptions.length !== 0) {
+      dayTypes = uniq(
+        exceptions.reduce((exceptionDayTypes: string[], exception) => {
+          const days = [...exceptionDayTypes, ...exception.effectiveDayTypes]
+
+          if (!routeType || !exception.modeScope) {
+            return days
+          }
+
+          return routeType === exception.modeScope ? days : exceptionDayTypes
+        }, [])
+      )
+    }
+
+    if (dayTypes.length === 0) {
+      dayTypes = [getDayTypeFromDate(date)]
+    }
+
+    return dayTypes
+  }
+
+  async getTypeOfRoute(routeId: string, date: string): Promise<null | string> {
+    const query = this.db.raw(
+      `
+      SELECT
+        route.date_begin,
+        route.date_end,
+        route.type
+      FROM :schema:.route route
+      WHERE route.route_id = :routeId
+        AND route.date_begin <= :date
+        AND route.date_end >= :date
+      ORDER BY route.date_imported DESC
+      LIMIT 1;
+    `,
+      { schema: SCHEMA, routeId, date }
+    )
+
+    const result: Array<{ type: string }> = await this.getBatched(query)
+
+    if (!result || result.length === 0) {
+      return null
+    }
+
+    return result[0].type
   }
 }
