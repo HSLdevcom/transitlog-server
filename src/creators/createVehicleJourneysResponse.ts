@@ -71,7 +71,7 @@ export const createVehicleJourneysResponse = async (
   const cacheTTL: number = isToday(date) ? 5 : 24 * 60 * 60
 
   const cacheKey = `vehicle_journeys_${uniqueVehicleId}_${date}`
-  const journeys = await cacheFetch<VehicleJourney[]>(cacheKey, fetchJourneys, cacheTTL, true)
+  const journeys = await cacheFetch<VehicleJourney[]>(cacheKey, fetchJourneys, cacheTTL)
 
   if (!journeys) {
     return []
