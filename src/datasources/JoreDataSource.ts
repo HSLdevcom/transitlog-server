@@ -634,7 +634,7 @@ ORDER BY ex_day.date_in_effect ASC;
     const exceptionDays = await cacheFetch<ExceptionDay[]>(
       cacheKey,
       () => fetchExceptions(queryYear),
-      24 * 60 * 60
+      30 * 24 * 60 * 60
     )
 
     if (!exceptionDays) {
