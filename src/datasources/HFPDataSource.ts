@@ -132,10 +132,11 @@ function createTstRange(date: string): TstRange {
 
   const minTime = minTimeMoment.format(TST_FORMAT)
 
-  const maxTimeMoment = minTimeMoment
-    .clone()
+  const maxTimeMoment = moment(date)
+    .tz(TZ)
     .endOf('day')
     .add(5, 'hours')
+    .utc()
 
   const maxTime = maxTimeMoment.format(TST_FORMAT)
 
