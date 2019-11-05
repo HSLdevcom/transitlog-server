@@ -11,7 +11,7 @@ import {
 } from '../types/Jore'
 import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
-import { orderBy, uniq } from 'lodash'
+import { orderBy, uniq, flatten, compact } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
 import { JourneyRouteData } from '../creators/createJourneyResponse'
 import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'date-fns'
@@ -23,6 +23,11 @@ import { databases, getKnex } from '../knex'
 const SCHEMA = 'jore'
 const knex = getKnex(databases.JORE)
 const ONE_DAY = 24 * 60 * 60
+
+type ExceptionDaysScoped = {
+  normal: string[]
+  [scope: string]: string[]
+}
 
 // install postgis functions in knex.postgis;
 const st = require('knex-postgis')(knex)
@@ -291,7 +296,7 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
     direction: Direction,
     date: string
   ): Promise<JoreRouteDepartureData[]> {
-    const dayTypes = await this.getDayTypesForDate(date, routeId)
+    const dayTypes = await this.getDayTypesForDateAndRoute(date, routeId)
 
     const query = this.db.raw(
       `
@@ -422,7 +427,10 @@ WHERE route_segment.stop_id = :stopId;`,
   }
 
   async getDepartureOperators(date): Promise<string> {
-    const dayTypes = await this.getDayTypesForDate(date)
+    const exceptionDayTypes = await this.getDayTypesForDate(date)
+    // TODO: Ensure that the same operator drives both normal and exception days, always.
+    // If not, we may need to be more precise with the day types.
+    const dayTypes = uniq(flatten(Object.values(exceptionDayTypes)))
 
     const query = this.db.raw(
       `
@@ -462,7 +470,8 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
   `
 
   async getDeparturesForStop(stopId, date): Promise<JoreDepartureWithOrigin[]> {
-    const dayTypes = await this.getDayTypesForDate(date)
+    const exceptionDayTypes = await this.getDayTypesForDate(date)
+    const dayTypes = uniq(flatten(Object.values(exceptionDayTypes)))
 
     const query = this.db.raw(
       `
@@ -473,19 +482,44 @@ SELECT ${this.departureFields},
       origin_departure.is_next_day as origin_is_next_day,
       origin_departure.is_next_day as origin_is_next_day,
       origin_departure.extra_departure as origin_extra_departure,
-      origin_departure.departure_id as origin_departure_id
+      origin_departure.departure_id as origin_departure_id,
+      route.type as type
 FROM :schema:.departure departure
     LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
+    LEFT OUTER JOIN (SELECT
+        inner_route.route_id,
+        inner_route.direction,
+        inner_route.type
+      FROM :schema:.route inner_route
+      WHERE inner_route.date_begin <= :date
+        AND inner_route.date_end >= :date
+      ORDER BY inner_route.date_imported) route ON departure.route_id = route.route_id AND departure.direction = route.direction
 WHERE departure.stop_id = :stopId
   AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
 ORDER BY departure.hours ASC,
          departure.minutes ASC,
          departure.route_id ASC,
          departure.direction ASC;`,
-      { schema: SCHEMA, stopId }
+      { schema: SCHEMA, stopId, date }
     )
 
-    return this.getBatched(query)
+    const result = await this.getBatched(query)
+
+    return result.filter((departure) => {
+      const departureMode = departure.type
+
+      const exceptionDaysForAll = exceptionDayTypes.all || []
+      const exceptionDaysForMode =
+        (departureMode ? exceptionDayTypes[departureMode] : []) || []
+
+      const filterByDayTypes =
+        exceptionDaysForMode.length !== 0
+          ? exceptionDaysForMode
+          : exceptionDayTypes.normal || []
+
+      const matchDayTypes = [...exceptionDaysForAll, ...filterByDayTypes]
+      return matchDayTypes.includes(departure.day_type)
+    })
   }
 
   async getDeparturesForRoute(
@@ -494,7 +528,7 @@ ORDER BY departure.hours ASC,
     direction,
     date
   ): Promise<JoreDepartureWithOrigin[]> {
-    const dayTypes = await this.getDayTypesForDate(date, routeId)
+    const dayTypes = await this.getDayTypesForDateAndRoute(date, routeId)
 
     const query = this.db.raw(
       `
@@ -567,7 +601,8 @@ SELECT ex_day.date_in_effect,
    CASE WHEN rep_day.replacing_day_type
         IS NULL THEN ARRAY [ex_day.exception_day_type, ex_day.day_type]
         ELSE ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type]
-   END effective_day_types
+   END effective_day_types,
+   rep_day.replacing_day_type as scoped_day_type
 FROM :schema:.exception_days_calendar ex_day
      LEFT OUTER JOIN :schema:.exception_days ex_desc
                      ON ex_day.exception_day_type = ex_desc.exception_day_type
@@ -612,7 +647,7 @@ ORDER BY ex_day.date_in_effect ASC;
     const exceptionDays = await cacheFetch<ExceptionDay[]>(
       cacheKey,
       () => fetchExceptions(queryYear),
-      30 * 24 * 60 * 60
+      24 * 60 * 60
     )
 
     if (!exceptionDays) {
@@ -626,35 +661,47 @@ ORDER BY ex_day.date_in_effect ASC;
     return exceptionDays
   }
 
-  async getDayTypesForDate(date: string, routeId?: string): Promise<string[]> {
-    let routeType: null | string = null
-
-    if (routeId) {
-      routeType = await this.getTypeOfRoute(routeId, date)
-    }
-
+  async getDayTypesForDate(date: string): Promise<ExceptionDaysScoped> {
     const exceptions = await this.getExceptions(date)
-    let dayTypes: string[] = []
+    let dayTypes: ExceptionDaysScoped = { normal: [getDayTypeFromDate(date)] }
 
     if (exceptions && exceptions.length !== 0) {
-      dayTypes = uniq(
-        exceptions.reduce((exceptionDayTypes: string[], exception) => {
-          const days = [...exceptionDayTypes, ...exception.effectiveDayTypes]
+      dayTypes = exceptions.reduce((exceptionDayTypes: ExceptionDaysScoped, exception) => {
+        const currentScope = exception.scope || 'all'
+        let scopeValue = exceptionDayTypes[currentScope] || []
+        let allScopeValue = (currentScope !== 'all' ? exceptionDayTypes.all : scopeValue) || []
 
-          if (!routeType || !exception.modeScope) {
-            return days
-          }
+        const nonScopedDayTypes = exception.effectiveDayTypes.filter(
+          (dt) => dt !== exception.scopedDayType
+        )
 
-          return routeType === exception.modeScope ? days : exceptionDayTypes
-        }, [])
-      )
-    }
+        scopeValue = uniq(compact([...scopeValue, exception.scopedDayType]))
+        allScopeValue = uniq([...allScopeValue, ...nonScopedDayTypes])
 
-    if (dayTypes.length === 0) {
-      dayTypes = [getDayTypeFromDate(date)]
+        exceptionDayTypes[currentScope] = scopeValue
+        exceptionDayTypes.all = allScopeValue
+
+        return exceptionDayTypes
+      }, dayTypes)
     }
 
     return dayTypes
+  }
+
+  async getDayTypesForDateAndRoute(date: string, routeId: string): Promise<string[]> {
+    const routeType = await this.getTypeOfRoute(routeId, date)
+    const exceptionTypesScoped = await this.getDayTypesForDate(date)
+
+    const exceptionTypesForScope = (!!routeType ? exceptionTypesScoped[routeType] : []) || []
+    const exceptionTypesForAll = exceptionTypesScoped.all || []
+
+    // If there are no scoped replacement days, also include the normal day type.
+    // Otherwise some departures may be missing from the result as non-scoped
+    // exception days may not have any departures.
+    const includedNormalDays =
+      exceptionTypesForScope.length === 0 ? exceptionTypesScoped.normal : []
+
+    return uniq([...exceptionTypesForScope, ...exceptionTypesForAll, ...includedNormalDays])
   }
 
   async getTypeOfRoute(routeId: string, date: string): Promise<null | string> {

@@ -462,7 +462,7 @@ ORDER BY tst DESC;
       `SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
 WHERE tst >= :minTime
-  AND tst < :maxTime
+  AND tst <= :maxTime
   AND event_type = :event
   AND stop = :stopId
   AND route_id = :routeId

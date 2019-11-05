@@ -19,7 +19,9 @@ export const createExceptionDayObject = (
     exceptionDate: config.date_in_effect,
     exclusive: config.exclusive === 1 || false,
     modeScope: getMode(config.scope) || '',
+    scope: config.scope || '',
     effectiveDayTypes: uniq(compact(config.effective_day_types)),
+    scopedDayType: config.scoped_day_type || '',
     startTime: config.time_begin || null,
     endTime: config.time_end || null,
   }

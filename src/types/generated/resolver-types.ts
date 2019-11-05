@@ -2060,9 +2060,13 @@ export namespace ExceptionDayResolvers {
 
     effectiveDayTypes?: EffectiveDayTypesResolver<string[], TypeParent, TContext>
 
+    scopedDayType?: ScopedDayTypeResolver<string, TypeParent, TContext>
+
     dayType?: DayTypeResolver<string, TypeParent, TContext>
 
-    modeScope?: ModeScopeResolver<Maybe<string>, TypeParent, TContext>
+    modeScope?: ModeScopeResolver<string, TypeParent, TContext>
+
+    scope?: ScopeResolver<string, TypeParent, TContext>
 
     description?: DescriptionResolver<Maybe<string>, TypeParent, TContext>
 
@@ -2088,16 +2092,26 @@ export namespace ExceptionDayResolvers {
     Parent = ExceptionDay,
     TContext = {}
   > = Resolver<R, Parent, TContext>
+  export type ScopedDayTypeResolver<
+    R = string,
+    Parent = ExceptionDay,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
   export type DayTypeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
     R,
     Parent,
     TContext
   >
-  export type ModeScopeResolver<
-    R = Maybe<string>,
-    Parent = ExceptionDay,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
+  export type ModeScopeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
+  export type ScopeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
+    R,
+    Parent,
+    TContext
+  >
   export type DescriptionResolver<
     R = Maybe<string>,
     Parent = ExceptionDay,

@@ -216,6 +216,7 @@ export interface JoreExceptionDay {
   effective_day_types: Array<string | null>
   description: Maybe<string>
   day_type: string
+  scoped_day_type: Maybe<string>
   exclusive: number
   scope: Maybe<string>
   time_begin: Maybe<string>
