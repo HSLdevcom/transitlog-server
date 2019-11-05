@@ -8,9 +8,9 @@ import {
 import { getSettings } from '../datasources/transitlogServer'
 import { groupBy, flatten, uniq, difference, compact, get, map } from 'lodash'
 
-export async function assignUserToGroups(userInfo: IUserInfo) {
+export async function assignUserToGroups(userInfo: IUserInfo): Promise<IUserInfo> {
   if (!userInfo.email) {
-    return
+    return userInfo
   }
 
   const settings = await getSettings()
@@ -42,7 +42,7 @@ export async function assignUserToGroups(userInfo: IUserInfo) {
 
     if (resources.length === 0) {
       console.log('No groups returned from auth service.')
-      return
+      return userInfo
     }
 
     // Get IDs for each group and remove undefineds.
@@ -64,4 +64,6 @@ export async function assignUserToGroups(userInfo: IUserInfo) {
       console.log(`User's groups updated.`)
     }
   }
+
+  return userInfo
 }

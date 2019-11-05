@@ -132,10 +132,11 @@ function createTstRange(date: string): TstRange {
 
   const minTime = minTimeMoment.format(TST_FORMAT)
 
-  const maxTimeMoment = minTimeMoment
-    .clone()
+  const maxTimeMoment = moment(date)
+    .tz(TZ)
     .endOf('day')
     .add(5, 'hours')
+    .utc()
 
   const maxTime = maxTimeMoment.format(TST_FORMAT)
 
@@ -466,7 +467,7 @@ ORDER BY tst DESC;
       `SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
 WHERE tst >= :minTime
-  AND tst < :maxTime
+  AND tst <= :maxTime
   AND event_type = :event
   AND stop = :stopId
   AND route_id = :routeId

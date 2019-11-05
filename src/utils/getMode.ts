@@ -6,6 +6,8 @@ export function getMode(code) {
       return 'SUBWAY'
     case '07':
       return 'FERRY'
+    case '08':
+      return 'U'
     case '12':
       return 'RAIL'
     case '13':

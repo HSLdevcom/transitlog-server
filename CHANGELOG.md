@@ -1,5 +1,13 @@
 # Transitlog server changelog
 
+## Version 1.4.0, deployed 2019-11-4 @ 09:00
+
+- New HSL ID environment.
+- Use dev HSL ID environment for testing.
+- Fix bug filtering out abnormal stop events from the Journey response.
+- Fix differing departure times being returned for different requests for journeys with abnormal stop events.
+- Fix tst time range end function which included too much of the next day.
+
 ## Version 1.3.1, deployed 2019-10-25 @ 09:00
 
 - Allow nullable departureTime field for Journey objects.

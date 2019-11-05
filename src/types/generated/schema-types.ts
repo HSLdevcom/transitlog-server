@@ -728,9 +728,13 @@ export interface ExceptionDay {
 
   effectiveDayTypes: string[]
 
+  scopedDayType: string
+
   dayType: string
 
-  modeScope?: Maybe<string>
+  modeScope: string
+
+  scope: string
 
   description?: Maybe<string>
 

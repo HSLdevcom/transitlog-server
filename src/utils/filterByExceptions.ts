@@ -1,4 +1,4 @@
-import { groupBy, orderBy, flatten } from 'lodash'
+import { groupBy, orderBy, flatten, uniqBy } from 'lodash'
 import { Departure, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes } from './dayTypes'
 
@@ -14,6 +14,7 @@ export const filterByExceptions = (
   // This is what we will return from this function. Collect all departures that are valid here.
   let validDepartures: Departure[] = []
 
+  // Departures grouped by route.
   const routeGroups = Object.values(
     groupBy(departures, ({ routeId, direction }) => `${routeId}/${direction}`)
   )
@@ -22,6 +23,7 @@ export const filterByExceptions = (
     const departuresByDate = groupBy(routeDepartures, 'plannedDepartureTime.departureDate')
 
     for (const [departureDate, dateDepartures] of Object.entries(departuresByDate)) {
+      // Get an exception in effect for the current departure date.
       const exception = exceptions.find(({ exceptionDate }) => exceptionDate === departureDate)
 
       if (exception) {
@@ -66,5 +68,9 @@ export const filterByExceptions = (
     }
   }
 
-  return validDepartures
+  return uniqBy(
+    validDepartures,
+    ({ departureDate, departureTime, dayType, isNextDay, routeId, direction, departureId }) =>
+      departureDate + departureTime + dayType + isNextDay + routeId + direction + departureId
+  )
 }
