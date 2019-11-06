@@ -1,15 +1,13 @@
 import * as express from 'express'
 import nodeFetch, { Response } from 'node-fetch'
 import {
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URI,
-  LOGIN_PROVIDER_URI,
-  TESTING_CLIENT_ID,
-  TESTING_CLIENT_SECRET,
-  TESTING_LOGIN_PROVIDER_URI,
   API_CLIENT_ID,
   API_CLIENT_SECRET,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  LOGIN_PROVIDER_URI,
+  REDIRECT_URI,
+  TESTING_LOGIN_PROVIDER_URI,
 } from '../constants'
 
 const authHash = Buffer.from(`${API_CLIENT_ID}:${API_CLIENT_SECRET}`).toString('base64')
