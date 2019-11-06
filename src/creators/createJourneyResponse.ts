@@ -572,16 +572,21 @@ export async function createJourneyResponse(
     []
   )
 
-  const orderedStopEvents = orderBy(
-    [...stopEventObjects, ...stopsWithoutEvents],
-    'index',
-    'asc'
-  )
+  const allStopEvents = [...stopEventObjects, ...stopsWithoutEvents]
+
+  const combinedJourneyEvents: EventsType[] = compact([
+    ...allStopEvents,
+    ...otherEvents,
+    ...cancellationEvents,
+  ])
+
+  const isPlannedEvent = (event: any): event is PlannedStopEvent =>
+    typeof event.plannedUnix !== 'undefined'
 
   // Combine all created event objects and order by time.
-  const allJourneyEvents = orderBy<EventsType>(
-    compact([...orderedStopEvents, ...otherEvents, ...cancellationEvents]),
-    (event) => get(event, 'recordedAtUnix', get(event, 'plannedUnix', 0)),
+  const sortedJourneyEvents = orderBy<EventsType>(
+    combinedJourneyEvents,
+    (event) => (isPlannedEvent(event) ? event.plannedUnix : event.recordedAtUnix),
     'asc'
   )
 
@@ -631,7 +636,7 @@ export async function createJourneyResponse(
   // Everything is baked into a Journey object.
   return createJourneyObject(
     finalPositions,
-    allJourneyEvents,
+    sortedJourneyEvents,
     route,
     originDeparture,
     journeyEquipment,

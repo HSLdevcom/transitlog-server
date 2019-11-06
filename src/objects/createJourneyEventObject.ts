@@ -24,13 +24,13 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
   const id = createJourneyId(event)
 
   const unix = parseInt(event.tsi, 10)
-  const ts = moment.tz(event.tst, TZ).toISOString(true)
+  const ts = moment.tz(event.tst, TZ)
 
   return {
     id: `journey_event_${event.event_type || 'VP'}_${id}_${unix}`,
     type: event.event_type || 'VP',
-    recordedAt: ts,
-    recordedAtUnix: unix,
+    recordedAt: ts.toISOString(true),
+    recordedAtUnix: ts.unix(),
     recordedTime: getJourneyEventTime(event),
     stopId: (event.stop || '') + '' || null,
     lat: event.lat,
