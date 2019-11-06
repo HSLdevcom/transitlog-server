@@ -1,5 +1,9 @@
 # Transitlog server changelog
 
+## Version 1.4.1, deployed 2019-11-06 @ 12:00
+
+- Auto-create all groups entered in the auto-create admin config.
+
 ## Version 1.4.0, deployed 2019-11-06 @ 10:00
 
 - New HSL ID environment.
