@@ -25,6 +25,7 @@ export function createJourneyObject(
   events: Array<JourneyEvent | JourneyStopEvent | PlannedStopEvent | JourneyCancellationEvent>,
   journeyRoute?: Route | null,
   originDeparture: Departure | null = null,
+  departures: Departure[] | null = null,
   journeyEquipment?: JoreEquipment | null,
   alerts: Alert[] = [],
   cancellations: Cancellation[] = []
@@ -71,6 +72,7 @@ export function createJourneyObject(
     vehiclePositions: vehiclePositions.map((event) => createVehiclePositionObject(event, id)),
     events,
     departure: originDeparture,
+    routeDepartures: !!departures && departures.length ? departures : [],
     alerts,
     cancellations,
     isCancelled,

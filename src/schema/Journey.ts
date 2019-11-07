@@ -118,6 +118,7 @@ export const Journey = gql`
     vehiclePositions: [VehiclePosition!]!
     events: [JourneyEventType!]!
     departure: Departure
+    routeDepartures: [Departure!]!
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!

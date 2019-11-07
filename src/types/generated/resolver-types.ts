@@ -2170,6 +2170,8 @@ export namespace JourneyResolvers {
 
     departure?: DepartureResolver<Maybe<Departure>, TypeParent, TContext>
 
+    routeDepartures?: RouteDeparturesResolver<Departure[], TypeParent, TContext>
+
     alerts?: AlertsResolver<Alert[], TypeParent, TContext>
 
     cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
@@ -2259,6 +2261,11 @@ export namespace JourneyResolvers {
   > = Resolver<R, Parent, TContext>
   export type DepartureResolver<
     R = Maybe<Departure>,
+    Parent = Journey,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type RouteDeparturesResolver<
+    R = Departure[],
     Parent = Journey,
     TContext = {}
   > = Resolver<R, Parent, TContext>

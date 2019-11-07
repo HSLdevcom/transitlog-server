@@ -639,6 +639,7 @@ export async function createJourneyResponse(
     sortedJourneyEvents,
     route,
     originDeparture,
+    departures,
     journeyEquipment,
     journeyAlerts,
     journeyCancellations
