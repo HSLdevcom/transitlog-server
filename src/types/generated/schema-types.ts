@@ -780,7 +780,7 @@ export interface Journey {
 
   departure?: Maybe<Departure>
 
-  routeDepartures: Departure[]
+  routeDepartures?: Maybe<Departure[]>
 
   alerts: Alert[]
 
