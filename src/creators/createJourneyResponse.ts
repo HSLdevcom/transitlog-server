@@ -397,6 +397,7 @@ export async function createJourneyResponse(
       route,
       originDeparture,
       null,
+      null,
       journeyAlerts,
       journeyCancellations
     )

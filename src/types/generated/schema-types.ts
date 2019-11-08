@@ -302,17 +302,17 @@ export interface Equipment {
 
   operatorName?: Maybe<string>
 
-  registryNr: string
+  registryNr?: Maybe<string>
 
-  age: number
+  age?: Maybe<number>
 
-  type: string
+  type?: Maybe<string>
 
-  exteriorColor: string
+  exteriorColor?: Maybe<string>
 
-  emissionDesc: string
+  emissionDesc?: Maybe<string>
 
-  emissionClass: string
+  emissionClass?: Maybe<string>
 
   inService?: Maybe<boolean>
 
