@@ -10,6 +10,8 @@ export const Route = gql`
     name: String
     destinationStopId: String
     originStopId: String!
+    routeLength: Int
+    routeDurationMinutes: Int
     mode: String
     alerts: [Alert!]!
     cancellations: [Cancellation!]!

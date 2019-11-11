@@ -114,6 +114,8 @@ export const Journey = gql`
     headsign: String
     name: String
     mode: String
+    journeyLength: Int
+    journeyDurationMinutes: Int
     equipment: Equipment
     vehiclePositions: [VehiclePosition!]!
     events: [JourneyEventType!]!

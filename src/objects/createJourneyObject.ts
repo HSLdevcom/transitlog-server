@@ -67,6 +67,8 @@ export function createJourneyObject(
     vehicleId: vehicleNumber,
     headsign: !journey ? '' : journey.headsign,
     name: get(journeyRoute, 'name', ''),
+    journeyLength: get(journeyRoute, 'routeLength', 0),
+    journeyDurationMinutes: get(journeyRoute, 'routeDurationMinutes', 0),
     mode: (get(journeyRoute, 'mode', get(journey, 'mode', '')) || '').toUpperCase(),
     equipment: journeyEquipment ? createEquipmentObject(journeyEquipment) : null,
     vehiclePositions: vehiclePositions.map((event) => createVehiclePositionObject(event, id)),

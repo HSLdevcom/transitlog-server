@@ -404,6 +404,10 @@ export interface Route {
 
   originStopId: string
 
+  routeLength?: Maybe<number>
+
+  routeDurationMinutes?: Maybe<number>
+
   mode?: Maybe<string>
 
   alerts: Alert[]
@@ -771,6 +775,10 @@ export interface Journey {
   name?: Maybe<string>
 
   mode?: Maybe<string>
+
+  journeyLength?: Maybe<number>
+
+  journeyDurationMinutes?: Maybe<number>
 
   equipment?: Maybe<Equipment>
 

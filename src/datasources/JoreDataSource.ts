@@ -13,7 +13,7 @@ import { Direction, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { orderBy, uniq, flatten, compact } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
-import { JourneyRouteData } from '../creators/createJourneyResponse'
+import { PlannedJourneyData } from '../creators/createJourneyResponse'
 import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'date-fns'
 import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -54,6 +54,7 @@ export class JoreDataSource extends SQLDataSource {
         route.date_begin,
         route.date_end,
         route.date_modified,
+        route.route_length,
         mode.mode
       FROM :schema:.route route,
            :schema:.route_mode(route) mode;
@@ -79,6 +80,7 @@ export class JoreDataSource extends SQLDataSource {
         route.date_begin,
         route.date_end,
         route.date_modified,
+        route.route_length,
         mode.mode
       FROM :schema:.route route,
            :schema:.route_mode(route) mode
@@ -100,6 +102,7 @@ export class JoreDataSource extends SQLDataSource {
       `SELECT
         route.route_id,
         route.direction,
+        route.route_length,
         mode.mode,
         ST_AsGeoJSON(geometry.geom)::JSONB geometry,
         geometry.date_begin,
@@ -130,6 +133,7 @@ WHERE route.route_id = :routeId
        route.route_id,
        route.direction,
        route.originstop_id,
+       route.route_length,
        route.name_fi as route_name,
        mode.mode,
        route_segment.date_begin,
@@ -249,6 +253,7 @@ WHERE stop.stop_id = :stopId;`,
        route.direction,
        route.name_fi,
        route.name_fi as route_name,
+       route.route_length,
        route.destination_fi,
        route.origin_fi,
        route.destinationstop_id,
@@ -364,6 +369,7 @@ SELECT stop.stop_id,
        route.originstop_id,
        route.destination_fi,
        route.origin_fi,
+       route.route_length,
        route.name_fi as route_name,
        mode.mode
 FROM :schema:.route_segment route_segment
@@ -378,7 +384,7 @@ WHERE route_segment.route_id = :routeId
     return this.getBatched(query)
   }
 
-  async getDepartureData(routeId, direction, date): Promise<JourneyRouteData> {
+  async getDepartureData(routeId, direction, date): Promise<PlannedJourneyData> {
     const stopsPromise = this.getJourneyStops(routeId, direction, date)
     const departuresPromise = this.getJourneyDepartures(routeId, direction, date)
     const [stops = [], departures = []] = await Promise.all([stopsPromise, departuresPromise])
@@ -413,6 +419,7 @@ SELECT stop.stop_id,
        route_segment.timing_stop_type,
        route.destination_fi,
        route.origin_fi,
+       route.route_length,
        route.name_fi as route_name,
        mode.mode
 FROM :schema:.route_segment route_segment

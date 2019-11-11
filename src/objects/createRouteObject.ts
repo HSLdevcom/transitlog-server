@@ -22,6 +22,8 @@ export function createRouteObject(
     destinationStopId: route.destinationstop_id,
     originStopId: route.originstop_id,
     mode: route.mode,
+    routeLength: route.route_length,
+    routeDurationMinutes: route.duration || 0,
     alerts: alerts && alerts.length !== 0 ? alerts : [],
     cancellations: cancellations && cancellations.length !== 0 ? cancellations : [],
     // @ts-ignore
