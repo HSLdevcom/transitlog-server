@@ -14,6 +14,7 @@ export const Journey = gql`
     stopId: String
     lat: Float
     lng: Float
+    _isVirtual: Boolean
   }
 
   type JourneyCancellationEvent {
@@ -56,6 +57,7 @@ export const Journey = gql`
     lat: Float
     lng: Float
     unplannedStop: Boolean!
+    _isVirtual: Boolean
   }
 
   type PlannedStopEvent {
@@ -114,10 +116,13 @@ export const Journey = gql`
     headsign: String
     name: String
     mode: String
+    journeyLength: Int
+    journeyDurationMinutes: Int
     equipment: Equipment
     vehiclePositions: [VehiclePosition!]!
     events: [JourneyEventType!]!
     departure: Departure
+    routeDepartures: [Departure!]
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!

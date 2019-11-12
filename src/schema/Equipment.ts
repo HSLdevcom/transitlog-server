@@ -6,12 +6,12 @@ export const Equipment = gql`
     vehicleId: String!
     operatorId: String!
     operatorName: String
-    registryNr: String!
-    age: Int!
-    type: String!
-    exteriorColor: String!
-    emissionDesc: String!
-    emissionClass: String!
+    registryNr: String
+    age: Int
+    type: String
+    exteriorColor: String
+    emissionDesc: String
+    emissionClass: String
     inService: Boolean
     _matchScore: Float
   }

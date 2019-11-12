@@ -21,7 +21,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, flatten, get, groupBy, last, orderBy, reverse, unionBy } from 'lodash'
+import { compact, get, groupBy, last, orderBy, reverse } from 'lodash'
 import { createJourneyObject } from '../objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -46,7 +46,7 @@ import {
 import { createStopObject } from '../objects/createStopObject'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
-import { isToday, parse } from 'date-fns'
+import { isToday } from 'date-fns'
 import { createVirtualStopEvents } from '../utils/createVirtualStopEvents'
 import { AuthenticatedUser } from '../types/Authentication'
 import { requireVehicleAuthorization } from '../auth/requireUser'
@@ -58,7 +58,7 @@ type JourneyRoute = {
   departures: Departure[]
 }
 
-export type JourneyRouteData = {
+export type PlannedJourneyData = {
   departures: JoreRouteDepartureData[]
   stops: JoreStopSegment[]
 }
@@ -118,16 +118,16 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   time,
   exceptions
 ) => {
-  const journeyRoute: JourneyRouteData = await fetcher()
+  const plannedJourney: PlannedJourneyData = await fetcher()
 
-  if (journeyRoute.departures.length === 0 || journeyRoute.stops.length === 0) {
+  if (plannedJourney.departures.length === 0 || plannedJourney.stops.length === 0) {
     return false
   }
 
-  const departures: JoreRouteDepartureData[] = get(journeyRoute, 'departures', []) || []
-  const stops: JoreStopSegment[] = get(journeyRoute, 'stops', []) || []
+  const departures: JoreRouteDepartureData[] = get(plannedJourney, 'departures', []) || []
+  const stops: JoreStopSegment[] = get(plannedJourney, 'stops', []) || []
   // A stop segment contains all necessary info for the route
-  const journeyRouteObject = createRouteObject(stops[0])
+  let journeyRoute = createRouteObject(stops[0])
 
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(
     groupBy(
@@ -143,20 +143,21 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
   const originDeparture = validDepartures.find(
     (departure) =>
-      getDepartureTime(departure) === time &&
-      departure.stop_id === journeyRouteObject.originStopId
+      getDepartureTime(departure) === time && departure.stop_id === journeyRoute.originStopId
   )
 
   if (!originDeparture) {
-    return { route: journeyRouteObject, departures: [] }
+    return { route: journeyRoute, departures: [] }
   }
 
   const stopSegmentGroups = groupBy(stops, 'stop_index')
   const validStops = filterByDateChains<JoreStopSegment>(stopSegmentGroups, date)
 
   if (validStops.length === 0) {
-    return { route: journeyRouteObject, departures: [] }
+    return { route: journeyRoute, departures: [] }
   }
+
+  journeyRoute = createRouteObject(validStops[validStops.length - 1])
 
   const journeyDepartures = validDepartures.filter(
     (departure) =>
@@ -190,7 +191,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
   return {
-    route: journeyRouteObject,
+    route: journeyRoute,
     departures: filterByExceptions(orderBy(compact(stopDepartures), 'index'), exceptions),
   }
 }
@@ -215,7 +216,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param user
  */
 export async function createJourneyResponse(
-  fetchRouteData: () => Promise<JourneyRouteData>,
+  fetchRouteData: () => Promise<PlannedJourneyData>,
   fetchJourneyEvents: () => Promise<Vehicles[]>,
   fetchJourneyEquipment: (
     vehicleId: string | number,
@@ -397,6 +398,7 @@ export async function createJourneyResponse(
       route,
       originDeparture,
       null,
+      null,
       journeyAlerts,
       journeyCancellations
     )
@@ -572,16 +574,21 @@ export async function createJourneyResponse(
     []
   )
 
-  const orderedStopEvents = orderBy(
-    [...stopEventObjects, ...stopsWithoutEvents],
-    'index',
-    'asc'
-  )
+  const allStopEvents = [...stopEventObjects, ...stopsWithoutEvents]
+
+  const combinedJourneyEvents: EventsType[] = compact([
+    ...allStopEvents,
+    ...otherEvents,
+    ...cancellationEvents,
+  ])
+
+  const isPlannedEvent = (event: any): event is PlannedStopEvent =>
+    typeof event.plannedUnix !== 'undefined'
 
   // Combine all created event objects and order by time.
-  const allJourneyEvents = orderBy<EventsType>(
-    compact([...orderedStopEvents, ...otherEvents, ...cancellationEvents]),
-    (event) => get(event, 'recordedAtUnix', get(event, 'plannedUnix', 0)),
+  const sortedJourneyEvents = orderBy<EventsType>(
+    combinedJourneyEvents,
+    (event) => (isPlannedEvent(event) ? event.plannedUnix : event.recordedAtUnix),
     'asc'
   )
 
@@ -631,9 +638,10 @@ export async function createJourneyResponse(
   // Everything is baked into a Journey object.
   return createJourneyObject(
     finalPositions,
-    allJourneyEvents,
+    sortedJourneyEvents,
     route,
     originDeparture,
+    departures,
     journeyEquipment,
     journeyAlerts,
     journeyCancellations

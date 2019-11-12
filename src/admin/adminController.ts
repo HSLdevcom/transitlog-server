@@ -7,10 +7,9 @@ import {
   saveAutoGroups,
   setUIMessage,
 } from '../datasources/transitlogServer'
-import { compact, difference, get, last, uniq } from 'lodash'
+import { compact, difference, get, uniq } from 'lodash'
 import join from 'proper-url-join'
 import { PATH_PREFIX } from '../constants'
-import pMap from 'p-map'
 import { createGroup, requestGroups } from '../auth/authService'
 import { clearAll } from '../cache'
 
@@ -33,7 +32,7 @@ export const adminController = async (adminPath) => {
         const assignment = line.split(/\s*=\s*/)
         const domain = (assignment[0] || '').trim().toLowerCase()
         const groups = (assignment[1] || '')
-          .split(/\s*,\s*/)
+          .split(',')
           .map((s) => s.trim())
           .filter((g) => g)
 
@@ -75,40 +74,41 @@ export const adminController = async (adminPath) => {
     const groupAssignments = get(req, 'body.auto_group_assignments', '') || ''
 
     // Split assignments by newline and create "DomainGroups".
-    const domainGroups: DomainGroup[] = createDomainGroupsFromInput(groupAssignments)
+    let domainGroups: DomainGroup[] = createDomainGroupsFromInput(groupAssignments)
     const existingGroups = await requestGroups()
 
-    const domains = domainGroups.map(({ domain }) => domain)
-    const newGroupNames = compact(
-      domains.map((email) => {
-        const domain = (last(email.toLowerCase().split('@')) || '') as string
+    const newGroups = compact(
+      domainGroups.reduce((groupsArray: string[], { domain = '', groups = [] }) => {
+        const domainGroupName = domain.replace(/\..*$/g, '')
 
-        if (!domain) {
-          return
+        if (domainGroupName) {
+          groupsArray.push(domainGroupName)
+          groups.push(domainGroupName)
         }
 
-        const groupName = domain.replace(/\..*$/g, '')
-        return [groupName, email]
-      })
+        return uniq([...groupsArray, ...groups])
+      }, [])
     )
 
     const groupsToCreate = difference(
-      newGroupNames.map(([groupName]) => groupName),
+      newGroups,
       get(existingGroups, 'resources', []).map(({ name }) => name)
     )
 
     if (groupsToCreate.length !== 0) {
       // Create groups for each group name that didn't exist yet
-      await pMap(groupsToCreate, async (groupName) => createGroup(groupName))
+      for (const groupName of groupsToCreate) {
+        await createGroup(groupName)
+      }
     }
 
-    // Add the newly-created group to the group assignment array for the domain.
-    newGroupNames.forEach(([groupName, domain]) => {
-      const domainGroup: DomainGroup = domainGroups.find(
-        ({ domain: groupDomain }) => domain === groupDomain
-      ) as DomainGroup
+    domainGroups = domainGroups.map((domainGroup) => {
+      const { domain, groups } = domainGroup
 
-      domainGroup.groups = uniq([...domainGroup.groups, groupName])
+      return {
+        domain,
+        groups: uniq(groups),
+      }
     })
 
     await saveAutoGroups(domainGroups)

@@ -1,9 +1,12 @@
 import * as express from 'express'
-import * as AuthService from './authService'
-import { ALLOW_DEV_LOGIN, HSL_GROUP_NAME, REDIRECT_URI } from '../constants'
-import { getSettings } from '../datasources/transitlogServer'
-import { compact, difference, flatten, get, groupBy, map, uniq } from 'lodash'
-import { IAccessToken } from './authService'
+import {
+  IAccessToken,
+  logoutFromIdentityProvider,
+  requestAccessToken,
+  requestUserInfo,
+} from './authService'
+import { ALLOW_DEV_LOGIN, REDIRECT_URI } from '../constants'
+import { get } from 'lodash'
 import { assignUserToGroups } from './groupAssignments'
 
 interface IAuthRequest {
@@ -40,7 +43,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
     accessToken = code
     tokenResponse = 'test'
   } else {
-    tokenResponse = await AuthService.requestAccessToken(code, redirect_uri)
+    tokenResponse = await requestAccessToken(code, redirect_uri)
     accessToken = tokenResponse.access_token
   }
 
@@ -48,7 +51,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
 
   if (req.session && accessToken) {
     req.session.accessToken = accessToken
-    let userInfo = await AuthService.requestUserInfo(accessToken, isTest)
+    let userInfo = await requestUserInfo(accessToken, isTest)
 
     if (userInfo) {
       userEmail = get(userInfo, 'email', isTest ? 'testing@hsl.fi' : '')
@@ -123,7 +126,7 @@ const checkExistingSession = async (req: express.Request, res: express.Response)
 const logout = async (req: express.Request, res: express.Response) => {
   if (req.session && req.session.accessToken) {
     if (req.session.accessToken !== 'dev') {
-      await AuthService.logoutFromIdentityProvider(req.session.accessToken)
+      await logoutFromIdentityProvider(req.session.accessToken)
     }
 
     req.session.destroy(() => {

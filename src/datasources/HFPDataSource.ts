@@ -199,6 +199,7 @@ WHERE event_type = 'VP'
   AND tst BETWEEN :minTime AND :maxTime
   AND lat BETWEEN :minLat AND :maxLat
   AND long BETWEEN :minLng AND :maxLng
+  AND is_ongoing = true
 ORDER BY tst ASC;
     `,
       {
@@ -240,6 +241,7 @@ WHERE tst >= :minTime
   AND journey_type = 'journey'
   AND oday = :date
   AND unique_vehicle_id = :vehicleId
+  AND is_ongoing = true
 ORDER BY tst ASC;
 `,
       { date, minTime, maxTime, vehicleId: queryVehicleId }
@@ -354,6 +356,7 @@ ORDER BY tst ASC;
           AND route_id = :routeId
           AND direction_id = :direction
           AND oday = :departureDate
+          AND is_ongoing = true
         ORDER BY tst DESC;`,
       {
         departureDate,
@@ -407,6 +410,7 @@ WHERE tst >= :minTime
   AND event_type IN ('DEP', 'PDE')
   AND oday = :date
   AND stop = :stopId
+  AND is_ongoing = true
 ORDER BY tst DESC;
 `,
       { date, stopId, minTime, maxTime }
@@ -473,6 +477,7 @@ WHERE tst >= :minTime
   AND route_id = :routeId
   AND direction_id = :direction
   AND oday = :date
+  AND is_ongoing = true
 ORDER BY tst DESC;
 `,
       {
@@ -507,6 +512,7 @@ ORDER BY tst DESC;
       FROM unsignedevent
       WHERE tst >= :minTime AND tst < :maxTime
         AND unique_vehicle_id = :vehicleId
+        AND is_ongoing = true
       ORDER BY tst DESC;
     `,
       { vehicleId: createHfpVehicleId(uniqueVehicleId), minTime, maxTime }

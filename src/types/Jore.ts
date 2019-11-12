@@ -119,6 +119,7 @@ export interface JoreRoute {
   destination_fi: string
   destination_se?: Maybe<string>
   destinationstop_id: string
+  duration?: Maybe<number>
   has_regular_day_departures?: Maybe<boolean>
   mode?: Maybe<Mode>
 }

@@ -302,17 +302,17 @@ export interface Equipment {
 
   operatorName?: Maybe<string>
 
-  registryNr: string
+  registryNr?: Maybe<string>
 
-  age: number
+  age?: Maybe<number>
 
-  type: string
+  type?: Maybe<string>
 
-  exteriorColor: string
+  exteriorColor?: Maybe<string>
 
-  emissionDesc: string
+  emissionDesc?: Maybe<string>
 
-  emissionClass: string
+  emissionClass?: Maybe<string>
 
   inService?: Maybe<boolean>
 
@@ -403,6 +403,10 @@ export interface Route {
   destinationStopId?: Maybe<string>
 
   originStopId: string
+
+  routeLength?: Maybe<number>
+
+  routeDurationMinutes?: Maybe<number>
 
   mode?: Maybe<string>
 
@@ -671,6 +675,8 @@ export interface JourneyStopEvent {
   lng?: Maybe<number>
 
   unplannedStop: boolean
+
+  _isVirtual?: Maybe<boolean>
 }
 
 export interface PlannedDeparture {
@@ -772,6 +778,10 @@ export interface Journey {
 
   mode?: Maybe<string>
 
+  journeyLength?: Maybe<number>
+
+  journeyDurationMinutes?: Maybe<number>
+
   equipment?: Maybe<Equipment>
 
   vehiclePositions: VehiclePosition[]
@@ -779,6 +789,8 @@ export interface Journey {
   events: JourneyEventType[]
 
   departure?: Maybe<Departure>
+
+  routeDepartures?: Maybe<Departure[]>
 
   alerts: Alert[]
 
@@ -803,6 +815,8 @@ export interface JourneyEvent {
   lat?: Maybe<number>
 
   lng?: Maybe<number>
+
+  _isVirtual?: Maybe<boolean>
 }
 
 export interface JourneyCancellationEvent {
