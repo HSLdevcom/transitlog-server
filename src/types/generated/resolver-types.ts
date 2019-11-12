@@ -1792,6 +1792,8 @@ export namespace JourneyStopEventResolvers {
     lng?: LngResolver<Maybe<number>, TypeParent, TContext>
 
     unplannedStop?: UnplannedStopResolver<boolean, TypeParent, TContext>
+
+    _isVirtual?: _IsVirtualResolver<Maybe<boolean>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = JourneyStopEvent, TContext = {}> = Resolver<
@@ -1901,6 +1903,11 @@ export namespace JourneyStopEventResolvers {
   > = Resolver<R, Parent, TContext>
   export type UnplannedStopResolver<
     R = boolean,
+    Parent = JourneyStopEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
+  export type _IsVirtualResolver<
+    R = Maybe<boolean>,
     Parent = JourneyStopEvent,
     TContext = {}
   > = Resolver<R, Parent, TContext>
@@ -2335,6 +2342,8 @@ export namespace JourneyEventResolvers {
     lat?: LatResolver<Maybe<number>, TypeParent, TContext>
 
     lng?: LngResolver<Maybe<number>, TypeParent, TContext>
+
+    _isVirtual?: _IsVirtualResolver<Maybe<boolean>, TypeParent, TContext>
   }
 
   export type IdResolver<R = string, Parent = JourneyEvent, TContext = {}> = Resolver<
@@ -2377,6 +2386,11 @@ export namespace JourneyEventResolvers {
     Parent,
     TContext
   >
+  export type _IsVirtualResolver<
+    R = Maybe<boolean>,
+    Parent = JourneyEvent,
+    TContext = {}
+  > = Resolver<R, Parent, TContext>
 }
 
 export namespace JourneyCancellationEventResolvers {

@@ -3938,6 +3938,14 @@
             },
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "_isVirtual",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "inputFields": null,
@@ -4728,6 +4736,14 @@
             "description": "",
             "args": [],
             "type": { "kind": "SCALAR", "name": "Float", "ofType": null },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_isVirtual",
+            "description": "",
+            "args": [],
+            "type": { "kind": "SCALAR", "name": "Boolean", "ofType": null },
             "isDeprecated": false,
             "deprecationReason": null
           }

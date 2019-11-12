@@ -675,6 +675,8 @@ export interface JourneyStopEvent {
   lng?: Maybe<number>
 
   unplannedStop: boolean
+
+  _isVirtual?: Maybe<boolean>
 }
 
 export interface PlannedDeparture {
@@ -813,6 +815,8 @@ export interface JourneyEvent {
   lat?: Maybe<number>
 
   lng?: Maybe<number>
+
+  _isVirtual?: Maybe<boolean>
 }
 
 export interface JourneyCancellationEvent {

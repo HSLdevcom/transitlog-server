@@ -35,6 +35,7 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
     stopId: (event.stop || '') + '' || null,
     lat: event.lat,
     lng: event.long,
+    _isVirtual: !!event._is_virtual,
   }
 }
 
@@ -149,6 +150,7 @@ export function createJourneyStopEventObject(
     unplannedStop: !departure,
     lat: event.lat,
     lng: event.long,
+    _isVirtual: !!event._is_virtual,
   }
 }
 
