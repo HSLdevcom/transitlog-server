@@ -95,11 +95,7 @@ const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (
     journeyEvents = instanceGroup[1]
   }
 
-  const validEvents = journeyEvents.filter(
-    (pos) => !!pos.lat && !!pos.long && !!pos.journey_start_time
-  )
-
-  return validEvents.length !== 0 ? orderBy(validEvents, 'tsi', 'asc') : false
+  return journeyEvents.length !== 0 ? orderBy(journeyEvents, 'tsi', 'asc') : false
 }
 
 /**
