@@ -241,7 +241,7 @@ const journey = async (
     uniqueVehicleId,
     unsignedEvents = false,
   },
-  { dataSources, user }
+  { dataSources, user, skipCache }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(departureDate)
 
@@ -289,7 +289,8 @@ const journey = async (
     departureTime,
     uniqueVehicleId,
     false,
-    user
+    user,
+    skipCache
   )
 }
 
@@ -314,11 +315,21 @@ const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources, user })
   )
 }
 
-const unsignedVehicleEvents = (root, { uniqueVehicleId, date }, { dataSources, user }) => {
+const unsignedVehicleEvents = (
+  root,
+  { uniqueVehicleId, date },
+  { dataSources, user, skipCache }
+) => {
   const getUnsignedEvents = () =>
     dataSources.HFPAPI.getUnsignedEventsForVehicle(date, uniqueVehicleId)
 
-  return createUnsignedVehicleEventsResponse(getUnsignedEvents, uniqueVehicleId, date, user)
+  return createUnsignedVehicleEventsResponse(
+    getUnsignedEvents,
+    uniqueVehicleId,
+    date,
+    user,
+    skipCache
+  )
 }
 
 const journeysByBbox = (

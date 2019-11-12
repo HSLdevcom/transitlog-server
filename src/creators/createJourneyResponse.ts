@@ -214,6 +214,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param uniqueVehicleId
  * @param shouldFetchUnsignedEvents
  * @param user
+ * @param skipCache
  */
 export async function createJourneyResponse(
   fetchRouteData: () => Promise<PlannedJourneyData>,
@@ -233,7 +234,8 @@ export async function createJourneyResponse(
   departureTime: string,
   uniqueVehicleId: VehicleId,
   shouldFetchUnsignedEvents: boolean = false,
-  user: AuthenticatedUser | null
+  user: AuthenticatedUser | null,
+  skipCache: boolean = false
 ): Promise<Journey | null> {
   // If a vehicle ID is not provided, we need to figure out which vehicle operated the
   // journey based on the data as the vehicle ID is part of the journey key. If an
@@ -279,7 +281,8 @@ export async function createJourneyResponse(
         return 1
       }
       return 24 * 60 * 60
-    }
+    },
+    skipCache
   )
 
   // The journey key was used to fetch the journey, and now we need it to fetch the departures.
@@ -290,7 +293,8 @@ export async function createJourneyResponse(
   const routeAndDepartures = await cacheFetch<JourneyRoute>(
     routeCacheKey,
     () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime, exceptions),
-    24 * 60 * 60
+    24 * 60 * 60,
+    skipCache
   )
 
   // If both of our fetches failed we'll just bail here with null.
@@ -328,7 +332,8 @@ export async function createJourneyResponse(
     const unsignedResults = await cacheFetch(
       unsignedKey,
       () => fetchValidUnsignedEvents(vehicleId),
-      isToday(departureDate) ? 30 : 30 * 24 * 60 * 60
+      isToday(departureDate) ? 30 : 30 * 24 * 60 * 60,
+      skipCache
     )
 
     if (unsignedResults && unsignedResults.length !== 0) {

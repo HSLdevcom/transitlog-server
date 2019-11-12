@@ -202,7 +202,8 @@ export async function createDeparturesResponse(
     const stopsPromise = cacheFetch<RouteSegment[]>(
       stopsCacheKey,
       () => fetchStops(getStops, date),
-      24 * 60 * 60
+      24 * 60 * 60,
+      skipCache
     )
     const departuresPromise = getDepartures()
 
@@ -236,7 +237,8 @@ export async function createDeparturesResponse(
   const departures = await cacheFetch<Departure[]>(
     departuresCacheKey,
     fetchDepartures,
-    24 * 60 * 60
+    24 * 60 * 60,
+    skipCache
   )
 
   if (!departures || departures.length === 0) {
