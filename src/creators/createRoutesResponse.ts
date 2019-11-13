@@ -34,7 +34,7 @@ export async function createRouteResponse(
   }
 
   const cacheKey = `route_${routeId}_${direction}_${date}`
-  const validRoute = await cacheFetch<JoreRoute>(cacheKey, fetchAndValidate, 24 * 60 * 60)
+  const validRoute = await cacheFetch<JoreRoute>(cacheKey, fetchAndValidate, 30 * 24 * 60 * 60)
 
   if (!validRoute) {
     return null

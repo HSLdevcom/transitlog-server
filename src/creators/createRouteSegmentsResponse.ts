@@ -1,10 +1,30 @@
-import { groupBy, sortBy } from 'lodash'
+import { groupBy, sortBy, get } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreRouteData } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { Direction, RouteSegment } from '../types/generated/schema-types'
 import { createRouteSegmentObject } from '../objects/createRouteSegmentObject'
 import { requireUser } from '../auth/requireUser'
+
+// Filter out any additional stops from the start or end of the route that may be
+// invalid even though the stop itself is still valid. This is because our JORE
+// database never removes records, and sometimes invalid items persist. Anything
+// before the true origin stop or after the true destination stop is removed.
+function trimRouteSegments(routeSegments: JoreRouteData[]) {
+  let trimmedSegments = routeSegments
+
+  const { destinationstop_id = '' } = trimmedSegments[0] || {}
+
+  const realLastStopIndex = trimmedSegments.findIndex(
+    (rs) => rs.stop_id === destinationstop_id
+  )
+
+  if (realLastStopIndex !== -1) {
+    trimmedSegments = trimmedSegments.slice(0, realLastStopIndex + 1)
+  }
+
+  return trimmedSegments
+}
 
 export async function createRouteSegmentsResponse(
   user,
@@ -23,7 +43,10 @@ export async function createRouteSegmentsResponse(
       return false
     }
 
-    const sortedRouteSegments = sortBy(validRoutes, 'stop_index')
+    // Sorted by the order of the stops in the journey.
+    let routeSegments: JoreRouteData[] = sortBy(validRoutes, 'stop_index')
+
+    routeSegments = trimRouteSegments(routeSegments)
 
     const alerts = await getAlerts(date, {
       allStops: true,
@@ -40,15 +63,14 @@ export async function createRouteSegmentsResponse(
     // segment. Crucially, the segment carries the information about which stop is a
     // timing stop. The segment can be seen as the "glue" between the journey and
     // the stops, since stops are otherwise oblivious to route-specific things.
-    return sortedRouteSegments.map(
+    return routeSegments.map(
       (routeSegment): RouteSegment => {
         const segmentAlerts = alerts.filter(
           (alert) => alert.affectedId === routeSegment.stop_id
         )
 
         // Merge the route segment and the stop data, picking what we need from the segment and
-        // splatting the stop. What we really need from the segment is the timing stop type and
-        // the stop index. The departures will later be matched with actually observed events.
+        // the stop. What we really need from the segment is the timing stop type and the stop index.
         return createRouteSegmentObject(routeSegment, null, segmentAlerts, cancellations)
       }
     )
@@ -58,7 +80,12 @@ export async function createRouteSegmentsResponse(
     requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
   }`
 
-  const validRouteSegments = await cacheFetch<RouteSegment[]>(cacheKey, fetchAndValidate)
+  const validRouteSegments = await cacheFetch<RouteSegment[]>(
+    cacheKey,
+    fetchAndValidate,
+    30 * 24 * 60 * 60,
+    true
+  )
 
   if (!validRouteSegments) {
     return []
