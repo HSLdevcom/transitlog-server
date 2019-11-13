@@ -108,3 +108,9 @@ export interface Vehicles {
   vehicle_number: number
   _is_virtual?: boolean
 }
+
+export type JourneyEvents = {
+  vehiclePositions: Vehicles[]
+  stopEvents: Vehicles[]
+  otherEvents: Vehicles[]
+}
