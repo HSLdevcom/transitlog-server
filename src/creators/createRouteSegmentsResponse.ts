@@ -13,12 +13,7 @@ import { requireUser } from '../auth/requireUser'
 function trimRouteSegments(routeSegments: JoreRouteData[]) {
   let trimmedSegments = routeSegments
 
-  const { originstop_id = '', destinationstop_id = '' } = trimmedSegments[0] || {}
-  const realFirstStopIndex = trimmedSegments.findIndex((rs) => rs.stop_id === originstop_id)
-
-  if (realFirstStopIndex !== -1) {
-    trimmedSegments = trimmedSegments.slice(realFirstStopIndex)
-  }
+  const { destinationstop_id = '' } = trimmedSegments[0] || {}
 
   const realLastStopIndex = trimmedSegments.findIndex(
     (rs) => rs.stop_id === destinationstop_id
