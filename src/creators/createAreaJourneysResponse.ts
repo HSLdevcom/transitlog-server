@@ -1,7 +1,7 @@
 import { AreaEventsFilterInput, Scalars, Journey } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
-import { groupBy, map } from 'lodash'
+import { groupBy, map, orderBy } from 'lodash'
 import { createAreaJourneyObject } from '../objects/createAreaJourneyObject'
 import { createBBoxString } from '../utils/createBBoxString'
 import { createJourneyId } from '../utils/createJourneyId'
@@ -30,8 +30,10 @@ export const createAreaJourneysResponse = async (
       (pos) => !!pos.lat && !!pos.long && !!pos.unique_vehicle_id
     )
 
+    const orderedEvents = validEvents.reverse()
+
     return map(
-      groupBy(validEvents, (event) => {
+      groupBy(orderedEvents, (event) => {
         if (event.journey_type === 'journey') {
           return createJourneyId(event)
         }
