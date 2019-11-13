@@ -35,7 +35,7 @@ import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
-import { Vehicles } from '../types/EventsDb'
+import { JourneyEvents, Vehicles } from '../types/EventsDb'
 import {
   createJourneyCancellationEventObject,
   createJourneyEventObject,
@@ -68,15 +68,11 @@ export type PlannedJourneyData = {
  * @param uniqueVehicleId string that identifies the requested vehicle
  * @returns Promise<Vehicles[]> the filtered events
  */
-const fetchValidJourneyEvents: CachedFetcher<Vehicles[]> = async (
+const fetchValidJourneyEvents: CachedFetcher<JourneyEvents> = async (
   fetcher,
   uniqueVehicleId
-) => {
-  const events: Vehicles[] = await fetcher()
-
-  if (events.length === 0) {
-    return false
-  }
+): JourneyEvents => {
+  const events: JourneyEvents = await fetcher()
 
   // There could have been many vehicles operating this journey. Separate them by
   // vehicle ID and use the instance argument to select the set of events.
@@ -218,7 +214,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 export async function createJourneyResponse(
   user: AuthenticatedUser | null,
   fetchRouteData: () => Promise<PlannedJourneyData>,
-  fetchJourneyEvents: () => Promise<Vehicles[]>,
+  fetchJourneyEvents: () => Promise<JourneyEvents>,
   fetchJourneyEquipment: (
     vehicleId: string | number,
     operatorId: string | number
@@ -240,7 +236,7 @@ export async function createJourneyResponse(
   // journey based on the data as the vehicle ID is part of the journey key. If an
   // ID was provided, we can make it part of the key from the start. The journey
   // key is used for caching journey events and departures.
-  function getJourneyEventsKey(events: Vehicles[] | null = []) {
+  function getJourneyEventsKey(events: JourneyEvents) {
     let journeyKey
 
     const journeyKeyParts = {
@@ -251,15 +247,17 @@ export async function createJourneyResponse(
       uniqueVehicleId: '',
     }
 
+    const vpEvents = events ? events.vehiclePositions : []
+
     if (uniqueVehicleId) {
       journeyKey = createJourneyId({
         ...journeyKeyParts,
         uniqueVehicleId,
       })
-    } else if (events && events.length !== 0) {
+    } else if (vpEvents.length !== 0) {
       journeyKey = createJourneyId({
         ...journeyKeyParts,
-        uniqueVehicleId: get(events, '[0].unique_vehicle_id'),
+        uniqueVehicleId: get(vpEvents, '[0].unique_vehicle_id'),
       })
     } else {
       journeyKey = createJourneyId(journeyKeyParts)
@@ -269,8 +267,8 @@ export async function createJourneyResponse(
   }
 
   // Fetch events for the journey with the cache key.
-  const journeyEvents = await cacheFetch(
-    (fetchedEvents) => {
+  const journeyEvents = await cacheFetch<JourneyEvents>(
+    (fetchedEvents: JourneyEvents) => {
       const key = getJourneyEventsKey(fetchedEvents)
       return `journey_events_${key}`
     },

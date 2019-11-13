@@ -4,7 +4,7 @@ import { getDateFromDateTime, getNormalTime } from '../utils/time'
 import { Scalars } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
-import { DBAlert, DBCancellation, Vehicles } from '../types/EventsDb'
+import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
 import { databases, getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
@@ -308,7 +308,7 @@ ORDER BY tst ASC;
     departureDate,
     departureTime,
     uniqueVehicleId = ''
-  ): Promise<Vehicles[]> {
+  ): Promise<JourneyEvents> {
     let operatorId
     let vehicleId
 
@@ -345,38 +345,64 @@ ORDER BY tst ASC;
         .format(TST_FORMAT)
     }
 
-    const query = this.db.raw(
-      `SELECT ${vehicleFields.join(',')}
-        FROM vehicles
-        WHERE tst >= :minTime
-          AND tst <= :maxTime
-          AND journey_type = 'journey'
-          ${uniqueVehicleId ? `AND unique_vehicle_id = :vehicleId` : ''}
-          AND journey_start_time = :departureTime
-          AND route_id = :routeId
-          AND direction_id = :direction
-          AND oday = :departureDate
-          AND is_ongoing = true
-        ORDER BY tst DESC;`,
-      {
-        departureDate,
-        departureTime: getNormalTime(departureTime),
-        minTime: useMinTime,
-        maxTime: useMaxTime,
-        routeId,
-        direction,
-        vehicleId: `${operatorId}/${vehicleId}`,
+    const queryVehicleId = `${operatorId}/${vehicleId}`
+
+    const createQuery = (table) => {
+      let query = this.db(table)
+        .select(vehicleFields)
+        .whereBetween('tst', [useMinTime, useMaxTime])
+        .where('journey_start_time', getNormalTime(departureTime))
+        .where('route_id', routeId)
+        .where('direction_id', direction)
+        .where('oday', departureDate)
+
+      if (uniqueVehicleId) {
+        query = query.where('unique_vehicle_id', queryVehicleId)
       }
-    )
 
-    let vehicles: Vehicles[] = await this.getBatched(query)
-
-    if (!uniqueVehicleId && vehicles.length !== 0) {
-      const firstVehicleId = vehicles[0].unique_vehicle_id
-      vehicles = vehicles.filter((event) => event.unique_vehicle_id === firstVehicleId)
+      return query
     }
 
-    return vehicles
+    const queries = [
+      createQuery('vehicleposition'),
+      createQuery('stopevent'),
+      createQuery('otherevent'),
+      createQuery('lightpriorityevent'),
+    ]
+
+    return Promise.all(queries).then(
+      (results: Vehicles[][]): JourneyEvents => {
+        let vehicleResults: Vehicles[][] = results
+
+        // If no uniqueVehicleId was provided, get the vehicle ID from the first
+        // event result and filter all events according to it.
+        if (!uniqueVehicleId && vehicleResults[0].length !== 0) {
+          const firstVehicleId = vehicleResults[0][0].unique_vehicle_id
+
+          vehicleResults = vehicleResults.reduce(
+            (filteredResults: Vehicles[][], eventsArr: Vehicles[]) => {
+              const filteredEvents = eventsArr.filter(
+                (event) => event.unique_vehicle_id === firstVehicleId
+              )
+              filteredResults.push(filteredEvents)
+              return filteredResults
+            },
+            []
+          )
+        }
+
+        const [vehiclePositions, stopEvents, otherEvents, lightPriorityEvents] = vehicleResults
+
+        const ensureArray = (val) =>
+          !!val && Array.isArray(val) && val.length !== 0 ? val : []
+
+        return {
+          vehiclePositions: ensureArray(vehiclePositions),
+          stopEvents: ensureArray(stopEvents),
+          otherEvents: [...ensureArray(otherEvents), ...ensureArray(lightPriorityEvents)],
+        }
+      }
+    )
   }
 
   /*
@@ -404,7 +430,7 @@ ORDER BY tst ASC;
     const eventsQuery = this.db.raw(
       `
 SELECT ${routeDepartureFields.join(',')}
-FROM vehicles
+FROM stopevent
 WHERE tst >= :minTime
   AND tst < :maxTime
   AND event_type IN ('DEP', 'PDE', 'PAS')
@@ -471,7 +497,7 @@ ORDER BY tst DESC;
 
     const eventsQuery = this.db.raw(
       `SELECT ${routeDepartureFields.join(',')}
-FROM vehicles
+FROM stopevent
 WHERE tst >= :minTime
   AND tst <= :maxTime
   AND event_type IN ('${queryEventTypes.join("','")}')
