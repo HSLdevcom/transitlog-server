@@ -21,7 +21,7 @@ import {
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, get, groupBy, last, orderBy, reverse } from 'lodash'
+import { compact, get, groupBy, last, mapValues, orderBy, reverse, flatten } from 'lodash'
 import { createJourneyObject } from '../objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -72,26 +72,36 @@ export type PlannedJourneyData = {
 const fetchValidJourneyEvents: CachedFetcher<JourneyEvents> = async (
   fetcher,
   uniqueVehicleId
-): JourneyEvents => {
+): Promise<JourneyEvents | false> => {
+  type JourneyEventGroup = Array<[string, Vehicles[]]>
+  type GroupedJourneyEvents = { [key: string]: JourneyEventGroup }
+
   const events: JourneyEvents = await fetcher()
+
+  if (flatten(Object.values(events)).length === 0) {
+    return false
+  }
 
   // There could have been many vehicles operating this journey. Separate them by
   // vehicle ID and use the instance argument to select the set of events.
-  const vehicleGroups = groupEventsByInstances(events || [])
-  let journeyEvents
+  const vehicleGroupedEvents: GroupedJourneyEvents = mapValues(events, (val) =>
+    groupEventsByInstances(val)
+  )
 
-  if (uniqueVehicleId) {
-    const selectedVehicleGroups = vehicleGroups.find(
-      ([groupId]) => groupId === createValidVehicleId(uniqueVehicleId)
+  let selectedVehicleId = uniqueVehicleId
+
+  // @ts-ignore typing lodash functions is impossible
+  return mapValues<JourneyEvents>(vehicleGroupedEvents, (groups: JourneyEventGroup) => {
+    if (!selectedVehicleId) {
+      selectedVehicleId = get(groups, '[0][0]', '')
+    }
+
+    const selectedGroup = groups.find(
+      ([groupId]) => groupId === createValidVehicleId(selectedVehicleId)
     )
-
-    journeyEvents = selectedVehicleGroups ? selectedVehicleGroups[1] : []
-  } else {
-    const instanceGroup = vehicleGroups[0]
-    journeyEvents = instanceGroup[1]
-  }
-
-  return journeyEvents.length !== 0 ? orderBy(journeyEvents, 'tsi', 'asc') : false
+    const selectedGroupEvents = selectedGroup ? selectedGroup[1] : []
+    return orderBy(selectedGroupEvents, 'tsi', 'asc')
+  })
 }
 
 /**
@@ -233,7 +243,7 @@ export async function createJourneyResponse(
   // journey based on the data as the vehicle ID is part of the journey key. If an
   // ID was provided, we can make it part of the key from the start. The journey
   // key is used for caching journey events and departures.
-  function getJourneyEventsKey(events: JourneyEvents) {
+  function getJourneyEventsKey(events: JourneyEvents | null) {
     let journeyKey
 
     const journeyKeyParts = {
@@ -271,7 +281,7 @@ export async function createJourneyResponse(
     },
     () => fetchValidJourneyEvents(fetchJourneyEvents),
     (data) => {
-      if (journeyInProgress(data)) {
+      if (journeyInProgress(data.vehiclePositions)) {
         return 1
       }
       return 24 * 60 * 60
@@ -292,14 +302,17 @@ export async function createJourneyResponse(
   )
 
   // If both of our fetches failed we'll just bail here with null.
-  if (!journeyEvents && (!routeAndDepartures || routeAndDepartures.departures.length === 0)) {
+  if (
+    get(journeyEvents, 'vehiclePositions.length', 0) === 0 &&
+    (!routeAndDepartures || routeAndDepartures.departures.length === 0)
+  ) {
     return null
   }
 
   let unsignedEvents: Vehicles[] = []
 
   const vehicleId = createValidVehicleId(
-    uniqueVehicleId || get(journeyEvents, '[0].unique_vehicle_id', '')
+    uniqueVehicleId || get(journeyEvents, 'vehiclePositions.[0].unique_vehicle_id', '')
   )
 
   let userAuthorizedForVehicle: boolean = false
@@ -404,20 +417,7 @@ export async function createJourneyResponse(
   }
 
   // Separate the HFP events into vehicle positions, stop events and the rest of the events.
-  const { vehiclePositions = [], stopEvents = [], events = [] } = journeyEvents.reduce(
-    (groups: { [key: string]: Vehicles[] }, event) => {
-      if (event.event_type === 'VP') {
-        groups.vehiclePositions.push(event)
-      } else if (['ARS', 'DOO', 'DOC', 'DEP', 'PDE', 'PAS'].includes(event.event_type)) {
-        groups.stopEvents.push(event)
-      } else {
-        groups.events.push(event)
-      }
-
-      return groups
-    },
-    { vehiclePositions: [], stopEvents: [], events: [] }
-  )
+  const { vehiclePositions = [], stopEvents = [], otherEvents: events = [] } = journeyEvents
 
   let journeyEquipment = null
 

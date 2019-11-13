@@ -195,17 +195,20 @@ ORDER BY unique_vehicle_id, tst DESC;
   ): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
+    // TODO: Unsigned events
+
     const query = this.db.raw(
       `
 SELECT ${vehicleFields.join(',')}
-FROM vehicles
-WHERE event_type = 'VP'
-  ${!unsignedEvents ? `AND journey_type = 'journey'` : ''}
-  AND tst BETWEEN :minTime AND :maxTime
-  AND lat BETWEEN :minLat AND :maxLat
-  AND long BETWEEN :minLng AND :maxLng
+FROM vehicleposition
+WHERE tst >= :minTime
+  AND tst <= :maxTime
+  AND lat >= :minLat
+  AND lat < :maxLat
+  AND long >= :minLng
+  AND long < :maxLng
   AND is_ongoing = true
-ORDER BY tst ASC;
+ORDER BY tst DESC;
     `,
       {
         date,
@@ -239,11 +242,10 @@ ORDER BY tst ASC;
 
     const eventsQuery = this.db.raw(
       `SELECT ${vehicleFields.join(',')}
-FROM vehicles
+FROM stopevent
 WHERE tst >= :minTime
-  AND tst < :maxTime
+  AND tst <= :maxTime
   AND event_type = 'DEP'
-  AND journey_type = 'journey'
   AND oday = :date
   AND unique_vehicle_id = :vehicleId
   AND is_ongoing = true
@@ -280,19 +282,16 @@ ORDER BY tst ASC;
    */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
-    return []
     const { minTime, maxTime } = createTstRange(date)
 
     const query = this.db.raw(
       `SELECT ${routeJourneyFields.join(',')}
-      FROM vehicles
+      FROM vehicleposition
       WHERE tst >= :minTime
-        AND tst < :maxTime
-        AND event_type = 'VP'
-        AND journey_type = 'journey'
+        AND tst <= :maxTime
         AND route_id = :routeId
         AND direction_id = :direction
-      ORDER BY tst;
+      ORDER BY tst DESC;
     `,
       { date, minTime, maxTime, routeId, direction }
     )
@@ -541,9 +540,8 @@ ORDER BY tst DESC;
       `
       SELECT ${unsignedEventFields.join(',')}
       FROM unsignedevent
-      WHERE tst >= :minTime AND tst < :maxTime
+      WHERE tst >= :minTime AND tst <= :maxTime
         AND unique_vehicle_id = :vehicleId
-        AND is_ongoing = true
       ORDER BY tst DESC;
     `,
       { vehicleId: createHfpVehicleId(uniqueVehicleId), minTime, maxTime }

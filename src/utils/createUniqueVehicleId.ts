@@ -1,6 +1,4 @@
-import { VehicleId } from '../types/generated/schema-types'
-
-export function createValidVehicleId(uniqueVehicleId: VehicleId = ''): string {
+export function createValidVehicleId(uniqueVehicleId: string = ''): string {
   if (!uniqueVehicleId) {
     return ''
   }
