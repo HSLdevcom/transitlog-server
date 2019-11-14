@@ -1,6 +1,7 @@
-import { groupBy, orderBy, flatten, uniqBy } from 'lodash'
+import { groupBy, orderBy, uniqBy } from 'lodash'
 import { Departure, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes } from './dayTypes'
+import { stop } from './knexLogger'
 
 export const filterByExceptions = (
   departures: Departure[],
@@ -68,9 +69,5 @@ export const filterByExceptions = (
     }
   }
 
-  return uniqBy(
-    validDepartures,
-    ({ departureDate, departureTime, dayType, isNextDay, routeId, direction, departureId }) =>
-      departureDate + departureTime + dayType + isNextDay + routeId + direction + departureId
-  )
+  return uniqBy(validDepartures, 'id')
 }

@@ -1,4 +1,8 @@
 export function getMode(code) {
+  if (!code) {
+    return ''
+  }
+
   switch (code) {
     case '02':
       return 'TRAM'

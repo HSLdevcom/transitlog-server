@@ -153,7 +153,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     return { route: journeyRoute, departures: [] }
   }
 
-  journeyRoute = createRouteObject(validStops[validStops.length - 1])
+  journeyRoute = createRouteObject(validStops[0])
 
   const journeyDepartures = validDepartures.filter(
     (departure) =>
@@ -161,7 +161,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
       originDeparture.departure_id === departure.departure_id
   )
 
-  const stopDepartures = journeyDepartures.map((departure) => {
+  const stopDepartures: Array<Departure | null> = journeyDepartures.map((departure) => {
     const stopSegment = validStops.find(
       (stopSegment) =>
         stopSegment.stop_id === departure.stop_id &&
@@ -290,7 +290,7 @@ export async function createJourneyResponse(
     routeCacheKey,
     () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime, exceptions),
     24 * 60 * 60,
-    skipCache
+    true // skipCache
   )
 
   // If both of our fetches failed we'll just bail here with null.
