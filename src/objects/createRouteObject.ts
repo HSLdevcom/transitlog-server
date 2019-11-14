@@ -10,7 +10,8 @@ function createRouteId(route: JoreRoute): string {
 export function createRouteObject(
   route: JoreRoute,
   alerts?: Alert[],
-  cancellations?: Cancellation[]
+  cancellations?: Cancellation[],
+  duration = 0
 ): Route {
   return {
     id: createRouteId(route),
@@ -23,7 +24,7 @@ export function createRouteObject(
     originStopId: route.originstop_id,
     mode: route.mode,
     routeLength: route.route_length || 0,
-    routeDurationMinutes: route.duration || 0,
+    routeDurationMinutes: duration || route.duration || 0,
     alerts: alerts && alerts.length !== 0 ? alerts : [],
     cancellations: cancellations && cancellations.length !== 0 ? cancellations : [],
     // @ts-ignore

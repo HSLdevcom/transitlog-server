@@ -128,6 +128,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 
   const departures: JoreRouteDepartureData[] = get(plannedJourney, 'departures', []) || []
   const stops: JoreStopSegment[] = get(plannedJourney, 'stops', []) || []
+
   // A stop segment contains all necessary info for the route
   let journeyRoute = createRouteObject(stops[0])
 
@@ -159,7 +160,10 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     return { route: journeyRoute, departures: [] }
   }
 
-  journeyRoute = createRouteObject(validStops[validStops.length - 1])
+  const orderedStops = orderBy(validStops, 'stop_index', 'asc')
+
+  const plannedDuration = get(last(orderedStops), 'duration', 0)
+  journeyRoute = createRouteObject(orderedStops[0], [], [], plannedDuration)
 
   const journeyDepartures = validDepartures.filter(
     (departure) =>
@@ -167,8 +171,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
       originDeparture.departure_id === departure.departure_id
   )
 
-  const stopDepartures = journeyDepartures.map((departure) => {
-    const stopSegment = validStops.find(
+  const stopDepartures: Array<Departure | null> = journeyDepartures.map((departure) => {
+    const stopSegment = orderedStops.find(
       (stopSegment) =>
         stopSegment.stop_id === departure.stop_id &&
         stopSegment.route_id === departure.route_id &&
@@ -581,13 +585,13 @@ export async function createJourneyResponse(
     ...cancellationEvents,
   ])
 
-  const isPlannedEvent = (event: any): event is PlannedStopEvent =>
+  const hasPlannedUnix = (event: any): event is PlannedStopEvent | JourneyStopEvent =>
     typeof event.plannedUnix !== 'undefined'
 
   // Combine all created event objects and order by time.
   const sortedJourneyEvents = orderBy<EventsType>(
     combinedJourneyEvents,
-    (event) => (isPlannedEvent(event) ? event.plannedUnix : event.recordedAtUnix),
+    (event) => (hasPlannedUnix(event) ? event.plannedUnix : event.recordedAtUnix),
     'asc'
   )
 

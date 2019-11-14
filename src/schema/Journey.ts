@@ -47,6 +47,7 @@ export const Journey = gql`
     plannedDate: Date
     plannedTime: Time
     plannedDateTime: DateTime
+    plannedUnix: Int
     plannedTimeDifference: Int
     isNextDay: Boolean
     departureId: Int

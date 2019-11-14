@@ -5,6 +5,8 @@ import {
   JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
+  PlannedArrival,
+  PlannedDeparture,
   PlannedStopEvent,
   Stop,
   VehiclePosition,
@@ -112,16 +114,37 @@ export function createJourneyStopEventObject(
   const ts = moment.tz(event.tst, TZ).toISOString(true)
   const stopData = stop ? stop : departure ? departure.stop : null
 
+  const isArrival = ['ARR', 'ARS'].includes(event.event_type)
+
+  let plannedDate = event.oday
+  let plannedTime = null
+  let plannedDateTime = null
+
+  if (isArrival) {
+    const plannedTimes: PlannedArrival | null = get(departure, 'plannedArrivalTime', null)
+
+    plannedDate = get(plannedTimes, 'arrivalDate', event.oday)
+    plannedTime = get(plannedTimes, 'arrivalTime', null)
+    plannedDateTime = get(plannedTimes, 'arrivalDateTime', null)
+  } else {
+    const plannedTimes: PlannedDeparture | null = get(departure, 'plannedDepartureTime', null)
+
+    plannedDate = get(plannedTimes, 'departureDate', event.oday)
+    plannedTime = get(plannedTimes, 'departureTime', null)
+    plannedDateTime = get(plannedTimes, 'departureDateTime', null)
+  }
+
   const plannedTimeDiff = !departure
     ? 0
-    : diffDepartureJourney(
-        event,
-        departure,
-        departure.departureDate,
-        event.event_type === 'ARS'
-      )
+    : diffDepartureJourney(event, departure, departure.departureDate, isArrival)
 
   const eventPlannedMoment = getDateFromDateTime(event.oday, event.journey_start_time || '')
+  const departurePlannedMoment = moment.tz(plannedDateTime, TZ)
+
+  const plannedUnix =
+    plannedDateTime && departurePlannedMoment.isValid()
+      ? departurePlannedMoment.unix()
+      : eventPlannedMoment.unix()
 
   return {
     id: `journey_stop_event_${event.event_type}_${id}_${unix}`,
@@ -133,9 +156,10 @@ export function createJourneyStopEventObject(
     nextStopId: (event.next_stop_id || '') + '',
     stopped,
     doorsOpened,
-    plannedDate: get(departure, 'plannedDepartureTime.departureDate', event.oday),
-    plannedTime: get(departure, 'plannedDepartureTime.departureTime', null),
-    plannedDateTime: get(departure, 'plannedDepartureTime.departureDateTime', null),
+    plannedDate,
+    plannedTime,
+    plannedDateTime,
+    plannedUnix,
     plannedTimeDifference: plannedTimeDiff,
     isNextDay: get(
       departure,
