@@ -294,7 +294,7 @@ export async function createJourneyResponse(
     routeCacheKey,
     () => fetchJourneyDepartures(fetchRouteData, departureDate, departureTime, exceptions),
     24 * 60 * 60,
-    true // skipCache
+    skipCache
   )
 
   // If both of our fetches failed we'll just bail here with null.
@@ -587,13 +587,13 @@ export async function createJourneyResponse(
     ...cancellationEvents,
   ])
 
-  const isPlannedEvent = (event: any): event is PlannedStopEvent =>
+  const hasPlannedUnix = (event: any): event is PlannedStopEvent | JourneyStopEvent =>
     typeof event.plannedUnix !== 'undefined'
 
   // Combine all created event objects and order by time.
   const sortedJourneyEvents = orderBy<EventsType>(
     combinedJourneyEvents,
-    (event) => (isPlannedEvent(event) ? event.plannedUnix : event.recordedAtUnix),
+    (event) => (hasPlannedUnix(event) ? event.plannedUnix : event.recordedAtUnix),
     'asc'
   )
 
