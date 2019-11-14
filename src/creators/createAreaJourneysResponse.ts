@@ -30,10 +30,8 @@ export const createAreaJourneysResponse = async (
       (pos) => !!pos.lat && !!pos.long && !!pos.unique_vehicle_id
     )
 
-    const orderedEvents = validEvents.reverse()
-
     return map(
-      groupBy(orderedEvents, (event) => {
+      groupBy(validEvents, (event) => {
         if (event.journey_type === 'journey') {
           return createJourneyId(event)
         }
