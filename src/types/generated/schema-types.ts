@@ -656,6 +656,8 @@ export interface JourneyStopEvent {
 
   plannedDateTime?: Maybe<DateTime>
 
+  plannedUnix?: Maybe<number>
+
   plannedTimeDifference?: Maybe<number>
 
   isNextDay?: Maybe<boolean>

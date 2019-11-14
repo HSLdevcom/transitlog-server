@@ -112,6 +112,10 @@ export function createJourneyStopEventObject(
   const ts = moment.tz(event.tst, TZ).toISOString(true)
   const stopData = stop ? stop : departure ? departure.stop : null
 
+  const plannedDate = get(departure, 'plannedDepartureTime.departureDate', event.oday)
+  const plannedTime = get(departure, 'plannedDepartureTime.departureTime', null)
+  const plannedDateTime = get(departure, 'plannedDepartureTime.departureDateTime', null)
+
   const plannedTimeDiff = !departure
     ? 0
     : diffDepartureJourney(
@@ -123,6 +127,10 @@ export function createJourneyStopEventObject(
 
   const eventPlannedMoment = getDateFromDateTime(event.oday, event.journey_start_time || '')
 
+  const plannedUnix = plannedDateTime
+    ? moment.tz(plannedDateTime, TZ).unix()
+    : eventPlannedMoment
+
   return {
     id: `journey_stop_event_${event.event_type}_${id}_${unix}`,
     type: event.event_type,
@@ -133,9 +141,10 @@ export function createJourneyStopEventObject(
     nextStopId: (event.next_stop_id || '') + '',
     stopped,
     doorsOpened,
-    plannedDate: get(departure, 'plannedDepartureTime.departureDate', event.oday),
-    plannedTime: get(departure, 'plannedDepartureTime.departureTime', null),
-    plannedDateTime: get(departure, 'plannedDepartureTime.departureDateTime', null),
+    plannedDate,
+    plannedTime,
+    plannedDateTime,
+    plannedUnix,
     plannedTimeDifference: plannedTimeDiff,
     isNextDay: get(
       departure,

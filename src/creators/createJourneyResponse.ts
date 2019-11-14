@@ -122,6 +122,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 
   const departures: JoreRouteDepartureData[] = get(plannedJourney, 'departures', []) || []
   const stops: JoreStopSegment[] = get(plannedJourney, 'stops', []) || []
+
   // A stop segment contains all necessary info for the route
   let journeyRoute = createRouteObject(stops[0])
 
@@ -153,7 +154,10 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     return { route: journeyRoute, departures: [] }
   }
 
-  journeyRoute = createRouteObject(validStops[0])
+  const orderedStops = orderBy(validStops, 'stop_index', 'asc')
+
+  const plannedDuration = get(last(orderedStops), 'duration', 0)
+  journeyRoute = createRouteObject(orderedStops[0], [], [], plannedDuration)
 
   const journeyDepartures = validDepartures.filter(
     (departure) =>
@@ -162,7 +166,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   )
 
   const stopDepartures: Array<Departure | null> = journeyDepartures.map((departure) => {
-    const stopSegment = validStops.find(
+    const stopSegment = orderedStops.find(
       (stopSegment) =>
         stopSegment.stop_id === departure.stop_id &&
         stopSegment.route_id === departure.route_id &&
