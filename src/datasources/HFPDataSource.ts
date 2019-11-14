@@ -462,12 +462,14 @@ ORDER BY tst DESC;
       return this.getBatched(legacyQuery)
     }
 
+    const queryEventTypes = !lastStopArrival ? ['DEP', 'PDE'] : ['ARS', 'ARR']
+
     const eventsQuery = this.db.raw(
       `SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
 WHERE tst >= :minTime
   AND tst <= :maxTime
-  AND event_type = :event
+  AND event_type IN ('${queryEventTypes.join("','")}')
   AND stop = :stopId
   AND route_id = :routeId
   AND direction_id = :direction
@@ -476,7 +478,6 @@ WHERE tst >= :minTime
 ORDER BY tst DESC;
 `,
       {
-        event: !lastStopArrival ? 'DEP' : 'ARS',
         minTime,
         maxTime,
         date,

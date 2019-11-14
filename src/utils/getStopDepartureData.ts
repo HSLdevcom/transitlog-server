@@ -26,14 +26,14 @@ export const getStopDepartureData = (
   // Timing stops and origin stops use DEP (exit stop radius) as the
   // departure event, but normal stops use PDE (doors closed).
   const useDEP = stopDeparture.isTimingStop || stopDeparture.isOrigin
-  const departureEvent = getStopDepartureEvent(stopEvents, useDEP ? 'DEP' : 'PDE')
+  const departureEvent = getStopDepartureEvent(stopEvents, !!useDEP)
 
   if (!departureEvent) {
     return null
   }
 
-  const tst = departureEvent.tst
-  const departureTime = parse(tst)
+  const { tst } = departureEvent
+  const eventTime = parse(tst)
 
   const departureDate = !date
     ? get(stopDeparture, 'plannedDepartureTime.departureDate', departureEvent.oday)
@@ -45,28 +45,29 @@ export const getStopDepartureData = (
   // @ts-ignore
   return {
     id: `odt_${journeyId}_${tst}_${createDepartureId(stopDeparture)}`,
-    departureDate: format(departureTime, DATE_FORMAT),
+    departureDate: format(eventTime, DATE_FORMAT),
     departureTime: getJourneyEventTime(departureEvent),
-    departureDateTime: moment.tz(departureTime, TZ).toISOString(true),
+    departureDateTime: moment.tz(eventTime, TZ).toISOString(true),
     departureTimeDifference: departureDiff,
   }
 }
 
-export const getStopDepartureEvent = (events, departureEventType: 'DEP' | 'PDE' = 'PDE') => {
-  let lookForType = departureEventType
+export const getStopDepartureEvent = (events, preferDep: boolean = false) => {
+  if (!events || events.length === 0) {
+    return null
+  }
+
+  let lookForType = preferDep ? 'DEP' : 'PDE'
   let departureEvent = events.find((event) => event.event_type === lookForType)
 
   if (!departureEvent) {
     // Fall back to other type of event
-    lookForType = departureEventType === 'DEP' ? 'PDE' : 'DEP'
+    lookForType = lookForType === 'DEP' ? 'PDE' : 'DEP'
     departureEvent = events.find((event) => event.event_type === lookForType)
 
+    // If still not found, just get the first event from what we have
     if (!departureEvent) {
-      departureEvent = events[0]
-
-      if (!departureEvent) {
-        return null
-      }
+      departureEvent = events[0] || null
     }
   }
 
