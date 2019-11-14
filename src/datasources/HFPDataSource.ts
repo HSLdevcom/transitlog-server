@@ -9,6 +9,7 @@ import { databases, getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
 import { createHfpVehicleId } from '../utils/createUniqueVehicleId'
+import { orderBy } from 'lodash'
 
 const knex: Knex = getKnex(databases.HFP)
 
@@ -190,12 +191,11 @@ ORDER BY unique_vehicle_id, tst DESC;
   ): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
-    // TODO: Unsigned events
-
-    const query = this.db.raw(
-      `
+    const createQuery = (table) =>
+      this.db.raw(
+        `
 SELECT ${vehicleFields.join(',')}
-FROM vehicleposition
+FROM :table:
 WHERE tst >= :minTime
   AND tst <= :maxTime
   AND lat >= :minLat
@@ -205,18 +205,27 @@ WHERE tst >= :minTime
   AND is_ongoing = true
 ORDER BY tst DESC;
     `,
-      {
-        date,
-        minTime: moment.tz(minTime, TZ).toISOString(true),
-        maxTime: moment.tz(maxTime, TZ).toISOString(true),
-        minLat,
-        maxLat,
-        minLng,
-        maxLng,
-      }
-    )
+        {
+          table,
+          date,
+          minTime: moment.tz(minTime, TZ).toISOString(true),
+          maxTime: moment.tz(maxTime, TZ).toISOString(true),
+          minLat,
+          maxLat,
+          minLng,
+          maxLng,
+        }
+      )
 
-    return this.getBatched(query)
+    const queries = [this.getBatched(createQuery('vehicleposition'))]
+
+    if (unsignedEvents) {
+      queries.push(this.getBatched(createQuery('unsignedevent')))
+    }
+
+    return Promise.all(queries).then(([vp, unsigned]) =>
+      orderBy([...vp, ...unsigned], 'tsi', 'asc')
+    )
   }
 
   /*
