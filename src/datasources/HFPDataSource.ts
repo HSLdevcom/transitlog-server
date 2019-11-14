@@ -191,8 +191,8 @@ ORDER BY unique_vehicle_id, tst DESC;
   ): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
-    const createQuery = (table) =>
-      this.db.raw(
+    const createQuery = (table) => {
+      const query = this.db.raw(
         `
 SELECT ${vehicleFields.join(',')}
 FROM :table:
@@ -216,6 +216,9 @@ ORDER BY tst DESC;
           maxLng,
         }
       )
+
+      return query
+    }
 
     const queries = [this.getBatched(createQuery('vehicleposition'))]
 
@@ -258,7 +261,7 @@ ORDER BY tst ASC;
       { date, minTime, maxTime, vehicleId: queryVehicleId }
     )
 
-    const legacyQuery = this.db('vehicles')
+    const legacyQuery = this.db('vehicleposition')
       .select(vehicleFields)
       .whereBetween('tst', [minTime, maxTime])
       .where('journey_type', 'journey')
@@ -419,7 +422,7 @@ ORDER BY tst ASC;
   async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
     const { minTime, maxTime } = createTstRange(date)
 
-    const legacyQuery = this.db('vehicles')
+    const legacyQuery = this.db('vehicleposition')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
@@ -476,7 +479,7 @@ ORDER BY tst DESC;
   ): Promise<Vehicles[]> {
     const { minTime, maxTime } = createTstRange(date)
 
-    const legacyQuery = this.db('vehicles')
+    const legacyQuery = this.db('vehicleposition')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
