@@ -1,12 +1,7 @@
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
-import {
-  getDateFromDateTime,
-  getJourneyEventTime,
-  getNormalTime,
-  isNextDay,
-} from '../utils/time'
-import { Direction, JourneyEvent } from '../types/generated/schema-types'
+import { getDateFromDateTime, getNormalTime } from '../utils/time'
+import { Direction } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
 import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
