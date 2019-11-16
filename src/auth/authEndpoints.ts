@@ -8,6 +8,7 @@ import {
 import { ALLOW_DEV_LOGIN, REDIRECT_URI } from '../constants'
 import { get } from 'lodash'
 import { assignUserToGroups } from './groupAssignments'
+import { addSeconds } from 'date-fns'
 
 interface IAuthRequest {
   code: string
@@ -17,6 +18,7 @@ interface IAuthRequest {
 
 interface IAuthResponse {
   isOk: boolean
+  expiresAt?: number
   email?: string
   groups?: string[]
 }
@@ -36,6 +38,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
   }
 
   let accessToken = ''
+  let expiresAt = new Date().getTime() / 1000
   let tokenResponse: IAccessToken | string = ''
 
   // When testing, we get the access token directly.
@@ -50,7 +53,13 @@ const authorize = async (req: express.Request, res: express.Response) => {
   let userEmail = ''
 
   if (req.session && accessToken) {
+    const expiresIn = get(tokenResponse, 'expires_in', 0)
+    const refreshToken = get(tokenResponse, 'refresh_token', 0)
+    expiresAt = addSeconds(expiresAt, expiresIn).getTime() / 1000
+
     req.session.accessToken = accessToken
+    req.session.expiresAt = expiresAt
+    req.session.refreshToken = refreshToken
     let userInfo = await requestUserInfo(accessToken, isTest)
 
     if (userInfo) {
@@ -67,6 +76,7 @@ const authorize = async (req: express.Request, res: express.Response) => {
   if (userEmail) {
     const response: IAuthResponse = {
       isOk: true,
+      expiresAt,
       email: userEmail,
     }
     res.status(200).json(response)
