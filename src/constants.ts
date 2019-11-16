@@ -82,3 +82,4 @@ export const REDIS_HOST = secretsEnv.REDIS_HOST || '0.0.0.0'
 export const REDIS_PORT = secretsEnv.REDIS_PORT || 6379
 export const DISABLE_CACHE = secretsEnv.DISABLE_CACHE === 'true'
 export const COOKIE_SECRET = secretsEnv.COOKIE_SECRET
+export const SECURE_COOKIE = secretsEnv.SECURE_COOKIE === 'true'
