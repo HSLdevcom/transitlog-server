@@ -19,7 +19,7 @@ import { checkAccessMiddleware } from './auth/authService'
 import { getRedis } from './cache'
 import path from 'path'
 import { createEngine } from 'express-react-views'
-import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
+import { getServerUser, getUserFromReq, requireUserMiddleware } from './auth/requireUser'
 import { adminController } from './admin/adminController'
 
 const session = require('express-session')
@@ -47,7 +47,9 @@ type RequestContext = {
     }),
     context: ({ req }): RequestContext => {
       const skipCache = req.header('x-skip-cache') === 'true'
-      return { user: getUserFromReq(req), skipCache }
+      const isServer = req.header('x-from-server') === 'true'
+
+      return { user: isServer ? getServerUser(req) : getUserFromReq(req), skipCache }
     },
   })
 
