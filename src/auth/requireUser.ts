@@ -18,6 +18,16 @@ export function getUserFromReq(req): AuthenticatedUser {
   return !accessToken ? null : { email, groups, accessToken, _test }
 }
 
+// TODO: Get actual user from other server and validate access_token.
+export function getServerUser(req): AuthenticatedUser {
+  return {
+    email: 'dev@hsl.fi',
+    groups: ['HSL', 'bultti-server', 'server'],
+    accessToken: 'dev',
+    _test: false,
+  }
+}
+
 export function requireUser(user: AuthenticatedUser, group?: string | string[]) {
   // Make sure we actually have a user
   if (!user || !user.accessToken || (group && (!user.groups || user.groups.length === 0))) {
