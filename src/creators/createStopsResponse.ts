@@ -51,9 +51,7 @@ export async function createStopResponse(
     let stopRoutes = validStops.reduce(
       (routes: StopRoute[], stopRouteData: JoreCombinedStop) => {
         const stopRoute: StopRoute = {
-          id: `stop_route_${stopRouteData.route_id}_${stopRouteData.direction}_${
-            stopRouteData.date_begin
-          }_${stopRouteData.date_end}`,
+          id: `stop_route_${stopRouteData.route_id}_${stopRouteData.direction}_${stopRouteData.date_begin}_${stopRouteData.date_end}`,
           direction: getDirection(stopRouteData.direction),
           routeId: stopRouteData.route_id,
           isTimingStop: !!stopRouteData.timing_stop_type,
@@ -136,9 +134,7 @@ export async function createStopsResponse(
         // We only need some route data for the stop response.
         const route: StopRoute | null = stop.route_id
           ? {
-              id: `stop_route_${stop.route_id}_${stop.route_id}_${stop.date_begin}_${
-                stop.date_end
-              }`,
+              id: `stop_route_${stop.route_id}_${stop.route_id}_${stop.date_begin}_${stop.date_end}`,
               routeId: stop.route_id || '',
               direction: getDirection(stop.direction),
               isTimingStop: !!stop.timing_stop_type,
@@ -165,18 +161,7 @@ export async function createStopsResponse(
       }, [])
     }
 
-    const currentTime = date || format(new Date(), 'YYYY-MM-DD')
-    const alerts = await getAlerts(currentTime, { allStops: true, stop: true })
-
-    return stopData.map((stop) => {
-      const stopAlerts = alerts.filter(
-        (alert) =>
-          alert.distribution === AlertDistribution.AllStops ||
-          alert.affectedId === stop.stop_id
-      )
-
-      return createStopObject(stop, stop.routes, stopAlerts)
-    })
+    return stopData.map((stop) => createStopObject(stop, stop.routes, []))
   }
 
   const cacheKey = `stops_${date || 'undated'}`
