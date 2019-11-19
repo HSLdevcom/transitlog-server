@@ -387,8 +387,9 @@ WHERE route_segment.route_id = :routeId
   async getDepartureData(routeId, direction, date): Promise<PlannedJourneyData> {
     const stopsPromise = this.getJourneyStops(routeId, direction, date)
     const departuresPromise = this.getJourneyDepartures(routeId, direction, date)
+
     const [stops = [], departures = []] = await Promise.all([stopsPromise, departuresPromise])
-    return { stops, departures }
+    return { stops, departures } as PlannedJourneyData
   }
 
   async getDepartureStops(stopId, date): Promise<JoreStopSegment[]> {

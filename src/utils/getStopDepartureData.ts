@@ -12,22 +12,17 @@ import { Vehicles } from '../types/EventsDb'
 
 /**
  *
- * @param stopEvents positions with next_stop_id = [current stop]
+ * @param departureEvent
  * @param stopDeparture the planned departure from [current stop]
  * @param date selected date in YYYY-MM-DD format. If not passed,
  *  it will be inferred from the departure or event.
  * @returns {*}
  */
 export const getStopDepartureData = (
-  stopEvents: Vehicles[] = [],
+  departureEvent: Vehicles | null = null,
   stopDeparture: Departure,
   date?: string
 ): ObservedDeparture | null => {
-  // Timing stops and origin stops use DEP (exit stop radius) as the
-  // departure event, but normal stops use PDE (doors closed).
-  const useDEP = stopDeparture.isTimingStop || stopDeparture.isOrigin
-  const departureEvent = getStopDepartureEvent(stopEvents, !!useDEP)
-
   if (!departureEvent) {
     return null
   }
