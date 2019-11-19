@@ -470,7 +470,7 @@ export async function createJourneyResponse(
   // Get a listing of all stops visited during this journey,
   // regardless of whether or not the stop was planned.
   const stopGroupedEvents: { [key: string]: Vehicles[] } = groupBy(patchedStopEvents, (evt) =>
-    evt.stop ? evt.stop + '' : 'unknown'
+    evt.stop ? evt.stop + '' : evt.next_stop_id ? evt.next_stop_id + '' : 'unknown'
   )
 
   const stopEventObjects: Array<JourneyEvent | JourneyStopEvent> = []
@@ -482,9 +482,13 @@ export async function createJourneyResponse(
     let stop: Stop | null = null
 
     for (const eventItem of eventsForStop) {
-      // If the event has no stopId (= unknown), match a departure to each event in
-      // the group by matching the event and departure stop locations.
-      if (stopId === 'unknown') {
+      if (stopId !== 'unknown') {
+        matchedStopId = stopId + ''
+        departure = departures.find((dep) => dep.stopId === stopId + '')
+      } else if (stopId === 'unknown' && eventItem.lat && eventItem.long) {
+        // If the event has no stopId (= unknown), match a departure to each event in
+        // the group by matching the event and departure stop locations.
+
         // Reset matchedStopId because events in the "unknown" group may not belong to the same stop.
         matchedStopId = ''
         // Match events without stopIds to stops by location.
@@ -505,15 +509,10 @@ export async function createJourneyResponse(
         if (departure) {
           matchedStopId = departure.stopId || ''
         }
-      } else if (!departure) {
-        matchedStopId = stopId + ''
-        departure = departures.find((dep) => dep.stopId === stopId + '')
       }
 
       // Try to get the stop from the departure
-      if (!stop) {
-        stop = get(departure, 'stop', null)
-      }
+      stop = departure?.stop || null
 
       // If that didn't work, fetch the stop from JORE with the stopId we have.
       if (!stop && matchedStopId) {
