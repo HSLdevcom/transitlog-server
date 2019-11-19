@@ -1,6 +1,6 @@
-import { VehicleId } from '../types/generated/schema-types'
+import { Scalars } from '../types/generated/schema-types'
 
-export function createValidVehicleId(uniqueVehicleId: VehicleId = ''): string {
+export function createValidVehicleId(uniqueVehicleId: Scalars['VehicleId'] = ''): string {
   if (!uniqueVehicleId) {
     return ''
   }

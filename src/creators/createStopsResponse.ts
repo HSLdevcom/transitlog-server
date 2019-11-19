@@ -1,10 +1,4 @@
-import {
-  AlertDistribution,
-  BBox,
-  Stop,
-  StopFilterInput,
-  StopRoute,
-} from '../types/generated/schema-types'
+import { Scalars, Stop, StopFilterInput, StopRoute } from '../types/generated/schema-types'
 import { JoreRoute, JoreRouteSegment, JoreStop } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { createStopObject } from '../objects/createStopObject'
@@ -13,7 +7,6 @@ import { filterByDateChains } from '../utils/filterByDateChains'
 import { groupBy, orderBy, uniqBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
-import format from 'date-fns/format'
 import { filterStopsByBBox } from '../filters/filterStopsByBBox'
 import { ValidityRange } from '../types/ValidityRange'
 import { Dictionary } from '../types/Dictionary'
@@ -90,7 +83,7 @@ export async function createStopsResponse(
   getAlerts,
   date?: string,
   filter?: StopFilterInput,
-  bbox: BBox | null = null
+  bbox: Scalars['BBox'] | null = null
 ): Promise<Stop[]> {
   const fetchStops: CachedFetcher<Stop[]> = async () => {
     const fetchedStops = await getStops()

@@ -19,7 +19,17 @@
     "experimentalDecorators": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": false,
-    "jsx": "react"
+    "jsx": "react",
+    "outDir": "dist"
   },
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "db",
+    "data",
+    "scripts",
+    "secrets",
+    "knexfile.js",
+    "jest.config.js"
+  ]
 }

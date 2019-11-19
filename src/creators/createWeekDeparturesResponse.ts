@@ -1,7 +1,7 @@
 import { CachedFetcher } from '../types/CachedFetcher'
 import {
   Departure,
-  Direction,
+  Scalars,
   ExceptionDay,
   ObservedArrival,
   ObservedDeparture,
@@ -201,7 +201,7 @@ export const createWeekDeparturesResponse = async (
   exceptions: ExceptionDay[],
   stopId: string,
   routeId: string,
-  direction: Direction,
+  direction: Scalars['Direction'],
   date: string,
   lastStopArrival: boolean = false,
   skipCache: boolean = false

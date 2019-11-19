@@ -1,9 +1,4 @@
-import {
-  AreaEventsFilterInput,
-  DateTime,
-  Journey,
-  PreciseBBox,
-} from '../types/generated/schema-types'
+import { AreaEventsFilterInput, Scalars, Journey } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { groupBy, map } from 'lodash'
@@ -16,9 +11,9 @@ import { getUserGroups, requireUser } from '../auth/requireUser'
 
 export const createAreaJourneysResponse = async (
   getAreaEvents: () => Promise<Vehicles[] | null>,
-  minTime: DateTime,
-  maxTime: DateTime,
-  bbox: PreciseBBox,
+  minTime: Scalars['DateTime'],
+  maxTime: Scalars['DateTime'],
+  bbox: Scalars['PreciseBBox'],
   date: string,
   filters: AreaEventsFilterInput,
   unsignedEvents: boolean = true,

@@ -1,2883 +1,1640 @@
+import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql'
 export type Maybe<T> = T | null
-
-export interface EquipmentFilterInput {
-  vehicleId?: Maybe<string>
-
-  operatorId?: Maybe<string>
-
-  search?: Maybe<string>
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } &
+  { [P in K]-?: NonNullable<T[P]> }
+/** All built-in and custom scalars, mapped to their actual values */
+export type Scalars = {
+  ID: string
+  String: string
+  Boolean: boolean
+  Int: number
+  Float: number
+  /** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
+  DateTime: any
+  /** A Date string in YYYY-MM-DD format. The timezone is assumed to be Europe/Helsinki. */
+  Date: any
+  /** The direction of a route. An integer of either 1 or 2. */
+  Direction: any
+  /** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. The timezone is assumed to be Europe/Helsinki */
+  Time: any
+  /** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */
+  VehicleId: any
+  /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
+  PreciseBBox: any
+  /** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
+  BBox: any
+  /** The `Upload` scalar type represents a file upload. */
+  Upload: any
 }
 
-export interface StopFilterInput {
-  search?: Maybe<string>
+export type Alert = {
+  __typename?: 'Alert'
+  affectedId: Scalars['String']
+  category: AlertCategory
+  description: Scalars['String']
+  distribution: AlertDistribution
+  endDateTime: Scalars['DateTime']
+  id: Scalars['String']
+  impact: AlertImpact
+  lastModifiedDateTime: Scalars['DateTime']
+  level: AlertLevel
+  startDateTime: Scalars['DateTime']
+  title: Scalars['String']
+  url?: Maybe<Scalars['String']>
 }
 
-export interface RouteFilterInput {
-  routeId?: Maybe<string>
-
-  direction?: Maybe<Direction>
-
-  search?: Maybe<string>
+export enum AlertCategory {
+  Accident = 'ACCIDENT',
+  Assault = 'ASSAULT',
+  Disturbance = 'DISTURBANCE',
+  EarlierDisruption = 'EARLIER_DISRUPTION',
+  Hidden = 'HIDDEN',
+  ItsSystemError = 'ITS_SYSTEM_ERROR',
+  MedicalIncident = 'MEDICAL_INCIDENT',
+  MisparkedVehicle = 'MISPARKED_VEHICLE',
+  NoDriver = 'NO_DRIVER',
+  NoTrafficDisruption = 'NO_TRAFFIC_DISRUPTION',
+  Other = 'OTHER',
+  OtherDriverError = 'OTHER_DRIVER_ERROR',
+  PowerFailure = 'POWER_FAILURE',
+  PublicEvent = 'PUBLIC_EVENT',
+  RoadClosed = 'ROAD_CLOSED',
+  RoadMaintenance = 'ROAD_MAINTENANCE',
+  RoadTrench = 'ROAD_TRENCH',
+  Seizure = 'SEIZURE',
+  StaffDeficit = 'STAFF_DEFICIT',
+  StateVisit = 'STATE_VISIT',
+  Strike = 'STRIKE',
+  SwitchFailure = 'SWITCH_FAILURE',
+  TechnicalFailure = 'TECHNICAL_FAILURE',
+  Test = 'TEST',
+  TooManyPassengers = 'TOO_MANY_PASSENGERS',
+  TrackBlocked = 'TRACK_BLOCKED',
+  TrackMaintenance = 'TRACK_MAINTENANCE',
+  TrafficAccident = 'TRAFFIC_ACCIDENT',
+  TrafficJam = 'TRAFFIC_JAM',
+  VehicleBreakdown = 'VEHICLE_BREAKDOWN',
+  VehicleDeficit = 'VEHICLE_DEFICIT',
+  VehicleOffTheRoad = 'VEHICLE_OFF_THE_ROAD',
+  Weather = 'WEATHER',
+  WeatherConditions = 'WEATHER_CONDITIONS',
 }
 
-export interface DepartureFilterInput {
-  routeId?: Maybe<string>
-
-  direction?: Maybe<Direction>
-
-  minHour?: Maybe<number>
-
-  maxHour?: Maybe<number>
+export enum AlertDistribution {
+  AllRoutes = 'ALL_ROUTES',
+  AllStops = 'ALL_STOPS',
+  Network = 'NETWORK',
+  Route = 'ROUTE',
+  Stop = 'STOP',
 }
 
-export interface AreaEventsFilterInput {
-  routeId?: Maybe<string>
-
-  direction?: Maybe<Direction>
-}
-
-export interface AlertSearchInput {
-  all?: Maybe<boolean>
-
-  network?: Maybe<boolean>
-
-  allRoutes?: Maybe<boolean>
-
-  allStops?: Maybe<boolean>
-
-  route?: Maybe<string>
-
-  stop?: Maybe<string>
-}
-
-export interface CancellationSearchInput {
-  all?: Maybe<boolean>
-
-  routeId?: Maybe<string>
-
-  direction?: Maybe<number>
-
-  departureTime?: Maybe<string>
-
-  latestOnly?: Maybe<boolean>
+export enum AlertImpact {
+  BicycleStationOutOfOrder = 'BICYCLE_STATION_OUT_OF_ORDER',
+  BicycleSystemOutOfOrder = 'BICYCLE_SYSTEM_OUT_OF_ORDER',
+  Cancelled = 'CANCELLED',
+  Delayed = 'DELAYED',
+  DeviatingSchedule = 'DEVIATING_SCHEDULE',
+  DisruptionRoute = 'DISRUPTION_ROUTE',
+  IrregularDepartures = 'IRREGULAR_DEPARTURES',
+  IrregularDeparturesMax_15 = 'IRREGULAR_DEPARTURES_MAX_15',
+  IrregularDeparturesMax_30 = 'IRREGULAR_DEPARTURES_MAX_30',
+  NoTrafficImpact = 'NO_TRAFFIC_IMPACT',
+  Other = 'OTHER',
+  PossibleDeviations = 'POSSIBLE_DEVIATIONS',
+  PossiblyDelayed = 'POSSIBLY_DELAYED',
+  ReducedBicycleParkCapacity = 'REDUCED_BICYCLE_PARK_CAPACITY',
+  ReducedTransport = 'REDUCED_TRANSPORT',
+  ReturningToNormal = 'RETURNING_TO_NORMAL',
+  Unknown = 'UNKNOWN',
+  VendingMachineOutOfOrder = 'VENDING_MACHINE_OUT_OF_ORDER',
 }
 
 export enum AlertLevel {
   Info = 'INFO',
-  Warning = 'WARNING',
   Severe = 'SEVERE',
+  Warning = 'WARNING',
 }
 
-export enum AlertCategory {
-  VehicleBreakdown = 'VEHICLE_BREAKDOWN',
-  Accident = 'ACCIDENT',
-  NoDriver = 'NO_DRIVER',
-  Assault = 'ASSAULT',
-  Weather = 'WEATHER',
-  VehicleOffTheRoad = 'VEHICLE_OFF_THE_ROAD',
-  Seizure = 'SEIZURE',
-  ItsSystemError = 'ITS_SYSTEM_ERROR',
-  OtherDriverError = 'OTHER_DRIVER_ERROR',
-  TooManyPassengers = 'TOO_MANY_PASSENGERS',
-  Strike = 'STRIKE',
-  Other = 'OTHER',
-  EarlierDisruption = 'EARLIER_DISRUPTION',
-  NoTrafficDisruption = 'NO_TRAFFIC_DISRUPTION',
-  TrackBlocked = 'TRACK_BLOCKED',
-  StaffDeficit = 'STAFF_DEFICIT',
-  Disturbance = 'DISTURBANCE',
-  VehicleDeficit = 'VEHICLE_DEFICIT',
-  RoadClosed = 'ROAD_CLOSED',
-  RoadTrench = 'ROAD_TRENCH',
-  TrackMaintenance = 'TRACK_MAINTENANCE',
-  TrafficAccident = 'TRAFFIC_ACCIDENT',
-  TrafficJam = 'TRAFFIC_JAM',
-  MedicalIncident = 'MEDICAL_INCIDENT',
-  WeatherConditions = 'WEATHER_CONDITIONS',
-  TechnicalFailure = 'TECHNICAL_FAILURE',
-  Test = 'TEST',
-  RoadMaintenance = 'ROAD_MAINTENANCE',
-  SwitchFailure = 'SWITCH_FAILURE',
-  StateVisit = 'STATE_VISIT',
-  PowerFailure = 'POWER_FAILURE',
-  MisparkedVehicle = 'MISPARKED_VEHICLE',
-  PublicEvent = 'PUBLIC_EVENT',
-  Hidden = 'HIDDEN',
+export type AlertSearchInput = {
+  all?: Maybe<Scalars['Boolean']>
+  allRoutes?: Maybe<Scalars['Boolean']>
+  allStops?: Maybe<Scalars['Boolean']>
+  network?: Maybe<Scalars['Boolean']>
+  route?: Maybe<Scalars['String']>
+  stop?: Maybe<Scalars['String']>
 }
 
-export enum AlertDistribution {
-  Stop = 'STOP',
-  AllStops = 'ALL_STOPS',
-  Route = 'ROUTE',
-  AllRoutes = 'ALL_ROUTES',
-  Network = 'NETWORK',
+export type AreaEventsFilterInput = {
+  direction?: Maybe<Scalars['Direction']>
+  routeId?: Maybe<Scalars['String']>
 }
 
-export enum AlertImpact {
-  Delayed = 'DELAYED',
-  PossiblyDelayed = 'POSSIBLY_DELAYED',
-  ReducedTransport = 'REDUCED_TRANSPORT',
-  Cancelled = 'CANCELLED',
-  PossibleDeviations = 'POSSIBLE_DEVIATIONS',
-  ReturningToNormal = 'RETURNING_TO_NORMAL',
-  DisruptionRoute = 'DISRUPTION_ROUTE',
-  DeviatingSchedule = 'DEVIATING_SCHEDULE',
-  IrregularDepartures = 'IRREGULAR_DEPARTURES',
-  IrregularDeparturesMax_15 = 'IRREGULAR_DEPARTURES_MAX_15',
-  IrregularDeparturesMax_30 = 'IRREGULAR_DEPARTURES_MAX_30',
-  VendingMachineOutOfOrder = 'VENDING_MACHINE_OUT_OF_ORDER',
-  BicycleStationOutOfOrder = 'BICYCLE_STATION_OUT_OF_ORDER',
-  BicycleSystemOutOfOrder = 'BICYCLE_SYSTEM_OUT_OF_ORDER',
-  ReducedBicycleParkCapacity = 'REDUCED_BICYCLE_PARK_CAPACITY',
-  Other = 'OTHER',
-  NoTrafficImpact = 'NO_TRAFFIC_IMPACT',
-  Unknown = 'UNKNOWN',
+export enum CacheControlScope {
+  Private = 'PRIVATE',
+  Public = 'PUBLIC',
 }
 
-export enum CancellationSubcategory {
-  BreakMalfunction = 'BREAK_MALFUNCTION',
-  OutOfFuel = 'OUT_OF_FUEL',
-  FluidLeakage = 'FLUID_LEAKAGE',
-  ElectricMalfunction = 'ELECTRIC_MALFUNCTION',
-  EngineMalfunction = 'ENGINE_MALFUNCTION',
-  OtherMalfunction = 'OTHER_MALFUNCTION',
-  OwnFault = 'OWN_FAULT',
-  OppositeFault = 'OPPOSITE_FAULT',
-  FaultUnknown = 'FAULT_UNKNOWN',
-  StaffShortage = 'STAFF_SHORTAGE',
-  NdOperatorPlanningError = 'ND_OPERATOR_PLANNING_ERROR',
-  DriverLate = 'DRIVER_LATE',
-  InsufficientInstructionsByOperator = 'INSUFFICIENT_INSTRUCTIONS_BY_OPERATOR',
-  InsufficientInstructionsByAuthority = 'INSUFFICIENT_INSTRUCTIONS_BY_AUTHORITY',
-  NoVehicleAvailable = 'NO_VEHICLE_AVAILABLE',
-  AssaultOnDriver = 'ASSAULT_ON_DRIVER',
-  AssaultOnPassenger = 'ASSAULT_ON_PASSENGER',
-  AssaultOnVehicle = 'ASSAULT_ON_VEHICLE',
-  PassedOutPassenger = 'PASSED_OUT_PASSENGER',
-  OtherAssault = 'OTHER_ASSAULT',
-  UndriveableConditions = 'UNDRIVEABLE_CONDITIONS',
-  StuckCausedBySlippery = 'STUCK_CAUSED_BY_SLIPPERY',
-  CongestionCausedByWeather = 'CONGESTION_CAUSED_BY_WEATHER',
-  SlipperyTrack = 'SLIPPERY_TRACK',
-  RoadBlocked = 'ROAD_BLOCKED',
-  VehicleOffTheRoadByDriverError = 'VEHICLE_OFF_THE_ROAD_BY_DRIVER_ERROR',
-  VehicleOffTheRoadByOtherReason = 'VEHICLE_OFF_THE_ROAD_BY_OTHER_REASON',
-  MissparkedVehicle = 'MISSPARKED_VEHICLE',
-  CongestionReasonUknown = 'CONGESTION_REASON_UKNOWN',
-  CongestionCausedByAccident = 'CONGESTION_CAUSED_BY_ACCIDENT',
-  DriverSeizure = 'DRIVER_SEIZURE',
-  PassengerSeizure = 'PASSENGER_SEIZURE',
-  PassengerInjured = 'PASSENGER_INJURED',
-  OtherSeizure = 'OTHER_SEIZURE',
-  DeviceError = 'DEVICE_ERROR',
-  OperatorDeviceError = 'OPERATOR_DEVICE_ERROR',
-  WrongInformationInDevice = 'WRONG_INFORMATION_IN_DEVICE',
-  ItsSystemNotInstalled = 'ITS_SYSTEM_NOT_INSTALLED',
-  UserError = 'USER_ERROR',
-  FalseAlarm = 'FALSE_ALARM',
-  OtherItsError = 'OTHER_ITS_ERROR',
-  DriverError = 'DRIVER_ERROR',
-  InsufficientCapasity = 'INSUFFICIENT_CAPASITY',
-  OperatorPersonnelOnStrike = 'OPERATOR_PERSONNEL_ON_STRIKE',
-  OtherStrike = 'OTHER_STRIKE',
-  OtherOperatorReason = 'OTHER_OPERATOR_REASON',
-  DoorMalfunction = 'DOOR_MALFUNCTION',
-  UnknownCause = 'UNKNOWN_CAUSE',
-  Hidden = 'HIDDEN',
-}
-
-export enum CancellationType {
-  CancelDeparture = 'CANCEL_DEPARTURE',
-  Detour = 'DETOUR',
-  SkippedStopCalls = 'SKIPPED_STOP_CALLS',
-  EarlyDeparture = 'EARLY_DEPARTURE',
-  EarlyDepartureFromTimingPoint = 'EARLY_DEPARTURE_FROM_TIMING_POINT',
-  LateDeparture = 'LATE_DEPARTURE',
-  DeparturedAfterNextJourney = 'DEPARTURED_AFTER_NEXT_JOURNEY',
-  BlockFirstDepartureLate = 'BLOCK_FIRST_DEPARTURE_LATE',
-  TisError = 'TIS_ERROR',
+export type Cancellation = {
+  __typename?: 'Cancellation'
+  cancellationEffect: CancellationEffect
+  cancellationType: CancellationType
+  category: AlertCategory
+  departureDate: Scalars['Date']
+  description: Scalars['String']
+  direction: Scalars['Direction']
+  id: Scalars['Int']
+  isCancelled: Scalars['Boolean']
+  journeyStartTime: Scalars['Time']
+  lastModifiedDateTime: Scalars['DateTime']
+  routeId: Scalars['String']
+  subCategory: CancellationSubcategory
+  title: Scalars['String']
 }
 
 export enum CancellationEffect {
   CancelEntireDeparture = 'CANCEL_ENTIRE_DEPARTURE',
-  CancelStopsFromStart = 'CANCEL_STOPS_FROM_START',
-  CancelStopsFromMiddle = 'CANCEL_STOPS_FROM_MIDDLE',
   CancelStopsFromEnd = 'CANCEL_STOPS_FROM_END',
+  CancelStopsFromMiddle = 'CANCEL_STOPS_FROM_MIDDLE',
+  CancelStopsFromStart = 'CANCEL_STOPS_FROM_START',
 }
 
-export enum CacheControlScope {
-  Public = 'PUBLIC',
-  Private = 'PRIVATE',
+export type CancellationSearchInput = {
+  all?: Maybe<Scalars['Boolean']>
+  departureTime?: Maybe<Scalars['String']>
+  direction?: Maybe<Scalars['Int']>
+  latestOnly?: Maybe<Scalars['Boolean']>
+  routeId?: Maybe<Scalars['String']>
 }
 
-/** A Date string in YYYY-MM-DD format. The timezone is assumed to be Europe/Helsinki. */
-export type Date = any
+export enum CancellationSubcategory {
+  AssaultOnDriver = 'ASSAULT_ON_DRIVER',
+  AssaultOnPassenger = 'ASSAULT_ON_PASSENGER',
+  AssaultOnVehicle = 'ASSAULT_ON_VEHICLE',
+  BreakMalfunction = 'BREAK_MALFUNCTION',
+  CongestionCausedByAccident = 'CONGESTION_CAUSED_BY_ACCIDENT',
+  CongestionCausedByWeather = 'CONGESTION_CAUSED_BY_WEATHER',
+  CongestionReasonUknown = 'CONGESTION_REASON_UKNOWN',
+  DeviceError = 'DEVICE_ERROR',
+  DoorMalfunction = 'DOOR_MALFUNCTION',
+  DriverError = 'DRIVER_ERROR',
+  DriverLate = 'DRIVER_LATE',
+  DriverSeizure = 'DRIVER_SEIZURE',
+  ElectricMalfunction = 'ELECTRIC_MALFUNCTION',
+  EngineMalfunction = 'ENGINE_MALFUNCTION',
+  FalseAlarm = 'FALSE_ALARM',
+  FaultUnknown = 'FAULT_UNKNOWN',
+  FluidLeakage = 'FLUID_LEAKAGE',
+  Hidden = 'HIDDEN',
+  InsufficientCapasity = 'INSUFFICIENT_CAPASITY',
+  InsufficientInstructionsByAuthority = 'INSUFFICIENT_INSTRUCTIONS_BY_AUTHORITY',
+  InsufficientInstructionsByOperator = 'INSUFFICIENT_INSTRUCTIONS_BY_OPERATOR',
+  ItsSystemNotInstalled = 'ITS_SYSTEM_NOT_INSTALLED',
+  MissparkedVehicle = 'MISSPARKED_VEHICLE',
+  NdOperatorPlanningError = 'ND_OPERATOR_PLANNING_ERROR',
+  NoVehicleAvailable = 'NO_VEHICLE_AVAILABLE',
+  OperatorDeviceError = 'OPERATOR_DEVICE_ERROR',
+  OperatorPersonnelOnStrike = 'OPERATOR_PERSONNEL_ON_STRIKE',
+  OppositeFault = 'OPPOSITE_FAULT',
+  OtherAssault = 'OTHER_ASSAULT',
+  OtherItsError = 'OTHER_ITS_ERROR',
+  OtherMalfunction = 'OTHER_MALFUNCTION',
+  OtherOperatorReason = 'OTHER_OPERATOR_REASON',
+  OtherSeizure = 'OTHER_SEIZURE',
+  OtherStrike = 'OTHER_STRIKE',
+  OutOfFuel = 'OUT_OF_FUEL',
+  OwnFault = 'OWN_FAULT',
+  PassedOutPassenger = 'PASSED_OUT_PASSENGER',
+  PassengerInjured = 'PASSENGER_INJURED',
+  PassengerSeizure = 'PASSENGER_SEIZURE',
+  RoadBlocked = 'ROAD_BLOCKED',
+  SlipperyTrack = 'SLIPPERY_TRACK',
+  StaffShortage = 'STAFF_SHORTAGE',
+  StuckCausedBySlippery = 'STUCK_CAUSED_BY_SLIPPERY',
+  UndriveableConditions = 'UNDRIVEABLE_CONDITIONS',
+  UnknownCause = 'UNKNOWN_CAUSE',
+  UserError = 'USER_ERROR',
+  VehicleOffTheRoadByDriverError = 'VEHICLE_OFF_THE_ROAD_BY_DRIVER_ERROR',
+  VehicleOffTheRoadByOtherReason = 'VEHICLE_OFF_THE_ROAD_BY_OTHER_REASON',
+  WrongInformationInDevice = 'WRONG_INFORMATION_IN_DEVICE',
+}
 
-/** The direction of a route. An integer of either 1 or 2. */
-export type Direction = any
+export enum CancellationType {
+  BlockFirstDepartureLate = 'BLOCK_FIRST_DEPARTURE_LATE',
+  CancelDeparture = 'CANCEL_DEPARTURE',
+  DeparturedAfterNextJourney = 'DEPARTURED_AFTER_NEXT_JOURNEY',
+  Detour = 'DETOUR',
+  EarlyDeparture = 'EARLY_DEPARTURE',
+  EarlyDepartureFromTimingPoint = 'EARLY_DEPARTURE_FROM_TIMING_POINT',
+  LateDeparture = 'LATE_DEPARTURE',
+  SkippedStopCalls = 'SKIPPED_STOP_CALLS',
+  TisError = 'TIS_ERROR',
+}
 
-/** A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to Europe/Helsinki. */
-export type DateTime = any
+export type Departure = {
+  __typename?: 'Departure'
+  alerts: Alert[]
+  cancellations: Cancellation[]
+  dayType: Scalars['String']
+  departureDate: Scalars['Date']
+  departureEvent?: Maybe<JourneyStopEvent>
+  departureId: Scalars['Int']
+  departureTime: Scalars['Time']
+  direction: Scalars['Direction']
+  equipmentColor?: Maybe<Scalars['String']>
+  equipmentIsRequired?: Maybe<Scalars['Boolean']>
+  equipmentType?: Maybe<Scalars['String']>
+  extraDeparture: Scalars['String']
+  id: Scalars['ID']
+  index?: Maybe<Scalars['Int']>
+  isCancelled: Scalars['Boolean']
+  isNextDay: Scalars['Boolean']
+  isOrigin?: Maybe<Scalars['Boolean']>
+  isTimingStop: Scalars['Boolean']
+  journey?: Maybe<DepartureJourney>
+  mode: Scalars['String']
+  observedArrivalTime?: Maybe<ObservedArrival>
+  observedDepartureTime?: Maybe<ObservedDeparture>
+  operatorId?: Maybe<Scalars['String']>
+  originDepartureTime?: Maybe<PlannedDeparture>
+  plannedArrivalTime: PlannedArrival
+  plannedDepartureTime: PlannedDeparture
+  recoveryTime?: Maybe<Scalars['Int']>
+  routeId: Scalars['String']
+  stop: Stop
+  stopId: Scalars['String']
+  terminalTime?: Maybe<Scalars['Int']>
+}
 
-/** Time is seconds from 00:00:00 in format HH:mm:ss. The hours value can be more than 23. The timezone is assumed to be Europe/Helsinki */
-export type Time = any
+export type DepartureFilterInput = {
+  direction?: Maybe<Scalars['Direction']>
+  maxHour?: Maybe<Scalars['Int']>
+  minHour?: Maybe<Scalars['Int']>
+  routeId?: Maybe<Scalars['String']>
+}
 
-/** A string that uniquely identifies a vehicle. The format is [operator ID]/[vehicle ID]. The operator ID is padded to have a length of 4 characters. */
-export type VehicleId = any
+export type DepartureJourney = {
+  __typename?: 'DepartureJourney'
+  _numInstance?: Maybe<Scalars['Int']>
+  alerts: Alert[]
+  cancellations: Cancellation[]
+  departureDate: Scalars['Date']
+  departureTime: Scalars['Time']
+  direction?: Maybe<Scalars['Direction']>
+  id: Scalars['ID']
+  isCancelled: Scalars['Boolean']
+  journeyType: Scalars['String']
+  mode?: Maybe<Scalars['String']>
+  originStopId?: Maybe<Scalars['String']>
+  routeId?: Maybe<Scalars['String']>
+  type: Scalars['String']
+  uniqueVehicleId?: Maybe<Scalars['VehicleId']>
+}
 
-/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. The precise bbox is not rounded. */
-export type PreciseBBox = any
+export type Equipment = {
+  __typename?: 'Equipment'
+  _matchScore?: Maybe<Scalars['Float']>
+  age?: Maybe<Scalars['Int']>
+  emissionClass?: Maybe<Scalars['String']>
+  emissionDesc?: Maybe<Scalars['String']>
+  exteriorColor?: Maybe<Scalars['String']>
+  id: Scalars['ID']
+  inService?: Maybe<Scalars['Boolean']>
+  operatorId: Scalars['String']
+  operatorName?: Maybe<Scalars['String']>
+  registryNr?: Maybe<Scalars['String']>
+  type?: Maybe<Scalars['String']>
+  vehicleId: Scalars['String']
+}
 
-/** A string that defines a bounding box. The coordinates should be in the format `minLng,maxLat,maxLng,minLat` which is compatible with what Leaflet's LatLngBounds.toBBoxString() returns. Toe coordinates will be rounded, use PreciseBBox if this is not desired. */
-export type BBox = any
+export type EquipmentFilterInput = {
+  operatorId?: Maybe<Scalars['String']>
+  search?: Maybe<Scalars['String']>
+  vehicleId?: Maybe<Scalars['String']>
+}
 
-/** The `Upload` scalar type represents a file upload. */
-export type Upload = any
-import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql'
+export type ExceptionDay = {
+  __typename?: 'ExceptionDay'
+  dayType: Scalars['String']
+  description?: Maybe<Scalars['String']>
+  effectiveDayTypes: Array<Scalars['String']>
+  endTime?: Maybe<Scalars['Time']>
+  exceptionDate: Scalars['Date']
+  exclusive: Scalars['Boolean']
+  id: Scalars['ID']
+  modeScope: Scalars['String']
+  scope: Scalars['String']
+  scopedDayType: Scalars['String']
+  startTime?: Maybe<Scalars['Time']>
+}
 
-export type Resolver<Result, Parent = {}, TContext = {}, Args = {}> = (
-  parent: Parent,
-  args: Args,
+export type Journey = {
+  __typename?: 'Journey'
+  alerts: Alert[]
+  cancellations: Cancellation[]
+  departure?: Maybe<Departure>
+  departureDate: Scalars['Date']
+  departureTime?: Maybe<Scalars['Time']>
+  direction?: Maybe<Scalars['Direction']>
+  equipment?: Maybe<Equipment>
+  events: JourneyEventType[]
+  headsign?: Maybe<Scalars['String']>
+  id: Scalars['ID']
+  isCancelled: Scalars['Boolean']
+  journeyDurationMinutes?: Maybe<Scalars['Int']>
+  journeyLength?: Maybe<Scalars['Int']>
+  journeyType: Scalars['String']
+  mode?: Maybe<Scalars['String']>
+  name?: Maybe<Scalars['String']>
+  operatorId?: Maybe<Scalars['String']>
+  originStopId?: Maybe<Scalars['String']>
+  routeDepartures?: Maybe<Departure[]>
+  routeId?: Maybe<Scalars['String']>
+  uniqueVehicleId?: Maybe<Scalars['VehicleId']>
+  vehicleId?: Maybe<Scalars['String']>
+  vehiclePositions: VehiclePosition[]
+}
+
+export type JourneyCancellationEvent = {
+  __typename?: 'JourneyCancellationEvent'
+  cancellationEffect: CancellationEffect
+  cancellationType: CancellationType
+  category: AlertCategory
+  description: Scalars['String']
+  id: Scalars['ID']
+  isCancelled: Scalars['Boolean']
+  plannedDate?: Maybe<Scalars['Date']>
+  plannedTime?: Maybe<Scalars['Time']>
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  subCategory: CancellationSubcategory
+  title: Scalars['String']
+  type: Scalars['String']
+}
+
+export type JourneyEvent = {
+  __typename?: 'JourneyEvent'
+  _isVirtual?: Maybe<Scalars['Boolean']>
+  id: Scalars['ID']
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  stopId?: Maybe<Scalars['String']>
+  type: Scalars['String']
+}
+
+export type JourneyEventType =
+  | JourneyCancellationEvent
+  | JourneyEvent
+  | JourneyStopEvent
+  | PlannedStopEvent
+
+export type JourneyStopEvent = {
+  __typename?: 'JourneyStopEvent'
+  _isVirtual?: Maybe<Scalars['Boolean']>
+  departureId?: Maybe<Scalars['Int']>
+  doorsOpened?: Maybe<Scalars['Boolean']>
+  id: Scalars['ID']
+  index?: Maybe<Scalars['Int']>
+  isNextDay?: Maybe<Scalars['Boolean']>
+  isOrigin?: Maybe<Scalars['Boolean']>
+  isTimingStop: Scalars['Boolean']
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  nextStopId: Scalars['String']
+  plannedDate?: Maybe<Scalars['Date']>
+  plannedDateTime?: Maybe<Scalars['DateTime']>
+  plannedTime?: Maybe<Scalars['Time']>
+  plannedTimeDifference?: Maybe<Scalars['Int']>
+  plannedUnix?: Maybe<Scalars['Int']>
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  stop?: Maybe<Stop>
+  stopId?: Maybe<Scalars['String']>
+  stopped?: Maybe<Scalars['Boolean']>
+  type: Scalars['String']
+  unplannedStop: Scalars['Boolean']
+}
+
+export type ObservedArrival = {
+  __typename?: 'ObservedArrival'
+  arrivalDate: Scalars['Date']
+  arrivalDateTime: Scalars['DateTime']
+  arrivalTime: Scalars['Time']
+  arrivalTimeDifference: Scalars['Int']
+  id: Scalars['ID']
+}
+
+export type ObservedDeparture = {
+  __typename?: 'ObservedDeparture'
+  departureDate: Scalars['Date']
+  departureDateTime: Scalars['DateTime']
+  departureTime: Scalars['Time']
+  departureTimeDifference: Scalars['Int']
+  id: Scalars['ID']
+}
+
+export type PlannedArrival = {
+  __typename?: 'PlannedArrival'
+  arrivalDate: Scalars['Date']
+  arrivalDateTime: Scalars['DateTime']
+  arrivalTime: Scalars['Time']
+  id: Scalars['ID']
+  isNextDay?: Maybe<Scalars['Boolean']>
+}
+
+export type PlannedDeparture = {
+  __typename?: 'PlannedDeparture'
+  departureDate: Scalars['Date']
+  departureDateTime: Scalars['DateTime']
+  departureTime: Scalars['Time']
+  id: Scalars['ID']
+  isNextDay?: Maybe<Scalars['Boolean']>
+}
+
+export type PlannedStopEvent = {
+  __typename?: 'PlannedStopEvent'
+  departureId?: Maybe<Scalars['Int']>
+  id: Scalars['ID']
+  index?: Maybe<Scalars['Int']>
+  isNextDay?: Maybe<Scalars['Boolean']>
+  isOrigin?: Maybe<Scalars['Boolean']>
+  isTimingStop: Scalars['Boolean']
+  plannedDate?: Maybe<Scalars['Date']>
+  plannedDateTime?: Maybe<Scalars['DateTime']>
+  plannedTime?: Maybe<Scalars['Time']>
+  plannedUnix?: Maybe<Scalars['Int']>
+  stop?: Maybe<Stop>
+  stopId?: Maybe<Scalars['String']>
+  type: Scalars['String']
+}
+
+/** Any object that describes something with a position implements this interface. */
+export type Position = {
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+}
+
+export type Query = {
+  __typename?: 'Query'
+  alerts: Alert[]
+  cancellations: Cancellation[]
+  departures: Array<Maybe<Departure>>
+  equipment: Array<Maybe<Equipment>>
+  exceptionDays: Array<Maybe<ExceptionDay>>
+  journey?: Maybe<Journey>
+  journeys: Array<Maybe<Journey>>
+  journeysByBbox: Array<Maybe<Journey>>
+  route?: Maybe<Route>
+  routeDepartures: Array<Maybe<Departure>>
+  routeGeometry?: Maybe<RouteGeometry>
+  routeSegments: Array<Maybe<RouteSegment>>
+  routes: Array<Maybe<Route>>
+  stop?: Maybe<Stop>
+  stops: Array<Maybe<Stop>>
+  uiMessage: UiMessage
+  unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
+  vehicleJourneys: Array<Maybe<VehicleJourney>>
+  weeklyDepartures: Array<Maybe<Departure>>
+}
+
+export type QueryAlertsArgs = {
+  alertSearch?: Maybe<AlertSearchInput>
+  language: Scalars['String']
+  time?: Maybe<Scalars['String']>
+}
+
+export type QueryCancellationsArgs = {
+  cancellationSearch?: Maybe<CancellationSearchInput>
+  date?: Maybe<Scalars['Date']>
+}
+
+export type QueryDeparturesArgs = {
+  date: Scalars['Date']
+  filter?: Maybe<DepartureFilterInput>
+  stopId: Scalars['String']
+}
+
+export type QueryEquipmentArgs = {
+  date?: Maybe<Scalars['Date']>
+  filter?: Maybe<EquipmentFilterInput>
+}
+
+export type QueryExceptionDaysArgs = {
+  year: Scalars['String']
+}
+
+export type QueryJourneyArgs = {
+  departureDate: Scalars['Date']
+  departureTime: Scalars['Time']
+  direction: Scalars['Direction']
+  routeId: Scalars['String']
+  uniqueVehicleId?: Maybe<Scalars['VehicleId']>
+  unsignedEvents?: Maybe<Scalars['Boolean']>
+}
+
+export type QueryJourneysArgs = {
+  departureDate: Scalars['Date']
+  direction: Scalars['Direction']
+  routeId: Scalars['String']
+}
+
+export type QueryJourneysByBboxArgs = {
+  bbox: Scalars['PreciseBBox']
+  date: Scalars['Date']
+  filters?: Maybe<AreaEventsFilterInput>
+  maxTime: Scalars['DateTime']
+  minTime: Scalars['DateTime']
+  unsignedEvents?: Maybe<Scalars['Boolean']>
+}
+
+export type QueryRouteArgs = {
+  date: Scalars['Date']
+  direction: Scalars['Direction']
+  routeId: Scalars['String']
+}
+
+export type QueryRouteDeparturesArgs = {
+  date: Scalars['Date']
+  direction: Scalars['Direction']
+  routeId: Scalars['String']
+  stopId: Scalars['String']
+}
+
+export type QueryRouteGeometryArgs = {
+  date: Scalars['Date']
+  direction: Scalars['Direction']
+  routeId: Scalars['String']
+}
+
+export type QueryRouteSegmentsArgs = {
+  date: Scalars['Date']
+  direction: Scalars['Direction']
+  routeId: Scalars['String']
+}
+
+export type QueryRoutesArgs = {
+  date?: Maybe<Scalars['Date']>
+  filter?: Maybe<RouteFilterInput>
+}
+
+export type QueryStopArgs = {
+  date: Scalars['Date']
+  stopId: Scalars['String']
+}
+
+export type QueryStopsArgs = {
+  date?: Maybe<Scalars['Date']>
+  filter?: Maybe<StopFilterInput>
+}
+
+export type QueryUnsignedVehicleEventsArgs = {
+  date: Scalars['Date']
+  uniqueVehicleId: Scalars['VehicleId']
+}
+
+export type QueryVehicleJourneysArgs = {
+  date: Scalars['Date']
+  uniqueVehicleId: Scalars['VehicleId']
+  unsignedEvents?: Maybe<Scalars['Boolean']>
+}
+
+export type QueryWeeklyDeparturesArgs = {
+  date: Scalars['Date']
+  direction: Scalars['Direction']
+  lastStopArrival?: Maybe<Scalars['Boolean']>
+  routeId: Scalars['String']
+  stopId: Scalars['String']
+}
+
+export type Route = {
+  __typename?: 'Route'
+  _matchScore?: Maybe<Scalars['Float']>
+  alerts: Alert[]
+  cancellations: Cancellation[]
+  destination?: Maybe<Scalars['String']>
+  destinationStopId?: Maybe<Scalars['String']>
+  direction: Scalars['Direction']
+  id: Scalars['ID']
+  mode?: Maybe<Scalars['String']>
+  name?: Maybe<Scalars['String']>
+  origin?: Maybe<Scalars['String']>
+  originStopId: Scalars['String']
+  routeDurationMinutes?: Maybe<Scalars['Int']>
+  routeId: Scalars['String']
+  routeLength?: Maybe<Scalars['Int']>
+}
+
+export type RouteFilterInput = {
+  direction?: Maybe<Scalars['Direction']>
+  routeId?: Maybe<Scalars['String']>
+  search?: Maybe<Scalars['String']>
+}
+
+export type RouteGeometry = {
+  __typename?: 'RouteGeometry'
+  coordinates: RouteGeometryPoint[]
+  id: Scalars['ID']
+  mode?: Maybe<Scalars['String']>
+}
+
+export type RouteGeometryPoint = Position & {
+  __typename?: 'RouteGeometryPoint'
+  lat: Scalars['Float']
+  lng: Scalars['Float']
+}
+
+export type RouteSegment = Position & {
+  __typename?: 'RouteSegment'
+  alerts: Alert[]
+  cancellations: Cancellation[]
+  destination: Scalars['String']
+  direction: Scalars['Direction']
+  distanceFromPrevious?: Maybe<Scalars['Int']>
+  distanceFromStart?: Maybe<Scalars['Int']>
+  duration?: Maybe<Scalars['Int']>
+  id: Scalars['ID']
+  isTimingStop: Scalars['Boolean']
+  lat: Scalars['Float']
+  lng: Scalars['Float']
+  modes?: Maybe<Array<Scalars['String']>>
+  name?: Maybe<Scalars['String']>
+  originStopId?: Maybe<Scalars['String']>
+  radius?: Maybe<Scalars['Float']>
+  routeId: Scalars['String']
+  shortId: Scalars['String']
+  stopId: Scalars['String']
+  stopIndex: Scalars['Int']
+}
+
+export type Stop = Position & {
+  __typename?: 'Stop'
+  _matchScore?: Maybe<Scalars['Float']>
+  alerts: Alert[]
+  id: Scalars['ID']
+  isTimingStop: Scalars['Boolean']
+  lat: Scalars['Float']
+  lng: Scalars['Float']
+  modes: Array<Maybe<Scalars['String']>>
+  name?: Maybe<Scalars['String']>
+  radius?: Maybe<Scalars['Float']>
+  routes: StopRoute[]
+  shortId: Scalars['String']
+  stopId: Scalars['String']
+  stopIndex?: Maybe<Scalars['Int']>
+}
+
+export type StopFilterInput = {
+  search?: Maybe<Scalars['String']>
+}
+
+export type StopRoute = {
+  __typename?: 'StopRoute'
+  direction: Scalars['Direction']
+  id: Scalars['ID']
+  isTimingStop: Scalars['Boolean']
+  mode?: Maybe<Scalars['String']>
+  originStopId?: Maybe<Scalars['String']>
+  routeId: Scalars['String']
+}
+
+export type UiMessage = {
+  __typename?: 'UIMessage'
+  date?: Maybe<Scalars['String']>
+  message?: Maybe<Scalars['String']>
+}
+
+export type VehicleJourney = {
+  __typename?: 'VehicleJourney'
+  alerts: Alert[]
+  cancellations: Cancellation[]
+  departureDate: Scalars['Date']
+  departureTime: Scalars['Time']
+  direction?: Maybe<Scalars['Direction']>
+  headsign?: Maybe<Scalars['String']>
+  id: Scalars['ID']
+  isCancelled: Scalars['Boolean']
+  journeyType: Scalars['String']
+  mode?: Maybe<Scalars['String']>
+  operatorId?: Maybe<Scalars['String']>
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  routeId?: Maybe<Scalars['String']>
+  timeDifference: Scalars['Int']
+  uniqueVehicleId?: Maybe<Scalars['VehicleId']>
+  vehicleId?: Maybe<Scalars['String']>
+}
+
+export type VehiclePosition = Position & {
+  __typename?: 'VehiclePosition'
+  delay?: Maybe<Scalars['Int']>
+  doorStatus?: Maybe<Scalars['Boolean']>
+  heading?: Maybe<Scalars['Int']>
+  id: Scalars['ID']
+  journeyType: Scalars['String']
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  mode?: Maybe<Scalars['String']>
+  nextStopId?: Maybe<Scalars['String']>
+  operatorId?: Maybe<Scalars['String']>
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  stop?: Maybe<Scalars['String']>
+  uniqueVehicleId?: Maybe<Scalars['VehicleId']>
+  vehicleId?: Maybe<Scalars['String']>
+  velocity?: Maybe<Scalars['Float']>
+}
+
+export type ResolverTypeWrapper<T> = Promise<T> | T
+
+export type ResolverFn<TResult, TParent, TContext, TArgs> = (
+  parent: TParent,
+  args: TArgs,
   context: TContext,
   info: GraphQLResolveInfo
-) => Promise<Result> | Result
+) => Promise<TResult> | TResult
 
-export interface ISubscriptionResolverObject<Result, Parent, TContext, Args> {
-  subscribe<R = Result, P = Parent>(
-    parent: P,
-    args: Args,
-    context: TContext,
-    info: GraphQLResolveInfo
-  ): AsyncIterator<R | Result> | Promise<AsyncIterator<R | Result>>
-  resolve?<R = Result, P = Parent>(
-    parent: P,
-    args: Args,
-    context: TContext,
-    info: GraphQLResolveInfo
-  ): R | Result | Promise<R | Result>
+export type StitchingResolver<TResult, TParent, TContext, TArgs> = {
+  fragment: string
+  resolve: ResolverFn<TResult, TParent, TContext, TArgs>
 }
 
-export type SubscriptionResolver<Result, Parent = {}, TContext = {}, Args = {}> =
-  | ((...args: any[]) => ISubscriptionResolverObject<Result, Parent, TContext, Args>)
-  | ISubscriptionResolverObject<Result, Parent, TContext, Args>
+export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> =
+  | ResolverFn<TResult, TParent, TContext, TArgs>
+  | StitchingResolver<TResult, TParent, TContext, TArgs>
 
-export type TypeResolveFn<Types, Parent = {}, TContext = {}> = (
-  parent: Parent,
+export type SubscriptionSubscribeFn<TResult, TParent, TContext, TArgs> = (
+  parent: TParent,
+  args: TArgs,
   context: TContext,
   info: GraphQLResolveInfo
-) => Maybe<Types>
+) => AsyncIterator<TResult> | Promise<AsyncIterator<TResult>>
 
-export type NextResolverFn<T> = () => Promise<T>
-
-export type DirectiveResolverFn<TResult, TArgs = {}, TContext = {}> = (
-  next: NextResolverFn<TResult>,
-  source: any,
+export type SubscriptionResolveFn<TResult, TParent, TContext, TArgs> = (
+  parent: TParent,
   args: TArgs,
   context: TContext,
   info: GraphQLResolveInfo
 ) => TResult | Promise<TResult>
 
-export namespace QueryResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = {}> {
-    equipment?: EquipmentResolver<Array<Maybe<Equipment>>, TypeParent, TContext>
-
-    stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
-
-    stops?: StopsResolver<Array<Maybe<Stop>>, TypeParent, TContext>
-
-    route?: RouteResolver<Maybe<Route>, TypeParent, TContext>
-
-    routes?: RoutesResolver<Array<Maybe<Route>>, TypeParent, TContext>
-
-    routeGeometry?: RouteGeometryResolver<Maybe<RouteGeometry>, TypeParent, TContext>
-
-    routeSegments?: RouteSegmentsResolver<Array<Maybe<RouteSegment>>, TypeParent, TContext>
-
-    departures?: DeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
-
-    routeDepartures?: RouteDeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
-
-    weeklyDepartures?: WeeklyDeparturesResolver<Array<Maybe<Departure>>, TypeParent, TContext>
-
-    exceptionDays?: ExceptionDaysResolver<Array<Maybe<ExceptionDay>>, TypeParent, TContext>
-
-    journey?: JourneyResolver<Maybe<Journey>, TypeParent, TContext>
-
-    journeys?: JourneysResolver<Array<Maybe<Journey>>, TypeParent, TContext>
-
-    vehicleJourneys?: VehicleJourneysResolver<
-      Array<Maybe<VehicleJourney>>,
-      TypeParent,
-      TContext
-    >
-
-    journeysByBbox?: JourneysByBboxResolver<Array<Maybe<Journey>>, TypeParent, TContext>
-
-    unsignedVehicleEvents?: UnsignedVehicleEventsResolver<
-      Array<Maybe<VehiclePosition>>,
-      TypeParent,
-      TContext
-    >
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-
-    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
-
-    uiMessage?: UiMessageResolver<UiMessage, TypeParent, TContext>
-  }
-
-  export type EquipmentResolver<
-    R = Array<Maybe<Equipment>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, EquipmentArgs>
-  export interface EquipmentArgs {
-    filter?: Maybe<EquipmentFilterInput>
-
-    date?: Maybe<Date>
-  }
-
-  export type StopResolver<R = Maybe<Stop>, Parent = {}, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext,
-    StopArgs
-  >
-  export interface StopArgs {
-    stopId: string
-
-    date: Date
-  }
-
-  export type StopsResolver<R = Array<Maybe<Stop>>, Parent = {}, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext,
-    StopsArgs
-  >
-  export interface StopsArgs {
-    date?: Maybe<Date>
-
-    filter?: Maybe<StopFilterInput>
-  }
-
-  export type RouteResolver<R = Maybe<Route>, Parent = {}, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext,
-    RouteArgs
-  >
-  export interface RouteArgs {
-    routeId: string
-
-    direction: Direction
-
-    date: Date
-  }
-
-  export type RoutesResolver<R = Array<Maybe<Route>>, Parent = {}, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext,
-    RoutesArgs
-  >
-  export interface RoutesArgs {
-    filter?: Maybe<RouteFilterInput>
-
-    date?: Maybe<Date>
-  }
-
-  export type RouteGeometryResolver<
-    R = Maybe<RouteGeometry>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, RouteGeometryArgs>
-  export interface RouteGeometryArgs {
-    routeId: string
-
-    direction: Direction
-
-    date: Date
-  }
-
-  export type RouteSegmentsResolver<
-    R = Array<Maybe<RouteSegment>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, RouteSegmentsArgs>
-  export interface RouteSegmentsArgs {
-    routeId: string
-
-    direction: Direction
-
-    date: Date
-  }
-
-  export type DeparturesResolver<
-    R = Array<Maybe<Departure>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, DeparturesArgs>
-  export interface DeparturesArgs {
-    filter?: Maybe<DepartureFilterInput>
-
-    stopId: string
-
-    date: Date
-  }
-
-  export type RouteDeparturesResolver<
-    R = Array<Maybe<Departure>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, RouteDeparturesArgs>
-  export interface RouteDeparturesArgs {
-    stopId: string
-
-    routeId: string
-
-    direction: Direction
-
-    date: Date
-  }
-
-  export type WeeklyDeparturesResolver<
-    R = Array<Maybe<Departure>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, WeeklyDeparturesArgs>
-  export interface WeeklyDeparturesArgs {
-    stopId: string
-
-    routeId: string
-
-    direction: Direction
-
-    date: Date
-
-    lastStopArrival?: Maybe<boolean>
-  }
-
-  export type ExceptionDaysResolver<
-    R = Array<Maybe<ExceptionDay>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, ExceptionDaysArgs>
-  export interface ExceptionDaysArgs {
-    year: string
-  }
-
-  export type JourneyResolver<R = Maybe<Journey>, Parent = {}, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext,
-    JourneyArgs
-  >
-  export interface JourneyArgs {
-    routeId: string
-
-    direction: Direction
-
-    departureTime: Time
-
-    departureDate: Date
-
-    uniqueVehicleId?: Maybe<VehicleId>
-
-    unsignedEvents?: Maybe<boolean>
-  }
-
-  export type JourneysResolver<
-    R = Array<Maybe<Journey>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, JourneysArgs>
-  export interface JourneysArgs {
-    routeId: string
-
-    direction: Direction
-
-    departureDate: Date
-  }
-
-  export type VehicleJourneysResolver<
-    R = Array<Maybe<VehicleJourney>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, VehicleJourneysArgs>
-  export interface VehicleJourneysArgs {
-    uniqueVehicleId: VehicleId
-
-    date: Date
-
-    unsignedEvents?: Maybe<boolean>
-  }
-
-  export type JourneysByBboxResolver<
-    R = Array<Maybe<Journey>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, JourneysByBboxArgs>
-  export interface JourneysByBboxArgs {
-    minTime: DateTime
-
-    maxTime: DateTime
-
-    bbox: PreciseBBox
-
-    date: Date
-
-    filters?: Maybe<AreaEventsFilterInput>
-
-    unsignedEvents?: Maybe<boolean>
-  }
-
-  export type UnsignedVehicleEventsResolver<
-    R = Array<Maybe<VehiclePosition>>,
-    Parent = {},
-    TContext = {}
-  > = Resolver<R, Parent, TContext, UnsignedVehicleEventsArgs>
-  export interface UnsignedVehicleEventsArgs {
-    uniqueVehicleId: VehicleId
-
-    date: Date
-  }
-
-  export type AlertsResolver<R = Alert[], Parent = {}, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext,
-    AlertsArgs
-  >
-  export interface AlertsArgs {
-    time?: Maybe<string>
-
-    language: string
-
-    alertSearch?: Maybe<AlertSearchInput>
-  }
-
-  export type CancellationsResolver<R = Cancellation[], Parent = {}, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext,
-    CancellationsArgs
-  >
-  export interface CancellationsArgs {
-    date?: Maybe<Date>
-
-    cancellationSearch?: Maybe<CancellationSearchInput>
-  }
-
-  export type UiMessageResolver<R = UiMessage, Parent = {}, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
+export interface SubscriptionSubscriberObject<
+  TResult,
+  TKey extends string,
+  TParent,
+  TContext,
+  TArgs
+> {
+  subscribe: SubscriptionSubscribeFn<{ [key in TKey]: TResult }, TParent, TContext, TArgs>
+  resolve?: SubscriptionResolveFn<TResult, { [key in TKey]: TResult }, TContext, TArgs>
 }
 
-export namespace EquipmentResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = Equipment> {
-    id?: IdResolver<string, TypeParent, TContext>
+export interface SubscriptionResolverObject<TResult, TParent, TContext, TArgs> {
+  subscribe: SubscriptionSubscribeFn<any, TParent, TContext, TArgs>
+  resolve: SubscriptionResolveFn<TResult, any, TContext, TArgs>
+}
 
-    vehicleId?: VehicleIdResolver<string, TypeParent, TContext>
+export type SubscriptionObject<TResult, TKey extends string, TParent, TContext, TArgs> =
+  | SubscriptionSubscriberObject<TResult, TKey, TParent, TContext, TArgs>
+  | SubscriptionResolverObject<TResult, TParent, TContext, TArgs>
 
-    operatorId?: OperatorIdResolver<string, TypeParent, TContext>
+export type SubscriptionResolver<
+  TResult,
+  TKey extends string,
+  TParent = {},
+  TContext = {},
+  TArgs = {}
+> =
+  | ((...args: any[]) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
+  | SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>
 
-    operatorName?: OperatorNameResolver<Maybe<string>, TypeParent, TContext>
+export type TypeResolveFn<TTypes, TParent = {}, TContext = {}> = (
+  parent: TParent,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => Maybe<TTypes>
 
-    registryNr?: RegistryNrResolver<Maybe<string>, TypeParent, TContext>
+export type NextResolverFn<T> = () => Promise<T>
 
-    age?: AgeResolver<Maybe<number>, TypeParent, TContext>
+export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs = {}> = (
+  next: NextResolverFn<TResult>,
+  parent: TParent,
+  args: TArgs,
+  context: TContext,
+  info: GraphQLResolveInfo
+) => TResult | Promise<TResult>
 
-    type?: TypeResolver<Maybe<string>, TypeParent, TContext>
+/** Mapping between all available schema types and the resolvers types */
+export type ResolversTypes = {
+  Query: ResolverTypeWrapper<{}>
+  AlertSearchInput: AlertSearchInput
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']>
+  String: ResolverTypeWrapper<Scalars['String']>
+  Alert: ResolverTypeWrapper<Alert>
+  AlertCategory: AlertCategory
+  AlertDistribution: AlertDistribution
+  DateTime: ResolverTypeWrapper<Scalars['DateTime']>
+  AlertImpact: AlertImpact
+  AlertLevel: AlertLevel
+  CancellationSearchInput: CancellationSearchInput
+  Int: ResolverTypeWrapper<Scalars['Int']>
+  Date: ResolverTypeWrapper<Scalars['Date']>
+  Cancellation: ResolverTypeWrapper<Cancellation>
+  CancellationEffect: CancellationEffect
+  CancellationType: CancellationType
+  Direction: ResolverTypeWrapper<Scalars['Direction']>
+  Time: ResolverTypeWrapper<Scalars['Time']>
+  CancellationSubcategory: CancellationSubcategory
+  DepartureFilterInput: DepartureFilterInput
+  Departure: ResolverTypeWrapper<Departure>
+  JourneyStopEvent: ResolverTypeWrapper<JourneyStopEvent>
+  ID: ResolverTypeWrapper<Scalars['ID']>
+  Float: ResolverTypeWrapper<Scalars['Float']>
+  Stop: ResolverTypeWrapper<Stop>
+  Position: ResolverTypeWrapper<Position>
+  StopRoute: ResolverTypeWrapper<StopRoute>
+  DepartureJourney: ResolverTypeWrapper<DepartureJourney>
+  VehicleId: ResolverTypeWrapper<Scalars['VehicleId']>
+  ObservedArrival: ResolverTypeWrapper<ObservedArrival>
+  ObservedDeparture: ResolverTypeWrapper<ObservedDeparture>
+  PlannedDeparture: ResolverTypeWrapper<PlannedDeparture>
+  PlannedArrival: ResolverTypeWrapper<PlannedArrival>
+  EquipmentFilterInput: EquipmentFilterInput
+  Equipment: ResolverTypeWrapper<Equipment>
+  ExceptionDay: ResolverTypeWrapper<ExceptionDay>
+  Journey: ResolverTypeWrapper<
+    Omit<Journey, 'events'> & { events: Array<ResolversTypes['JourneyEventType']> }
+  >
+  JourneyEventType:
+    | ResolversTypes['JourneyCancellationEvent']
+    | ResolversTypes['JourneyEvent']
+    | ResolversTypes['JourneyStopEvent']
+    | ResolversTypes['PlannedStopEvent']
+  JourneyCancellationEvent: ResolverTypeWrapper<JourneyCancellationEvent>
+  JourneyEvent: ResolverTypeWrapper<JourneyEvent>
+  PlannedStopEvent: ResolverTypeWrapper<PlannedStopEvent>
+  VehiclePosition: ResolverTypeWrapper<VehiclePosition>
+  PreciseBBox: ResolverTypeWrapper<Scalars['PreciseBBox']>
+  AreaEventsFilterInput: AreaEventsFilterInput
+  Route: ResolverTypeWrapper<Route>
+  RouteGeometry: ResolverTypeWrapper<RouteGeometry>
+  RouteGeometryPoint: ResolverTypeWrapper<RouteGeometryPoint>
+  RouteSegment: ResolverTypeWrapper<RouteSegment>
+  RouteFilterInput: RouteFilterInput
+  StopFilterInput: StopFilterInput
+  UIMessage: ResolverTypeWrapper<UiMessage>
+  VehicleJourney: ResolverTypeWrapper<VehicleJourney>
+  CacheControlScope: CacheControlScope
+  BBox: ResolverTypeWrapper<Scalars['BBox']>
+  Upload: ResolverTypeWrapper<Scalars['Upload']>
+}
 
-    exteriorColor?: ExteriorColorResolver<Maybe<string>, TypeParent, TContext>
-
-    emissionDesc?: EmissionDescResolver<Maybe<string>, TypeParent, TContext>
-
-    emissionClass?: EmissionClassResolver<Maybe<string>, TypeParent, TContext>
-
-    inService?: InServiceResolver<Maybe<boolean>, TypeParent, TContext>
-
-    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
+/** Mapping between all available schema types and the resolvers parents */
+export type ResolversParentTypes = {
+  Query: {}
+  AlertSearchInput: AlertSearchInput
+  Boolean: Scalars['Boolean']
+  String: Scalars['String']
+  Alert: Alert
+  AlertCategory: AlertCategory
+  AlertDistribution: AlertDistribution
+  DateTime: Scalars['DateTime']
+  AlertImpact: AlertImpact
+  AlertLevel: AlertLevel
+  CancellationSearchInput: CancellationSearchInput
+  Int: Scalars['Int']
+  Date: Scalars['Date']
+  Cancellation: Cancellation
+  CancellationEffect: CancellationEffect
+  CancellationType: CancellationType
+  Direction: Scalars['Direction']
+  Time: Scalars['Time']
+  CancellationSubcategory: CancellationSubcategory
+  DepartureFilterInput: DepartureFilterInput
+  Departure: Departure
+  JourneyStopEvent: JourneyStopEvent
+  ID: Scalars['ID']
+  Float: Scalars['Float']
+  Stop: Stop
+  Position: Position
+  StopRoute: StopRoute
+  DepartureJourney: DepartureJourney
+  VehicleId: Scalars['VehicleId']
+  ObservedArrival: ObservedArrival
+  ObservedDeparture: ObservedDeparture
+  PlannedDeparture: PlannedDeparture
+  PlannedArrival: PlannedArrival
+  EquipmentFilterInput: EquipmentFilterInput
+  Equipment: Equipment
+  ExceptionDay: ExceptionDay
+  Journey: Omit<Journey, 'events'> & {
+    events: Array<ResolversParentTypes['JourneyEventType']>
   }
-
-  export type IdResolver<R = string, Parent = Equipment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type VehicleIdResolver<R = string, Parent = Equipment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type OperatorIdResolver<R = string, Parent = Equipment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type OperatorNameResolver<
-    R = Maybe<string>,
-    Parent = Equipment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RegistryNrResolver<
-    R = Maybe<string>,
-    Parent = Equipment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type AgeResolver<R = Maybe<number>, Parent = Equipment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type TypeResolver<R = Maybe<string>, Parent = Equipment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ExteriorColorResolver<
-    R = Maybe<string>,
-    Parent = Equipment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type EmissionDescResolver<
-    R = Maybe<string>,
-    Parent = Equipment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type EmissionClassResolver<
-    R = Maybe<string>,
-    Parent = Equipment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type InServiceResolver<
-    R = Maybe<boolean>,
-    Parent = Equipment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type _MatchScoreResolver<
-    R = Maybe<number>,
-    Parent = Equipment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
+  JourneyEventType:
+    | ResolversParentTypes['JourneyCancellationEvent']
+    | ResolversParentTypes['JourneyEvent']
+    | ResolversParentTypes['JourneyStopEvent']
+    | ResolversParentTypes['PlannedStopEvent']
+  JourneyCancellationEvent: JourneyCancellationEvent
+  JourneyEvent: JourneyEvent
+  PlannedStopEvent: PlannedStopEvent
+  VehiclePosition: VehiclePosition
+  PreciseBBox: Scalars['PreciseBBox']
+  AreaEventsFilterInput: AreaEventsFilterInput
+  Route: Route
+  RouteGeometry: RouteGeometry
+  RouteGeometryPoint: RouteGeometryPoint
+  RouteSegment: RouteSegment
+  RouteFilterInput: RouteFilterInput
+  StopFilterInput: StopFilterInput
+  UIMessage: UiMessage
+  VehicleJourney: VehicleJourney
+  CacheControlScope: CacheControlScope
+  BBox: Scalars['BBox']
+  Upload: Scalars['Upload']
 }
 
-export namespace StopResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = Stop> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    stopId?: StopIdResolver<string, TypeParent, TContext>
-
-    shortId?: ShortIdResolver<string, TypeParent, TContext>
-
-    lat?: LatResolver<number, TypeParent, TContext>
-
-    lng?: LngResolver<number, TypeParent, TContext>
-
-    name?: NameResolver<Maybe<string>, TypeParent, TContext>
-
-    radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
-
-    routes?: RoutesResolver<StopRoute[], TypeParent, TContext>
-
-    modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
-
-    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
-
-    stopIndex?: StopIndexResolver<Maybe<number>, TypeParent, TContext>
-
-    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopIdResolver<R = string, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ShortIdResolver<R = string, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LatResolver<R = number, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LngResolver<R = number, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type NameResolver<R = Maybe<string>, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RadiusResolver<R = Maybe<number>, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RoutesResolver<R = StopRoute[], Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ModesResolver<R = Array<Maybe<string>>, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type IsTimingStopResolver<R = boolean, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopIndexResolver<R = Maybe<number>, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type _MatchScoreResolver<R = Maybe<number>, Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type AlertsResolver<R = Alert[], Parent = Stop, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
+export type AlertResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Alert'] = ResolversParentTypes['Alert']
+> = {
+  affectedId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  category?: Resolver<ResolversTypes['AlertCategory'], ParentType, ContextType>
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  distribution?: Resolver<ResolversTypes['AlertDistribution'], ParentType, ContextType>
+  endDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  impact?: Resolver<ResolversTypes['AlertImpact'], ParentType, ContextType>
+  lastModifiedDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  level?: Resolver<ResolversTypes['AlertLevel'], ParentType, ContextType>
+  startDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
-export namespace StopRouteResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = StopRoute> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    originStopId?: OriginStopIdResolver<Maybe<string>, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<string, TypeParent, TContext>
-
-    direction?: DirectionResolver<Direction, TypeParent, TContext>
-
-    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
-
-    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = StopRoute, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type OriginStopIdResolver<
-    R = Maybe<string>,
-    Parent = StopRoute,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RouteIdResolver<R = string, Parent = StopRoute, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DirectionResolver<R = Direction, Parent = StopRoute, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type IsTimingStopResolver<R = boolean, Parent = StopRoute, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ModeResolver<R = Maybe<string>, Parent = StopRoute, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-}
-
-export namespace AlertResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = Alert> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    level?: LevelResolver<AlertLevel, TypeParent, TContext>
-
-    category?: CategoryResolver<AlertCategory, TypeParent, TContext>
-
-    distribution?: DistributionResolver<AlertDistribution, TypeParent, TContext>
-
-    impact?: ImpactResolver<AlertImpact, TypeParent, TContext>
-
-    affectedId?: AffectedIdResolver<string, TypeParent, TContext>
-
-    startDateTime?: StartDateTimeResolver<DateTime, TypeParent, TContext>
-
-    endDateTime?: EndDateTimeResolver<DateTime, TypeParent, TContext>
-
-    lastModifiedDateTime?: LastModifiedDateTimeResolver<DateTime, TypeParent, TContext>
-
-    title?: TitleResolver<string, TypeParent, TContext>
-
-    description?: DescriptionResolver<string, TypeParent, TContext>
-
-    url?: UrlResolver<Maybe<string>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LevelResolver<R = AlertLevel, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type CategoryResolver<R = AlertCategory, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DistributionResolver<
-    R = AlertDistribution,
-    Parent = Alert,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ImpactResolver<R = AlertImpact, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type AffectedIdResolver<R = string, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StartDateTimeResolver<R = DateTime, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type EndDateTimeResolver<R = DateTime, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LastModifiedDateTimeResolver<
-    R = DateTime,
-    Parent = Alert,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type TitleResolver<R = string, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DescriptionResolver<R = string, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type UrlResolver<R = Maybe<string>, Parent = Alert, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-}
-
-export namespace RouteResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = Route> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<string, TypeParent, TContext>
-
-    direction?: DirectionResolver<Direction, TypeParent, TContext>
-
-    destination?: DestinationResolver<Maybe<string>, TypeParent, TContext>
-
-    origin?: OriginResolver<Maybe<string>, TypeParent, TContext>
-
-    name?: NameResolver<Maybe<string>, TypeParent, TContext>
-
-    destinationStopId?: DestinationStopIdResolver<Maybe<string>, TypeParent, TContext>
-
-    originStopId?: OriginStopIdResolver<string, TypeParent, TContext>
-
-    routeLength?: RouteLengthResolver<Maybe<number>, TypeParent, TContext>
-
-    routeDurationMinutes?: RouteDurationMinutesResolver<Maybe<number>, TypeParent, TContext>
-
-    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-
-    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
-
-    _matchScore?: _MatchScoreResolver<Maybe<number>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RouteIdResolver<R = string, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DirectionResolver<R = Direction, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DestinationResolver<R = Maybe<string>, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type OriginResolver<R = Maybe<string>, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type NameResolver<R = Maybe<string>, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DestinationStopIdResolver<
-    R = Maybe<string>,
-    Parent = Route,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OriginStopIdResolver<R = string, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RouteLengthResolver<R = Maybe<number>, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RouteDurationMinutesResolver<
-    R = Maybe<number>,
-    Parent = Route,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ModeResolver<R = Maybe<string>, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type AlertsResolver<R = Alert[], Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type CancellationsResolver<
-    R = Cancellation[],
-    Parent = Route,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type _MatchScoreResolver<R = Maybe<number>, Parent = Route, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-}
-
-export namespace CancellationResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = Cancellation> {
-    id?: IdResolver<number, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<string, TypeParent, TContext>
-
-    direction?: DirectionResolver<Direction, TypeParent, TContext>
-
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
-
-    journeyStartTime?: JourneyStartTimeResolver<Time, TypeParent, TContext>
-
-    title?: TitleResolver<string, TypeParent, TContext>
-
-    description?: DescriptionResolver<string, TypeParent, TContext>
-
-    category?: CategoryResolver<AlertCategory, TypeParent, TContext>
-
-    subCategory?: SubCategoryResolver<CancellationSubcategory, TypeParent, TContext>
-
-    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
-
-    cancellationType?: CancellationTypeResolver<CancellationType, TypeParent, TContext>
-
-    cancellationEffect?: CancellationEffectResolver<CancellationEffect, TypeParent, TContext>
-
-    lastModifiedDateTime?: LastModifiedDateTimeResolver<DateTime, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = number, Parent = Cancellation, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RouteIdResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DirectionResolver<
-    R = Direction,
-    Parent = Cancellation,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureDateResolver<R = Date, Parent = Cancellation, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type JourneyStartTimeResolver<
-    R = Time,
-    Parent = Cancellation,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type TitleResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DescriptionResolver<R = string, Parent = Cancellation, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type CategoryResolver<
-    R = AlertCategory,
-    Parent = Cancellation,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type SubCategoryResolver<
-    R = CancellationSubcategory,
-    Parent = Cancellation,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsCancelledResolver<
-    R = boolean,
-    Parent = Cancellation,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type CancellationTypeResolver<
-    R = CancellationType,
-    Parent = Cancellation,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type CancellationEffectResolver<
-    R = CancellationEffect,
-    Parent = Cancellation,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type LastModifiedDateTimeResolver<
-    R = DateTime,
-    Parent = Cancellation,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace RouteGeometryResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = RouteGeometry> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
-
-    coordinates?: CoordinatesResolver<RouteGeometryPoint[], TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = RouteGeometry, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ModeResolver<
-    R = Maybe<string>,
-    Parent = RouteGeometry,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type CoordinatesResolver<
-    R = RouteGeometryPoint[],
-    Parent = RouteGeometry,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace RouteGeometryPointResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = RouteGeometryPoint> {
-    lat?: LatResolver<number, TypeParent, TContext>
-
-    lng?: LngResolver<number, TypeParent, TContext>
-  }
-
-  export type LatResolver<R = number, Parent = RouteGeometryPoint, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LngResolver<R = number, Parent = RouteGeometryPoint, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-}
-
-export namespace RouteSegmentResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = RouteSegment> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<string, TypeParent, TContext>
-
-    direction?: DirectionResolver<Direction, TypeParent, TContext>
-
-    originStopId?: OriginStopIdResolver<Maybe<string>, TypeParent, TContext>
-
-    destination?: DestinationResolver<string, TypeParent, TContext>
-
-    distanceFromPrevious?: DistanceFromPreviousResolver<Maybe<number>, TypeParent, TContext>
-
-    distanceFromStart?: DistanceFromStartResolver<Maybe<number>, TypeParent, TContext>
-
-    duration?: DurationResolver<Maybe<number>, TypeParent, TContext>
-
-    stopIndex?: StopIndexResolver<number, TypeParent, TContext>
-
-    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
-
-    stopId?: StopIdResolver<string, TypeParent, TContext>
-
-    shortId?: ShortIdResolver<string, TypeParent, TContext>
-
-    lat?: LatResolver<number, TypeParent, TContext>
-
-    lng?: LngResolver<number, TypeParent, TContext>
-
-    name?: NameResolver<Maybe<string>, TypeParent, TContext>
-
-    radius?: RadiusResolver<Maybe<number>, TypeParent, TContext>
-
-    modes?: ModesResolver<Array<Maybe<string>>, TypeParent, TContext>
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-
-    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RouteIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DirectionResolver<
-    R = Direction,
-    Parent = RouteSegment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OriginStopIdResolver<
-    R = Maybe<string>,
-    Parent = RouteSegment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DestinationResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DistanceFromPreviousResolver<
-    R = Maybe<number>,
-    Parent = RouteSegment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DistanceFromStartResolver<
-    R = Maybe<number>,
-    Parent = RouteSegment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DurationResolver<
-    R = Maybe<number>,
-    Parent = RouteSegment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type StopIndexResolver<R = number, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type IsTimingStopResolver<
-    R = boolean,
-    Parent = RouteSegment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type StopIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ShortIdResolver<R = string, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LatResolver<R = number, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LngResolver<R = number, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type NameResolver<R = Maybe<string>, Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RadiusResolver<
-    R = Maybe<number>,
-    Parent = RouteSegment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ModesResolver<
-    R = Array<Maybe<string>>,
-    Parent = RouteSegment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type AlertsResolver<R = Alert[], Parent = RouteSegment, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type CancellationsResolver<
-    R = Cancellation[],
-    Parent = RouteSegment,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace DepartureResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = Departure> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    stopId?: StopIdResolver<string, TypeParent, TContext>
-
-    dayType?: DayTypeResolver<string, TypeParent, TContext>
-
-    equipmentType?: EquipmentTypeResolver<Maybe<string>, TypeParent, TContext>
-
-    equipmentIsRequired?: EquipmentIsRequiredResolver<Maybe<boolean>, TypeParent, TContext>
-
-    equipmentColor?: EquipmentColorResolver<Maybe<string>, TypeParent, TContext>
-
-    operatorId?: OperatorIdResolver<Maybe<string>, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<string, TypeParent, TContext>
-
-    direction?: DirectionResolver<Direction, TypeParent, TContext>
-
-    terminalTime?: TerminalTimeResolver<Maybe<number>, TypeParent, TContext>
-
-    recoveryTime?: RecoveryTimeResolver<Maybe<number>, TypeParent, TContext>
-
-    departureId?: DepartureIdResolver<number, TypeParent, TContext>
-
-    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
-
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
-
-    extraDeparture?: ExtraDepartureResolver<string, TypeParent, TContext>
-
-    isNextDay?: IsNextDayResolver<boolean, TypeParent, TContext>
-
-    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
-
-    index?: IndexResolver<Maybe<number>, TypeParent, TContext>
-
-    mode?: ModeResolver<string, TypeParent, TContext>
-
-    stop?: StopResolver<Stop, TypeParent, TContext>
-
-    journey?: JourneyResolver<Maybe<DepartureJourney>, TypeParent, TContext>
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-
-    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
-
-    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
-
-    isOrigin?: IsOriginResolver<Maybe<boolean>, TypeParent, TContext>
-
-    departureEvent?: DepartureEventResolver<Maybe<JourneyStopEvent>, TypeParent, TContext>
-
-    originDepartureTime?: OriginDepartureTimeResolver<
-      Maybe<PlannedDeparture>,
-      TypeParent,
-      TContext
-    >
-
-    plannedArrivalTime?: PlannedArrivalTimeResolver<PlannedArrival, TypeParent, TContext>
-
-    observedArrivalTime?: ObservedArrivalTimeResolver<
-      Maybe<ObservedArrival>,
-      TypeParent,
-      TContext
-    >
-
-    plannedDepartureTime?: PlannedDepartureTimeResolver<PlannedDeparture, TypeParent, TContext>
-
-    observedDepartureTime?: ObservedDepartureTimeResolver<
-      Maybe<ObservedDeparture>,
-      TypeParent,
-      TContext
-    >
-  }
-
-  export type IdResolver<R = string, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopIdResolver<R = string, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DayTypeResolver<R = string, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type EquipmentTypeResolver<
-    R = Maybe<string>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type EquipmentIsRequiredResolver<
-    R = Maybe<boolean>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type EquipmentColorResolver<
-    R = Maybe<string>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OperatorIdResolver<
-    R = Maybe<string>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RouteIdResolver<R = string, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DirectionResolver<R = Direction, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type TerminalTimeResolver<
-    R = Maybe<number>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecoveryTimeResolver<
-    R = Maybe<number>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureIdResolver<R = number, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DepartureTimeResolver<R = Time, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DepartureDateResolver<R = Date, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ExtraDepartureResolver<R = string, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type IsNextDayResolver<R = boolean, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type IsTimingStopResolver<R = boolean, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type IndexResolver<R = Maybe<number>, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ModeResolver<R = string, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopResolver<R = Stop, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type JourneyResolver<
-    R = Maybe<DepartureJourney>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type AlertsResolver<R = Alert[], Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type CancellationsResolver<
-    R = Cancellation[],
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsCancelledResolver<R = boolean, Parent = Departure, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type IsOriginResolver<
-    R = Maybe<boolean>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureEventResolver<
-    R = Maybe<JourneyStopEvent>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OriginDepartureTimeResolver<
-    R = Maybe<PlannedDeparture>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedArrivalTimeResolver<
-    R = PlannedArrival,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ObservedArrivalTimeResolver<
-    R = Maybe<ObservedArrival>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedDepartureTimeResolver<
-    R = PlannedDeparture,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ObservedDepartureTimeResolver<
-    R = Maybe<ObservedDeparture>,
-    Parent = Departure,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace DepartureJourneyResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = DepartureJourney> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    journeyType?: JourneyTypeResolver<string, TypeParent, TContext>
-
-    type?: TypeResolver<string, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<Maybe<string>, TypeParent, TContext>
-
-    direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
-
-    originStopId?: OriginStopIdResolver<Maybe<string>, TypeParent, TContext>
-
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
-
-    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
-
-    uniqueVehicleId?: UniqueVehicleIdResolver<Maybe<VehicleId>, TypeParent, TContext>
-
-    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
-
-    events?: EventsResolver<Maybe<VehiclePosition[]>, TypeParent, TContext>
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-
-    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
-
-    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
-
-    _numInstance?: _NumInstanceResolver<Maybe<number>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = DepartureJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type JourneyTypeResolver<
-    R = string,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type TypeResolver<R = string, Parent = DepartureJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RouteIdResolver<
-    R = Maybe<string>,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DirectionResolver<
-    R = Maybe<Direction>,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OriginStopIdResolver<
-    R = Maybe<string>,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureDateResolver<
-    R = Date,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureTimeResolver<
-    R = Time,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type UniqueVehicleIdResolver<
-    R = Maybe<VehicleId>,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ModeResolver<
-    R = Maybe<string>,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type EventsResolver<
-    R = Maybe<VehiclePosition[]>,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type AlertsResolver<R = Alert[], Parent = DepartureJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type CancellationsResolver<
-    R = Cancellation[],
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsCancelledResolver<
-    R = boolean,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type _NumInstanceResolver<
-    R = Maybe<number>,
-    Parent = DepartureJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace VehiclePositionResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = VehiclePosition> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    journeyType?: JourneyTypeResolver<string, TypeParent, TContext>
-
-    recordedAt?: RecordedAtResolver<DateTime, TypeParent, TContext>
-
-    recordedAtUnix?: RecordedAtUnixResolver<number, TypeParent, TContext>
-
-    recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
-
-    stop?: StopResolver<Maybe<string>, TypeParent, TContext>
-
-    nextStopId?: NextStopIdResolver<Maybe<string>, TypeParent, TContext>
-
-    uniqueVehicleId?: UniqueVehicleIdResolver<Maybe<VehicleId>, TypeParent, TContext>
-
-    operatorId?: OperatorIdResolver<Maybe<string>, TypeParent, TContext>
-
-    vehicleId?: VehicleIdResolver<Maybe<string>, TypeParent, TContext>
-
-    lat?: LatResolver<Maybe<number>, TypeParent, TContext>
-
-    lng?: LngResolver<Maybe<number>, TypeParent, TContext>
-
-    velocity?: VelocityResolver<Maybe<number>, TypeParent, TContext>
-
-    doorStatus?: DoorStatusResolver<Maybe<boolean>, TypeParent, TContext>
-
-    delay?: DelayResolver<Maybe<number>, TypeParent, TContext>
-
-    heading?: HeadingResolver<Maybe<number>, TypeParent, TContext>
-
-    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = VehiclePosition, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type JourneyTypeResolver<
-    R = string,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedAtResolver<
-    R = DateTime,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedAtUnixResolver<
-    R = number,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedTimeResolver<
-    R = Time,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type StopResolver<
-    R = Maybe<string>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type NextStopIdResolver<
-    R = Maybe<string>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type UniqueVehicleIdResolver<
-    R = Maybe<VehicleId>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OperatorIdResolver<
-    R = Maybe<string>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type VehicleIdResolver<
-    R = Maybe<string>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type LatResolver<
-    R = Maybe<number>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type LngResolver<
-    R = Maybe<number>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type VelocityResolver<
-    R = Maybe<number>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DoorStatusResolver<
-    R = Maybe<boolean>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DelayResolver<
-    R = Maybe<number>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type HeadingResolver<
-    R = Maybe<number>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ModeResolver<
-    R = Maybe<string>,
-    Parent = VehiclePosition,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace JourneyStopEventResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = JourneyStopEvent> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    type?: TypeResolver<string, TypeParent, TContext>
-
-    recordedAt?: RecordedAtResolver<DateTime, TypeParent, TContext>
-
-    recordedAtUnix?: RecordedAtUnixResolver<number, TypeParent, TContext>
-
-    recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
-
-    nextStopId?: NextStopIdResolver<string, TypeParent, TContext>
-
-    stopId?: StopIdResolver<Maybe<string>, TypeParent, TContext>
-
-    doorsOpened?: DoorsOpenedResolver<Maybe<boolean>, TypeParent, TContext>
-
-    stopped?: StoppedResolver<Maybe<boolean>, TypeParent, TContext>
-
-    plannedDate?: PlannedDateResolver<Maybe<Date>, TypeParent, TContext>
-
-    plannedTime?: PlannedTimeResolver<Maybe<Time>, TypeParent, TContext>
-
-    plannedDateTime?: PlannedDateTimeResolver<Maybe<DateTime>, TypeParent, TContext>
-
-    plannedUnix?: PlannedUnixResolver<Maybe<number>, TypeParent, TContext>
-
-    plannedTimeDifference?: PlannedTimeDifferenceResolver<Maybe<number>, TypeParent, TContext>
-
-    isNextDay?: IsNextDayResolver<Maybe<boolean>, TypeParent, TContext>
-
-    departureId?: DepartureIdResolver<Maybe<number>, TypeParent, TContext>
-
-    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
-
-    isOrigin?: IsOriginResolver<Maybe<boolean>, TypeParent, TContext>
-
-    index?: IndexResolver<Maybe<number>, TypeParent, TContext>
-
-    stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
-
-    lat?: LatResolver<Maybe<number>, TypeParent, TContext>
-
-    lng?: LngResolver<Maybe<number>, TypeParent, TContext>
-
-    unplannedStop?: UnplannedStopResolver<boolean, TypeParent, TContext>
-
-    _isVirtual?: _IsVirtualResolver<Maybe<boolean>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = JourneyStopEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type TypeResolver<R = string, Parent = JourneyStopEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RecordedAtResolver<
-    R = DateTime,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedAtUnixResolver<
-    R = number,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedTimeResolver<
-    R = Time,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type NextStopIdResolver<
-    R = string,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type StopIdResolver<
-    R = Maybe<string>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DoorsOpenedResolver<
-    R = Maybe<boolean>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type StoppedResolver<
-    R = Maybe<boolean>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedDateResolver<
-    R = Maybe<Date>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedTimeResolver<
-    R = Maybe<Time>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedDateTimeResolver<
-    R = Maybe<DateTime>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedUnixResolver<
-    R = Maybe<number>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedTimeDifferenceResolver<
-    R = Maybe<number>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsNextDayResolver<
-    R = Maybe<boolean>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureIdResolver<
-    R = Maybe<number>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsTimingStopResolver<
-    R = boolean,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsOriginResolver<
-    R = Maybe<boolean>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IndexResolver<
-    R = Maybe<number>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type StopResolver<
-    R = Maybe<Stop>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type LatResolver<
-    R = Maybe<number>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type LngResolver<
-    R = Maybe<number>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type UnplannedStopResolver<
-    R = boolean,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type _IsVirtualResolver<
-    R = Maybe<boolean>,
-    Parent = JourneyStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace PlannedDepartureResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = PlannedDeparture> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
-
-    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
-
-    departureDateTime?: DepartureDateTimeResolver<DateTime, TypeParent, TContext>
-
-    isNextDay?: IsNextDayResolver<Maybe<boolean>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = PlannedDeparture, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DepartureDateResolver<
-    R = Date,
-    Parent = PlannedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureTimeResolver<
-    R = Time,
-    Parent = PlannedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureDateTimeResolver<
-    R = DateTime,
-    Parent = PlannedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsNextDayResolver<
-    R = Maybe<boolean>,
-    Parent = PlannedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace PlannedArrivalResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = PlannedArrival> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    arrivalDate?: ArrivalDateResolver<Date, TypeParent, TContext>
-
-    arrivalTime?: ArrivalTimeResolver<Time, TypeParent, TContext>
-
-    arrivalDateTime?: ArrivalDateTimeResolver<DateTime, TypeParent, TContext>
-
-    isNextDay?: IsNextDayResolver<Maybe<boolean>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = PlannedArrival, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ArrivalDateResolver<R = Date, Parent = PlannedArrival, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ArrivalTimeResolver<R = Time, Parent = PlannedArrival, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ArrivalDateTimeResolver<
-    R = DateTime,
-    Parent = PlannedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsNextDayResolver<
-    R = Maybe<boolean>,
-    Parent = PlannedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace ObservedArrivalResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = ObservedArrival> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    arrivalDate?: ArrivalDateResolver<Date, TypeParent, TContext>
-
-    arrivalTime?: ArrivalTimeResolver<Time, TypeParent, TContext>
-
-    arrivalDateTime?: ArrivalDateTimeResolver<DateTime, TypeParent, TContext>
-
-    arrivalTimeDifference?: ArrivalTimeDifferenceResolver<number, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = ObservedArrival, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ArrivalDateResolver<
-    R = Date,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ArrivalTimeResolver<
-    R = Time,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ArrivalDateTimeResolver<
-    R = DateTime,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ArrivalTimeDifferenceResolver<
-    R = number,
-    Parent = ObservedArrival,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace ObservedDepartureResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = ObservedDeparture> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
-
-    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
-
-    departureDateTime?: DepartureDateTimeResolver<DateTime, TypeParent, TContext>
-
-    departureTimeDifference?: DepartureTimeDifferenceResolver<number, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = ObservedDeparture, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DepartureDateResolver<
-    R = Date,
-    Parent = ObservedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureTimeResolver<
-    R = Time,
-    Parent = ObservedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureDateTimeResolver<
-    R = DateTime,
-    Parent = ObservedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureTimeDifferenceResolver<
-    R = number,
-    Parent = ObservedDeparture,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace ExceptionDayResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = ExceptionDay> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    exceptionDate?: ExceptionDateResolver<Date, TypeParent, TContext>
-
-    effectiveDayTypes?: EffectiveDayTypesResolver<string[], TypeParent, TContext>
-
-    scopedDayType?: ScopedDayTypeResolver<string, TypeParent, TContext>
-
-    dayType?: DayTypeResolver<string, TypeParent, TContext>
-
-    modeScope?: ModeScopeResolver<string, TypeParent, TContext>
-
-    scope?: ScopeResolver<string, TypeParent, TContext>
-
-    description?: DescriptionResolver<Maybe<string>, TypeParent, TContext>
-
-    exclusive?: ExclusiveResolver<boolean, TypeParent, TContext>
-
-    startTime?: StartTimeResolver<Maybe<Time>, TypeParent, TContext>
-
-    endTime?: EndTimeResolver<Maybe<Time>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ExceptionDateResolver<R = Date, Parent = ExceptionDay, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type EffectiveDayTypesResolver<
-    R = string[],
-    Parent = ExceptionDay,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ScopedDayTypeResolver<
-    R = string,
-    Parent = ExceptionDay,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DayTypeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ModeScopeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ScopeResolver<R = string, Parent = ExceptionDay, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DescriptionResolver<
-    R = Maybe<string>,
-    Parent = ExceptionDay,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ExclusiveResolver<R = boolean, Parent = ExceptionDay, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StartTimeResolver<
-    R = Maybe<Time>,
-    Parent = ExceptionDay,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type EndTimeResolver<
-    R = Maybe<Time>,
-    Parent = ExceptionDay,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace JourneyResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = Journey> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    journeyType?: JourneyTypeResolver<string, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<Maybe<string>, TypeParent, TContext>
-
-    direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
-
-    originStopId?: OriginStopIdResolver<Maybe<string>, TypeParent, TContext>
-
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
-
-    departureTime?: DepartureTimeResolver<Maybe<Time>, TypeParent, TContext>
-
-    uniqueVehicleId?: UniqueVehicleIdResolver<Maybe<VehicleId>, TypeParent, TContext>
-
-    operatorId?: OperatorIdResolver<Maybe<string>, TypeParent, TContext>
-
-    vehicleId?: VehicleIdResolver<Maybe<string>, TypeParent, TContext>
-
-    headsign?: HeadsignResolver<Maybe<string>, TypeParent, TContext>
-
-    name?: NameResolver<Maybe<string>, TypeParent, TContext>
-
-    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
-
-    journeyLength?: JourneyLengthResolver<Maybe<number>, TypeParent, TContext>
-
-    journeyDurationMinutes?: JourneyDurationMinutesResolver<
-      Maybe<number>,
-      TypeParent,
-      TContext
-    >
-
-    equipment?: EquipmentResolver<Maybe<Equipment>, TypeParent, TContext>
-
-    vehiclePositions?: VehiclePositionsResolver<VehiclePosition[], TypeParent, TContext>
-
-    events?: EventsResolver<JourneyEventType[], TypeParent, TContext>
-
-    departure?: DepartureResolver<Maybe<Departure>, TypeParent, TContext>
-
-    routeDepartures?: RouteDeparturesResolver<Maybe<Departure[]>, TypeParent, TContext>
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-
-    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
-
-    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type JourneyTypeResolver<R = string, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RouteIdResolver<R = Maybe<string>, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DirectionResolver<
-    R = Maybe<Direction>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OriginStopIdResolver<
-    R = Maybe<string>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureDateResolver<R = Date, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type DepartureTimeResolver<
-    R = Maybe<Time>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type UniqueVehicleIdResolver<
-    R = Maybe<VehicleId>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OperatorIdResolver<
-    R = Maybe<string>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type VehicleIdResolver<R = Maybe<string>, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type HeadsignResolver<R = Maybe<string>, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type NameResolver<R = Maybe<string>, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type ModeResolver<R = Maybe<string>, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type JourneyLengthResolver<
-    R = Maybe<number>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type JourneyDurationMinutesResolver<
-    R = Maybe<number>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type EquipmentResolver<
-    R = Maybe<Equipment>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type VehiclePositionsResolver<
-    R = VehiclePosition[],
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type EventsResolver<
-    R = JourneyEventType[],
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureResolver<
-    R = Maybe<Departure>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RouteDeparturesResolver<
-    R = Maybe<Departure[]>,
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type AlertsResolver<R = Alert[], Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type CancellationsResolver<
-    R = Cancellation[],
-    Parent = Journey,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsCancelledResolver<R = boolean, Parent = Journey, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-}
-
-export namespace JourneyEventResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = JourneyEvent> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    type?: TypeResolver<string, TypeParent, TContext>
-
-    recordedAt?: RecordedAtResolver<DateTime, TypeParent, TContext>
-
-    recordedAtUnix?: RecordedAtUnixResolver<number, TypeParent, TContext>
-
-    recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
-
-    stopId?: StopIdResolver<Maybe<string>, TypeParent, TContext>
-
-    lat?: LatResolver<Maybe<number>, TypeParent, TContext>
-
-    lng?: LngResolver<Maybe<number>, TypeParent, TContext>
-
-    _isVirtual?: _IsVirtualResolver<Maybe<boolean>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = JourneyEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type TypeResolver<R = string, Parent = JourneyEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type RecordedAtResolver<
-    R = DateTime,
-    Parent = JourneyEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedAtUnixResolver<
-    R = number,
-    Parent = JourneyEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedTimeResolver<R = Time, Parent = JourneyEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopIdResolver<
-    R = Maybe<string>,
-    Parent = JourneyEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type LatResolver<R = Maybe<number>, Parent = JourneyEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type LngResolver<R = Maybe<number>, Parent = JourneyEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type _IsVirtualResolver<
-    R = Maybe<boolean>,
-    Parent = JourneyEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace JourneyCancellationEventResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = JourneyCancellationEvent> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    type?: TypeResolver<string, TypeParent, TContext>
-
-    recordedAt?: RecordedAtResolver<DateTime, TypeParent, TContext>
-
-    recordedAtUnix?: RecordedAtUnixResolver<number, TypeParent, TContext>
-
-    recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
-
-    plannedDate?: PlannedDateResolver<Maybe<Date>, TypeParent, TContext>
-
-    plannedTime?: PlannedTimeResolver<Maybe<Time>, TypeParent, TContext>
-
-    title?: TitleResolver<string, TypeParent, TContext>
-
-    description?: DescriptionResolver<string, TypeParent, TContext>
-
-    category?: CategoryResolver<AlertCategory, TypeParent, TContext>
-
-    subCategory?: SubCategoryResolver<CancellationSubcategory, TypeParent, TContext>
-
-    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
-
-    cancellationType?: CancellationTypeResolver<CancellationType, TypeParent, TContext>
-
-    cancellationEffect?: CancellationEffectResolver<CancellationEffect, TypeParent, TContext>
-  }
-
-  export type IdResolver<
-    R = string,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type TypeResolver<
-    R = string,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedAtResolver<
-    R = DateTime,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedAtUnixResolver<
-    R = number,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedTimeResolver<
-    R = Time,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedDateResolver<
-    R = Maybe<Date>,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedTimeResolver<
-    R = Maybe<Time>,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type TitleResolver<
-    R = string,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DescriptionResolver<
-    R = string,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type CategoryResolver<
-    R = AlertCategory,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type SubCategoryResolver<
-    R = CancellationSubcategory,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsCancelledResolver<
-    R = boolean,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type CancellationTypeResolver<
-    R = CancellationType,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type CancellationEffectResolver<
-    R = CancellationEffect,
-    Parent = JourneyCancellationEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace PlannedStopEventResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = PlannedStopEvent> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    type?: TypeResolver<string, TypeParent, TContext>
-
-    stopId?: StopIdResolver<Maybe<string>, TypeParent, TContext>
-
-    plannedDate?: PlannedDateResolver<Maybe<Date>, TypeParent, TContext>
-
-    plannedTime?: PlannedTimeResolver<Maybe<Time>, TypeParent, TContext>
-
-    plannedDateTime?: PlannedDateTimeResolver<Maybe<DateTime>, TypeParent, TContext>
-
-    plannedUnix?: PlannedUnixResolver<Maybe<number>, TypeParent, TContext>
-
-    isNextDay?: IsNextDayResolver<Maybe<boolean>, TypeParent, TContext>
-
-    departureId?: DepartureIdResolver<Maybe<number>, TypeParent, TContext>
-
-    isTimingStop?: IsTimingStopResolver<boolean, TypeParent, TContext>
-
-    isOrigin?: IsOriginResolver<Maybe<boolean>, TypeParent, TContext>
-
-    index?: IndexResolver<Maybe<number>, TypeParent, TContext>
-
-    stop?: StopResolver<Maybe<Stop>, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = PlannedStopEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type TypeResolver<R = string, Parent = PlannedStopEvent, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type StopIdResolver<
-    R = Maybe<string>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedDateResolver<
-    R = Maybe<Date>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedTimeResolver<
-    R = Maybe<Time>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedDateTimeResolver<
-    R = Maybe<DateTime>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type PlannedUnixResolver<
-    R = Maybe<number>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsNextDayResolver<
-    R = Maybe<boolean>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureIdResolver<
-    R = Maybe<number>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsTimingStopResolver<
-    R = boolean,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsOriginResolver<
-    R = Maybe<boolean>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IndexResolver<
-    R = Maybe<number>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type StopResolver<
-    R = Maybe<Stop>,
-    Parent = PlannedStopEvent,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace VehicleJourneyResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = VehicleJourney> {
-    id?: IdResolver<string, TypeParent, TContext>
-
-    journeyType?: JourneyTypeResolver<string, TypeParent, TContext>
-
-    routeId?: RouteIdResolver<Maybe<string>, TypeParent, TContext>
-
-    direction?: DirectionResolver<Maybe<Direction>, TypeParent, TContext>
-
-    departureDate?: DepartureDateResolver<Date, TypeParent, TContext>
-
-    departureTime?: DepartureTimeResolver<Time, TypeParent, TContext>
-
-    uniqueVehicleId?: UniqueVehicleIdResolver<Maybe<VehicleId>, TypeParent, TContext>
-
-    operatorId?: OperatorIdResolver<Maybe<string>, TypeParent, TContext>
-
-    vehicleId?: VehicleIdResolver<Maybe<string>, TypeParent, TContext>
-
-    headsign?: HeadsignResolver<Maybe<string>, TypeParent, TContext>
-
-    mode?: ModeResolver<Maybe<string>, TypeParent, TContext>
-
-    recordedAt?: RecordedAtResolver<DateTime, TypeParent, TContext>
-
-    recordedAtUnix?: RecordedAtUnixResolver<number, TypeParent, TContext>
-
-    recordedTime?: RecordedTimeResolver<Time, TypeParent, TContext>
-
-    timeDifference?: TimeDifferenceResolver<number, TypeParent, TContext>
-
-    alerts?: AlertsResolver<Alert[], TypeParent, TContext>
-
-    cancellations?: CancellationsResolver<Cancellation[], TypeParent, TContext>
-
-    isCancelled?: IsCancelledResolver<boolean, TypeParent, TContext>
-  }
-
-  export type IdResolver<R = string, Parent = VehicleJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type JourneyTypeResolver<
-    R = string,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RouteIdResolver<
-    R = Maybe<string>,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DirectionResolver<
-    R = Maybe<Direction>,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureDateResolver<
-    R = Date,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type DepartureTimeResolver<
-    R = Time,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type UniqueVehicleIdResolver<
-    R = Maybe<VehicleId>,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type OperatorIdResolver<
-    R = Maybe<string>,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type VehicleIdResolver<
-    R = Maybe<string>,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type HeadsignResolver<
-    R = Maybe<string>,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type ModeResolver<
-    R = Maybe<string>,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedAtResolver<
-    R = DateTime,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedAtUnixResolver<
-    R = number,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type RecordedTimeResolver<
-    R = Time,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type TimeDifferenceResolver<
-    R = number,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type AlertsResolver<R = Alert[], Parent = VehicleJourney, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type CancellationsResolver<
-    R = Cancellation[],
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-  export type IsCancelledResolver<
-    R = boolean,
-    Parent = VehicleJourney,
-    TContext = {}
-  > = Resolver<R, Parent, TContext>
-}
-
-export namespace UiMessageResolvers {
-  export interface Resolvers<TContext = {}, TypeParent = UiMessage> {
-    date?: DateResolver<Maybe<string>, TypeParent, TContext>
-
-    message?: MessageResolver<Maybe<string>, TypeParent, TContext>
-  }
-
-  export type DateResolver<R = Maybe<string>, Parent = UiMessage, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-  export type MessageResolver<R = Maybe<string>, Parent = UiMessage, TContext = {}> = Resolver<
-    R,
-    Parent,
-    TContext
-  >
-}
-
-/** Any object that describes something with a position implements this interface. */
-export namespace PositionResolvers {
-  export interface Resolvers {
-    __resolveType: ResolveType
-  }
-  export type ResolveType<
-    R = 'Stop' | 'RouteGeometryPoint' | 'RouteSegment' | 'VehiclePosition',
-    Parent = Stop | RouteGeometryPoint | RouteSegment | VehiclePosition,
-    TContext = {}
-  > = TypeResolveFn<R, Parent, TContext>
-}
-
-export namespace JourneyEventTypeResolvers {
-  export interface Resolvers {
-    __resolveType: ResolveType
-  }
-  export type ResolveType<
-    R = 'JourneyEvent' | 'JourneyStopEvent' | 'JourneyCancellationEvent' | 'PlannedStopEvent',
-    Parent = JourneyEvent | JourneyStopEvent | JourneyCancellationEvent | PlannedStopEvent,
-    TContext = {}
-  > = TypeResolveFn<R, Parent, TContext>
-}
-
-export type CacheControlDirectiveResolver<Result> = DirectiveResolverFn<
-  Result,
-  CacheControlDirectiveArgs,
-  {}
->
-export interface CacheControlDirectiveArgs {
-  maxAge?: Maybe<number>
-
-  scope?: Maybe<CacheControlScope>
-}
-
-/** Directs the executor to skip this field or fragment when the `if` argument is true. */
-export type SkipDirectiveResolver<Result> = DirectiveResolverFn<Result, SkipDirectiveArgs, {}>
-export interface SkipDirectiveArgs {
-  /** Skipped when true. */
-  if: boolean
-}
-
-/** Directs the executor to include this field or fragment only when the `if` argument is true. */
-export type IncludeDirectiveResolver<Result> = DirectiveResolverFn<
-  Result,
-  IncludeDirectiveArgs,
-  {}
->
-export interface IncludeDirectiveArgs {
-  /** Included when true. */
-  if: boolean
-}
-
-/** Marks an element of a GraphQL schema as no longer supported. */
-export type DeprecatedDirectiveResolver<Result> = DirectiveResolverFn<
-  Result,
-  DeprecatedDirectiveArgs,
-  {}
->
-export interface DeprecatedDirectiveArgs {
-  /** Explains why this element was deprecated, usually also including a suggestion for how to access supported similar data. Formatted using the Markdown syntax (as specified by [CommonMark](https://commonmark.org/). */
-  reason?: string
-}
-
-export interface DateScalarConfig extends GraphQLScalarTypeConfig<Date, any> {
-  name: 'Date'
-}
-export interface DirectionScalarConfig extends GraphQLScalarTypeConfig<Direction, any> {
-  name: 'Direction'
-}
-export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<DateTime, any> {
-  name: 'DateTime'
-}
-export interface TimeScalarConfig extends GraphQLScalarTypeConfig<Time, any> {
-  name: 'Time'
-}
-export interface VehicleIdScalarConfig extends GraphQLScalarTypeConfig<VehicleId, any> {
-  name: 'VehicleId'
-}
-export interface PreciseBBoxScalarConfig extends GraphQLScalarTypeConfig<PreciseBBox, any> {
-  name: 'PreciseBBox'
-}
-export interface BBoxScalarConfig extends GraphQLScalarTypeConfig<BBox, any> {
+export interface BBoxScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['BBox'], any> {
   name: 'BBox'
 }
-export interface UploadScalarConfig extends GraphQLScalarTypeConfig<Upload, any> {
+
+export type CancellationResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Cancellation'] = ResolversParentTypes['Cancellation']
+> = {
+  cancellationEffect?: Resolver<ResolversTypes['CancellationEffect'], ParentType, ContextType>
+  cancellationType?: Resolver<ResolversTypes['CancellationType'], ParentType, ContextType>
+  category?: Resolver<ResolversTypes['AlertCategory'], ParentType, ContextType>
+  departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  journeyStartTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  lastModifiedDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  subCategory?: Resolver<ResolversTypes['CancellationSubcategory'], ParentType, ContextType>
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+}
+
+export interface DateScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
+  name: 'Date'
+}
+
+export interface DateTimeScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
+  name: 'DateTime'
+}
+
+export type DepartureResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Departure'] = ResolversParentTypes['Departure']
+> = {
+  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
+  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  dayType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  departureEvent?: Resolver<Maybe<ResolversTypes['JourneyStopEvent']>, ParentType, ContextType>
+  departureId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  departureTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
+  equipmentColor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  equipmentIsRequired?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  equipmentType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  extraDeparture?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  index?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  isNextDay?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  isOrigin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  journey?: Resolver<Maybe<ResolversTypes['DepartureJourney']>, ParentType, ContextType>
+  mode?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  observedArrivalTime?: Resolver<
+    Maybe<ResolversTypes['ObservedArrival']>,
+    ParentType,
+    ContextType
+  >
+  observedDepartureTime?: Resolver<
+    Maybe<ResolversTypes['ObservedDeparture']>,
+    ParentType,
+    ContextType
+  >
+  operatorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  originDepartureTime?: Resolver<
+    Maybe<ResolversTypes['PlannedDeparture']>,
+    ParentType,
+    ContextType
+  >
+  plannedArrivalTime?: Resolver<ResolversTypes['PlannedArrival'], ParentType, ContextType>
+  plannedDepartureTime?: Resolver<ResolversTypes['PlannedDeparture'], ParentType, ContextType>
+  recoveryTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  stop?: Resolver<ResolversTypes['Stop'], ParentType, ContextType>
+  stopId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  terminalTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+}
+
+export type DepartureJourneyResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['DepartureJourney'] = ResolversParentTypes['DepartureJourney']
+> = {
+  _numInstance?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
+  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  departureTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  direction?: Resolver<Maybe<ResolversTypes['Direction']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  journeyType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  originStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  routeId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  uniqueVehicleId?: Resolver<Maybe<ResolversTypes['VehicleId']>, ParentType, ContextType>
+}
+
+export interface DirectionScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['Direction'], any> {
+  name: 'Direction'
+}
+
+export type EquipmentResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Equipment'] = ResolversParentTypes['Equipment']
+> = {
+  _matchScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  age?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  emissionClass?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  emissionDesc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  exteriorColor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  inService?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  operatorId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  operatorName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  registryNr?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  type?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  vehicleId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+}
+
+export type ExceptionDayResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['ExceptionDay'] = ResolversParentTypes['ExceptionDay']
+> = {
+  dayType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  effectiveDayTypes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>
+  endTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
+  exceptionDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  exclusive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  modeScope?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  scope?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  scopedDayType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  startTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
+}
+
+export type JourneyResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Journey'] = ResolversParentTypes['Journey']
+> = {
+  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
+  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  departure?: Resolver<Maybe<ResolversTypes['Departure']>, ParentType, ContextType>
+  departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  departureTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
+  direction?: Resolver<Maybe<ResolversTypes['Direction']>, ParentType, ContextType>
+  equipment?: Resolver<Maybe<ResolversTypes['Equipment']>, ParentType, ContextType>
+  events?: Resolver<Array<ResolversTypes['JourneyEventType']>, ParentType, ContextType>
+  headsign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  journeyDurationMinutes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  journeyLength?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  journeyType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  operatorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  originStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  routeDepartures?: Resolver<
+    Maybe<Array<ResolversTypes['Departure']>>,
+    ParentType,
+    ContextType
+  >
+  routeId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  uniqueVehicleId?: Resolver<Maybe<ResolversTypes['VehicleId']>, ParentType, ContextType>
+  vehicleId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  vehiclePositions?: Resolver<
+    Array<ResolversTypes['VehiclePosition']>,
+    ParentType,
+    ContextType
+  >
+}
+
+export type JourneyCancellationEventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['JourneyCancellationEvent'] = ResolversParentTypes['JourneyCancellationEvent']
+> = {
+  cancellationEffect?: Resolver<ResolversTypes['CancellationEffect'], ParentType, ContextType>
+  cancellationType?: Resolver<ResolversTypes['CancellationType'], ParentType, ContextType>
+  category?: Resolver<ResolversTypes['AlertCategory'], ParentType, ContextType>
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  plannedDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>
+  plannedTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
+  recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  subCategory?: Resolver<ResolversTypes['CancellationSubcategory'], ParentType, ContextType>
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+}
+
+export type JourneyEventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['JourneyEvent'] = ResolversParentTypes['JourneyEvent']
+> = {
+  _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  stopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+}
+
+export type JourneyEventTypeResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['JourneyEventType'] = ResolversParentTypes['JourneyEventType']
+> = {
+  __resolveType: TypeResolveFn<
+    'JourneyCancellationEvent' | 'JourneyEvent' | 'JourneyStopEvent' | 'PlannedStopEvent',
+    ParentType,
+    ContextType
+  >
+}
+
+export type JourneyStopEventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['JourneyStopEvent'] = ResolversParentTypes['JourneyStopEvent']
+> = {
+  _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  departureId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  doorsOpened?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  index?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  isNextDay?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  isOrigin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  nextStopId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  plannedDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>
+  plannedDateTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>
+  plannedTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
+  plannedTimeDifference?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  plannedUnix?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  stop?: Resolver<Maybe<ResolversTypes['Stop']>, ParentType, ContextType>
+  stopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  stopped?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  unplannedStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+}
+
+export type ObservedArrivalResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['ObservedArrival'] = ResolversParentTypes['ObservedArrival']
+> = {
+  arrivalDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  arrivalDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  arrivalTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  arrivalTimeDifference?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+}
+
+export type ObservedDepartureResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['ObservedDeparture'] = ResolversParentTypes['ObservedDeparture']
+> = {
+  departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  departureDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  departureTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  departureTimeDifference?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+}
+
+export type PlannedArrivalResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['PlannedArrival'] = ResolversParentTypes['PlannedArrival']
+> = {
+  arrivalDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  arrivalDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  arrivalTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  isNextDay?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+}
+
+export type PlannedDepartureResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['PlannedDeparture'] = ResolversParentTypes['PlannedDeparture']
+> = {
+  departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  departureDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  departureTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  isNextDay?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+}
+
+export type PlannedStopEventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['PlannedStopEvent'] = ResolversParentTypes['PlannedStopEvent']
+> = {
+  departureId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  index?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  isNextDay?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  isOrigin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  plannedDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>
+  plannedDateTime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>
+  plannedTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
+  plannedUnix?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  stop?: Resolver<Maybe<ResolversTypes['Stop']>, ParentType, ContextType>
+  stopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+}
+
+export type PositionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Position'] = ResolversParentTypes['Position']
+> = {
+  __resolveType: TypeResolveFn<
+    'Stop' | 'VehiclePosition' | 'RouteGeometryPoint' | 'RouteSegment',
+    ParentType,
+    ContextType
+  >
+  lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+}
+
+export interface PreciseBBoxScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['PreciseBBox'], any> {
+  name: 'PreciseBBox'
+}
+
+export type QueryResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']
+> = {
+  alerts?: Resolver<
+    Array<ResolversTypes['Alert']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryAlertsArgs, 'language'>
+  >
+  cancellations?: Resolver<
+    Array<ResolversTypes['Cancellation']>,
+    ParentType,
+    ContextType,
+    QueryCancellationsArgs
+  >
+  departures?: Resolver<
+    Array<Maybe<ResolversTypes['Departure']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryDeparturesArgs, 'date' | 'stopId'>
+  >
+  equipment?: Resolver<
+    Array<Maybe<ResolversTypes['Equipment']>>,
+    ParentType,
+    ContextType,
+    QueryEquipmentArgs
+  >
+  exceptionDays?: Resolver<
+    Array<Maybe<ResolversTypes['ExceptionDay']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryExceptionDaysArgs, 'year'>
+  >
+  journey?: Resolver<
+    Maybe<ResolversTypes['Journey']>,
+    ParentType,
+    ContextType,
+    RequireFields<
+      QueryJourneyArgs,
+      'departureDate' | 'departureTime' | 'direction' | 'routeId'
+    >
+  >
+  journeys?: Resolver<
+    Array<Maybe<ResolversTypes['Journey']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryJourneysArgs, 'departureDate' | 'direction' | 'routeId'>
+  >
+  journeysByBbox?: Resolver<
+    Array<Maybe<ResolversTypes['Journey']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryJourneysByBboxArgs, 'bbox' | 'date' | 'maxTime' | 'minTime'>
+  >
+  route?: Resolver<
+    Maybe<ResolversTypes['Route']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryRouteArgs, 'date' | 'direction' | 'routeId'>
+  >
+  routeDepartures?: Resolver<
+    Array<Maybe<ResolversTypes['Departure']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryRouteDeparturesArgs, 'date' | 'direction' | 'routeId' | 'stopId'>
+  >
+  routeGeometry?: Resolver<
+    Maybe<ResolversTypes['RouteGeometry']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryRouteGeometryArgs, 'date' | 'direction' | 'routeId'>
+  >
+  routeSegments?: Resolver<
+    Array<Maybe<ResolversTypes['RouteSegment']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryRouteSegmentsArgs, 'date' | 'direction' | 'routeId'>
+  >
+  routes?: Resolver<
+    Array<Maybe<ResolversTypes['Route']>>,
+    ParentType,
+    ContextType,
+    QueryRoutesArgs
+  >
+  stop?: Resolver<
+    Maybe<ResolversTypes['Stop']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryStopArgs, 'date' | 'stopId'>
+  >
+  stops?: Resolver<
+    Array<Maybe<ResolversTypes['Stop']>>,
+    ParentType,
+    ContextType,
+    QueryStopsArgs
+  >
+  uiMessage?: Resolver<ResolversTypes['UIMessage'], ParentType, ContextType>
+  unsignedVehicleEvents?: Resolver<
+    Array<Maybe<ResolversTypes['VehiclePosition']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryUnsignedVehicleEventsArgs, 'date' | 'uniqueVehicleId'>
+  >
+  vehicleJourneys?: Resolver<
+    Array<Maybe<ResolversTypes['VehicleJourney']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryVehicleJourneysArgs, 'date' | 'uniqueVehicleId'>
+  >
+  weeklyDepartures?: Resolver<
+    Array<Maybe<ResolversTypes['Departure']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryWeeklyDeparturesArgs, 'date' | 'direction' | 'routeId' | 'stopId'>
+  >
+}
+
+export type RouteResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Route'] = ResolversParentTypes['Route']
+> = {
+  _matchScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
+  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  destination?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  destinationStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  origin?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  originStopId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  routeDurationMinutes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  routeLength?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+}
+
+export type RouteGeometryResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['RouteGeometry'] = ResolversParentTypes['RouteGeometry']
+> = {
+  coordinates?: Resolver<Array<ResolversTypes['RouteGeometryPoint']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+}
+
+export type RouteGeometryPointResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['RouteGeometryPoint'] = ResolversParentTypes['RouteGeometryPoint']
+> = {
+  lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+}
+
+export type RouteSegmentResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['RouteSegment'] = ResolversParentTypes['RouteSegment']
+> = {
+  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
+  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  destination?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
+  distanceFromPrevious?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  distanceFromStart?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  duration?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  modes?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  originStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  radius?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  shortId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  stopId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  stopIndex?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+}
+
+export type StopResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Stop'] = ResolversParentTypes['Stop']
+> = {
+  _matchScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  modes?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType>
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  radius?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  routes?: Resolver<Array<ResolversTypes['StopRoute']>, ParentType, ContextType>
+  shortId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  stopId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  stopIndex?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+}
+
+export type StopRouteResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['StopRoute'] = ResolversParentTypes['StopRoute']
+> = {
+  direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  originStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+}
+
+export interface TimeScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['Time'], any> {
+  name: 'Time'
+}
+
+export type UiMessageResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['UIMessage'] = ResolversParentTypes['UIMessage']
+> = {
+  date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+}
+
+export interface UploadScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['Upload'], any> {
   name: 'Upload'
 }
 
-export type IResolvers<TContext = {}> = {
-  Query?: QueryResolvers.Resolvers<TContext>
-  Equipment?: EquipmentResolvers.Resolvers<TContext>
-  Stop?: StopResolvers.Resolvers<TContext>
-  StopRoute?: StopRouteResolvers.Resolvers<TContext>
-  Alert?: AlertResolvers.Resolvers<TContext>
-  Route?: RouteResolvers.Resolvers<TContext>
-  Cancellation?: CancellationResolvers.Resolvers<TContext>
-  RouteGeometry?: RouteGeometryResolvers.Resolvers<TContext>
-  RouteGeometryPoint?: RouteGeometryPointResolvers.Resolvers<TContext>
-  RouteSegment?: RouteSegmentResolvers.Resolvers<TContext>
-  Departure?: DepartureResolvers.Resolvers<TContext>
-  DepartureJourney?: DepartureJourneyResolvers.Resolvers<TContext>
-  VehiclePosition?: VehiclePositionResolvers.Resolvers<TContext>
-  JourneyStopEvent?: JourneyStopEventResolvers.Resolvers<TContext>
-  PlannedDeparture?: PlannedDepartureResolvers.Resolvers<TContext>
-  PlannedArrival?: PlannedArrivalResolvers.Resolvers<TContext>
-  ObservedArrival?: ObservedArrivalResolvers.Resolvers<TContext>
-  ObservedDeparture?: ObservedDepartureResolvers.Resolvers<TContext>
-  ExceptionDay?: ExceptionDayResolvers.Resolvers<TContext>
-  Journey?: JourneyResolvers.Resolvers<TContext>
-  JourneyEvent?: JourneyEventResolvers.Resolvers<TContext>
-  JourneyCancellationEvent?: JourneyCancellationEventResolvers.Resolvers<TContext>
-  PlannedStopEvent?: PlannedStopEventResolvers.Resolvers<TContext>
-  VehicleJourney?: VehicleJourneyResolvers.Resolvers<TContext>
-  UiMessage?: UiMessageResolvers.Resolvers<TContext>
-  Position?: PositionResolvers.Resolvers
-  JourneyEventType?: JourneyEventTypeResolvers.Resolvers
-  Date?: GraphQLScalarType
-  Direction?: GraphQLScalarType
-  DateTime?: GraphQLScalarType
-  Time?: GraphQLScalarType
-  VehicleId?: GraphQLScalarType
-  PreciseBBox?: GraphQLScalarType
-  BBox?: GraphQLScalarType
-  Upload?: GraphQLScalarType
-} & { [typeName: string]: never }
+export interface VehicleIdScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['VehicleId'], any> {
+  name: 'VehicleId'
+}
 
-export type IDirectiveResolvers<Result> = {
-  cacheControl?: CacheControlDirectiveResolver<Result>
-  skip?: SkipDirectiveResolver<Result>
-  include?: IncludeDirectiveResolver<Result>
-  deprecated?: DeprecatedDirectiveResolver<Result>
-} & { [directiveName: string]: never }
+export type VehicleJourneyResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['VehicleJourney'] = ResolversParentTypes['VehicleJourney']
+> = {
+  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
+  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  departureTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  direction?: Resolver<Maybe<ResolversTypes['Direction']>, ParentType, ContextType>
+  headsign?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  journeyType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  operatorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  routeId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  timeDifference?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  uniqueVehicleId?: Resolver<Maybe<ResolversTypes['VehicleId']>, ParentType, ContextType>
+  vehicleId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+}
+
+export type VehiclePositionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['VehiclePosition'] = ResolversParentTypes['VehiclePosition']
+> = {
+  delay?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  doorStatus?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  heading?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  journeyType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  nextStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  operatorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  stop?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  uniqueVehicleId?: Resolver<Maybe<ResolversTypes['VehicleId']>, ParentType, ContextType>
+  vehicleId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  velocity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+}
+
+export type Resolvers<ContextType = any> = {
+  Alert?: AlertResolvers<ContextType>
+  BBox?: GraphQLScalarType
+  Cancellation?: CancellationResolvers<ContextType>
+  Date?: GraphQLScalarType
+  DateTime?: GraphQLScalarType
+  Departure?: DepartureResolvers<ContextType>
+  DepartureJourney?: DepartureJourneyResolvers<ContextType>
+  Direction?: GraphQLScalarType
+  Equipment?: EquipmentResolvers<ContextType>
+  ExceptionDay?: ExceptionDayResolvers<ContextType>
+  Journey?: JourneyResolvers<ContextType>
+  JourneyCancellationEvent?: JourneyCancellationEventResolvers<ContextType>
+  JourneyEvent?: JourneyEventResolvers<ContextType>
+  JourneyEventType?: JourneyEventTypeResolvers
+  JourneyStopEvent?: JourneyStopEventResolvers<ContextType>
+  ObservedArrival?: ObservedArrivalResolvers<ContextType>
+  ObservedDeparture?: ObservedDepartureResolvers<ContextType>
+  PlannedArrival?: PlannedArrivalResolvers<ContextType>
+  PlannedDeparture?: PlannedDepartureResolvers<ContextType>
+  PlannedStopEvent?: PlannedStopEventResolvers<ContextType>
+  Position?: PositionResolvers
+  PreciseBBox?: GraphQLScalarType
+  Query?: QueryResolvers<ContextType>
+  Route?: RouteResolvers<ContextType>
+  RouteGeometry?: RouteGeometryResolvers<ContextType>
+  RouteGeometryPoint?: RouteGeometryPointResolvers<ContextType>
+  RouteSegment?: RouteSegmentResolvers<ContextType>
+  Stop?: StopResolvers<ContextType>
+  StopRoute?: StopRouteResolvers<ContextType>
+  Time?: GraphQLScalarType
+  UIMessage?: UiMessageResolvers<ContextType>
+  Upload?: GraphQLScalarType
+  VehicleId?: GraphQLScalarType
+  VehicleJourney?: VehicleJourneyResolvers<ContextType>
+  VehiclePosition?: VehiclePositionResolvers<ContextType>
+}
+
+/**
+ * @deprecated
+ * Use "Resolvers" root object instead. If you wish to get "IResolvers", add "typesPrefix: I" to your config.
+ */
+export type IResolvers<ContextType = any> = Resolvers<ContextType>

@@ -2,14 +2,14 @@ import { get } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreRoute } from '../types/Jore'
 import { cacheFetch } from '../cache'
-import { Direction, RouteGeometry } from '../types/generated/schema-types'
+import { Scalars, RouteGeometry } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 
 export async function createRouteGeometryResponse(
   getRouteGeometry: () => Promise<JoreRoute[]>,
   date: string,
   routeId: string,
-  direction: Direction
+  direction: Scalars['Direction']
 ): Promise<RouteGeometry | null> {
   const fetchAndValidate: CachedFetcher<RouteGeometry> = async () => {
     const routes = await getRouteGeometry()
@@ -29,9 +29,7 @@ export async function createRouteGeometryResponse(
     }))
 
     return {
-      id: `route_geometry_${routeId}_${direction}_${selectedRoute.date_begin}_${
-        selectedRoute.date_end
-      }`,
+      id: `route_geometry_${routeId}_${direction}_${selectedRoute.date_begin}_${selectedRoute.date_end}`,
       mode: selectedRoute.mode,
       coordinates,
     }

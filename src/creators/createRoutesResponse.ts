@@ -4,7 +4,7 @@ import { createRouteObject } from '../objects/createRouteObject'
 import { JoreRoute } from '../types/Jore'
 import {
   AlertDistribution,
-  Direction,
+  Scalars,
   Route,
   RouteFilterInput,
 } from '../types/generated/schema-types'
@@ -20,7 +20,7 @@ export async function createRouteResponse(
   getAlerts,
   date: string,
   routeId: string,
-  direction: Direction
+  direction: Scalars['Direction']
 ): Promise<Route | null> {
   const fetchAndValidate: CachedFetcher<JoreRoute> = async () => {
     const routes = await getRoute()

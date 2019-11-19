@@ -1,4 +1,4 @@
-import { VehicleId, VehiclePosition } from '../types/generated/schema-types'
+import { Scalars, VehiclePosition } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { isToday } from 'date-fns'
@@ -11,7 +11,7 @@ import { orderBy } from 'lodash'
 
 export const createUnsignedVehicleEventsResponse = async (
   getUnsignedEvents: () => Promise<Vehicles[] | null>,
-  uniqueVehicleId: VehicleId,
+  uniqueVehicleId: Scalars['VehicleId'],
   date: string,
   user: AuthenticatedUser | null,
   skipCache: boolean = false
