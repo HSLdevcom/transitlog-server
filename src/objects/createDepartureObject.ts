@@ -73,31 +73,29 @@ export function createPlannedDepartureTimeObject(
 }
 
 export function createDepartureJourneyObject(
-  events: Vehicles | Vehicles[],
+  event: Vehicles | null,
   originStopId: string,
   instanceIndex: number = 0,
   mode = Mode.Bus,
   alerts: Alert[] = []
 ): DepartureJourney {
-  const event = events[0] || events
   const id = createJourneyId(event)
-  const journeyDate = moment.tz(event.tst, TZ).format('YYYY-MM-DD')
+  const journeyDate = moment.tz(event?.tst, TZ).format('YYYY-MM-DD')
   const eventOday = get(event, 'oday', journeyDate) || journeyDate
 
   return {
-    id: `departure_journey_${id}_${event.event_type}`,
+    id: `departure_journey_${id}_${event?.event_type}`,
     journeyType:
-      event.journey_type ||
-      (typeof event.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
-    type: event.event_type,
-    routeId: event.route_id || '',
-    direction: event.direction_id,
+      event?.journey_type ||
+      (typeof event?.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
+    type: event?.event_type || 'DEP',
+    routeId: event?.route_id || '',
+    direction: event?.direction_id,
     originStopId,
     departureDate: eventOday,
     departureTime: getJourneyStartTime(event),
-    uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
+    uniqueVehicleId: createValidVehicleId(event?.unique_vehicle_id),
     mode: mode || null,
-    events: Array.isArray(events) ? events : [event],
     alerts,
     cancellations: [],
     isCancelled: false,

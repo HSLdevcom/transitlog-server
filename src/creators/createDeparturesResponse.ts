@@ -16,7 +16,7 @@ import {
 import { createStopObject } from '../objects/createStopObject'
 import { getDirection } from '../utils/getDirection'
 import { getJourneyStartTime } from '../utils/time'
-import { getStopDepartureData } from '../utils/getStopDepartureData'
+import { getStopDepartureData, getStopDepartureEvent } from '../utils/getStopDepartureData'
 import { filterDepartures } from '../filters/filterDepartures'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { Dictionary } from '../types/Dictionary'
@@ -27,7 +27,6 @@ import {
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
-import { requireUser } from '../auth/requireUser'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 
 /*
@@ -146,17 +145,24 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
       return [departure]
     }
 
-    const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
-      ([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc')
-    )
+    const eventsPerVehicleJourney = groupEventsByInstances(
+      eventsForDeparture
+    ).map(([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc'))
 
     const firstStopId = get(departure, 'stop.originStopId', '')
 
     return eventsPerVehicleJourney.map((events, index, instances) => {
-      const stopDeparture = departure ? getStopDepartureData(events, departure, date) : null
+      // Timing stops and origin stops use DEP (exit stop radius) as the
+      // departure event, but normal stops use PDE (doors closed).
+      const useDEP = departure.isTimingStop || departure.isOrigin
+      const departureEvent = getStopDepartureEvent(events, !!useDEP)
+
+      const stopDeparture = departure
+        ? getStopDepartureData(departureEvent, departure, date)
+        : null
 
       const departureJourney = createDepartureJourneyObject(
-        events[0],
+        departureEvent,
         firstStopId,
         instances.length > 1 ? index + 1 : 0,
         get(departure, 'mode', Mode.Bus) as Mode
@@ -212,7 +218,7 @@ export async function createDeparturesResponse(
 
     // If either of these fail, we've got nothing of value.
     // Be aware that `stops` can be falsy.
-    if (!stops || stops.length === 0 || departures.length === 0) {
+    if (!stops || stops.length === 0 || !departures || departures.length === 0) {
       return false
     }
 

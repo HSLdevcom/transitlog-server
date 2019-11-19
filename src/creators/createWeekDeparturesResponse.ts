@@ -18,7 +18,7 @@ import {
   createPlannedDepartureObject,
 } from '../objects/createDepartureObject'
 import { getJourneyStartTime } from '../utils/time'
-import { getStopDepartureData } from '../utils/getStopDepartureData'
+import { getStopDepartureData, getStopDepartureEvent } from '../utils/getStopDepartureData'
 import { compact, flatten, get, groupBy, orderBy, uniq } from 'lodash'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { fetchStops } from './createDeparturesResponse'
@@ -31,7 +31,7 @@ import {
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
-import { getStopArrivalData } from '../utils/getStopArrivalData'
+import { getStopArrivalData, getStopArrivalEvent } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 
 const combineDeparturesAndEvents = (
@@ -73,9 +73,9 @@ const combineDeparturesAndEvents = (
       return departure
     }
 
-    const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
-      ([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc')
-    )
+    const eventsPerVehicleJourney = groupEventsByInstances(
+      eventsForDeparture
+    ).map(([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc'))
 
     const firstStopId = get(departure, 'stop.originStopId', '')
     const firstInstanceEvents = eventsPerVehicleJourney[0]
@@ -85,20 +85,28 @@ const combineDeparturesAndEvents = (
     }
 
     let eventData: ObservedArrival | ObservedDeparture | null = null
+    let event = null
 
     // We can respond with either the departure from the origin stop or the
     // arrival to the destination stop, depending on the lastStopArrival state.
     if (departure && lastStopArrival) {
-      eventData = getStopArrivalData(firstInstanceEvents, departure, plannedDate)
+      event = getStopArrivalEvent(firstInstanceEvents)
+      eventData = getStopArrivalData(event, departure, plannedDate)
     } else if (departure) {
-      eventData = getStopDepartureData(firstInstanceEvents, departure, plannedDate)
+      // Timing stops and origin stops use DEP (exit stop radius) as the
+      // departure event, but normal stops use PDE (doors closed).
+      const useDEP = departure.isTimingStop || departure.isOrigin
+      event = getStopDepartureEvent(firstInstanceEvents, !!useDEP)
+      eventData = getStopDepartureData(event, departure, plannedDate)
     }
 
+    const eventToUse = event || firstInstanceEvents[0]
+
     const departureJourney = createDepartureJourneyObject(
-      firstInstanceEvents,
+      eventToUse,
       firstStopId,
       0,
-      get(departure, 'mode', Mode.Bus) as Mode
+      departure?.mode || Mode.Bus
     )
 
     return {
@@ -218,7 +226,7 @@ export const createWeekDeparturesResponse = async (
 
     // If either of these fail, we've got nothing of value.
     // Be aware that stops can be falsy due to coming from a CachedFetcher.
-    if (!stops || stops.length === 0 || departures.length === 0) {
+    if (!stops || stops.length === 0 || !departures || departures.length === 0) {
       return false
     }
 

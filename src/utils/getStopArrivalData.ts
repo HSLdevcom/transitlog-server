@@ -11,12 +11,10 @@ import { Vehicles } from '../types/EventsDb'
 import { getJourneyEventTime } from './time'
 
 export function getStopArrivalData(
-  stopEvents: Vehicles[] = [],
+  arrivalEvent: Vehicles | null = null,
   stopDeparture: Departure,
   date?: string
 ): ObservedArrival | null {
-  const arrivalEvent = stopEvents.find((event) => event.event_type === 'ARS')
-
   if (!arrivalEvent) {
     return null
   }
@@ -57,4 +55,26 @@ export const getLegacyStopArrivalEvent = (events) => {
   }
 
   return arrivalEvent
+}
+
+export const getStopArrivalEvent = (events) => {
+  if (!events || events.length === 0) {
+    return null
+  }
+
+  let lookForType = 'ARS'
+  let departureEvent = events.find((event) => event.event_type === lookForType)
+
+  if (!departureEvent) {
+    // Fall back to other type of event
+    lookForType = 'ARR'
+    departureEvent = events.find((event) => event.event_type === lookForType)
+
+    // If still not found, just get the first event from what we have
+    if (!departureEvent) {
+      departureEvent = events[0] || null
+    }
+  }
+
+  return departureEvent
 }

@@ -44,7 +44,6 @@ export const Departure = gql`
     departureTime: Time!
     uniqueVehicleId: VehicleId
     mode: String
-    events: [VehiclePosition!]
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!
