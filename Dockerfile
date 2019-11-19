@@ -15,6 +15,8 @@ RUN yarn
 COPY . ${WORK}
 COPY .env.production ${WORK}/.env
 
+RUN yarn run build
+
 EXPOSE 4000
 
 CMD yarn run start:production

@@ -5,9 +5,7 @@ import { Alert, Cancellation, RouteSegment } from '../types/generated/schema-typ
 import { JoreRoute, JoreRouteData, Mode } from '../types/Jore'
 
 export function createSegmentId(routeSegment) {
-  return `${routeSegment.route_id}_${routeSegment.direction}_${routeSegment.stop_index}_${
-    routeSegment.date_begin
-  }_${routeSegment.date_end}`
+  return `${routeSegment.route_id}_${routeSegment.direction}_${routeSegment.stop_index}_${routeSegment.date_begin}_${routeSegment.date_end}`
 }
 
 export const createRouteSegmentObject = (
@@ -28,7 +26,8 @@ export const createRouteSegmentObject = (
     duration: routeSegment.duration,
     stopIndex: routeSegment.stop_index,
     isTimingStop: !!routeSegment.timing_stop_type,
+    modes: routeSegment.modes || ['BUS'],
     alerts,
     cancellations,
-  }
+  } as RouteSegment
 }

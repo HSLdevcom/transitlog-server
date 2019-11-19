@@ -9,7 +9,7 @@ import {
   JoreStop,
   JoreStopSegment,
 } from '../types/Jore'
-import { Direction, ExceptionDay } from '../types/generated/schema-types'
+import { Scalars, ExceptionDay } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 import { orderBy, uniq, flatten, compact } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
@@ -95,7 +95,7 @@ export class JoreDataSource extends SQLDataSource {
 
   async getRouteGeometry(
     routeId: string,
-    direction: Direction,
+    direction: Scalars['Direction'],
     date: string
   ): Promise<JoreRoute[]> {
     const query = this.db.raw(
@@ -244,7 +244,7 @@ WHERE stop.stop_id = :stopId;`,
 
   async getRouteSegments(
     routeId: string,
-    direction: Direction,
+    direction: Scalars['Direction'],
     dateBegin?: string,
     dateEnd?: string
   ): Promise<JoreRouteData[]> {
@@ -298,7 +298,7 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
 
   async getJourneyDepartures(
     routeId: string,
-    direction: Direction,
+    direction: Scalars['Direction'],
     date: string
   ): Promise<JoreRouteDepartureData[]> {
     const dayTypes = await this.getDayTypesForDateAndRoute(date, routeId)

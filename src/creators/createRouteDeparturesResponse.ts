@@ -2,7 +2,7 @@ import { compact, groupBy, orderBy } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment } from '../types/Jore'
 import {
   Departure,
-  Direction,
+  Scalars,
   ExceptionDay,
   RouteSegment,
 } from '../types/generated/schema-types'
@@ -75,7 +75,7 @@ export async function createRouteDeparturesResponse(
   exceptions: ExceptionDay[],
   stopId: string,
   routeId: string,
-  direction: Direction,
+  direction: Scalars['Direction'],
   date: string,
   skipCache: boolean = false,
   lastStopArrival: boolean = false

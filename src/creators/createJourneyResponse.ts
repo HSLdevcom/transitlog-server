@@ -8,7 +8,7 @@ import { cacheFetch } from '../cache'
 import {
   AlertDistribution,
   Departure,
-  Direction,
+  Scalars,
   ExceptionDay,
   Journey,
   JourneyCancellationEvent,
@@ -17,7 +17,6 @@ import {
   PlannedStopEvent,
   Route,
   Stop,
-  VehicleId,
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
@@ -235,10 +234,10 @@ export async function createJourneyResponse(
   getAlerts,
   exceptions: ExceptionDay[],
   routeId: string,
-  direction: Direction,
+  direction: Scalars['Direction'],
   departureDate: string,
   departureTime: string,
-  uniqueVehicleId: VehicleId,
+  uniqueVehicleId: Scalars['VehicleId'],
   shouldFetchUnsignedEvents: boolean = false,
   user: AuthenticatedUser | null,
   skipCache: boolean = false

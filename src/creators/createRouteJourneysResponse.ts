@@ -1,4 +1,4 @@
-import { Direction, Journey } from '../types/generated/schema-types'
+import { Scalars, Journey } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { isToday } from 'date-fns'
@@ -9,7 +9,7 @@ import { Vehicles } from '../types/EventsDb'
 export const createRouteJourneysResponse = async (
   getJourney: () => Promise<Vehicles[] | null>,
   routeId: string,
-  direction: Direction,
+  direction: Scalars['Direction'],
   date: string
 ): Promise<Journey[]> => {
   const fetchAllJourneys: CachedFetcher<Journey[]> = async () => {

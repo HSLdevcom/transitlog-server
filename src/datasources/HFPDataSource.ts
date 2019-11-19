@@ -1,7 +1,7 @@
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { getDateFromDateTime, getNormalTime } from '../utils/time'
-import { Direction } from '../types/generated/schema-types'
+import { Scalars } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
 import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
@@ -474,7 +474,7 @@ ORDER BY tst DESC;
     stopId: string,
     date: string,
     routeId: string,
-    direction: Direction,
+    direction: Scalars['Direction'],
     lastStopArrival: boolean = false
   ): Promise<Vehicles[]> {
     const { minTime, maxTime } = createTstRange(date)
