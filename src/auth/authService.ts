@@ -11,6 +11,7 @@ import {
 } from '../constants'
 
 const authHash = Buffer.from(`${API_CLIENT_ID}:${API_CLIENT_SECRET}`).toString('base64')
+const clientAuthHash = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')
 
 export interface IAccessToken {
   access_token: string
@@ -28,11 +29,21 @@ export interface IUserInfo {
   accessToken: string
 }
 
-const checkAccessMiddleware = (
+const checkAccessMiddleware = async (
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
 ) => {
+  // TODO: implement refresh token
+  /*const {
+    email = '',
+    groups = [],
+    accessToken = '',
+    refreshToken = '',
+    expiresAt = 0,
+    _test = false,
+  } = req.session || {}*/
+
   next()
 }
 
@@ -74,6 +85,34 @@ const requestUserInfo = async (
       emailVerified: responseJson.email_verified,
       groups: responseJson['https://oneportal.trivore.com/claims/groups'],
       accessToken,
+    }
+  } catch (err) {
+    console.error(err)
+  }
+
+  return null
+}
+
+const introspectToken = async (
+  accessToken: string,
+  isTest = false
+): Promise<IUserInfo | null> => {
+  const useProviderUrl = isTest ? TESTING_LOGIN_PROVIDER_URI : LOGIN_PROVIDER_URI
+  const url = `${useProviderUrl}/openid/introspect`
+
+  try {
+    const response = await nodeFetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ token: accessToken, token_type_hint: 'access_token' }),
+      headers: {
+        Authorization: `Basic ${clientAuthHash}`,
+      },
+    })
+
+    const responseJson = await response.json()
+
+    if (responseJson) {
+      return responseJson
     }
   } catch (err) {
     console.error(err)

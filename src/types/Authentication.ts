@@ -10,5 +10,7 @@ export type AuthenticatedUser = null | {
   email: string
   _test: boolean
   accessToken: string
+  refreshToken?: string
+  expiresAt?: number
   groups: string[]
 }

@@ -2,7 +2,7 @@ import moment from 'moment-timezone'
 import express from 'express'
 import cors from 'cors'
 import { json } from 'body-parser'
-import { HSL_GROUP_NAME, TZ } from './constants'
+import { COOKIE_SECRET, HSL_GROUP_NAME, SECURE_COOKIE, TZ } from './constants'
 // Set the default timezone for the app
 moment.tz.setDefault(TZ)
 
@@ -72,19 +72,21 @@ type RequestContext = {
 
   const redisClient = await getRedis()
 
+  app.set('trust proxy', 1) // Enable secure cookies
+
   app.use(
     session({
       store: new RedisSession({
         client: redisClient,
       }),
-      secret: 'very-much-secret',
+      secret: COOKIE_SECRET,
       rolling: true,
       resave: false,
       saveUninitialized: true,
       name: 'transitlog-session',
       cookie: {
-        secure: false, // TODO: Investigate why true will not work.
-        maxAge: 3600000,
+        secure: SECURE_COOKIE,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly: false,
       },
     })
