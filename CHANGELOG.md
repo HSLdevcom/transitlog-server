@@ -1,5 +1,22 @@
 # Transitlog server changelog
 
+## Version 1.5.0, deployed 2019-11-20 @ 09:00
+
+- Fixes for journey event correctness.
+- Add all journey departures to the journey response.
+- Add route length and route duration fields to route response.
+- Mark virtual journey events as virtual.
+- Cache skipping for more queries.
+- Include events with null lat and long properties.
+- Use PDE and ARR fallbacks for DEP and ARS events in departure lists.
+- Fix session cookie security and persistence.
+- Fix exception days feature.
+- Trim route segments to remove stops not in route.
+- Update Typescript version and other dependencies.
+- Build Typescript source to JavaScript in Docker build step.
+- Better handling for PAS events.
+- Better handling for virtual events.
+
 ## Version 1.4.1, deployed 2019-11-06 @ 12:00
 
 - Auto-create all groups entered in the auto-create admin config.

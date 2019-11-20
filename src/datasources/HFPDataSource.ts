@@ -444,7 +444,7 @@ SELECT ${routeDepartureFields.join(',')}
 FROM stopevent
 WHERE tst >= :minTime
   AND tst < :maxTime
-  AND event_type IN ('DEP', 'PDE')
+  AND event_type IN ('DEP', 'PDE', 'PAS')
   AND oday = :date
   AND stop = :stopId
   AND is_ongoing = true

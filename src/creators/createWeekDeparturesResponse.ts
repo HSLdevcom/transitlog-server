@@ -85,7 +85,7 @@ const combineDeparturesAndEvents = (
     }
 
     let eventData: ObservedArrival | ObservedDeparture | null = null
-    let event = null
+    let event: Vehicles | null = null
 
     // We can respond with either the departure from the origin stop or the
     // arrival to the destination stop, depending on the lastStopArrival state.

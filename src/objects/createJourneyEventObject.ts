@@ -106,13 +106,12 @@ export function createJourneyStopEventObject(
   event: Vehicles,
   departure: Departure | null,
   stop: Stop | null,
-  doorsOpened: boolean,
-  stopped: boolean
+  doorsOpened: boolean
 ): JourneyStopEvent {
   const id = createJourneyId(event)
   const unix = parseInt(event.tsi, 10)
   const ts = moment.tz(event.tst, TZ).toISOString(true)
-  const stopData = stop ? stop : departure ? departure.stop : null
+  const stopData = stop ? stop : departure ? departure?.stop : null
 
   const isArrival = ['ARR', 'ARS'].includes(event.event_type)
 
@@ -152,9 +151,8 @@ export function createJourneyStopEventObject(
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
-    stopId: get(stopData, 'stopId', get(event, 'stopId')) + '',
+    stopId: (stopData?.stopId || event.stop) + '',
     nextStopId: (event.next_stop_id || '') + '',
-    stopped,
     doorsOpened,
     plannedDate,
     plannedTime,

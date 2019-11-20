@@ -446,8 +446,17 @@ export async function createJourneyResponse(
   let patchedStopEvents = [...stopEvents]
 
   for (const virtualStopEvent of virtualStopEvents) {
-    const eventId = virtualStopEvent.event_type + virtualStopEvent.stop
-    const eventExists = patchedStopEvents.some((evt) => evt.event_type + evt.stop === eventId)
+    const { event_type, stop } = virtualStopEvent
+    const canUsePas = ['ARS', 'DEP', 'PDE'].includes(event_type)
+
+    const eventExists = patchedStopEvents.some((evt) => {
+      // Skip virtual departure events when a PAS event for the stop exists
+      if (canUsePas && evt.event_type === 'PAS' && evt.stop === stop) {
+        return true
+      }
+
+      return evt.event_type + evt.stop === event_type + stop
+    })
 
     if (!eventExists) {
       patchedStopEvents.push(virtualStopEvent)
@@ -459,7 +468,7 @@ export async function createJourneyResponse(
   // Get a listing of all stops visited during this journey,
   // regardless of whether or not the stop was planned.
   const stopGroupedEvents: { [key: string]: Vehicles[] } = groupBy(patchedStopEvents, (evt) =>
-    evt.stop ? evt.stop + '' : 'unknown'
+    evt.stop ? evt.stop + '' : evt.next_stop_id ? evt.next_stop_id + '' : 'unknown'
   )
 
   const stopEventObjects: Array<JourneyEvent | JourneyStopEvent> = []
@@ -471,9 +480,13 @@ export async function createJourneyResponse(
     let stop: Stop | null = null
 
     for (const eventItem of eventsForStop) {
-      // If the event has no stopId (= unknown), match a departure to each event in
-      // the group by matching the event and departure stop locations.
-      if (stopId === 'unknown') {
+      if (stopId !== 'unknown') {
+        matchedStopId = stopId + ''
+        departure = departures.find((dep) => dep.stopId === stopId + '')
+      } else if (stopId === 'unknown' && eventItem.lat && eventItem.long) {
+        // If the event has no stopId (= unknown), match a departure to each event in
+        // the group by matching the event and departure stop locations.
+
         // Reset matchedStopId because events in the "unknown" group may not belong to the same stop.
         matchedStopId = ''
         // Match events without stopIds to stops by location.
@@ -494,15 +507,10 @@ export async function createJourneyResponse(
         if (departure) {
           matchedStopId = departure.stopId || ''
         }
-      } else if (!departure) {
-        matchedStopId = stopId + ''
-        departure = departures.find((dep) => dep.stopId === stopId + '')
       }
 
       // Try to get the stop from the departure
-      if (!stop) {
-        stop = get(departure, 'stop', null)
-      }
+      stop = departure?.stop || null
 
       // If that didn't work, fetch the stop from JORE with the stopId we have.
       if (!stop && matchedStopId) {
@@ -524,16 +532,14 @@ export async function createJourneyResponse(
       }
 
       let doorsOpened = !!eventItem.drst
-      let stopped = false
 
       if (stopId !== 'unknown') {
         doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
-        stopped = eventsForStop.some((evt) => evt.event_type !== 'PAS')
       }
 
       const useDEP = get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
       const shouldCreateStopEventObject =
-        !!stop && ['ARS', useDEP ? 'DEP' : 'PDE'].includes(eventItem.event_type)
+        !!stop && ['ARS', useDEP ? 'DEP' : 'PDE', 'PAS'].includes(eventItem.event_type)
 
       let eventObject: JourneyStopEvent | JourneyEvent | null = null
 
@@ -544,8 +550,7 @@ export async function createJourneyResponse(
           eventItem,
           departure || null,
           stop,
-          doorsOpened,
-          stopped
+          doorsOpened
         )
       }
 
@@ -587,11 +592,17 @@ export async function createJourneyResponse(
   const hasPlannedUnix = (event: any): event is PlannedStopEvent | JourneyStopEvent =>
     typeof event.plannedUnix !== 'undefined'
 
+  const hasRecordedUnix = (event: any): event is JourneyStopEvent | JourneyEvent =>
+    typeof event.recordedAtUnix !== 'undefined'
+
   // Combine all created event objects and order by time.
   const sortedJourneyEvents = orderBy<EventsType>(
     combinedJourneyEvents,
-    (event) => (hasPlannedUnix(event) ? event.plannedUnix : event.recordedAtUnix),
-    'asc'
+    [
+      (event) => (hasPlannedUnix(event) ? event.plannedUnix : event.recordedAtUnix),
+      (event) => (hasRecordedUnix(event) ? event.recordedAtUnix : 0),
+    ],
+    ['asc', 'asc']
   )
 
   let finalPositions = ascVehiclePositions
