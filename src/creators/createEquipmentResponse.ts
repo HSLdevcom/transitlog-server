@@ -8,7 +8,7 @@ import { createUniqueVehicleId, matchOperatorId } from '../utils/createUniqueVeh
 import { CachedFetcher } from '../types/CachedFetcher'
 import { Vehicles } from '../types/EventsDb'
 import { AuthenticatedUser } from '../types/Authentication'
-import { getUserGroups, requireUser } from '../auth/requireUser'
+import { getUserGroups } from '../auth/requireUser'
 
 export async function createEquipmentResponse(
   getEquipment: () => Promise<JoreEquipment[]>,

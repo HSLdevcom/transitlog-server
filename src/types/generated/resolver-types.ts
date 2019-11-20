@@ -438,6 +438,12 @@ export type ObservedDeparture = {
   id: Scalars['ID']
 }
 
+export type Operator = {
+  __typename?: 'Operator'
+  operatorId: Scalars['String']
+  operatorName?: Maybe<Scalars['String']>
+}
+
 export type PlannedArrival = {
   __typename?: 'PlannedArrival'
   arrivalDate: Scalars['Date']
@@ -489,6 +495,7 @@ export type Query = {
   journey?: Maybe<Journey>
   journeys: Array<Maybe<Journey>>
   journeysByBbox: Array<Maybe<Journey>>
+  operators?: Maybe<Operator[]>
   route?: Maybe<Route>
   routeDepartures: Array<Maybe<Departure>>
   routeGeometry?: Maybe<RouteGeometry>
@@ -881,6 +888,7 @@ export type ResolversTypes = {
   VehiclePosition: ResolverTypeWrapper<VehiclePosition>
   PreciseBBox: ResolverTypeWrapper<Scalars['PreciseBBox']>
   AreaEventsFilterInput: AreaEventsFilterInput
+  Operator: ResolverTypeWrapper<Operator>
   Route: ResolverTypeWrapper<Route>
   RouteGeometry: ResolverTypeWrapper<RouteGeometry>
   RouteGeometryPoint: ResolverTypeWrapper<RouteGeometryPoint>
@@ -946,6 +954,7 @@ export type ResolversParentTypes = {
   VehiclePosition: VehiclePosition
   PreciseBBox: Scalars['PreciseBBox']
   AreaEventsFilterInput: AreaEventsFilterInput
+  Operator: Operator
   Route: Route
   RouteGeometry: RouteGeometry
   RouteGeometryPoint: RouteGeometryPoint
@@ -1255,6 +1264,14 @@ export type ObservedDepartureResolvers<
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
 }
 
+export type OperatorResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Operator'] = ResolversParentTypes['Operator']
+> = {
+  operatorId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  operatorName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+}
+
 export type PlannedArrivalResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['PlannedArrival'] = ResolversParentTypes['PlannedArrival']
@@ -1369,6 +1386,7 @@ export type QueryResolvers<
     ContextType,
     RequireFields<QueryJourneysByBboxArgs, 'bbox' | 'date' | 'maxTime' | 'minTime'>
   >
+  operators?: Resolver<Maybe<Array<ResolversTypes['Operator']>>, ParentType, ContextType>
   route?: Resolver<
     Maybe<ResolversTypes['Route']>,
     ParentType,
@@ -1613,6 +1631,7 @@ export type Resolvers<ContextType = any> = {
   JourneyStopEvent?: JourneyStopEventResolvers<ContextType>
   ObservedArrival?: ObservedArrivalResolvers<ContextType>
   ObservedDeparture?: ObservedDepartureResolvers<ContextType>
+  Operator?: OperatorResolvers<ContextType>
   PlannedArrival?: PlannedArrivalResolvers<ContextType>
   PlannedDeparture?: PlannedDepartureResolvers<ContextType>
   PlannedStopEvent?: PlannedStopEventResolvers<ContextType>

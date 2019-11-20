@@ -454,6 +454,18 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     return this.getCachedAndBatched(query, 24 * 60 * 60)
   }
 
+  async getOperators(): Promise<string> {
+    const query = this.db.raw(
+      `
+SELECT DISTINCT ON (operator_id) operator_id
+FROM :schema:.equipment
+ORDER BY operator_id ASC;`,
+      { schema: SCHEMA }
+    )
+
+    return this.getBatched(query)
+  }
+
   departureFields = `
     departure.route_id,
     departure.direction,

@@ -434,6 +434,12 @@ export type ObservedDeparture = {
   id: Scalars['ID']
 }
 
+export type Operator = {
+  __typename?: 'Operator'
+  operatorId: Scalars['String']
+  operatorName?: Maybe<Scalars['String']>
+}
+
 export type PlannedArrival = {
   __typename?: 'PlannedArrival'
   arrivalDate: Scalars['Date']
@@ -485,6 +491,7 @@ export type Query = {
   journey?: Maybe<Journey>
   journeys: Array<Maybe<Journey>>
   journeysByBbox: Array<Maybe<Journey>>
+  operators?: Maybe<Operator[]>
   route?: Maybe<Route>
   routeDepartures: Array<Maybe<Departure>>
   routeGeometry?: Maybe<RouteGeometry>
