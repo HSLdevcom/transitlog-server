@@ -1,10 +1,9 @@
 import React from 'react'
 import join from 'proper-url-join'
 import { get } from 'lodash'
-import { DomainGroup } from '../../datasources/transitlogServer'
 
 const GroupAssignment = ({ adminPath, settings }) => {
-  const assignedGroups: DomainGroup[] = get(settings, 'domain_groups', [])
+  const assignedGroups = get(settings, 'domain_groups', [])
 
   return (
     <>
@@ -13,14 +12,14 @@ const GroupAssignment = ({ adminPath, settings }) => {
         <fieldset>
           <legend>HSL ID group assignment</legend>
           <p>
-            One email domain or email per line, assigned to a group with =. A domain can be assigned
-            to many groups, separated by a comma. This will not yet assign any users to groups, that
-            happens when a user with with an email that matches an assignment signs into Transitlog
-            the next time.
+            One email domain or email per line, assigned to a group with =. A domain can be
+            assigned to many groups, separated by a comma. This will not yet assign any users
+            to groups, that happens when a user with with an email that matches an assignment
+            signs into Transitlog the next time.
           </p>
           <p>
-            To remove a user from a group, first remove the assignment in this field and then remove
-            the user from the group through the HSL ID dashboard at{' '}
+            To remove a user from a group, first remove the assignment in this field and then
+            remove the user from the group through the HSL ID dashboard at{' '}
             <a href="https://hslid-uat.cinfra.fi/ui">https://hslid-uat.cinfra.fi/ui</a>.
           </p>
           <p>Example:</p>

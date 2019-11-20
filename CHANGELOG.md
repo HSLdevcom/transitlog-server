@@ -1,5 +1,9 @@
 # Transitlog server changelog
 
+## Version 1.5.1, deployed 2019-11-20 @ 10:00
+
+- Fix admin views.
+
 ## Version 1.5.0, deployed 2019-11-20 @ 09:00
 
 - Fixes for journey event correctness.
