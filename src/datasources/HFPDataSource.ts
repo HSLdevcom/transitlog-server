@@ -1,7 +1,7 @@
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
-import { getDateFromDateTime, getNormalTime, isNextDay } from '../utils/time'
-import { Direction } from '../types/generated/schema-types'
+import { getDateFromDateTime, getNormalTime } from '../utils/time'
+import { Scalars } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
 import { DBAlert, DBCancellation, Vehicles } from '../types/EventsDb'
@@ -402,7 +402,7 @@ SELECT ${routeDepartureFields.join(',')}
 FROM vehicles
 WHERE tst >= :minTime
   AND tst < :maxTime
-  AND event_type IN ('DEP', 'PDE')
+  AND event_type IN ('DEP', 'PDE', 'PAS')
   AND oday = :date
   AND stop = :stopId
   AND is_ongoing = true
@@ -432,7 +432,7 @@ ORDER BY tst DESC;
     stopId: string,
     date: string,
     routeId: string,
-    direction: Direction,
+    direction: Scalars['Direction'],
     lastStopArrival: boolean = false
   ): Promise<Vehicles[]> {
     const { minTime, maxTime } = createTstRange(date)

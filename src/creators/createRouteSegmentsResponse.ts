@@ -2,7 +2,7 @@ import { groupBy, sortBy, get } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreRouteData } from '../types/Jore'
 import { cacheFetch } from '../cache'
-import { Direction, RouteSegment } from '../types/generated/schema-types'
+import { Scalars, RouteSegment } from '../types/generated/schema-types'
 import { createRouteSegmentObject } from '../objects/createRouteSegmentObject'
 import { requireUser } from '../auth/requireUser'
 
@@ -33,7 +33,7 @@ export async function createRouteSegmentsResponse(
   getAlerts,
   date: string,
   routeId: string,
-  direction: Direction
+  direction: Scalars['Direction']
 ): Promise<RouteSegment[]> {
   const fetchAndValidate = async () => {
     const routes = await getRouteSegments()
@@ -83,8 +83,7 @@ export async function createRouteSegmentsResponse(
   const validRouteSegments = await cacheFetch<RouteSegment[]>(
     cacheKey,
     fetchAndValidate,
-    30 * 24 * 60 * 60,
-    true
+    30 * 24 * 60 * 60
   )
 
   if (!validRouteSegments) {

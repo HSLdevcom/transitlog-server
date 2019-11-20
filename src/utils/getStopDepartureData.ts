@@ -52,18 +52,19 @@ export const getStopDepartureEvent = (events, preferDep: boolean = false) => {
     return null
   }
 
-  let lookForType = preferDep ? 'DEP' : 'PDE'
-  let departureEvent = events.find((event) => event.event_type === lookForType)
+  const lookForEvents = [preferDep ? 'DEP' : 'PDE', preferDep ? 'PDE' : 'DEP', 'PAS']
+  let departureEvent: Vehicles | null = null
 
-  if (!departureEvent) {
-    // Fall back to other type of event
-    lookForType = lookForType === 'DEP' ? 'PDE' : 'DEP'
+  for (const lookForType of lookForEvents) {
     departureEvent = events.find((event) => event.event_type === lookForType)
 
-    // If still not found, just get the first event from what we have
-    if (!departureEvent) {
-      departureEvent = events[0] || null
+    if (departureEvent) {
+      break
     }
+  }
+
+  if (!departureEvent) {
+    departureEvent = events[0] || null
   }
 
   return departureEvent

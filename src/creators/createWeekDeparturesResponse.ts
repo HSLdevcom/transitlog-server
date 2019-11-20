@@ -1,7 +1,7 @@
 import { CachedFetcher } from '../types/CachedFetcher'
 import {
   Departure,
-  Direction,
+  Scalars,
   ExceptionDay,
   ObservedArrival,
   ObservedDeparture,
@@ -85,7 +85,7 @@ const combineDeparturesAndEvents = (
     }
 
     let eventData: ObservedArrival | ObservedDeparture | null = null
-    let event = null
+    let event: Vehicles | null = null
 
     // We can respond with either the departure from the origin stop or the
     // arrival to the destination stop, depending on the lastStopArrival state.
@@ -201,7 +201,7 @@ export const createWeekDeparturesResponse = async (
   exceptions: ExceptionDay[],
   stopId: string,
   routeId: string,
-  direction: Direction,
+  direction: Scalars['Direction'],
   date: string,
   lastStopArrival: boolean = false,
   skipCache: boolean = false

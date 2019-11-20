@@ -35,7 +35,7 @@ export const Route = gql`
     lng: Float!
     name: String
     radius: Float
-    modes: [String]!
+    modes: [String!]
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
   }

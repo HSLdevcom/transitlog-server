@@ -1,4 +1,4 @@
-import { VehicleId, VehicleJourney } from '../types/generated/schema-types'
+import { Scalars, VehicleJourney } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { createVehicleJourneyObject } from '../objects/createVehicleJourneyObject'
@@ -12,7 +12,7 @@ import { findJourneyStartEvent } from '../utils/findJourneyStartEvent'
 export const createVehicleJourneysResponse = async (
   getVehicleJourneys: () => Promise<Vehicles[] | null>,
   getAlerts,
-  uniqueVehicleId: VehicleId,
+  uniqueVehicleId: Scalars['VehicleId'],
   date: string,
   user: AuthenticatedUser
 ): Promise<VehicleJourney[]> => {

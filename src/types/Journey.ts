@@ -1,4 +1,4 @@
-import { Direction, VehicleId } from './generated/schema-types'
+import { Scalars } from './generated/schema-types'
 import { Vehicles } from './EventsDb'
 
 export interface HFPJourneyObject {
@@ -12,9 +12,9 @@ export interface HFPJourneyObject {
 export interface JourneyObject {
   departureDate: string
   routeId: string
-  direction: Direction
+  direction: Scalars['Direction']
   departureTime: string
-  uniqueVehicleId: VehicleId
+  uniqueVehicleId: Scalars['VehicleId']
 }
 
 export type Journey = HFPJourneyObject | JourneyObject | Vehicles

@@ -64,8 +64,8 @@ type RequestContext = {
 
   app.use(json({ limit: '50mb' }))
 
-  app.engine('tsx', createEngine({ transformViews: false }))
-  app.set('view engine', 'tsx')
+  app.engine('js', createEngine({ transformViews: false }))
+  app.set('view engine', 'js')
   app.set('views', path.join(__dirname, 'views'))
 
   app.get('/check', (req, res) => {

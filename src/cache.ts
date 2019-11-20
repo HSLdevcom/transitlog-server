@@ -11,7 +11,7 @@ export async function getRedis() {
 
   const client = new Redis({
     host: REDIS_HOST,
-    port: REDIS_PORT,
+    port: typeof REDIS_PORT === 'string' ? parseInt(REDIS_PORT, 10) : REDIS_PORT,
     lazyConnect: true,
   })
 
