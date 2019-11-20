@@ -28,7 +28,7 @@ export function getServerUser(req): AuthenticatedUser {
   }
 }
 
-export function requireUser(user: AuthenticatedUser, group?: string | string[]) {
+export function requireUser(user?: AuthenticatedUser, group?: string | string[]) {
   // Make sure we actually have a user
   if (!user || !user.accessToken || (group && (!user.groups || user.groups.length === 0))) {
     return false

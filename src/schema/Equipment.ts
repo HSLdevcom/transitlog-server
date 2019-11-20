@@ -16,6 +16,11 @@ export const Equipment = gql`
     _matchScore: Float
   }
 
+  type Operator {
+    operatorId: String!
+    operatorName: String
+  }
+
   input EquipmentFilterInput {
     vehicleId: String
     operatorId: String

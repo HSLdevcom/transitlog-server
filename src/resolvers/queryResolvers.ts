@@ -19,6 +19,8 @@ import { getAlerts } from '../getAlerts'
 import { getCancellations } from '../getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
 import { createUnsignedVehicleEventsResponse } from '../creators/createUnsignedVehicleEventsResponse'
+import { createOperation } from 'apollo-link'
+import { createOperatorResponse } from '../creators/createOperatorResponse'
 
 const equipment = (root, { filter, date }, { dataSources, user }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -385,8 +387,14 @@ const uiMessage = async () => {
   return get(settings, 'ui_message', { date: '', message: '' })
 }
 
+const operators = async (root, {}, { dataSources, user }) => {
+  const getOperators = () => dataSources.JoreAPI.getOperators()
+  return createOperatorResponse(getOperators, user)
+}
+
 export const queryResolvers: QueryResolvers = {
   equipment,
+  operators,
   stop,
   stops,
   route,

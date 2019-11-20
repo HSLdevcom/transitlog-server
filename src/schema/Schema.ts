@@ -28,6 +28,7 @@ export const Schema = gql`
 
   type Query {
     equipment(filter: EquipmentFilterInput, date: Date): [Equipment]!
+    operators: [Operator!]
     stop(stopId: String!, date: Date!): Stop
     stops(date: Date, filter: StopFilterInput): [Stop]!
     route(routeId: String!, direction: Direction!, date: Date!): Route
