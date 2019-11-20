@@ -83,8 +83,7 @@ export async function createRouteSegmentsResponse(
   const validRouteSegments = await cacheFetch<RouteSegment[]>(
     cacheKey,
     fetchAndValidate,
-    30 * 24 * 60 * 60,
-    true
+    30 * 24 * 60 * 60
   )
 
   if (!validRouteSegments) {
