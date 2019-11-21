@@ -218,10 +218,15 @@ WHERE stop.stop_id = :stopId;`,
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
-    const query = this.db
-      .withSchema(SCHEMA)
-      .select()
-      .from('equipment')
+    // language=PostgreSQL
+    const query = this.db.raw(
+      `
+      SELECT DISTINCT ON (vehicle_id, operator_id) *
+      FROM :schema:.equipment equipment
+      ORDER BY vehicle_id, operator_id, date_imported DESC;
+    `,
+      { schema: SCHEMA }
+    )
 
     return this.getBatched(query)
   }
