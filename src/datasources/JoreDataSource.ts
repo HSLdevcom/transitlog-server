@@ -218,6 +218,7 @@ WHERE stop.stop_id = :stopId;`,
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
+    // TODO: Use date to select the relevant version of a vehicle.
     // language=PostgreSQL
     const query = this.db.raw(
       `
