@@ -20,25 +20,25 @@ import { getCancellations } from '../getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
 import { createUnsignedVehicleEventsResponse } from '../creators/createUnsignedVehicleEventsResponse'
 
-const equipment = (root, { filter, date }, { dataSources, user }) => {
+const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
   const getObservedVehicles = () => dataSources.HFPAPI.getAvailableVehicles(date)
   return createEquipmentResponse(getEquipment, getObservedVehicles, user, date)
 }
 
-const stops = (root, { filter, date }, { dataSources }) => {
+const stops = (root, { filter, date }, { dataSources, skipCache }) => {
   const getStops = () => dataSources.JoreAPI.getStops(date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
   return createStopsResponse(getStops, fetchAlerts, date, filter)
 }
 
-const stop = (root, { stopId, date }, { dataSources }) => {
+const stop = (root, { stopId, date }, { dataSources, skipCache }) => {
   const getStopSegments = () => dataSources.JoreAPI.getStopSegments(stopId, date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
   return createStopResponse(getStopSegments, fetchAlerts, date, stopId)
 }
 
-const route = async (root, { routeId, direction, date }, { dataSources, user }) => {
+const route = async (root, { routeId, direction, date }, { dataSources, user, skipCache }) => {
   const getRoute = () => dataSources.JoreAPI.getRoute(routeId, direction)
 
   const fetchCancellations = getCancellations.bind(
@@ -78,7 +78,11 @@ const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
   return createRouteGeometryResponse(getRouteGeometry, date, routeId, direction)
 }
 
-const routeSegments = (root, { routeId, direction, date }, { dataSources, user }) => {
+const routeSegments = (
+  root,
+  { routeId, direction, date },
+  { dataSources, user, skipCache }
+) => {
   const getRouteSegments = () => dataSources.JoreAPI.getRouteSegments(routeId, direction)
 
   const fetchCancellations = getCancellations.bind(
@@ -294,13 +298,18 @@ const journey = async (
   )
 }
 
-const journeys = (root, { routeId, direction, departureDate }, { dataSources }) => {
+const journeys = (root, { routeId, direction, departureDate }, { dataSources, skipCache }) => {
   const getJourney = () =>
     dataSources.HFPAPI.getRouteJourneys(routeId, direction, departureDate)
+
   return createRouteJourneysResponse(getJourney, routeId, direction, departureDate)
 }
 
-const vehicleJourneys = (root, { uniqueVehicleId, date }, { dataSources, user }) => {
+const vehicleJourneys = (
+  root,
+  { uniqueVehicleId, date },
+  { dataSources, user, skipCache }
+) => {
   const getVehicleJourneys = () =>
     dataSources.HFPAPI.getJourneysForVehicle(uniqueVehicleId, date)
 
