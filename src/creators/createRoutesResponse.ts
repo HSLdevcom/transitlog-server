@@ -20,7 +20,8 @@ export async function createRouteResponse(
   getAlerts,
   date: string,
   routeId: string,
-  direction: Scalars['Direction']
+  direction: Scalars['Direction'],
+  skipCache = false
 ): Promise<Route | null> {
   const fetchAndValidate: CachedFetcher<JoreRoute> = async () => {
     const routes = await getRoute()
@@ -34,7 +35,12 @@ export async function createRouteResponse(
   }
 
   const cacheKey = `route_${routeId}_${direction}_${date}`
-  const validRoute = await cacheFetch<JoreRoute>(cacheKey, fetchAndValidate, 30 * 24 * 60 * 60)
+  const validRoute = await cacheFetch<JoreRoute>(
+    cacheKey,
+    fetchAndValidate,
+    30 * 24 * 60 * 60,
+    skipCache
+  )
 
   if (!validRoute) {
     return null
@@ -42,10 +48,14 @@ export async function createRouteResponse(
 
   const routeAlerts = await getAlerts(date, { allRoutes: true, route: validRoute.route_id })
 
-  const routeCancellations = await getCancellations(date, {
-    routeId: validRoute.route_id,
-    direction: getDirection(validRoute.direction) || undefined,
-  })
+  const routeCancellations = await getCancellations(
+    date,
+    {
+      routeId: validRoute.route_id,
+      direction: getDirection(validRoute.direction) || undefined,
+    },
+    skipCache
+  )
 
   return createRouteObject(validRoute, routeAlerts, routeCancellations)
 }
@@ -56,7 +66,8 @@ export async function createRoutesResponse(
   getCancellations,
   getAlerts,
   date: string,
-  filter?: RouteFilterInput
+  filter?: RouteFilterInput,
+  skipCache = false
 ): Promise<Route[]> {
   const fetchAndValidate: CachedFetcher<Route[]> = async () => {
     const routes = await getRoutes()
@@ -66,7 +77,7 @@ export async function createRoutesResponse(
     }
 
     const alerts = await getAlerts(date, { allRoutes: true, route: true })
-    const cancellations = await getCancellations(date, { all: true })
+    const cancellations = await getCancellations(date, { all: true }, skipCache)
 
     const groupedRoutes = groupBy(
       routes,
@@ -95,7 +106,12 @@ export async function createRoutesResponse(
     requireUser(user, 'HSL') ? 'HSL_authorized' : 'unauthorized'
   }`
 
-  const validRoutes = await cacheFetch<Route[]>(cacheKey, fetchAndValidate, 24 * 60 * 60)
+  const validRoutes = await cacheFetch<Route[]>(
+    cacheKey,
+    fetchAndValidate,
+    24 * 60 * 60,
+    skipCache
+  )
 
   if (!validRoutes) {
     return []

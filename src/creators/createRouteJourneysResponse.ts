@@ -10,7 +10,8 @@ export const createRouteJourneysResponse = async (
   getJourney: () => Promise<Vehicles[] | null>,
   routeId: string,
   direction: Scalars['Direction'],
-  date: string
+  date: string,
+  skipCache = false
 ): Promise<Journey[]> => {
   const fetchAllJourneys: CachedFetcher<Journey[]> = async () => {
     const journeyEvents = await getJourney()
@@ -37,7 +38,12 @@ export const createRouteJourneysResponse = async (
   const journeysTTL: number = isToday(date) ? 60 : 24 * 60 * 60
   const journeysKey = `route_journeys_${routeId}_${direction}_${date}`
 
-  const journeys = await cacheFetch<Journey[]>(journeysKey, fetchAllJourneys, journeysTTL)
+  const journeys = await cacheFetch<Journey[]>(
+    journeysKey,
+    fetchAllJourneys,
+    journeysTTL,
+    skipCache
+  )
 
   if (!journeys || journeys.length === 0) {
     return []

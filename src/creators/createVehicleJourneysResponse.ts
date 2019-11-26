@@ -10,11 +10,12 @@ import { compact, map, groupBy, orderBy, get } from 'lodash'
 import { findJourneyStartEvent } from '../utils/findJourneyStartEvent'
 
 export const createVehicleJourneysResponse = async (
+  user: AuthenticatedUser,
   getVehicleJourneys: () => Promise<Vehicles[] | null>,
   getAlerts,
   uniqueVehicleId: Scalars['VehicleId'],
   date: string,
-  user: AuthenticatedUser
+  skipCache = false
 ): Promise<VehicleJourney[]> => {
   const fetchJourneys: CachedFetcher<VehicleJourney[]> = async () => {
     const vehicleJourneys = await getVehicleJourneys()
@@ -71,7 +72,12 @@ export const createVehicleJourneysResponse = async (
   const cacheTTL: number = isToday(date) ? 5 : 24 * 60 * 60
 
   const cacheKey = `vehicle_journeys_${uniqueVehicleId}_${date}`
-  const journeys = await cacheFetch<VehicleJourney[]>(cacheKey, fetchJourneys, cacheTTL)
+  const journeys = await cacheFetch<VehicleJourney[]>(
+    cacheKey,
+    fetchJourneys,
+    cacheTTL,
+    skipCache
+  )
 
   if (!journeys) {
     return []

@@ -216,6 +216,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param skipCache
  */
 export async function createJourneyResponse(
+  user: AuthenticatedUser | null,
   fetchRouteData: () => Promise<PlannedJourneyData>,
   fetchJourneyEvents: () => Promise<Vehicles[]>,
   fetchJourneyEquipment: (
@@ -233,7 +234,6 @@ export async function createJourneyResponse(
   departureTime: string,
   uniqueVehicleId: Scalars['VehicleId'],
   shouldFetchUnsignedEvents: boolean = false,
-  user: AuthenticatedUser | null,
   skipCache: boolean = false
 ): Promise<Journey | null> {
   // If a vehicle ID is not provided, we need to figure out which vehicle operated the

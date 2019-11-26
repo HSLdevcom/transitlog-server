@@ -1,11 +1,11 @@
 import { CachedFetcher } from '../types/CachedFetcher'
 import {
   Departure,
-  Scalars,
   ExceptionDay,
   ObservedArrival,
   ObservedDeparture,
   RouteSegment,
+  Scalars,
 } from '../types/generated/schema-types'
 import { cacheFetch } from '../cache'
 import { JoreDeparture, JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
@@ -216,7 +216,8 @@ export const createWeekDeparturesResponse = async (
     const stopsPromise = cacheFetch<RouteSegment[]>(
       stopsCacheKey,
       () => fetchStops(getStops, date),
-      30 * 24 * 60 * 60
+      30 * 24 * 60 * 60,
+      skipCache
     )
 
     const departuresPromise: Promise<JoreDepartureWithOrigin[]> = getDepartures()
@@ -260,7 +261,8 @@ export const createWeekDeparturesResponse = async (
   const departures = await cacheFetch<Departure[]>(
     departuresCacheKey,
     fetchDepartures,
-    24 * 60 * 60
+    24 * 60 * 60,
+    skipCache
   )
 
   if (!departures || departures.length === 0) {
@@ -269,12 +271,19 @@ export const createWeekDeparturesResponse = async (
 
   const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
   const requests: Array<Promise<Vehicles[] | null>> = []
+  const cancellations = {}
 
   let i = 0
 
   while (i < 7) {
     const fetchMoment = minDateMoment.clone().add(i, 'day')
     const fetchDate = fetchMoment.format('YYYY-MM-DD')
+
+    cancellations[fetchDate] = await getCancellations(
+      fetchDate,
+      { routeId, direction },
+      skipCache
+    )
 
     // Unnecessary to fetch dates too far into the future
     if (isAfter(fetchDate, startOfTomorrow())) {
@@ -325,11 +334,10 @@ export const createWeekDeparturesResponse = async (
       route: routeId,
     })
 
-    const cancellations = await getCancellations(date, { routeId, direction })
-
     return routeDepartures.map((departure) => {
+      const cancellationsForDate = cancellations[departure.departureDate] || []
       setAlertsOnDeparture(departure, alerts)
-      setCancellationsOnDeparture(departure, cancellations)
+      setCancellationsOnDeparture(departure, cancellationsForDate)
       return departure
     })
   }

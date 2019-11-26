@@ -33,7 +33,8 @@ export async function createRouteSegmentsResponse(
   getAlerts,
   date: string,
   routeId: string,
-  direction: Scalars['Direction']
+  direction: Scalars['Direction'],
+  skipCache = false
 ): Promise<RouteSegment[]> {
   const fetchAndValidate = async () => {
     const routes = await getRouteSegments()
@@ -53,10 +54,14 @@ export async function createRouteSegmentsResponse(
       stop: true,
     })
 
-    const cancellations = await getCancellations(date, {
-      routeId,
-      direction,
-    })
+    const cancellations = await getCancellations(
+      date,
+      {
+        routeId,
+        direction,
+      },
+      skipCache
+    )
 
     // The sorted array of segments can then be further reduced to segment and stop combos.
     // This returns an array of objects which have data from both the stop and the route
@@ -83,7 +88,8 @@ export async function createRouteSegmentsResponse(
   const validRouteSegments = await cacheFetch<RouteSegment[]>(
     cacheKey,
     fetchAndValidate,
-    30 * 24 * 60 * 60
+    30 * 24 * 60 * 60,
+    skipCache
   )
 
   if (!validRouteSegments) {
