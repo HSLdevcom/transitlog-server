@@ -29,7 +29,7 @@ const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => 
 const stops = (root, { filter, date }, { dataSources, skipCache }) => {
   const getStops = () => dataSources.JoreAPI.getStops(date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-  return createStopsResponse(getStops, fetchAlerts, date, filter)
+  return createStopsResponse(getStops, fetchAlerts, date, filter, null, skipCache)
 }
 
 const stop = (root, { stopId, date }, { dataSources, skipCache }) => {

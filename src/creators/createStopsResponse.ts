@@ -83,7 +83,8 @@ export async function createStopsResponse(
   getAlerts,
   date?: string,
   filter?: StopFilterInput,
-  bbox: Scalars['BBox'] | null = null
+  bbox: Scalars['BBox'] | null = null,
+  skipCache = false
 ): Promise<Stop[]> {
   const fetchStops: CachedFetcher<Stop[]> = async () => {
     const fetchedStops = await getStops()
@@ -158,7 +159,7 @@ export async function createStopsResponse(
   }
 
   const cacheKey = `stops_${date || 'undated'}`
-  const stops = await cacheFetch<Stop[]>(cacheKey, fetchStops, 30 * 24 * 60 * 60)
+  const stops = await cacheFetch<Stop[]>(cacheKey, fetchStops, 30 * 24 * 60 * 60, skipCache)
 
   if (!stops) {
     return []
