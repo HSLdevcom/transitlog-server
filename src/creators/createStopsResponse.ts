@@ -18,7 +18,8 @@ export async function createStopResponse(
   getStops: () => Promise<JoreCombinedStop[]>,
   getAlerts,
   date: string,
-  stopId: string
+  stopId: string,
+  skipCache = false
 ): Promise<Stop | null> {
   const fetchStop: CachedFetcher<Stop> = async () => {
     const stops = await getStops()
@@ -64,7 +65,7 @@ export async function createStopResponse(
   }
 
   const cacheKey = `stop_${date}_${stopId}`
-  const stop = await cacheFetch<Stop>(cacheKey, fetchStop, 30 * 24 * 60 * 60)
+  const stop = await cacheFetch<Stop>(cacheKey, fetchStop, 30 * 24 * 60 * 60, skipCache)
 
   if (!stop) {
     return null
@@ -83,7 +84,8 @@ export async function createStopsResponse(
   getAlerts,
   date?: string,
   filter?: StopFilterInput,
-  bbox: Scalars['BBox'] | null = null
+  bbox: Scalars['BBox'] | null = null,
+  skipCache = false
 ): Promise<Stop[]> {
   const fetchStops: CachedFetcher<Stop[]> = async () => {
     const fetchedStops = await getStops()
@@ -158,7 +160,7 @@ export async function createStopsResponse(
   }
 
   const cacheKey = `stops_${date || 'undated'}`
-  const stops = await cacheFetch<Stop[]>(cacheKey, fetchStops, 30 * 24 * 60 * 60)
+  const stops = await cacheFetch<Stop[]>(cacheKey, fetchStops, 30 * 24 * 60 * 60, skipCache)
 
   if (!stops) {
     return []
