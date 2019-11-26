@@ -1,5 +1,10 @@
 # Transitlog server changelog
 
+## Version 1.5.2, deployed 2019-11-26 @ 13:00
+
+- Add skipCache functionality to more resolvers to enable more granular cache updates.
+- Fix cancellations getting attached to departures of the wrong date.
+
 ## Version 1.5.1, deployed 2019-11-20 @ 10:00
 
 - Fix admin views.
