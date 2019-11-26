@@ -14,7 +14,8 @@ export async function createEquipmentResponse(
   getEquipment: () => Promise<JoreEquipment[]>,
   getObservedVehicles: () => Promise<Vehicles[]>,
   user: AuthenticatedUser,
-  date?: string
+  date?: string,
+  skipCache = false
 ): Promise<Equipment[]> {
   const fetchEquipment: CachedFetcher<Equipment[]> = async () => {
     const equipment = await getEquipment()
@@ -30,7 +31,8 @@ export async function createEquipmentResponse(
   const equipmentData = await cacheFetch<Equipment[]>(
     equipmentCacheKey,
     fetchEquipment,
-    24 * 60 * 60
+    24 * 60 * 60,
+    skipCache
   )
 
   if (!equipmentData || !user) {
@@ -66,22 +68,28 @@ export async function createEquipmentResponse(
     const vehicleHfpCacheKey = `equipment_observed_${date}`
     const ttl = isToday(date) ? 5 * 60 : 24 * 60 * 60
 
-    const vehicles: Vehicles[] =
-      (await cacheFetch<Vehicles[]>(vehicleHfpCacheKey, getObservedVehicles, ttl)) || []
+    const vehicles: Vehicles[] | null = await cacheFetch<Vehicles[]>(
+      vehicleHfpCacheKey,
+      getObservedVehicles,
+      ttl,
+      skipCache
+    )
 
-    if (vehicles.length !== 0) {
-      equipmentResponse = equipmentResponse.map((item: Equipment) => {
-        const vehicleId = item.id
-
-        const observedVehicleId = vehicles.find(({ owner_operator_id, vehicle_number }) => {
-          const hfpVehicleId = createUniqueVehicleId(owner_operator_id, vehicle_number)
-          return hfpVehicleId === vehicleId
-        })
-
-        item.inService = !!observedVehicleId
-        return item
-      })
+    if (!vehicles || vehicles.length === 0) {
+      return equipmentResponse
     }
+
+    equipmentResponse = equipmentResponse.map((item: Equipment) => {
+      const vehicleId = item.id
+
+      const observedVehicleId = vehicles.find(({ owner_operator_id, vehicle_number }) => {
+        const hfpVehicleId = createUniqueVehicleId(owner_operator_id, vehicle_number)
+        return hfpVehicleId === vehicleId
+      })
+
+      item.inService = !!observedVehicleId
+      return item
+    })
   }
 
   return equipmentResponse

@@ -272,7 +272,7 @@ export async function createDeparturesResponse(
     route: true,
   })
 
-  const cancellations = await getCancellations(date, { all: true })
+  const cancellations = await getCancellations(date, { all: true }, skipCache)
 
   const departuresWithAlerts = departures.map((departure) => {
     setAlertsOnDeparture(departure, alerts)

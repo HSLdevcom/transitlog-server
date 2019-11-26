@@ -17,6 +17,7 @@ export const setCancellationsOnDeparture = (
 
   const departureCancellations: Cancellation[] = cancellations.filter(
     (cancellation) =>
+      cancellation.departureDate === departure.departureDate &&
       cancellation.routeId === departure.routeId &&
       cancellation.direction === departure.direction &&
       departureTime.startsWith(cancellation.journeyStartTime)
