@@ -511,7 +511,7 @@ ORDER BY tst DESC;
 FROM stopevent
 WHERE tst >= :minTime
   AND tst <= :maxTime
-  AND event_type IN ('${queryEventTypes.join("','")}')
+  AND event_type IN ('${queryEventTypes.join(`','`)}')
   AND stop = :stopId
   AND route_id = :routeId
   AND direction_id = :direction
