@@ -519,11 +519,11 @@ ORDER BY tst DESC;
     return this.getBatched(query)
   }
 
-  getAlerts = async (minDate: string, maxDate: string): Promise<DBAlert[]> => {
+  getAlerts = async (date: string): Promise<DBAlert[]> => {
     const query = this.db('alert')
       .select(alertFields)
-      .where('valid_from', '>=', minDate)
-      .orWhere('valid_to', '<=', maxDate)
+      .where('valid_from', '<=', date)
+      .where('valid_to', '>=', date)
       .orderBy([
         { column: 'valid_from', order: 'asc' },
         { column: 'valid_to', order: 'asc' },

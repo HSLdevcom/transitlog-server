@@ -19,23 +19,18 @@ export type AlertSearchProps = {
 }
 
 export const getAlerts = async (
-  fetchAlerts: (startDate: string, endDate: string) => Promise<DBAlert[]>,
+  fetchAlerts: (date: string) => Promise<DBAlert[]>,
   dateTime: Moment | string,
   searchProps: AlertSearchProps = {},
   language: string = 'fi',
   skipCache: boolean = false
 ): Promise<Alert[]> => {
-  const startTimeMoment = moment.tz(dateTime, TZ).startOf('day')
-  const endTimeMoment = moment
-    .tz(startTimeMoment, TZ)
-    .endOf('day')
-    .add(4.5, 'hours')
+  const timeMoment = moment.tz(dateTime, TZ).startOf('day')
 
   const alertsFetcher: CachedFetcher<Alert[]> = async () => {
-    const alerts = await fetchAlerts(
-      startTimeMoment.toISOString(true),
-      endTimeMoment.toISOString(true)
-    )
+    const alerts = await fetchAlerts(timeMoment.toISOString(true))
+
+    console.log(alerts.filter((a) => a.route_id === '2113'))
 
     if (alerts.length === 0) {
       return false
@@ -44,8 +39,8 @@ export const getAlerts = async (
     return alerts.map((alert) => createAlert(alert, language))
   }
 
-  const alertsCacheKey = `alerts_${startTimeMoment.format('YYYY-MM-DD')}_${language}`
-  const dateIsToday = isToday(startTimeMoment.toDate())
+  const alertsCacheKey = `alerts_${timeMoment.format('YYYY-MM-DD')}_${language}`
+  const dateIsToday = isToday(timeMoment.toDate())
   const alerts = await cacheFetch<Alert[]>(
     alertsCacheKey,
     alertsFetcher,
