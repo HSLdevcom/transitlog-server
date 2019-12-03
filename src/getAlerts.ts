@@ -30,8 +30,6 @@ export const getAlerts = async (
   const alertsFetcher: CachedFetcher<Alert[]> = async () => {
     const alerts = await fetchAlerts(timeMoment.toISOString(true))
 
-    console.log(alerts.filter((a) => a.route_id === '2113'))
-
     if (alerts.length === 0) {
       return false
     }
