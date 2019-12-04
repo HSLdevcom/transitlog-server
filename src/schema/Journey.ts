@@ -8,6 +8,7 @@ export const Journey = gql`
   type JourneyEvent {
     id: ID!
     type: String!
+    receivedAt: DateTime!
     recordedAt: DateTime!
     recordedAtUnix: Int!
     recordedTime: Time!
@@ -37,6 +38,7 @@ export const Journey = gql`
   type JourneyStopEvent {
     id: ID!
     type: String!
+    receivedAt: DateTime!
     recordedAt: DateTime!
     recordedAtUnix: Int!
     recordedTime: Time!
@@ -86,6 +88,7 @@ export const Journey = gql`
   type VehiclePosition implements Position {
     id: ID!
     journeyType: String!
+    receivedAt: DateTime!
     recordedAt: DateTime!
     recordedAtUnix: Int!
     recordedTime: Time!

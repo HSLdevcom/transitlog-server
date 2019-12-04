@@ -379,6 +379,7 @@ export type JourneyEvent = {
   id: Scalars['ID']
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
+  receivedAt: Scalars['DateTime']
   recordedAt: Scalars['DateTime']
   recordedAtUnix: Scalars['Int']
   recordedTime: Scalars['Time']
@@ -410,6 +411,7 @@ export type JourneyStopEvent = {
   plannedTime?: Maybe<Scalars['Time']>
   plannedTimeDifference?: Maybe<Scalars['Int']>
   plannedUnix?: Maybe<Scalars['Int']>
+  receivedAt: Scalars['DateTime']
   recordedAt: Scalars['DateTime']
   recordedAtUnix: Scalars['Int']
   recordedTime: Scalars['Time']
@@ -742,6 +744,7 @@ export type VehiclePosition = Position & {
   mode?: Maybe<Scalars['String']>
   nextStopId?: Maybe<Scalars['String']>
   operatorId?: Maybe<Scalars['String']>
+  receivedAt: Scalars['DateTime']
   recordedAt: Scalars['DateTime']
   recordedAtUnix: Scalars['Int']
   recordedTime: Scalars['Time']
@@ -1185,6 +1188,7 @@ export type JourneyEventResolvers<
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  receivedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
@@ -1223,6 +1227,7 @@ export type JourneyStopEventResolvers<
   plannedTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
   plannedTimeDifference?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   plannedUnix?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  receivedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
@@ -1586,6 +1591,7 @@ export type VehiclePositionResolvers<
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   nextStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   operatorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  receivedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>

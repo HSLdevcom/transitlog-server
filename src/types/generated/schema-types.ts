@@ -375,6 +375,7 @@ export type JourneyEvent = {
   id: Scalars['ID']
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
+  receivedAt: Scalars['DateTime']
   recordedAt: Scalars['DateTime']
   recordedAtUnix: Scalars['Int']
   recordedTime: Scalars['Time']
@@ -406,6 +407,7 @@ export type JourneyStopEvent = {
   plannedTime?: Maybe<Scalars['Time']>
   plannedTimeDifference?: Maybe<Scalars['Int']>
   plannedUnix?: Maybe<Scalars['Int']>
+  receivedAt: Scalars['DateTime']
   recordedAt: Scalars['DateTime']
   recordedAtUnix: Scalars['Int']
   recordedTime: Scalars['Time']
@@ -738,6 +740,7 @@ export type VehiclePosition = Position & {
   mode?: Maybe<Scalars['String']>
   nextStopId?: Maybe<Scalars['String']>
   operatorId?: Maybe<Scalars['String']>
+  receivedAt: Scalars['DateTime']
   recordedAt: Scalars['DateTime']
   recordedAtUnix: Scalars['Int']
   recordedTime: Scalars['Time']
