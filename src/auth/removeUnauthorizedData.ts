@@ -65,7 +65,5 @@ export function removeUnauthorizedData<T extends DataType>(
     .filter((group) => group.startsWith('op_'))
     .map((group) => group.replace('op_', ''))
 
-  console.log(operatorIds)
-
   return removeData(operatorIds)
 }
