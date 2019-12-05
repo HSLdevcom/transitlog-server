@@ -28,6 +28,8 @@ import {
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
+import { getUserGroups } from '../auth/requireUser'
+import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 
 /*
   Common functions for route departures and stop departures.
@@ -253,6 +255,10 @@ export async function createDeparturesResponse(
     return []
   }
 
+  const authorizedDepartures = removeUnauthorizedData<Departure>(departures, user, [
+    'operatingUnit',
+  ])
+
   // Cache events for the current day for 10 seconds only.
   // Older dates can be cached for longer.
   const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
@@ -274,7 +280,7 @@ export async function createDeparturesResponse(
 
   const cancellations = await getCancellations(date, { all: true }, skipCache)
 
-  const departuresWithAlerts = departures.map((departure) => {
+  const departuresWithAlerts = authorizedDepartures.map((departure) => {
     setAlertsOnDeparture(departure, alerts)
     setCancellationsOnDeparture(departure, cancellations)
     return departure

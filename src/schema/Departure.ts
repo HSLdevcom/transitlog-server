@@ -63,6 +63,7 @@ export const Departure = gql`
     terminalTime: Int
     recoveryTime: Int
     departureId: Int!
+    operatingUnit: String
     departureTime: Time!
     departureDate: Date!
     extraDeparture: String!

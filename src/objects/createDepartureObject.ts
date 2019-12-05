@@ -139,6 +139,7 @@ export function createPlannedDepartureObject(
     stop,
     journey: null,
     alerts,
+    operatingUnit: departure?.bid_target_id || '',
     cancellations: [],
     isCancelled: false,
     isOrigin: isOrigin || get(departure, 'origin_departure.stop_id', '') === departure.stop_id,
