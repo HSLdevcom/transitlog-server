@@ -102,6 +102,7 @@ export interface Vehicles {
   owner_operator_id: number
   route_id: Maybe<string>
   spd: Maybe<number>
+  received_at: string
   tsi: string
   tst: string
   unique_vehicle_id: string

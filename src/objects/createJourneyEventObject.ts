@@ -27,10 +27,12 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
 
   const unix = parseInt(event.tsi, 10)
   const ts = moment.tz(event.tst, TZ)
+  const receivedTs = moment.tz(event.received_at, TZ)
 
   return {
     id: `journey_event_${event.event_type || 'VP'}_${id}_${unix}`,
     type: event.event_type || 'VP',
+    receivedAt: receivedTs.toISOString(true),
     recordedAt: ts.toISOString(true),
     recordedAtUnix: ts.unix(),
     recordedTime: getJourneyEventTime(event),
@@ -111,6 +113,8 @@ export function createJourneyStopEventObject(
   const id = createJourneyId(event)
   const unix = parseInt(event.tsi, 10)
   const ts = moment.tz(event.tst, TZ).toISOString(true)
+  const receivedTs = moment.tz(event.received_at, TZ).toISOString(true)
+
   const stopData = stop ? stop : departure ? departure?.stop : null
 
   const isArrival = ['ARR', 'ARS'].includes(event.event_type)
@@ -148,6 +152,7 @@ export function createJourneyStopEventObject(
   return {
     id: `journey_stop_event_${event.event_type}_${id}_${unix}`,
     type: event.event_type,
+    receivedAt: receivedTs,
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
@@ -180,6 +185,7 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
   const useId = id || createJourneyId(event)
   const unix = parseInt(event.tsi, 10)
   const ts = moment.tz(event.tst, TZ).toISOString(true)
+  const receivedTs = moment.tz(event.received_at, TZ).toISOString(true)
 
   const journeyType = !event.journey_type
     ? typeof event.journey_start_time === 'undefined'
@@ -190,6 +196,7 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
   return {
     id: `vehicle_position_event_${useId}_${unix}_${event.lat}_${event.long}`,
     journeyType,
+    receivedAt: receivedTs,
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
@@ -208,10 +215,12 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
 export function createUnsignedVehiclePositionObject(event: Vehicles): VehiclePosition {
   const unix = parseInt(event.tsi, 10)
   const ts = moment.tz(event.tst, TZ).toISOString(true)
+  const receivedTs = moment.tz(event.received_at, TZ).toISOString(true)
 
   return {
     id: `unsigned_position_${event.unique_vehicle_id}_${unix}_${event.lat}_${event.long}`,
     journeyType: event.journey_type || 'deadrun',
+    receivedAt: receivedTs,
     recordedAt: ts,
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),

@@ -1,6 +1,8 @@
 overwrite: true
 documents: null
-schema: schema.graphql
+schema:
+  'src/schema/**/*.ts':
+    noRequire: true
 generates:
   src/types/generated/schema-types.ts:
     plugins:
