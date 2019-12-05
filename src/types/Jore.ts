@@ -63,7 +63,7 @@ export interface JoreDeparture {
   recovery_time?: Maybe<number>
   equipment_type?: Maybe<string>
   equipment_required?: Maybe<number>
-  bidTarget_id?: Maybe<string>
+  bid_target_id?: Maybe<string>
   operator_id?: Maybe<string>
   available_operators?: Maybe<string>
   trunk_color_required?: Maybe<number>

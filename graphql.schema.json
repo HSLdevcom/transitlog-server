@@ -3992,6 +3992,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operatingUnit",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "departureTime",
             "description": "",
             "args": [],

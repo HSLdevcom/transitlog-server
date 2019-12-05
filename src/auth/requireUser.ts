@@ -56,7 +56,7 @@ export function requireUser(user?: AuthenticatedUser, group?: string | string[])
   return true
 }
 
-export function getUserGroups(user) {
+export function getUserGroups(user): string[] {
   if (
     !user ||
     !user.accessToken ||

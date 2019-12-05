@@ -330,7 +330,8 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
        departure.trunk_color_required,
        departure.date_begin,
        departure.date_end,
-       departure.departure_id
+       departure.departure_id,
+       departure.bid_target_id
 FROM :schema:.departure departure
     WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
       AND departure.route_id = :routeId
@@ -492,7 +493,8 @@ ORDER BY operator_id ASC;`,
     departure.trunk_color_required,
     departure.date_begin,
     departure.date_end,
-    departure.departure_id
+    departure.departure_id,
+    departure.bid_target_id
   `
 
   async getDeparturesForStop(stopId, date): Promise<JoreDepartureWithOrigin[]> {

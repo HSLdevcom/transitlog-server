@@ -227,6 +227,7 @@ export type Departure = {
   terminalTime?: Maybe<Scalars['Int']>
   recoveryTime?: Maybe<Scalars['Int']>
   departureId: Scalars['Int']
+  operatingUnit?: Maybe<Scalars['String']>
   departureTime: Scalars['Time']
   departureDate: Scalars['Date']
   extraDeparture: Scalars['String']
