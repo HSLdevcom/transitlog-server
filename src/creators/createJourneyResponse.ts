@@ -51,6 +51,7 @@ import { AuthenticatedUser } from '../types/Authentication'
 import { requireVehicleAuthorization } from '../auth/requireUser'
 import { intval } from '../utils/isWithinRange'
 import { toLatLng } from '../geometry/LatLng'
+import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 
 type JourneyRoute = {
   route: Route | null
@@ -345,8 +346,12 @@ export async function createJourneyResponse(
     departures: [],
   }
 
+  const authorizedDepartures = removeUnauthorizedData<Departure>(departures, user, [
+    'operatingUnit',
+  ])
+
   // The origin departure of the journey is the first departure in the array.
-  const originDeparture = departures[0] || null
+  const originDeparture = authorizedDepartures[0] || null
 
   // Terminal and recovery time needs to be hidden from unauthorized users.
   if (!requireVehicleAuthorization(user, vehicleId)) {
@@ -377,7 +382,7 @@ export async function createJourneyResponse(
     (cancellation) => createJourneyCancellationEventObject(cancellation)
   )
 
-  const plannedStopEvents: PlannedStopEvent[] = departures.map((departure) =>
+  const plannedStopEvents: PlannedStopEvent[] = authorizedDepartures.map((departure) =>
     createPlannedStopEventObject(departure, journeyAlerts)
   )
 
@@ -441,7 +446,7 @@ export async function createJourneyResponse(
   }
 
   // Create virtual ARS, DEP/PDE and DOO stop events from the vehicle positions.
-  const virtualStopEvents = createVirtualStopEvents(ascVehiclePositions, departures)
+  const virtualStopEvents = createVirtualStopEvents(ascVehiclePositions, authorizedDepartures)
 
   // Patch the stop events collection with virtual stop
   // events that we parsed from the ascVehiclePositions.
@@ -484,7 +489,7 @@ export async function createJourneyResponse(
     for (const eventItem of eventsForStop) {
       if (stopId !== 'unknown') {
         matchedStopId = stopId + ''
-        departure = departures.find((dep) => dep.stopId === stopId + '')
+        departure = authorizedDepartures.find((dep) => dep.stopId === stopId + '')
       } else if (stopId === 'unknown' && eventItem.lat && eventItem.long) {
         // If the event has no stopId (= unknown), match a departure to each event in
         // the group by matching the event and departure stop locations.
@@ -492,7 +497,7 @@ export async function createJourneyResponse(
         // Reset matchedStopId because events in the "unknown" group may not belong to the same stop.
         matchedStopId = ''
         // Match events without stopIds to stops by location.
-        departure = departures.find((dep) => {
+        departure = authorizedDepartures.find((dep) => {
           // If the departure has no stop (very unlikely)
           // we can't match with the stop location
           if (!dep.stop) {
@@ -656,7 +661,7 @@ export async function createJourneyResponse(
     sortedJourneyEvents,
     route,
     originDeparture,
-    departures,
+    authorizedDepartures,
     journeyEquipment,
     journeyAlerts,
     journeyCancellations
