@@ -54,6 +54,7 @@ export interface DBAlert {
   valid_to: string
   last_modified: string
   data: AlertDataType
+  ext_id_bulletin: string
 }
 
 export type Maybe<T> = T | null

@@ -33,6 +33,7 @@ export type Alert = {
   title: Scalars['String']
   description: Scalars['String']
   url?: Maybe<Scalars['String']>
+  bulletinId: Scalars['String']
 }
 
 export enum AlertCategory {
@@ -961,6 +962,7 @@ export type AlertResolvers<
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  bulletinId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
 }
 
 export interface BBoxScalarConfig
