@@ -28,7 +28,6 @@ import {
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
-import { getUserGroups } from '../auth/requireUser'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 
 /*

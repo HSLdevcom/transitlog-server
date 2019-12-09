@@ -4,6 +4,7 @@ dist
 node_modules
 postgres-data
 .env
+.env-oldtables
 .env.local
 schema.graphql
 secrets
