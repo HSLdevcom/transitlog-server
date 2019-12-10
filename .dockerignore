@@ -5,3 +5,5 @@ node_modules
 db
 secrets
 dist
+.env-newtables
+.env-oldtables

@@ -5,6 +5,7 @@ node_modules
 postgres-data
 .env
 .env-oldtables
+.env-newtables
 .env.local
 schema.graphql
 secrets
