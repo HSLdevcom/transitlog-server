@@ -9,6 +9,7 @@ import { CachedFetcher } from '../types/CachedFetcher'
 import { Vehicles } from '../types/EventsDb'
 import { AuthenticatedUser } from '../types/Authentication'
 import { getUserGroups } from '../auth/requireUser'
+import { HSL_GROUP_NAME } from '../constants'
 
 export async function createEquipmentResponse(
   getEquipment: () => Promise<JoreEquipment[]>,
@@ -46,13 +47,19 @@ export async function createEquipmentResponse(
   }
 
   const userGroups = getUserGroups(user)
-  const authorizedResults = userGroups.includes('HSL') ? vehiclesList : []
+  // HSL group can see all vehicles
+  const authorizedResults = userGroups.includes(HSL_GROUP_NAME) ? vehiclesList : []
 
-  if (userGroups.includes('operator')) {
+  // If the user has groups but not HSL, authorize only the
+  // vehicles that the user is allowed to see.
+  if (userGroups.length !== 0 && !userGroups.includes(HSL_GROUP_NAME)) {
+    // The user is allowed to see vehicles with these operators
     const authenticatedOperatorIds = userGroups
       .filter((group) => group.startsWith('op_'))
       .map((group) => group.replace('op_', '').padStart(4, '0'))
 
+    // If the user belongs to any operator groups, figure out
+    // which vehicles should be returned in the response.
     if (authenticatedOperatorIds.length !== 0) {
       for (const vehicle of vehiclesList) {
         if (matchOperatorId(authenticatedOperatorIds, vehicle.operatorId)) {
