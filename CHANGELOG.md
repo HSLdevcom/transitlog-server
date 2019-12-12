@@ -1,5 +1,11 @@
 # Transitlog server changelog
 
+## Version 1.5.3, deployed 2019-12-12 @ 09:00
+
+- Fix alert query to show current alerts correctly.
+- Add the received_at HFP property to enable data delay inspection.
+- Include operating unit (kilpailukohde) in relevant responses.
+
 ## Version 1.5.2, deployed 2019-11-26 @ 13:00
 
 - Add skipCache functionality to more resolvers to enable more granular cache updates.
