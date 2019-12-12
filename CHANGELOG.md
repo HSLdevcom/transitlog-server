@@ -1,5 +1,9 @@
 # Transitlog server changelog
 
+## Version 1.5.4, deployed 2019-12-12 @ 12:00
+
+- Fix edge case crash when preparing the vehicles response.
+
 ## Version 1.5.3, deployed 2019-12-12 @ 09:00
 
 - Fix alert query to show current alerts correctly.
