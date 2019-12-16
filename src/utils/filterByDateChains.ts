@@ -15,8 +15,15 @@ export function filterByDateChains<ItemType extends ValidityRange>(
         return filtered
       }
 
+      const withoutValidity = items.filter((item) => !item?.date_begin)
+
+      // Just return if none of them have validity.
+      if (items.length === withoutValidity.length) {
+        return [...filtered, ...items]
+      }
+
       filtered.push(date ? filterByDate(items, date) : items)
-      return filtered
+      return [...filtered, ...withoutValidity]
     },
     []
   )

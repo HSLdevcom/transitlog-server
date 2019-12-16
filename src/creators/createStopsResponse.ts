@@ -16,7 +16,6 @@ type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute
 
 export async function createStopResponse(
   getStops: () => Promise<JoreCombinedStop[]>,
-  getAlerts,
   date: string,
   stopId: string,
   skipCache = false
@@ -29,14 +28,17 @@ export async function createStopResponse(
     }
 
     let validStops = filterByDateChains<JoreCombinedStop>(
-      groupBy<JoreCombinedStop>(
-        stops,
-        (segment) => segment.route_id + segment.direction + segment.stop_index
+      groupBy<JoreCombinedStop>(stops, (segment) =>
+        !segment.route_id
+          ? segment.stop_id
+          : segment.route_id + segment.direction + segment.stop_index
       ),
       date
     )
 
-    validStops = uniqBy<JoreCombinedStop>(validStops, 'route_id')
+    validStops = uniqBy<JoreCombinedStop>(validStops, (stop) =>
+      !stop?.route_id ? stop.stop_id : stop?.route_id || 'no_route'
+    )
 
     if (!validStops || validStops.length === 0) {
       return false
@@ -44,6 +46,10 @@ export async function createStopResponse(
 
     let stopRoutes = validStops.reduce(
       (routes: StopRoute[], stopRouteData: JoreCombinedStop) => {
+        if (!stopRouteData?.route_id) {
+          return routes
+        }
+
         const stopRoute: StopRoute = {
           id: `stop_route_${stopRouteData.route_id}_${stopRouteData.direction}_${stopRouteData.date_begin}_${stopRouteData.date_end}`,
           direction: getDirection(stopRouteData.direction),
@@ -71,17 +77,11 @@ export async function createStopResponse(
     return null
   }
 
-  stop.alerts = await getAlerts(date, {
-    allStops: true,
-    stop: stop.stopId,
-  })
-
   return stop
 }
 
 export async function createStopsResponse(
   getStops: () => Promise<JoreStop[]>,
-  getAlerts,
   date?: string,
   filter?: StopFilterInput,
   bbox: Scalars['BBox'] | null = null,
@@ -101,7 +101,8 @@ export async function createStopsResponse(
       const filteredStops = filterByDateChains<JoreStop & ValidityRange>(
         groupBy(
           stopData,
-          (stop) => stop.stop_id + stop.route_id + stop.direction
+          (stop) =>
+            stop.stop_id + (stop?.route_id || 'no_route') + (stop?.direction || 'no_direction')
         ) as Dictionary<Array<JoreStop & ValidityRange>>,
         date
       )
