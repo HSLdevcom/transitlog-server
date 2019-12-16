@@ -19,7 +19,7 @@ export function filterByDate<ItemType extends ValidityRange>(
     return validItems
   }
 
-  let orderedItems: ItemType[] = validItems
+  let orderedItems: ItemType[]
 
   if (
     validItems.every((item) => !!get(item, 'date_modified', get(item, 'date_imported', false)))

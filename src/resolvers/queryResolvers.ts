@@ -1,4 +1,4 @@
-import { CancellationResolvers, QueryResolvers } from '../types/generated/resolver-types'
+import { QueryResolvers } from '../types/generated/resolver-types'
 import { createRouteResponse, createRoutesResponse } from '../creators/createRoutesResponse'
 import { createStopResponse, createStopsResponse } from '../creators/createStopsResponse'
 import { createRouteGeometryResponse } from '../creators/createRouteGeometryResponse'
@@ -28,14 +28,12 @@ const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => 
 
 const stops = (root, { filter, date }, { dataSources, skipCache }) => {
   const getStops = () => dataSources.JoreAPI.getStops(date)
-  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-  return createStopsResponse(getStops, fetchAlerts, date, filter, null, skipCache)
+  return createStopsResponse(getStops, date, filter, null, skipCache)
 }
 
 const stop = (root, { stopId, date }, { dataSources, skipCache }) => {
   const getStopSegments = () => dataSources.JoreAPI.getStopSegments(stopId, date)
-  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-  return createStopResponse(getStopSegments, fetchAlerts, date, stopId, skipCache)
+  return createStopResponse(getStopSegments, date, stopId, skipCache)
 }
 
 const route = async (root, { routeId, direction, date }, { dataSources, user, skipCache }) => {
