@@ -1,4 +1,4 @@
-import { CancellationResolvers, QueryResolvers } from '../types/generated/resolver-types'
+import { QueryResolvers } from '../types/generated/resolver-types'
 import { createRouteResponse, createRoutesResponse } from '../creators/createRoutesResponse'
 import { createStopResponse, createStopsResponse } from '../creators/createStopsResponse'
 import { createRouteGeometryResponse } from '../creators/createRouteGeometryResponse'
