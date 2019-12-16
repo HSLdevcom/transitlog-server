@@ -1,4 +1,4 @@
-import { CancellationResolvers, QueryResolvers } from '../types/generated/resolver-types'
+import { QueryResolvers } from '../types/generated/resolver-types'
 import { createRouteResponse, createRoutesResponse } from '../creators/createRoutesResponse'
 import { createStopResponse, createStopsResponse } from '../creators/createStopsResponse'
 import { createRouteGeometryResponse } from '../creators/createRouteGeometryResponse'
@@ -19,7 +19,6 @@ import { getAlerts } from '../getAlerts'
 import { getCancellations } from '../getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
 import { createUnsignedVehicleEventsResponse } from '../creators/createUnsignedVehicleEventsResponse'
-import { createOperation } from 'apollo-link'
 import { createOperatorResponse } from '../creators/createOperatorResponse'
 
 const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => {
