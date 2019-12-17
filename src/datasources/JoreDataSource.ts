@@ -130,27 +130,41 @@ WHERE route.route_id = :routeId
   async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
     const query = this.db.raw(
       `SELECT
-       route.route_id,
-       route.direction,
-       route.originstop_id,
-       route.route_length,
-       route.name_fi as route_name,
-       mode.mode,
-       route_segment.date_begin,
-       route_segment.date_end,
-       route_segment.timing_stop_type,
-       route_segment.stop_index,
-       route_segment.date_modified,
+       route_data.route_id,
+       route_data.direction,
+       route_data.originstop_id,
+       route_data.route_length,
+       route_data.route_name,
+       route_data.mode,
+       route_data.date_begin,
+       route_data.date_end,
+       route_data.timing_stop_type,
+       route_data.stop_index,
+       route_data.date_modified,
        stop.lat,
        stop.lon,
        stop.stop_id,
        stop.short_id,
        stop.name_fi,
        stop.stop_radius
-FROM :schema:.stop stop,
-     :schema:.stop_route_segments_for_date(stop, :date) route_segment,
-     :schema:.route_segment_route(route_segment, :date) route,
-     :schema:.route_mode(route) as mode
+FROM :schema:.stop stop
+     LEFT JOIN (
+        SELECT route.route_id,
+               route.direction,
+               route.originstop_id,
+               route.route_length,
+               route.name_fi as route_name,
+               mode.mode,
+               route_segment.stop_id,
+               route_segment.date_begin,
+               route_segment.date_end,
+               route_segment.timing_stop_type,
+               route_segment.stop_index,
+               route_segment.date_modified
+        FROM :schema:.route_segment route_segment,
+             :schema:.route_segment_route(route_segment, :date) route,
+             :schema:.route_mode(route) mode
+     ) route_data ON stop.stop_id = route_data.stop_id
 WHERE stop.stop_id = :stopId;`,
       { schema: SCHEMA, stopId, date }
     )
@@ -193,11 +207,9 @@ WHERE stop.stop_id = :stopId;`,
              route_segment.date_modified,
              route_segment.route_id,
              route_segment.direction,
-             route_segment.timing_stop_type,
-             modes.modes
-      FROM :schema:.stop stop,
-           :schema:.stop_modes(stop, :date) modes,
-           :schema:.stop_route_segments_for_date(stop, :date) route_segment;`,
+             route_segment.timing_stop_type
+      FROM :schema:.stop stop
+           LEFT JOIN :schema:.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id;`,
           { schema: SCHEMA, date }
         )
       : this.db.raw(
