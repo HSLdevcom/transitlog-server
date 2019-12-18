@@ -606,8 +606,8 @@ export async function createJourneyResponse(
   const sortedJourneyEvents = orderBy<EventsType>(
     combinedJourneyEvents,
     [
-      (event) => (hasPlannedUnix(event) ? event.plannedUnix : event.recordedAtUnix),
       (event) => (hasRecordedUnix(event) ? event.recordedAtUnix : 0),
+      (event) => (hasPlannedUnix(event) ? event.plannedUnix : event.recordedAtUnix),
     ],
     ['asc', 'asc']
   )
