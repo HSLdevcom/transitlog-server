@@ -21,7 +21,7 @@
     "*.{ts,js}": [
       "tslint --fix",
       "prettier --write",
-      "npm run test:staged --",
+      "yarn run test:staged",
       "git add"
     ]
   },
