@@ -1,6 +1,6 @@
 # Transitlog server changelog
 
-## Version 1.5.5, deployed 2019-12-20 @ 09:00
+## Version 1.5.5, deployed 2019-12-20 @ 11:00
 
 - Include stops without routes in stops response.
 - Fix journey events order.
