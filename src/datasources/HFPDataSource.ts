@@ -149,7 +149,7 @@ function createTstRange(date: string): TstRange {
 
 export class HFPDataSource extends SQLDataSource {
   constructor() {
-    super({ log: true, name: 'hfp' })
+    super({ log: false, name: 'hfp' })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }
