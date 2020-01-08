@@ -157,6 +157,7 @@ export const Alerts = gql`
     title: String!
     description: String!
     url: String
+    bulletinId: String!
   }
 
   type Cancellation {

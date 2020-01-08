@@ -2,7 +2,7 @@ import { Scalars, Journey } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { isToday } from 'date-fns'
-import { groupBy, map } from 'lodash'
+import { groupBy, map, orderBy } from 'lodash'
 import { createJourneyObject } from '../objects/createJourneyObject'
 import { Vehicles } from '../types/EventsDb'
 
@@ -32,7 +32,9 @@ export const createRouteJourneysResponse = async (
         `${route_id}_${direction_id}_${journey_start_time}`
     )
 
-    return map(routeGroups, (events) => createJourneyObject(events, [], null, null, null))
+    return map(routeGroups, (events) =>
+      createJourneyObject(orderBy(events, 'tsi', 'asc'), [], null, null, null)
+    )
   }
 
   const journeysTTL: number = isToday(date) ? 60 : 24 * 60 * 60

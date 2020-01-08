@@ -29,6 +29,7 @@ export type Alert = {
   title: Scalars['String']
   description: Scalars['String']
   url?: Maybe<Scalars['String']>
+  bulletinId: Scalars['String']
 }
 
 export enum AlertCategory {

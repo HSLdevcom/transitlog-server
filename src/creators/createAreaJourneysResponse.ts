@@ -1,7 +1,7 @@
 import { AreaEventsFilterInput, Scalars, Journey } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
-import { groupBy, map } from 'lodash'
+import { groupBy, map, orderBy } from 'lodash'
 import { createAreaJourneyObject } from '../objects/createAreaJourneyObject'
 import { createBBoxString } from '../utils/createBBoxString'
 import { createJourneyId } from '../utils/createJourneyId'

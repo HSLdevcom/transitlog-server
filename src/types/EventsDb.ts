@@ -54,6 +54,7 @@ export interface DBAlert {
   valid_to: string
   last_modified: string
   data: AlertDataType
+  ext_id_bulletin: string
 }
 
 export type Maybe<T> = T | null
@@ -108,4 +109,10 @@ export interface Vehicles {
   unique_vehicle_id: string
   vehicle_number: number
   _is_virtual?: boolean
+}
+
+export type JourneyEvents = {
+  vehiclePositions: Vehicles[]
+  stopEvents: Vehicles[]
+  otherEvents: Vehicles[]
 }
