@@ -202,6 +202,7 @@ WHERE stop.stop_id = :stopId;`,
              stop.lon,
              stop.name_fi,
              stop.stop_radius,
+             modes.modes,
              route_segment.date_begin,
              route_segment.date_end,
              route_segment.date_modified,
@@ -209,7 +210,8 @@ WHERE stop.stop_id = :stopId;`,
              route_segment.direction,
              route_segment.timing_stop_type
       FROM :schema:.stop stop
-           LEFT JOIN :schema:.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id;`,
+           LEFT JOIN :schema:.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id,
+           :schema:.stop_modes(stop, :date) modes`,
           { schema: SCHEMA, date }
         )
       : this.db.raw(
