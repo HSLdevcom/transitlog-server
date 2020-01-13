@@ -488,7 +488,8 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.date_begin,
     departure.date_end,
     departure.departure_id,
-    departure.bid_target_id
+    departure.bid_target_id,
+    departure.date_imported
   `
 
   async getDeparturesForStop(stopId, date): Promise<JoreDepartureWithOrigin[]> {
