@@ -78,7 +78,11 @@ export function createDepartureJourneyObject(
   instanceIndex: number = 0,
   mode = Mode.Bus,
   alerts: Alert[] = []
-): DepartureJourney {
+): DepartureJourney | null {
+  if (!event) {
+    return null
+  }
+
   const id = createJourneyId(event)
   const journeyDate = moment.tz(event?.tst, TZ).format('YYYY-MM-DD')
   const eventOday = get(event, 'oday', journeyDate) || journeyDate

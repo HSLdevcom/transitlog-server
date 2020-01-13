@@ -47,23 +47,25 @@ export const getStopDepartureData = (
   }
 }
 
-export const getStopDepartureEvent = (events, preferDep: boolean = false) => {
+export const getStopDepartureEvent = (events, requireDep: boolean = false) => {
   if (!events || events.length === 0) {
     return null
   }
 
-  const lookForEvents = [preferDep ? 'DEP' : 'PDE', preferDep ? 'PDE' : 'DEP', 'PAS']
+  const validEventTypes = [requireDep ? 'DEP' : 'PDE', 'PAS']
   let departureEvent: Vehicles | null = null
 
-  for (const lookForType of lookForEvents) {
-    departureEvent = events.find((event) => event.event_type === lookForType)
+  for (const validType of validEventTypes) {
+    departureEvent = events.find((event) => event.event_type === validType)
 
     if (departureEvent) {
       break
+    } else {
+      departureEvent = null
     }
   }
 
-  if (!departureEvent) {
+  if (!departureEvent && !requireDep) {
     departureEvent = events[0] || null
   }
 
