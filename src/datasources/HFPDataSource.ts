@@ -178,6 +178,44 @@ ORDER BY unique_vehicle_id, tst DESC;
     return this.getBatched(query)
   }
 
+  /**
+   * Fetches driver sign-in and sign-out events from the HFP database.
+   */
+
+  async getDriverEvents(uniqueVehicleId: string, date: string): Promise<Vehicles[]> {
+    const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
+    const operatorId = parseInt(operatorPart, 10)
+    const vehicleId = parseInt(vehiclePart, 10)
+
+    const queryVehicleId = `${operatorId}/${vehicleId}`
+    const { minTime, maxTime } = createTstRange(date)
+
+    const query = this.db.raw(
+      `
+SELECT journey_type,
+       event_type,
+       unique_vehicle_id,
+       vehicle_number,
+       owner_operator_id,
+       received_at,
+       tst,
+       tsi,
+       lat,
+       long,
+       mode
+FROM otherevent
+WHERE tst >= :minTime
+  AND tst <= :maxTime
+  AND event_type IN ('DA', 'DOUT')
+  AND unique_vehicle_id = :vehicleId
+ORDER BY tst ASC;
+`,
+      { minTime, maxTime, vehicleId: queryVehicleId }
+    )
+
+    return this.getBatched(query)
+  }
+
   /*
    * Query for all vehicle events inside a specific area and timeframe.
    *
@@ -258,7 +296,6 @@ WHERE tst >= :minTime
   AND event_type = 'DEP'
   AND oday = :date
   AND unique_vehicle_id = :vehicleId
-  AND is_ongoing = true
 ORDER BY tst ASC;
 `,
       { date, minTime, maxTime, vehicleId: queryVehicleId }

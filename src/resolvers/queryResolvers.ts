@@ -19,6 +19,7 @@ import { getAlerts } from '../getAlerts'
 import { getCancellations } from '../getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
 import { createUnsignedVehicleEventsResponse } from '../creators/createUnsignedVehicleEventsResponse'
+import { createDriverEventsResponse } from '../creators/createDriverEventsResponse'
 
 const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -335,6 +336,11 @@ const vehicleJourneys = (
   )
 }
 
+const driverEvents = (root, { uniqueVehicleId, date }, { dataSources, user, skipCache }) => {
+  const getDriverEvents = () => dataSources.HFPAPI.getDriverEvents(uniqueVehicleId, date)
+  return createDriverEventsResponse(user, getDriverEvents, uniqueVehicleId, date, skipCache)
+}
+
 const unsignedVehicleEvents = (
   root,
   { uniqueVehicleId, date },
@@ -418,6 +424,7 @@ export const queryResolvers: QueryResolvers = {
   weeklyDepartures,
   journey,
   vehicleJourneys,
+  driverEvents,
   unsignedVehicleEvents,
   journeys,
   journeysByBbox,

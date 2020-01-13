@@ -2,6 +2,7 @@ import {
   AlertDistribution,
   Cancellation,
   Departure,
+  DriverEvent,
   JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
@@ -231,6 +232,28 @@ export function createUnsignedVehiclePositionObject(event: Vehicles): VehiclePos
     velocity: event.spd,
     delay: event.dl || 0,
     heading: event.hdg,
+    mode: event.mode,
+  }
+}
+
+export function createDriverEventObject(event: Vehicles): DriverEvent {
+  const unix = parseInt(event.tsi, 10)
+  const ts = moment.tz(event.tst, TZ).toISOString(true)
+  const receivedTs = moment.tz(event.received_at, TZ).toISOString(true)
+
+  return {
+    id: `driver_event_${event.event_type}_${event.unique_vehicle_id}_${unix}`,
+    journeyType: event.journey_type || 'deadrun',
+    eventType: event.event_type,
+    receivedAt: receivedTs,
+    recordedAt: ts,
+    recordedAtUnix: unix,
+    recordedTime: getJourneyEventTime(event),
+    uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
+    operatorId: event.owner_operator_id + '',
+    vehicleId: event.vehicle_number + '',
+    lat: event.lat,
+    lng: event.long,
     mode: event.mode,
   }
 }
