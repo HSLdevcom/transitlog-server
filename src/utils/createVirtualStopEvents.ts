@@ -3,11 +3,19 @@ import { getLegacyStopArrivalEvent } from './getStopArrivalData'
 import { getStopDepartureEvent } from './getStopDepartureData'
 import { EventType, Vehicles } from '../types/EventsDb'
 import { get } from 'lodash'
+import moment from 'moment'
 
 export const createVirtualStopEvents = (vehiclePositions, departures): Vehicles[] => {
+  const currentTime = moment()
   const virtualStopEvents: Vehicles[] = []
 
   for (const departure of departures) {
+    // It is unnecessary and confusing to create virtual
+    // events for the future, so prevent that here.
+    if (currentTime.isBefore(moment(departure.plannedDepartureTime.departureDateTime))) {
+      continue
+    }
+
     // To get the events for a stop, first get all events with the next_stop_id matching
     // the current stop ID and sort by the timestamp in descending order. The departure
     // event will then be the first element in the array.
