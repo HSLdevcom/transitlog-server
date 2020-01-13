@@ -46,7 +46,6 @@ export async function createRouteSegmentsResponse(
 
     // Sorted by the order of the stops in the journey.
     let routeSegments: JoreRouteData[] = sortBy(validRoutes, 'stop_index')
-
     routeSegments = trimRouteSegments(routeSegments)
 
     const alerts = await getAlerts(date, {
