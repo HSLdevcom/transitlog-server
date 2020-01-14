@@ -206,9 +206,9 @@ SELECT journey_type,
 FROM otherevent
 WHERE tst >= :minTime
   AND tst <= :maxTime
-  AND event_type IN ('DA', 'DOUT')
   AND unique_vehicle_id = :vehicleId
-ORDER BY tst ASC;
+  AND (event_type = 'DA' OR event_type = 'DOUT')
+ORDER BY tst;
 `,
       { minTime, maxTime, vehicleId: queryVehicleId }
     )
