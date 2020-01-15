@@ -6,6 +6,7 @@ import { Vehicles } from '../types/EventsDb'
 import { AuthenticatedUser } from '../types/Authentication'
 import { requireVehicleAuthorization } from '../auth/requireUser'
 import { createDriverEventObject } from '../objects/createJourneyEventObject'
+import { uniqBy } from 'lodash'
 
 export const createDriverEventsResponse = async (
   user: AuthenticatedUser,
@@ -21,7 +22,7 @@ export const createDriverEventsResponse = async (
       return false
     }
 
-    return driverEvents.map(createDriverEventObject)
+    return uniqBy(driverEvents.map(createDriverEventObject), 'id')
   }
 
   if (!requireVehicleAuthorization(user, uniqueVehicleId)) {
