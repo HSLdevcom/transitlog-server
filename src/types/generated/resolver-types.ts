@@ -279,6 +279,23 @@ export type DepartureJourney = {
   _numInstance?: Maybe<Scalars['Int']>
 }
 
+export type DriverEvent = {
+  __typename?: 'DriverEvent'
+  id: Scalars['ID']
+  journeyType: Scalars['String']
+  eventType: Scalars['String']
+  uniqueVehicleId?: Maybe<Scalars['VehicleId']>
+  operatorId?: Maybe<Scalars['String']>
+  vehicleId?: Maybe<Scalars['String']>
+  mode?: Maybe<Scalars['String']>
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  receivedAt?: Maybe<Scalars['DateTime']>
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+}
+
 export type Equipment = {
   __typename?: 'Equipment'
   id: Scalars['ID']
@@ -485,6 +502,7 @@ export type Query = {
   journey?: Maybe<Journey>
   journeys: Array<Maybe<Journey>>
   vehicleJourneys: Array<Maybe<VehicleJourney>>
+  driverEvents: Array<Maybe<DriverEvent>>
   journeysByBbox: Array<Maybe<Journey>>
   unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
   alerts: Alert[]
@@ -574,6 +592,11 @@ export type QueryVehicleJourneysArgs = {
   uniqueVehicleId: Scalars['VehicleId']
   date: Scalars['Date']
   unsignedEvents?: Maybe<Scalars['Boolean']>
+}
+
+export type QueryDriverEventsArgs = {
+  uniqueVehicleId: Scalars['VehicleId']
+  date: Scalars['Date']
 }
 
 export type QueryJourneysByBboxArgs = {
@@ -875,6 +898,7 @@ export type ResolversTypes = {
   JourneyCancellationEvent: ResolverTypeWrapper<JourneyCancellationEvent>
   PlannedStopEvent: ResolverTypeWrapper<PlannedStopEvent>
   VehicleJourney: ResolverTypeWrapper<VehicleJourney>
+  DriverEvent: ResolverTypeWrapper<DriverEvent>
   PreciseBBox: ResolverTypeWrapper<Scalars['PreciseBBox']>
   AreaEventsFilterInput: AreaEventsFilterInput
   AlertSearchInput: AlertSearchInput
@@ -938,6 +962,7 @@ export type ResolversParentTypes = {
   JourneyCancellationEvent: JourneyCancellationEvent
   PlannedStopEvent: PlannedStopEvent
   VehicleJourney: VehicleJourney
+  DriverEvent: DriverEvent
   PreciseBBox: Scalars['PreciseBBox']
   AreaEventsFilterInput: AreaEventsFilterInput
   AlertSearchInput: AlertSearchInput
@@ -1072,6 +1097,25 @@ export type DepartureJourneyResolvers<
 export interface DirectionScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes['Direction'], any> {
   name: 'Direction'
+}
+
+export type DriverEventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['DriverEvent'] = ResolversParentTypes['DriverEvent']
+> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  journeyType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  eventType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  uniqueVehicleId?: Resolver<Maybe<ResolversTypes['VehicleId']>, ParentType, ContextType>
+  operatorId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  vehicleId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  receivedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>
+  lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
 }
 
 export type EquipmentResolvers<
@@ -1396,6 +1440,12 @@ export type QueryResolvers<
     ContextType,
     RequireFields<QueryVehicleJourneysArgs, 'uniqueVehicleId' | 'date'>
   >
+  driverEvents?: Resolver<
+    Array<Maybe<ResolversTypes['DriverEvent']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryDriverEventsArgs, 'uniqueVehicleId' | 'date'>
+  >
   journeysByBbox?: Resolver<
     Array<Maybe<ResolversTypes['Journey']>>,
     ParentType,
@@ -1591,6 +1641,7 @@ export type Resolvers<ContextType = any> = {
   Departure?: DepartureResolvers<ContextType>
   DepartureJourney?: DepartureJourneyResolvers<ContextType>
   Direction?: GraphQLScalarType
+  DriverEvent?: DriverEventResolvers<ContextType>
   Equipment?: EquipmentResolvers<ContextType>
   ExceptionDay?: ExceptionDayResolvers<ContextType>
   Journey?: JourneyResolvers<ContextType>

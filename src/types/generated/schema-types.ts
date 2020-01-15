@@ -275,6 +275,23 @@ export type DepartureJourney = {
   _numInstance?: Maybe<Scalars['Int']>
 }
 
+export type DriverEvent = {
+  __typename?: 'DriverEvent'
+  id: Scalars['ID']
+  journeyType: Scalars['String']
+  eventType: Scalars['String']
+  uniqueVehicleId?: Maybe<Scalars['VehicleId']>
+  operatorId?: Maybe<Scalars['String']>
+  vehicleId?: Maybe<Scalars['String']>
+  mode?: Maybe<Scalars['String']>
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  receivedAt?: Maybe<Scalars['DateTime']>
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+}
+
 export type Equipment = {
   __typename?: 'Equipment'
   id: Scalars['ID']
@@ -481,6 +498,7 @@ export type Query = {
   journey?: Maybe<Journey>
   journeys: Array<Maybe<Journey>>
   vehicleJourneys: Array<Maybe<VehicleJourney>>
+  driverEvents: Array<Maybe<DriverEvent>>
   journeysByBbox: Array<Maybe<Journey>>
   unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
   alerts: Alert[]
@@ -570,6 +588,11 @@ export type QueryVehicleJourneysArgs = {
   uniqueVehicleId: Scalars['VehicleId']
   date: Scalars['Date']
   unsignedEvents?: Maybe<Scalars['Boolean']>
+}
+
+export type QueryDriverEventsArgs = {
+  uniqueVehicleId: Scalars['VehicleId']
+  date: Scalars['Date']
 }
 
 export type QueryJourneysByBboxArgs = {

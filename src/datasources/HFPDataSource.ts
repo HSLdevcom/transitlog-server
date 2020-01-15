@@ -178,6 +178,44 @@ ORDER BY unique_vehicle_id, tst DESC;
     return this.getBatched(query)
   }
 
+  /**
+   * Fetches driver sign-in and sign-out events from the HFP database.
+   */
+
+  async getDriverEvents(uniqueVehicleId: string, date: string): Promise<Vehicles[]> {
+    const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
+    const operatorId = parseInt(operatorPart, 10)
+    const vehicleId = parseInt(vehiclePart, 10)
+
+    const queryVehicleId = `${operatorId}/${vehicleId}`
+    const { minTime, maxTime } = createTstRange(date)
+
+    const query = this.db.raw(
+      `
+SELECT journey_type,
+       event_type,
+       unique_vehicle_id,
+       vehicle_number,
+       owner_operator_id,
+       received_at,
+       tst,
+       tsi,
+       lat,
+       long,
+       mode
+FROM otherevent
+WHERE tst >= :minTime
+  AND tst <= :maxTime
+  AND unique_vehicle_id = :vehicleId
+  AND (event_type = 'DA' OR event_type = 'DOUT')
+ORDER BY tst;
+`,
+      { minTime, maxTime, vehicleId: queryVehicleId }
+    )
+
+    return this.getBatched(query)
+  }
+
   /*
    * Query for all vehicle events inside a specific area and timeframe.
    *
@@ -258,7 +296,6 @@ WHERE tst >= :minTime
   AND event_type = 'DEP'
   AND oday = :date
   AND unique_vehicle_id = :vehicleId
-  AND is_ongoing = true
 ORDER BY tst ASC;
 `,
       { date, minTime, maxTime, vehicleId: queryVehicleId }
@@ -562,17 +599,22 @@ ORDER BY tst DESC;
   }
 
   getAlerts = async (date: string): Promise<DBAlert[]> => {
-    const queryDate = moment(date)
+    const fromDate = moment(date)
+      .tz(TZ)
+      .endOf('day')
+      .utc()
+      .format(TST_FORMAT)
+
+    const toDate = moment(date)
       .tz(TZ)
       .startOf('day')
-      .add(1, 'day')
       .utc()
       .format(TST_FORMAT)
 
     const query = this.db('alert')
       .select(alertFields)
-      .where('valid_from', '<=', queryDate)
-      .where('valid_to', '>=', queryDate)
+      .where('valid_from', '<=', fromDate)
+      .where('valid_to', '>=', toDate)
       .orderBy([
         { column: 'valid_from', order: 'asc' },
         { column: 'valid_to', order: 'asc' },
