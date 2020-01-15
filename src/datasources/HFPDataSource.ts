@@ -599,17 +599,22 @@ ORDER BY tst DESC;
   }
 
   getAlerts = async (date: string): Promise<DBAlert[]> => {
-    const queryDate = moment(date)
+    const fromDate = moment(date)
+      .tz(TZ)
+      .endOf('day')
+      .utc()
+      .format(TST_FORMAT)
+
+    const toDate = moment(date)
       .tz(TZ)
       .startOf('day')
-      .add(1, 'day')
       .utc()
       .format(TST_FORMAT)
 
     const query = this.db('alert')
       .select(alertFields)
-      .where('valid_from', '<=', queryDate)
-      .where('valid_to', '>=', queryDate)
+      .where('valid_from', '<=', fromDate)
+      .where('valid_to', '>=', toDate)
       .orderBy([
         { column: 'valid_from', order: 'asc' },
         { column: 'valid_to', order: 'asc' },
