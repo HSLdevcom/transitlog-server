@@ -267,8 +267,8 @@ ORDER BY tst DESC;
       queries.push(this.getBatched(createQuery('unsignedevent')))
     }
 
-    return Promise.all(queries).then(([vp, unsigned]) =>
-      orderBy([...vp, ...unsigned], 'tsi', 'asc')
+    return Promise.all(queries).then(([vp = [], unsigned = []]) =>
+      orderBy([...(vp || []), ...(unsigned || [])], 'tsi', 'asc')
     )
   }
 
