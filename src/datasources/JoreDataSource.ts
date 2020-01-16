@@ -9,19 +9,19 @@ import {
   JoreStop,
   JoreStopSegment,
 } from '../types/Jore'
-import { Scalars, ExceptionDay } from '../types/generated/schema-types'
+import { ExceptionDay, Scalars } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
-import { orderBy, uniq, flatten, compact } from 'lodash'
+import { compact, flatten, orderBy, uniq } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
 import { PlannedJourneyData } from '../creators/createJourneyResponse'
 import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'date-fns'
 import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../objects/createExceptionDayObject'
-import { databases, getKnex } from '../knex'
+import { getKnex } from '../knex'
 
 const SCHEMA = 'jore'
-const knex = getKnex(databases.JORE)
+const knex = getKnex()
 const ONE_DAY = 24 * 60 * 60
 
 type ExceptionDaysScoped = {
@@ -110,7 +110,7 @@ export class JoreDataSource extends SQLDataSource {
         geometry.date_imported
 from :schema:.route route,
      :schema:.route_mode(route) mode,
-     :schema:.geometry geometry
+     :schema:.route_geometry geometry
 WHERE route.route_id = :routeId
   AND route.direction = :direction
   AND geometry.route_id = route.route_id

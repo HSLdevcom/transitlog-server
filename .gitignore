@@ -6,6 +6,8 @@ postgres-data
 .env-newtables
 .env-oldtables
 .env
+.env-old
+.env-new
 .env.local
 schema.graphql
 secrets
