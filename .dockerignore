@@ -9,3 +9,4 @@ secrets
 dist
 .env-newtables
 .env-oldtables
+.env-citus
