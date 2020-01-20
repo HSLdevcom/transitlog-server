@@ -8,6 +8,7 @@ postgres-data
 .env
 .env-old
 .env-new
+.env-citus
 .env.local
 schema.graphql
 secrets
