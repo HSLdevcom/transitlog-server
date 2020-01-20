@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { compact, flatten, get, groupBy, orderBy } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import {
@@ -181,7 +181,21 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     })
   })
 
-  return orderBy(flatten(departuresWithEvents), 'plannedDepartureTime.departureTime')
+  return orderBy(
+    uniqBy(
+      flatten(departuresWithEvents),
+      (d) =>
+        d.stopId +
+        d.dayType +
+        d.routeId +
+        d.direction +
+        d.departureTime +
+        d.departureDate +
+        (d?.journey?.uniqueVehicleId || d.extraDeparture) +
+        d.index
+    ),
+    'plannedDepartureTime.departureTime'
+  )
 }
 
 /*
