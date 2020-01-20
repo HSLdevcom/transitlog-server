@@ -346,7 +346,6 @@ FROM :schema:.departure departure
       AND departure.route_id = :routeId
       AND departure.direction = :direction
       AND departure.date_begin <= :date
-      AND departure.date_end >= :date
 ORDER BY departure.departure_id ASC,
          departure.hours ASC,
          departure.minutes ASC;`,
@@ -462,7 +461,6 @@ SELECT DISTINCT ON (operator_id, route_id, direction, hours, minutes) operator_i
 FROM :schema:.departure
     WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
       AND date_begin <= :date
-      AND date_end >= :date
 ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
       { schema: SCHEMA, date }
     )
