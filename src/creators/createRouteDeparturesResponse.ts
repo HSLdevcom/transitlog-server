@@ -24,6 +24,7 @@ import {
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
+import { extraDepartureType } from '../utils/extraDepartureType'
 
 // Combines departures and stops into PlannedDepartures.
 export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
@@ -48,7 +49,7 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
       stop_id: departure.stop_id || '',
       departure_id: departure.departure_id || 0,
       is_next_day: departure.is_next_day || false,
-      extra_departure: departure.extra_departure || 'N',
+      extra_departure: extraDepartureType(departure.extra_departure) || 'N',
       day_type: departure.day_type,
       route_id: departure.route_id,
       direction: departure.direction,
@@ -106,7 +107,7 @@ export async function createRouteDeparturesResponse(
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
       departures,
       ({ departure_id, day_type, extra_departure }) =>
-        `${departure_id}_${day_type}_${extra_departure}`
+        `${departure_id}_${day_type}_${extraDepartureType(extra_departure)}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
     const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(

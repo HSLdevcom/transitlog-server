@@ -52,6 +52,7 @@ import { requireVehicleAuthorization } from '../auth/requireUser'
 import { intval } from '../utils/isWithinRange'
 import { toLatLng } from '../geometry/LatLng'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
+import { extraDepartureType } from '../utils/extraDepartureType'
 
 type JourneyRoute = {
   route: Route | null
@@ -136,7 +137,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     groupBy(
       departures,
       ({ departure_id, stop_id, day_type, extra_departure }) =>
-        `${departure_id}_${stop_id}_${day_type}_${extra_departure}`
+        `${departure_id}_${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
     ),
     date
   )

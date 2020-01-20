@@ -29,6 +29,7 @@ import {
 import { Vehicles } from '../types/EventsDb'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
+import { extraDepartureType } from '../utils/extraDepartureType'
 
 /*
   Common functions for route departures and stop departures.
@@ -181,21 +182,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     })
   })
 
-  return orderBy(
-    uniqBy(
-      flatten(departuresWithEvents),
-      (d) =>
-        d.stopId +
-        d.dayType +
-        d.routeId +
-        d.direction +
-        d.departureTime +
-        d.departureDate +
-        (d?.journey?.uniqueVehicleId || d.extraDeparture) +
-        d.index
-    ),
-    'plannedDepartureTime.departureTime'
-  )
+  return orderBy(flatten(departuresWithEvents), 'plannedDepartureTime.departureTime')
 }
 
 /*
@@ -243,7 +230,9 @@ export async function createDeparturesResponse(
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
       departures,
       ({ departure_id, stop_id, day_type, extra_departure, route_id, direction }) =>
-        `${route_id}_${direction}_${departure_id}_${stop_id}_${day_type}_${extra_departure}`
+        `${route_id}_${direction}_${departure_id}_${stop_id}_${day_type}_${extraDepartureType(
+          extra_departure
+        )}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
     const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
