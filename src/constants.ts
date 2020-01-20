@@ -40,7 +40,6 @@ export const JORE_PG_CONNECTION = {
   user: secretsEnv.JORE_POSTGRES_USER,
   password: secretsEnv.JORE_POSTGRES_PASSWORD,
   database: secretsEnv.JORE_POSTGRES_DB,
-  ssl: true,
 }
 
 export const HFP_PG_CONNECTION = {
@@ -49,6 +48,7 @@ export const HFP_PG_CONNECTION = {
   user: secretsEnv.HFP_POSTGRES_USER,
   password: secretsEnv.HFP_POSTGRES_PASSWORD,
   database: secretsEnv.HFP_POSTGRES_DB,
+  ssl: true,
 }
 
 // URLs

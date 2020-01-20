@@ -743,6 +743,7 @@ export type VehicleJourney = {
   recordedAtUnix: Scalars['Int']
   recordedTime: Scalars['Time']
   timeDifference: Scalars['Int']
+  loc?: Maybe<Scalars['String']>
   alerts: Alert[]
   cancellations: Cancellation[]
   isCancelled: Scalars['Boolean']
@@ -1614,6 +1615,7 @@ export type VehicleJourneyResolvers<
   recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
   timeDifference?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
   cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
   isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>

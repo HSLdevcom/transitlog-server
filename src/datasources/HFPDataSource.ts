@@ -72,6 +72,7 @@ const routeDepartureFields = [
   'tst',
   'tsi',
   'oday',
+  'loc',
 ]
 
 const routeJourneyFields = [

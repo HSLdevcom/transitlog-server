@@ -151,6 +151,7 @@ export const Journey = gql`
     recordedAtUnix: Int!
     recordedTime: Time!
     timeDifference: Int!
+    loc: String
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!

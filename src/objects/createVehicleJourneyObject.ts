@@ -38,6 +38,7 @@ export const createVehicleJourneyObject = (
     recordedAtUnix: parseInt(event.tsi, 10),
     recordedTime: getJourneyEventTime(event),
     timeDifference: departureDiff,
+    loc: event.loc,
     alerts,
     cancellations: [],
     isCancelled: false,

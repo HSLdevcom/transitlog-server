@@ -739,6 +739,7 @@ export type VehicleJourney = {
   recordedAtUnix: Scalars['Int']
   recordedTime: Scalars['Time']
   timeDifference: Scalars['Int']
+  loc?: Maybe<Scalars['String']>
   alerts: Alert[]
   cancellations: Cancellation[]
   isCancelled: Scalars['Boolean']

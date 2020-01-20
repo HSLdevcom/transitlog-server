@@ -40,6 +40,7 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
     stopId: (event.stop || '') + '' || null,
     lat: event.lat,
     lng: event.long,
+    loc: event.loc,
     _isVirtual: !!event._is_virtual,
   }
 }
@@ -178,6 +179,7 @@ export function createJourneyStopEventObject(
     unplannedStop: !departure,
     lat: event.lat,
     lng: event.long,
+    loc: event.loc,
     _isVirtual: !!event._is_virtual,
   }
 }
@@ -205,6 +207,7 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
     nextStopId: (event.next_stop_id || '') + '',
     lat: event.lat,
     lng: event.long,
+    loc: event.loc,
     doorStatus: event.drst,
     velocity: event.spd,
     delay: event.dl || 0,
@@ -254,6 +257,7 @@ export function createDriverEventObject(event: Vehicles): DriverEvent {
     vehicleId: event.vehicle_number + '',
     lat: event.lat,
     lng: event.long,
+    loc: event.loc,
     mode: event.mode,
   }
 }

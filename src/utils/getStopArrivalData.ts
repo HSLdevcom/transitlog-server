@@ -19,7 +19,7 @@ export function getStopArrivalData(
     return null
   }
 
-  const tst = arrivalEvent.tst
+  const { tst, loc = null } = arrivalEvent
   const arrivalTime = parse(tst)
 
   const arrivalDate = !date
@@ -36,6 +36,7 @@ export function getStopArrivalData(
     arrivalTime: getJourneyEventTime(arrivalEvent),
     arrivalDateTime: moment.tz(arrivalTime, TZ).toISOString(true),
     arrivalTimeDifference: arrivalDiff,
+    loc,
   }
 }
 

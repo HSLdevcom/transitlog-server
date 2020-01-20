@@ -95,6 +95,7 @@ export interface Vehicles {
   lat: Maybe<number>
   line: Maybe<number>
   long: Maybe<number>
+  loc: Maybe<string>
   mode: Maybe<string>
   stop: Maybe<number>
   next_stop_id: Maybe<string>
