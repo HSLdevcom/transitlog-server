@@ -294,6 +294,7 @@ export type DriverEvent = {
   receivedAt?: Maybe<Scalars['DateTime']>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
 }
 
 export type Equipment = {
@@ -389,6 +390,7 @@ export type JourneyEvent = {
   stopId?: Maybe<Scalars['String']>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
   _isVirtual?: Maybe<Scalars['Boolean']>
 }
 
@@ -423,6 +425,7 @@ export type JourneyStopEvent = {
   stop?: Maybe<Stop>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
   unplannedStop: Scalars['Boolean']
   _isVirtual?: Maybe<Scalars['Boolean']>
 }
@@ -434,6 +437,7 @@ export type ObservedArrival = {
   arrivalTime: Scalars['Time']
   arrivalDateTime: Scalars['DateTime']
   arrivalTimeDifference: Scalars['Int']
+  loc?: Maybe<Scalars['String']>
 }
 
 export type ObservedDeparture = {
@@ -443,6 +447,7 @@ export type ObservedDeparture = {
   departureTime: Scalars['Time']
   departureDateTime: Scalars['DateTime']
   departureTimeDifference: Scalars['Int']
+  loc?: Maybe<Scalars['String']>
 }
 
 export type PlannedArrival = {
@@ -758,6 +763,7 @@ export type VehiclePosition = Position & {
   vehicleId?: Maybe<Scalars['String']>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
   velocity?: Maybe<Scalars['Float']>
   doorStatus?: Maybe<Scalars['Boolean']>
   delay?: Maybe<Scalars['Int']>
@@ -1116,6 +1122,7 @@ export type DriverEventResolvers<
   receivedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
 export type EquipmentResolvers<
@@ -1223,6 +1230,7 @@ export type JourneyEventResolvers<
   stopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
 }
 
@@ -1264,6 +1272,7 @@ export type JourneyStopEventResolvers<
   stop?: Resolver<Maybe<ResolversTypes['Stop']>, ParentType, ContextType>
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   unplannedStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
 }
@@ -1277,6 +1286,7 @@ export type ObservedArrivalResolvers<
   arrivalTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
   arrivalDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   arrivalTimeDifference?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
 export type ObservedDepartureResolvers<
@@ -1288,6 +1298,7 @@ export type ObservedDepartureResolvers<
   departureTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
   departureDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   departureTimeDifference?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
 export type PlannedArrivalResolvers<
@@ -1625,6 +1636,7 @@ export type VehiclePositionResolvers<
   vehicleId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   velocity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   doorStatus?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
   delay?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>

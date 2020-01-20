@@ -15,6 +15,7 @@ export const Journey = gql`
     stopId: String
     lat: Float
     lng: Float
+    loc: String
     _isVirtual: Boolean
   }
 
@@ -59,6 +60,7 @@ export const Journey = gql`
     stop: Stop
     lat: Float
     lng: Float
+    loc: String
     unplannedStop: Boolean!
     _isVirtual: Boolean
   }
@@ -99,6 +101,7 @@ export const Journey = gql`
     vehicleId: String
     lat: Float
     lng: Float
+    loc: String
     velocity: Float
     doorStatus: Boolean
     delay: Int

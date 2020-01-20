@@ -15,5 +15,6 @@ export const DriverEvent = gql`
     receivedAt: DateTime
     lat: Float
     lng: Float
+    loc: String
   }
 `

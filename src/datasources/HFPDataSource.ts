@@ -38,6 +38,7 @@ const vehicleFields = [
   'hdg',
   'lat',
   'long',
+  'loc',
   'dl',
   'drst',
   'oday',
@@ -55,6 +56,7 @@ const unsignedEventFields = [
   'hdg',
   'lat',
   'long',
+  'loc',
   'mode',
 ]
 
@@ -85,6 +87,7 @@ const routeJourneyFields = [
   'unique_vehicle_id',
   'lat',
   'long',
+  'loc',
   'drst',
   'hdg',
   'mode',
@@ -202,6 +205,7 @@ SELECT journey_type,
        tsi,
        lat,
        long,
+       loc,
        mode
 FROM otherevent
 WHERE tst >= :minTime
