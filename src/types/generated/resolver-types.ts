@@ -377,6 +377,7 @@ export type JourneyCancellationEvent = {
   isCancelled: Scalars['Boolean']
   cancellationType: CancellationType
   cancellationEffect: CancellationEffect
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type JourneyEvent = {
@@ -392,6 +393,7 @@ export type JourneyEvent = {
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
   _isVirtual?: Maybe<Scalars['Boolean']>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type JourneyEventType =
@@ -421,13 +423,14 @@ export type JourneyStopEvent = {
   departureId?: Maybe<Scalars['Int']>
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
-  index?: Maybe<Scalars['Int']>
+  index: Scalars['Int']
   stop?: Maybe<Stop>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
   unplannedStop: Scalars['Boolean']
   _isVirtual?: Maybe<Scalars['Boolean']>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type ObservedArrival = {
@@ -481,8 +484,9 @@ export type PlannedStopEvent = {
   departureId?: Maybe<Scalars['Int']>
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
-  index?: Maybe<Scalars['Int']>
+  index: Scalars['Int']
   stop?: Maybe<Stop>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 /** Any object that describes something with a position implements this interface. */
@@ -770,6 +774,7 @@ export type VehiclePosition = Position & {
   delay?: Maybe<Scalars['Int']>
   heading?: Maybe<Scalars['Int']>
   mode?: Maybe<Scalars['String']>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type ResolverTypeWrapper<T> = Promise<T> | T
@@ -1216,6 +1221,7 @@ export type JourneyCancellationEventResolvers<
   isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   cancellationType?: Resolver<ResolversTypes['CancellationType'], ParentType, ContextType>
   cancellationEffect?: Resolver<ResolversTypes['CancellationEffect'], ParentType, ContextType>
+  _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
 export type JourneyEventResolvers<
@@ -1233,6 +1239,7 @@ export type JourneyEventResolvers<
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
 export type JourneyEventTypeResolvers<
@@ -1269,13 +1276,14 @@ export type JourneyStopEventResolvers<
   departureId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   isOrigin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
-  index?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  index?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   stop?: Resolver<Maybe<ResolversTypes['Stop']>, ParentType, ContextType>
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   unplannedStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
 export type ObservedArrivalResolvers<
@@ -1339,8 +1347,9 @@ export type PlannedStopEventResolvers<
   departureId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   isOrigin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
-  index?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  index?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   stop?: Resolver<Maybe<ResolversTypes['Stop']>, ParentType, ContextType>
+  _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
 export type PositionResolvers<
@@ -1644,6 +1653,7 @@ export type VehiclePositionResolvers<
   delay?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   heading?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
 export type Resolvers<ContextType = any> = {

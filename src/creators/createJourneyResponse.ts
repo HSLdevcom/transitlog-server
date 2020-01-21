@@ -8,7 +8,6 @@ import { cacheFetch } from '../cache'
 import {
   AlertDistribution,
   Departure,
-  Scalars,
   ExceptionDay,
   Journey,
   JourneyCancellationEvent,
@@ -16,11 +15,12 @@ import {
   JourneyStopEvent,
   PlannedStopEvent,
   Route,
+  Scalars,
   Stop,
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { compact, get, groupBy, last, mapValues, orderBy, reverse, flatten } from 'lodash'
+import { compact, flatten, get, groupBy, last, mapValues, orderBy, reverse } from 'lodash'
 import { createJourneyObject } from '../objects/createJourneyObject'
 import { getDateFromDateTime, getDepartureTime } from '../utils/time'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -59,10 +59,18 @@ type JourneyRoute = {
   departures: Departure[]
 }
 
+type EventsType = JourneyStopEvent | JourneyEvent | PlannedStopEvent | JourneyCancellationEvent
+
 export type PlannedJourneyData = {
   departures: JoreRouteDepartureData[]
   stops: JoreStopSegment[]
 }
+
+const isStopEvent = (event: any): event is PlannedStopEvent | JourneyStopEvent =>
+  typeof event.plannedUnix !== 'undefined'
+
+const isNotStopEvent = (event: any): event is JourneyEvent | JourneyCancellationEvent =>
+  typeof event.plannedUnix === 'undefined' && typeof event.recordedAtUnix !== 'undefined'
 
 /**
  * Fetch the journey events and filter out the invalid ones.
@@ -398,12 +406,6 @@ export async function createJourneyResponse(
     createPlannedStopEventObject(departure, journeyAlerts)
   )
 
-  type EventsType =
-    | JourneyStopEvent
-    | JourneyEvent
-    | PlannedStopEvent
-    | JourneyCancellationEvent
-
   const stopAndCancellationEvents = orderBy<EventsType>(
     compact([...cancellationEvents, ...plannedStopEvents]),
     (event) => moment.tz(get(event, 'recordedAt', get(event, 'plannedDateTime')), TZ).unix(),
@@ -451,6 +453,7 @@ export async function createJourneyResponse(
   // events that we parsed from the ascVehiclePositions.
   let patchedStopEvents = [...stopEvents]
 
+  // Patch stop events by using virtual events for all stops which have no real stop events.
   for (const virtualStopEvent of virtualStopEvents) {
     const { event_type, stop } = virtualStopEvent
     const canUsePas = ['ARS', 'DEP', 'PDE'].includes(event_type)
@@ -479,6 +482,8 @@ export async function createJourneyResponse(
 
   const stopEventObjects: Array<JourneyEvent | JourneyStopEvent> = []
 
+  // Match events to departures using a variety of methods
+  // depending on what data we have available.
   for (const [stopId, eventsForStop] of Object.entries(stopGroupedEvents)) {
     // Use matchedStopId to search for a stop if none is attached to the departure.
     let matchedStopId: string = ''
@@ -567,7 +572,11 @@ export async function createJourneyResponse(
   }
 
   // Create event objects from other events
-  const otherEvents = events.map((event) => createJourneyEventObject(event))
+  const otherEvents = orderBy(
+    [...events.map((event) => createJourneyEventObject(event)), ...cancellationEvents],
+    'recordedAtUnix',
+    'asc'
+  )
 
   // Exclude planned stops that did end up having events attached to them.
   const stopsWithoutEvents = plannedStopEvents.reduce(
@@ -587,39 +596,17 @@ export async function createJourneyResponse(
     []
   )
 
-  const allStopEvents = [...stopEventObjects, ...stopsWithoutEvents]
-
-  const combinedJourneyEvents: EventsType[] = compact([
-    ...allStopEvents,
+  const combinedJourneyEvents: EventsType[] = [
+    ...stopEventObjects,
+    ...stopsWithoutEvents,
     ...otherEvents,
-    ...cancellationEvents,
-  ])
+  ]
 
-  const hasPlannedUnix = (event: any): event is PlannedStopEvent | JourneyStopEvent =>
-    typeof event.plannedUnix !== 'undefined'
+  const sortedJourneyEvents: EventsType[] = []
 
-  const hasRecordedUnix = (event: any): event is JourneyStopEvent | JourneyEvent =>
-    typeof event.recordedAtUnix !== 'undefined'
-
-  // Combine all created event objects and order by time.
-  const sortedJourneyEvents = orderBy<EventsType>(
-    combinedJourneyEvents,
-    [
-      (event) =>
-        hasRecordedUnix(event)
-          ? event.recordedAtUnix
-          : hasPlannedUnix(event)
-          ? event.plannedUnix
-          : 0,
-      (event) =>
-        hasPlannedUnix(event)
-          ? event.plannedUnix
-          : hasRecordedUnix(event)
-          ? event.recordedAtUnix
-          : 0,
-    ],
-    ['asc', 'asc']
-  )
+  for (const event of combinedJourneyEvents) {
+    // TODO: the thing
+  }
 
   let finalPositions = ascVehiclePositions
 

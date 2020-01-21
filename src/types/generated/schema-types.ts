@@ -373,6 +373,7 @@ export type JourneyCancellationEvent = {
   isCancelled: Scalars['Boolean']
   cancellationType: CancellationType
   cancellationEffect: CancellationEffect
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type JourneyEvent = {
@@ -388,6 +389,7 @@ export type JourneyEvent = {
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
   _isVirtual?: Maybe<Scalars['Boolean']>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type JourneyEventType =
@@ -417,13 +419,14 @@ export type JourneyStopEvent = {
   departureId?: Maybe<Scalars['Int']>
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
-  index?: Maybe<Scalars['Int']>
+  index: Scalars['Int']
   stop?: Maybe<Stop>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
   unplannedStop: Scalars['Boolean']
   _isVirtual?: Maybe<Scalars['Boolean']>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type ObservedArrival = {
@@ -477,8 +480,9 @@ export type PlannedStopEvent = {
   departureId?: Maybe<Scalars['Int']>
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
-  index?: Maybe<Scalars['Int']>
+  index: Scalars['Int']
   stop?: Maybe<Stop>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 /** Any object that describes something with a position implements this interface. */
@@ -766,4 +770,5 @@ export type VehiclePosition = Position & {
   delay?: Maybe<Scalars['Int']>
   heading?: Maybe<Scalars['Int']>
   mode?: Maybe<Scalars['String']>
+  _sort?: Maybe<Scalars['Int']>
 }

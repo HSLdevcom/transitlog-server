@@ -17,6 +17,7 @@ export const Journey = gql`
     lng: Float
     loc: String
     _isVirtual: Boolean
+    _sort: Int
   }
 
   type JourneyCancellationEvent {
@@ -34,6 +35,7 @@ export const Journey = gql`
     isCancelled: Boolean!
     cancellationType: CancellationType!
     cancellationEffect: CancellationEffect!
+    _sort: Int
   }
 
   type JourneyStopEvent {
@@ -56,15 +58,15 @@ export const Journey = gql`
     departureId: Int
     isTimingStop: Boolean!
     isOrigin: Boolean
-    index: Int
+    index: Int!
     stop: Stop
     lat: Float
     lng: Float
     loc: String
     unplannedStop: Boolean!
     _isVirtual: Boolean
+    _sort: Int
   }
-
   type PlannedStopEvent {
     id: ID!
     type: String!
@@ -77,8 +79,9 @@ export const Journey = gql`
     departureId: Int
     isTimingStop: Boolean!
     isOrigin: Boolean
-    index: Int
+    index: Int!
     stop: Stop
+    _sort: Int
   }
 
   union JourneyEventType =
@@ -107,6 +110,7 @@ export const Journey = gql`
     delay: Int
     heading: Int
     mode: String
+    _sort: Int
   }
 
   type Journey {
