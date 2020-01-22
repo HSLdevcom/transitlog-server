@@ -81,11 +81,6 @@ const isPlannedEvent = (event: any): event is PlannedStopEvent => event.type ===
 const isStopEvent = (event: any): event is PlannedStopEvent | JourneyStopEvent =>
   typeof event.index !== 'undefined'
 
-const hasRecordedTime = (
-  event: any
-): event is JourneyStopEvent | JourneyEvent | JourneyCancellationEvent =>
-  typeof event.plannedUnix === 'undefined' && typeof event.recordedAtUnix !== 'undefined'
-
 /**
  * Fetch the journey events and filter out the invalid ones.
  * @param fetcher async function that fetches the journey events
