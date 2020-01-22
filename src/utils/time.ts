@@ -138,7 +138,7 @@ export function getJourneyStartTime(
     planned start times for journeys that teeter on the edge of midnight.
    */
 
-  if (intHours <= 19 && Math.floor(diff / 60 / 60) >= 22.8) {
+  if (intHours <= 19 && Math.floor(diff / 60 / 60) >= 23) {
     intHours = intHours + Math.max(1, Math.min(24, Math.floor(diff / 60 / 60)))
   }
 
