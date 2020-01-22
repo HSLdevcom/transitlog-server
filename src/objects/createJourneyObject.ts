@@ -30,13 +30,19 @@ export function createJourneyObject(
   alerts: Alert[] = [],
   cancellations: Cancellation[] = []
 ): Journey {
+  const firstStopDeparture = events.find((evt) => ['DEP', 'PDE'].includes(evt.type))
+
+  console.log(firstStopDeparture)
+
   const journey =
-    vehiclePositions.find((event) => event.journey_type === 'journey') || vehiclePositions[0]
+    firstStopDeparture ||
+    vehiclePositions.find((event) => event.journey_type === 'journey') ||
+    vehiclePositions[0]
 
   const departureDate = get(originDeparture, 'plannedDepartureTime.departureDate', '')
   const departureTime = !journey
     ? get(originDeparture, 'plannedDepartureTime.departureTime', '')
-    : getJourneyStartTime(journey)
+    : getJourneyStartTime(journey, true)
 
   const id = !journey
     ? `journey_no_events_${get(originDeparture, 'id')}`
