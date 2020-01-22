@@ -308,8 +308,8 @@ export async function createJourneyResponse(
 
   // If both of our fetches failed we'll just bail here with null.
   if (
-    get(journeyEvents, 'vehiclePositions.length', 0) === 0 &&
-    (!routeAndDepartures || routeAndDepartures.departures.length === 0)
+    journeyEvents?.vehiclePositions?.length === 0 &&
+    (!routeAndDepartures || routeAndDepartures?.departures?.length === 0)
   ) {
     return null
   }
@@ -429,10 +429,9 @@ export async function createJourneyResponse(
   const { vehiclePositions = [], stopEvents = [], otherEvents: events = [] } = journeyEvents
 
   let journeyEquipment = null
-
   const ascVehiclePositions = orderBy(vehiclePositions, 'tsi', 'asc')
 
-  if (requireVehicleAuthorization(user, vehicleId)) {
+  if (requireVehicleAuthorization(user, vehicleId) && ascVehiclePositions.length !== 0) {
     // Get the ID of the vehicle that actually operated this journey and fetch its data.
     const { owner_operator_id, vehicle_number } = ascVehiclePositions[0]
     const equipmentKey = `equipment_${owner_operator_id}_${vehicle_number}`
@@ -629,9 +628,9 @@ export async function createJourneyResponse(
     const lastEvent = last(ascVehiclePositions)
 
     // Journey start
-    const minDate = firstEvent ? intval(firstEvent.tsi) : departureDateTime.unix()
+    const minDate = firstEvent ? intval(firstEvent?.tsi || 0) : departureDateTime.unix()
     // Journey end timestamp (or scheduled start)
-    const maxDate = lastEvent ? intval(lastEvent.tsi) : departureDateTime.unix()
+    const maxDate = lastEvent ? intval(lastEvent?.tsi || 0) : departureDateTime.unix()
 
     const unsignedAroundJourney = groupBy(unsignedEvents, ({ tsi }) => {
       const intTsi = intval(tsi)
