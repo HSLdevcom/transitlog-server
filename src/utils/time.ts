@@ -2,11 +2,16 @@ import { doubleDigit } from './doubleDigit'
 import format from 'date-fns/format'
 import moment from 'moment-timezone'
 import { get } from 'lodash'
-import { Departure } from '../types/generated/schema-types'
+import {
+  Departure,
+  JourneyEvent,
+  JourneyStopEvent,
+  VehiclePosition,
+} from '../types/generated/schema-types'
 import { Journey as JourneyType } from '../types/Journey'
 import { TZ } from '../constants'
 import { Moment } from 'moment'
-import { Vehicles } from '../types/EventsDb'
+import { EventsType, Vehicles } from '../types/EventsDb'
 
 const num = (val) => parseInt(val, 10)
 
@@ -86,26 +91,39 @@ export function getDateFromDateTime(date: string, time: string = '00:00:00'): Mo
 }
 
 // Get the (potentially) 24h+ time of the journey.
-export function getJourneyStartTime(event: JourneyType | null, log = false): string {
-  const journeyStartTime = get(event, 'journey_start_time', get(event, 'departureTime', false))
-  const recordedAtTimestamp = get(event, 'tst', get(event, 'events[0].recordedAt', 0))
+export function getJourneyStartTime(
+  event: JourneyType | null,
+  // Timing event can provide a better timestamp to compare the planned time
+  // against if the main event happened at an irregular time.
+  timingEvent: JourneyEvent | JourneyStopEvent | VehiclePosition | null = null
+): string {
+  const journeyStartTime = get(
+    event,
+    'journey_start_time',
+    get(event, 'departureTime', get(event, 'plannedTime', false))
+  )
+
+  const recordedAtTimestamp = timingEvent
+    ? timingEvent?.recordedAt
+    : get(event, 'tst', get(event, 'events[0].recordedAt', 0))
+
   const eventDate = moment.tz(recordedAtTimestamp, TZ)
 
   if (!journeyStartTime) {
     return ''
   }
 
-  const operationDay = get(event, 'oday', get(event, 'departureDate', false))
+  const operationDay = get(
+    event,
+    'oday',
+    get(event, 'departureDate', get(event, 'plannedDate', false))
+  )
 
   const odayDate = getDateFromDateTime(operationDay)
   const diff = eventDate.diff(odayDate, 'seconds')
 
   const [hours, minutes, seconds] = journeyStartTime.split(':')
   let intHours = parseInt(hours, 10)
-
-  if (log) {
-    console.log(recordedAtTimestamp, diff / 60 / 60)
-  }
 
   /*
     If the journey time was more than a day after the operation day, we're probably

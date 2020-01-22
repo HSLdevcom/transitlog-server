@@ -1,4 +1,4 @@
-import { Scalars } from './generated/schema-types'
+import { JourneyStopEvent, Scalars } from './generated/schema-types'
 import { Vehicles } from './EventsDb'
 
 export interface HFPJourneyObject {
@@ -17,4 +17,4 @@ export interface JourneyObject {
   uniqueVehicleId: Scalars['VehicleId']
 }
 
-export type Journey = HFPJourneyObject | JourneyObject | Vehicles
+export type Journey = HFPJourneyObject | JourneyObject | Vehicles | JourneyStopEvent

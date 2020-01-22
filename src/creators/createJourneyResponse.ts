@@ -35,7 +35,7 @@ import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
-import { JourneyEvents, Vehicles } from '../types/EventsDb'
+import { EventsType, JourneyEvents, Vehicles } from '../types/EventsDb'
 import {
   createJourneyCancellationEventObject,
   createJourneyEventObject,
@@ -397,12 +397,6 @@ export async function createJourneyResponse(
   const plannedStopEvents: PlannedStopEvent[] = authorizedDepartures.map((departure) =>
     createPlannedStopEventObject(departure, journeyAlerts)
   )
-
-  type EventsType =
-    | JourneyStopEvent
-    | JourneyEvent
-    | PlannedStopEvent
-    | JourneyCancellationEvent
 
   const stopAndCancellationEvents = orderBy<EventsType>(
     compact([...cancellationEvents, ...plannedStopEvents]),

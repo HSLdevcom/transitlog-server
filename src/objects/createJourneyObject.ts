@@ -20,6 +20,10 @@ import { getDirection } from '../utils/getDirection'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import { Vehicles } from '../types/EventsDb'
 
+function isStopEvent(event): event is JourneyStopEvent {
+  return event?.type !== 'PLANNED' && typeof event?.plannedTime !== 'undefined'
+}
+
 export function createJourneyObject(
   vehiclePositions: Vehicles[],
   events: Array<JourneyEvent | JourneyStopEvent | PlannedStopEvent | JourneyCancellationEvent>,
@@ -30,28 +34,29 @@ export function createJourneyObject(
   alerts: Alert[] = [],
   cancellations: Cancellation[] = []
 ): Journey {
-  const firstStopDeparture = events.find((evt) => ['DEP', 'PDE'].includes(evt.type))
-
-  console.log(firstStopDeparture)
+  const firstStopEvent: JourneyStopEvent | null =
+    (events.find((evt) => isStopEvent(evt) && evt.type === 'DEP') as JourneyStopEvent) || null
 
   const journey =
-    firstStopDeparture ||
-    vehiclePositions.find((event) => event.journey_type === 'journey') ||
-    vehiclePositions[0]
+    vehiclePositions.find((event) => event.journey_type === 'journey') || vehiclePositions[0]
 
   const departureDate = get(originDeparture, 'plannedDepartureTime.departureDate', '')
   const departureTime = !journey
     ? get(originDeparture, 'plannedDepartureTime.departureTime', '')
-    : getJourneyStartTime(journey, true)
+    : getJourneyStartTime(journey, firstStopEvent)
 
-  const id = !journey
-    ? `journey_no_events_${get(originDeparture, 'id')}`
-    : createJourneyId(journey)
+  const id =
+    !firstStopEvent && !journey
+      ? `journey_no_events_${get(originDeparture, 'id')}`
+      : createJourneyId(journey, firstStopEvent)
 
   const isCancelled =
     cancellations.length !== 0 && getLatestCancellationState(cancellations)[0].isCancelled
 
-  const vehicleId = createValidVehicleId(get(journey, 'unique_vehicle_id', ''))
+  const vehicleId = createValidVehicleId(
+    get(firstStopEvent, 'uniqueVehicleId', '') || get(journey, 'unique_vehicle_id', '')
+  )
+
   const [operator = '0000', vehicleNumber = '00'] = vehicleId.split('/')
 
   return {
