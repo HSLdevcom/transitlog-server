@@ -53,10 +53,7 @@ export function createJourneyObject(
   const isCancelled =
     cancellations.length !== 0 && getLatestCancellationState(cancellations)[0].isCancelled
 
-  const vehicleId = createValidVehicleId(
-    get(firstStopEvent, 'uniqueVehicleId', '') || get(journey, 'unique_vehicle_id', '')
-  )
-
+  const vehicleId = createValidVehicleId(get(journey, 'unique_vehicle_id', ''))
   const [operator = '0000', vehicleNumber = '00'] = vehicleId.split('/')
 
   return {
