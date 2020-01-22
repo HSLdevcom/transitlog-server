@@ -6,6 +6,10 @@ import { get } from 'lodash'
 import moment from 'moment'
 
 export const createVirtualStopEvents = (vehiclePositions, departures): Vehicles[] => {
+  if (vehiclePositions.length === 0 || departures.length === 0) {
+    return []
+  }
+
   const currentTime = moment()
   const virtualStopEvents: Vehicles[] = []
 

@@ -5,6 +5,10 @@ import {
   CancellationEffect,
   CancellationSubcategory,
   CancellationType,
+  JourneyCancellationEvent,
+  JourneyEvent,
+  JourneyStopEvent,
+  PlannedStopEvent,
 } from './generated/schema-types'
 
 export enum DBCancellationStatus {
@@ -117,3 +121,9 @@ export type JourneyEvents = {
   stopEvents: Vehicles[]
   otherEvents: Vehicles[]
 }
+
+export type EventsType =
+  | JourneyStopEvent
+  | JourneyEvent
+  | PlannedStopEvent
+  | JourneyCancellationEvent

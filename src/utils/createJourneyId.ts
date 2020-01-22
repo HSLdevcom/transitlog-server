@@ -4,15 +4,25 @@ import { createValidVehicleId } from './createUniqueVehicleId'
 import { getJourneyStartTime } from './time'
 import { Journey } from '../types/Journey'
 import { Vehicles } from '../types/EventsDb'
+import {
+  JourneyEvent,
+  JourneyStopEvent,
+  VehiclePosition,
+} from '../types/generated/schema-types'
 
-export const createJourneyId = (journeyObject: Journey | Vehicles | null) => {
+export const createJourneyId = (
+  journeyObject: Journey | Vehicles | null,
+  // Timing event can provide a better timestamp to compare the planned time
+  // against if the main event happened at an irregular time.
+  timingEvent: JourneyEvent | JourneyStopEvent | VehiclePosition | null = null
+) => {
   if (!journeyObject) {
     return ''
   }
 
   const departureDate = get(journeyObject, 'oday', get(journeyObject, 'departureDate', null))
   const routeId = get(journeyObject, 'route_id', get(journeyObject, 'routeId', null))
-  const departureTime = getJourneyStartTime(journeyObject)
+  const departureTime = getJourneyStartTime(journeyObject, timingEvent)
 
   const direction = getDirection(
     get(journeyObject, 'direction_id', get(journeyObject, 'direction', null))
