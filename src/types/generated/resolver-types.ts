@@ -721,6 +721,9 @@ export type StopRoute = {
   routeId: Scalars['String']
   direction: Scalars['Direction']
   isTimingStop: Scalars['Boolean']
+  destination?: Maybe<Scalars['String']>
+  origin?: Maybe<Scalars['String']>
+  name?: Maybe<Scalars['String']>
   mode?: Maybe<Scalars['String']>
 }
 
@@ -1584,6 +1587,9 @@ export type StopRouteResolvers<
   routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
   isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  destination?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  origin?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 

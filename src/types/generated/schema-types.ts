@@ -717,6 +717,9 @@ export type StopRoute = {
   routeId: Scalars['String']
   direction: Scalars['Direction']
   isTimingStop: Scalars['Boolean']
+  destination?: Maybe<Scalars['String']>
+  origin?: Maybe<Scalars['String']>
+  name?: Maybe<Scalars['String']>
   mode?: Maybe<Scalars['String']>
 }
 
