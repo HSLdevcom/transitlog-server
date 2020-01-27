@@ -410,6 +410,7 @@ ORDER BY tst ASC;
         .where('route_id', routeId)
         .where('direction_id', direction)
         .where('oday', departureDate)
+        .where('is_ongoing', true)
 
       if (uniqueVehicleId) {
         query = query.where('unique_vehicle_id', queryVehicleId)
