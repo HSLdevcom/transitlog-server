@@ -107,7 +107,7 @@ export class JoreDataSource extends SQLDataSource {
         geometry.date_end,
         geometry.date_imported
 from :schema:.route route,
-     :schema:.route_geometry geometry
+     :schema:.geometry
 WHERE route.route_id = :routeId
   AND route.direction = :direction
   AND geometry.route_id = route.route_id
