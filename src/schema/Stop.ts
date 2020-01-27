@@ -7,6 +7,9 @@ export const Stop = gql`
     routeId: String!
     direction: Direction!
     isTimingStop: Boolean!
+    destination: String
+    origin: String
+    name: String
     mode: String
   }
 

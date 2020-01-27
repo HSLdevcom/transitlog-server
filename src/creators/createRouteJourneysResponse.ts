@@ -28,8 +28,8 @@ export const createRouteJourneysResponse = async (
 
     const routeGroups = groupBy(
       routeJourneys,
-      ({ route_id, direction_id, journey_start_time }) =>
-        `${route_id}_${direction_id}_${journey_start_time}`
+      ({ route_id, direction_id, journey_start_time, unique_vehicle_id }) =>
+        `${route_id}_${direction_id}_${journey_start_time}_${unique_vehicle_id}`
     )
 
     return map(routeGroups, (events) =>

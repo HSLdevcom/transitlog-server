@@ -9,6 +9,10 @@ import {
   TlpPriorityLevel,
   TlpRequestType,
   TlpReason,
+  JourneyCancellationEvent,
+  JourneyEvent,
+  JourneyStopEvent,
+  PlannedStopEvent,
 } from './generated/schema-types'
 
 export enum DBCancellationStatus {
@@ -137,3 +141,8 @@ export interface DBLightPriorityEvent extends Vehicles {
   tlp_frequency: Maybe<number>
   tlp_protocol: Maybe<string>
 }
+export type EventsType =
+  | JourneyStopEvent
+  | JourneyEvent
+  | PlannedStopEvent
+  | JourneyCancellationEvent

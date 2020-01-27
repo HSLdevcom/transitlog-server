@@ -260,7 +260,7 @@ ORDER BY tst;
     const { minLat, maxLat, minLng, maxLng } = bbox
 
     const createQuery = (table) => {
-      const query = this.db.raw(
+      return this.db.raw(
         `
 SELECT ${vehicleFields.join(',')}
 FROM :table:
@@ -284,8 +284,6 @@ ORDER BY tst DESC;
           maxLng,
         }
       )
-
-      return query
     }
 
     const queries = [this.getBatched(createQuery('vehicleposition'))]
@@ -363,9 +361,10 @@ ORDER BY tst ASC;
       FROM vehicleposition
       WHERE tst >= :minTime
         AND tst <= :maxTime
+        AND geohash_level <= 3
         AND route_id = :routeId
         AND direction_id = :direction
-      ORDER BY tst DESC;
+      ORDER BY tst ASC;
     `,
       { date, minTime, maxTime, routeId, direction }
     )
@@ -433,6 +432,7 @@ ORDER BY tst ASC;
         .where('route_id', routeId)
         .where('direction_id', direction)
         .where('oday', departureDate)
+        .where('is_ongoing', true)
 
       if (uniqueVehicleId) {
         query = query.where('unique_vehicle_id', queryVehicleId)
