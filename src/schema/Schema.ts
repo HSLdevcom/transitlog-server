@@ -75,6 +75,7 @@ export const Schema = gql`
     unsignedVehicleEvents(uniqueVehicleId: VehicleId!, date: Date!): [VehiclePosition]!
     alerts(time: String, language: String!, alertSearch: AlertSearchInput): [Alert!]!
     cancellations(date: Date, cancellationSearch: CancellationSearchInput): [Cancellation!]!
+    lightPriorityEvents(date: Date): [LightPriorityEvent!]!
     uiMessage: UIMessage!
   }
 `

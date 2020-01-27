@@ -4,7 +4,13 @@ import { getDateFromDateTime, getNormalTime } from '../utils/time'
 import { Scalars } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
-import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
+import {
+  DBAlert,
+  DBCancellation,
+  JourneyEvents,
+  Vehicles,
+  DBLightPriorityEvent,
+} from '../types/EventsDb'
 import { databases, getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
@@ -120,6 +126,22 @@ const alertFields = [
   'last_modified',
   'data',
   'ext_id_bulletin',
+]
+
+const lightPriorityFields = [
+  'tlp_requestid',
+  'tlp_requesttype',
+  'tlp_prioritylevel',
+  'tlp_reason',
+  'tlp_att_seq',
+  'tlp_decision',
+  'sid',
+  'signal_groupid',
+  'tlp_signalgroupnbr',
+  'tlp_line_configid',
+  'tlp_point_configid',
+  'tlp_frequency',
+  'tlp_protocol',
 ]
 
 type TstRange = {
@@ -639,6 +661,17 @@ ORDER BY tst DESC;
         { column: 'start_time', order: 'asc' },
       ])
 
+    return this.getBatched(query)
+  }
+
+  getLightPriorityEvents = async (date: string): Promise<DBLightPriorityEvent[]> => {
+    const { minTime, maxTime } = createTstRange(date)
+    const queryFields = [...vehicleFields, ...lightPriorityFields]
+
+    const query = this.db('lightpriorityevent')
+      .select(queryFields)
+      .whereBetween('tst', [minTime, maxTime])
+      .orderBy('tst', 'desc')
     return this.getBatched(query)
   }
 }

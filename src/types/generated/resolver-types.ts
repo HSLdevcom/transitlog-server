@@ -430,6 +430,35 @@ export type JourneyStopEvent = {
   _isVirtual?: Maybe<Scalars['Boolean']>
 }
 
+export type LightPriorityEvent = {
+  __typename?: 'LightPriorityEvent'
+  requestId?: Maybe<Scalars['Int']>
+  requestType?: Maybe<TlpRequestType>
+  priorityLevel?: Maybe<TlpPriorityLevel>
+  reason?: Maybe<TlpReason>
+  attemptSeq?: Maybe<Scalars['Int']>
+  decision?: Maybe<TlpDecision>
+  junctionId?: Maybe<Scalars['Int']>
+  signalGroupId?: Maybe<Scalars['Int']>
+  signalGroupNum?: Maybe<Scalars['Int']>
+  lineConfigId?: Maybe<Scalars['Int']>
+  pointConfigId?: Maybe<Scalars['Int']>
+  frequency?: Maybe<Scalars['Int']>
+  protocol?: Maybe<Scalars['String']>
+  recordedAt?: Maybe<Scalars['DateTime']>
+  recordedTime?: Maybe<Scalars['Time']>
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
+}
+
+export type LightPriorityEventSearchInput = {
+  all?: Maybe<Scalars['Boolean']>
+  sid?: Maybe<Scalars['Int']>
+  junctionId?: Maybe<Scalars['Int']>
+  signalGroupid?: Maybe<Scalars['Int']>
+}
+
 export type ObservedArrival = {
   __typename?: 'ObservedArrival'
   id: Scalars['ID']
@@ -512,6 +541,7 @@ export type Query = {
   unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
   alerts: Alert[]
   cancellations: Cancellation[]
+  lightPriorityEvents: LightPriorityEvent[]
   uiMessage: UiMessage
 }
 
@@ -629,6 +659,10 @@ export type QueryCancellationsArgs = {
   cancellationSearch?: Maybe<CancellationSearchInput>
 }
 
+export type QueryLightPriorityEventsArgs = {
+  date?: Maybe<Scalars['Date']>
+}
+
 export type Route = {
   __typename?: 'Route'
   id: Scalars['ID']
@@ -718,6 +752,31 @@ export type StopRoute = {
   direction: Scalars['Direction']
   isTimingStop: Scalars['Boolean']
   mode?: Maybe<Scalars['String']>
+}
+
+export enum TlpDecision {
+  Ack = 'ACK',
+  Nak = 'NAK',
+}
+
+export enum TlpPriorityLevel {
+  Normal = 'NORMAL',
+  High = 'HIGH',
+  Norequest = 'NOREQUEST',
+}
+
+export enum TlpReason {
+  Global = 'GLOBAL',
+  Ahead = 'AHEAD',
+  Line = 'LINE',
+  Prioexep = 'PRIOEXEP',
+}
+
+export enum TlpRequestType {
+  Normal = 'NORMAL',
+  DoorClose = 'DOOR_CLOSE',
+  DoorOpen = 'DOOR_OPEN',
+  Advance = 'ADVANCE',
 }
 
 export type UiMessage = {
@@ -910,7 +969,13 @@ export type ResolversTypes = {
   AreaEventsFilterInput: AreaEventsFilterInput
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
+  LightPriorityEvent: ResolverTypeWrapper<LightPriorityEvent>
+  TlpRequestType: TlpRequestType
+  TlpPriorityLevel: TlpPriorityLevel
+  TlpReason: TlpReason
+  TlpDecision: TlpDecision
   UIMessage: ResolverTypeWrapper<UiMessage>
+  LightPriorityEventSearchInput: LightPriorityEventSearchInput
   BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
 
@@ -974,7 +1039,13 @@ export type ResolversParentTypes = {
   AreaEventsFilterInput: AreaEventsFilterInput
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
+  LightPriorityEvent: LightPriorityEvent
+  TlpRequestType: TlpRequestType
+  TlpPriorityLevel: TlpPriorityLevel
+  TlpReason: TlpReason
+  TlpDecision: TlpDecision
   UIMessage: UiMessage
+  LightPriorityEventSearchInput: LightPriorityEventSearchInput
   BBox: Scalars['BBox']
 }
 
@@ -1278,6 +1349,30 @@ export type JourneyStopEventResolvers<
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
 }
 
+export type LightPriorityEventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['LightPriorityEvent'] = ResolversParentTypes['LightPriorityEvent']
+> = {
+  requestId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  requestType?: Resolver<Maybe<ResolversTypes['TlpRequestType']>, ParentType, ContextType>
+  priorityLevel?: Resolver<Maybe<ResolversTypes['TlpPriorityLevel']>, ParentType, ContextType>
+  reason?: Resolver<Maybe<ResolversTypes['TlpReason']>, ParentType, ContextType>
+  attemptSeq?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  decision?: Resolver<Maybe<ResolversTypes['TlpDecision']>, ParentType, ContextType>
+  junctionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  signalGroupId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  signalGroupNum?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  lineConfigId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  pointConfigId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  frequency?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  protocol?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  recordedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>
+  recordedTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
+  lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+}
+
 export type ObservedArrivalResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['ObservedArrival'] = ResolversParentTypes['ObservedArrival']
@@ -1482,6 +1577,12 @@ export type QueryResolvers<
     ContextType,
     QueryCancellationsArgs
   >
+  lightPriorityEvents?: Resolver<
+    Array<ResolversTypes['LightPriorityEvent']>,
+    ParentType,
+    ContextType,
+    QueryLightPriorityEventsArgs
+  >
   uiMessage?: Resolver<ResolversTypes['UIMessage'], ParentType, ContextType>
 }
 
@@ -1663,6 +1764,7 @@ export type Resolvers<ContextType = any> = {
   JourneyEvent?: JourneyEventResolvers<ContextType>
   JourneyEventType?: JourneyEventTypeResolvers
   JourneyStopEvent?: JourneyStopEventResolvers<ContextType>
+  LightPriorityEvent?: LightPriorityEventResolvers<ContextType>
   ObservedArrival?: ObservedArrivalResolvers<ContextType>
   ObservedDeparture?: ObservedDepartureResolvers<ContextType>
   PlannedArrival?: PlannedArrivalResolvers<ContextType>
