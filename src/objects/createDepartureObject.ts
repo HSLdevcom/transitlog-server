@@ -22,13 +22,16 @@ import { doubleDigit } from '../utils/doubleDigit'
 import { Vehicles } from '../types/EventsDb'
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
+import { extraDepartureType } from '../utils/extraDepartureType'
 
 function createJoreDepartureId(departure: JoreDeparture, date) {
   return `${departure.route_id}_${departure.direction}_${doubleDigit(
     departure.hours
-  )}_${doubleDigit(departure.minutes)}_${departure.stop_id}_${departure.day_type}_${
-    departure.extra_departure
-  }_${date}_${departure.date_begin}_${departure.date_end}`
+  )}_${doubleDigit(departure.minutes)}_${departure.stop_id}_${
+    departure.day_type
+  }_${extraDepartureType(departure.extra_departure)}_${date}_${departure.date_begin}_${
+    departure.date_end
+  }`
 }
 
 export function createDepartureId(departure, date = '') {
@@ -78,7 +81,11 @@ export function createDepartureJourneyObject(
   instanceIndex: number = 0,
   mode = Mode.Bus,
   alerts: Alert[] = []
-): DepartureJourney {
+): DepartureJourney | null {
+  if (!event) {
+    return null
+  }
+
   const id = createJourneyId(event)
   const journeyDate = moment.tz(event?.tst, TZ).format('YYYY-MM-DD')
   const eventOday = get(event, 'oday', journeyDate) || journeyDate
@@ -131,7 +138,7 @@ export function createPlannedDepartureObject(
     departureId: departure.departure_id,
     departureTime: plannedDepartureTime.departureTime,
     departureDate: plannedDepartureTime.departureDate,
-    extraDeparture: departure.extra_departure,
+    extraDeparture: extraDepartureType(departure.extra_departure),
     isNextDay: departure.is_next_day,
     isTimingStop: !!get(stop, 'isTimingStop', false) || false,
     index: get(stop, 'stopIndex', 0),

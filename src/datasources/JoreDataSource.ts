@@ -135,6 +135,8 @@ WHERE route.route_id = :routeId
        route_data.originstop_id,
        route_data.route_length,
        route_data.route_name,
+       route_data.origin_fi,
+       route_data.destination_fi,
        route_data.mode,
        route_data.date_begin,
        route_data.date_end,
@@ -154,6 +156,8 @@ FROM :schema:.stop stop
                route.originstop_id,
                route.route_length,
                route.name_fi as route_name,
+               route.origin_fi,
+               route.destination_fi,
                mode.mode,
                route_segment.stop_id,
                route_segment.date_begin,
@@ -202,6 +206,7 @@ WHERE stop.stop_id = :stopId;`,
              stop.lon,
              stop.name_fi,
              stop.stop_radius,
+             modes.modes,
              route_segment.date_begin,
              route_segment.date_end,
              route_segment.date_modified,
@@ -209,7 +214,8 @@ WHERE stop.stop_id = :stopId;`,
              route_segment.direction,
              route_segment.timing_stop_type
       FROM :schema:.stop stop
-           LEFT JOIN :schema:.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id;`,
+           LEFT JOIN :schema:.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id,
+           :schema:.stop_modes(stop, :date) modes`,
           { schema: SCHEMA, date }
         )
       : this.db.raw(
@@ -343,13 +349,13 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
        departure.date_begin,
        departure.date_end,
        departure.departure_id,
-       departure.bid_target_id
+       departure.bid_target_id,
+       departure.date_imported
 FROM :schema:.departure departure
     WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
       AND departure.route_id = :routeId
       AND departure.direction = :direction
       AND departure.date_begin <= :date
-      AND departure.date_end >= :date
 ORDER BY departure.departure_id ASC,
          departure.hours ASC,
          departure.minutes ASC;`,
@@ -465,7 +471,6 @@ SELECT DISTINCT ON (operator_id, route_id, direction, hours, minutes) operator_i
 FROM :schema:.departure
     WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
       AND date_begin <= :date
-      AND date_end >= :date
 ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
       { schema: SCHEMA, date }
     )
@@ -506,7 +511,8 @@ ORDER BY operator_id ASC;`,
     departure.date_begin,
     departure.date_end,
     departure.departure_id,
-    departure.bid_target_id
+    departure.bid_target_id,
+    departure.date_imported
   `
 
   async getDeparturesForStop(stopId, date): Promise<JoreDepartureWithOrigin[]> {

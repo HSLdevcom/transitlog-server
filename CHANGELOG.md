@@ -1,5 +1,31 @@
 # Transitlog server changelog
 
+## Version 1.6.1, deployed 2020-01-23 @ 12:00
+
+- Add more route info to stop routes.
+- Refactor and fix journey events sorting.
+- Time fix for some midnight journeys not working.
+- Better handling of journeys with empty vehicle positions.
+- Fix for abnormal extra_departure value from JORE.
+- Add loc data to many responses.
+- Some preparations for a new JORE database.
+
+## Version 1.6.0, deployed 2020-01-17 @ 10:00
+
+- Fix area search bug.
+- Fix for some alerts not being visible.
+- Add driver events (DA, DOUT) resolver and types.
+- Stop creating virtual events for future stops.
+- Remove PDE event fallback for missing DEP events.
+- Fix event order in journey event list.
+- Fix invalid departures which have new versions.
+- Use new Citus database for HFP queries (deployed 2020-01-08)
+
+## Version 1.5.5, deployed 2019-12-20 @ 11:00
+
+- Include stops without routes in stops response.
+- Fix journey events order.
+
 ## Version 1.5.4, deployed 2019-12-12 @ 12:00
 
 - Fix edge case crash when preparing the vehicles response.

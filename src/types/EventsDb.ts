@@ -5,6 +5,10 @@ import {
   CancellationEffect,
   CancellationSubcategory,
   CancellationType,
+  JourneyCancellationEvent,
+  JourneyEvent,
+  JourneyStopEvent,
+  PlannedStopEvent,
 } from './generated/schema-types'
 
 export enum DBCancellationStatus {
@@ -54,6 +58,7 @@ export interface DBAlert {
   valid_to: string
   last_modified: string
   data: AlertDataType
+  ext_id_bulletin: string
 }
 
 export type Maybe<T> = T | null
@@ -94,6 +99,7 @@ export interface Vehicles {
   lat: Maybe<number>
   line: Maybe<number>
   long: Maybe<number>
+  loc: Maybe<string>
   mode: Maybe<string>
   stop: Maybe<number>
   next_stop_id: Maybe<string>
@@ -109,3 +115,15 @@ export interface Vehicles {
   vehicle_number: number
   _is_virtual?: boolean
 }
+
+export type JourneyEvents = {
+  vehiclePositions: Vehicles[]
+  stopEvents: Vehicles[]
+  otherEvents: Vehicles[]
+}
+
+export type EventsType =
+  | JourneyStopEvent
+  | JourneyEvent
+  | PlannedStopEvent
+  | JourneyCancellationEvent

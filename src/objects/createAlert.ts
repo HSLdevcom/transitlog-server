@@ -52,5 +52,6 @@ export function createAlert(alert: DBAlert, language: string = 'fi'): Alert {
     title: get(title, 'text', ''),
     description: get(description, 'text', ''),
     url: get(url, 'text', null),
+    bulletinId: alert?.ext_id_bulletin || 'unknown',
   }
 }

@@ -14,6 +14,8 @@ export const createRouteSegmentObject = (
   alerts: Alert[] = [],
   cancellations: Cancellation[] = []
 ): RouteSegment => {
+  const modes = routeSegment?.modes || [routeSegment?.mode || Mode.Bus]
+
   return {
     ...createStopObject({ ...routeSegment, modes: routeSegment.mode || Mode.Bus }),
     id: createSegmentId({ ...route, ...routeSegment }),
@@ -26,7 +28,7 @@ export const createRouteSegmentObject = (
     duration: routeSegment.duration,
     stopIndex: routeSegment.stop_index,
     isTimingStop: !!routeSegment.timing_stop_type,
-    modes: routeSegment.modes || ['BUS'],
+    modes,
     alerts,
     cancellations,
   } as RouteSegment

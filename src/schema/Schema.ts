@@ -64,6 +64,7 @@ export const Schema = gql`
       date: Date!
       unsignedEvents: Boolean
     ): [VehicleJourney]!
+    driverEvents(uniqueVehicleId: VehicleId!, date: Date!): [DriverEvent]!
     journeysByBbox(
       minTime: DateTime!
       maxTime: DateTime!

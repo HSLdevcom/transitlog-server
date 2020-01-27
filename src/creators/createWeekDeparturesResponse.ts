@@ -33,6 +33,7 @@ import {
 import { Vehicles } from '../types/EventsDb'
 import { getStopArrivalData, getStopArrivalEvent } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
+import { extraDepartureType } from '../utils/extraDepartureType'
 
 const combineDeparturesAndEvents = (
   departures,
@@ -244,7 +245,7 @@ export const createWeekDeparturesResponse = async (
         // Careful with this group key. You want to group departures that are the same but have different
         // validity times without including any items that shouldn't be included or excluding any items
         // that should be included. Duh!
-        `${departure_id}_${extra_departure}_${day_type}`
+        `${departure_id}_${extraDepartureType(extra_departure)}_${day_type}`
     ) as Dictionary<JoreDeparture[]>
 
     const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(

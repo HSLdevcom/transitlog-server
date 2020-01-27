@@ -15,6 +15,7 @@ export const Departure = gql`
     departureTime: Time!
     departureDateTime: DateTime!
     departureTimeDifference: Int!
+    loc: String
   }
 
   type PlannedArrival {
@@ -31,6 +32,7 @@ export const Departure = gql`
     arrivalTime: Time!
     arrivalDateTime: DateTime!
     arrivalTimeDifference: Int!
+    loc: String
   }
 
   type DepartureJourney {

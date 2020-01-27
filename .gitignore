@@ -3,11 +3,12 @@ dist
 .cache
 node_modules
 postgres-data
+.env-newtables
+.env-oldtables
 .env
 .env-old
+.env-new
 .env-citus
-.env-oldtables
-.env-newtables
 .env.local
 schema.graphql
 secrets

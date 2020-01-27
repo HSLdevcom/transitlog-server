@@ -29,6 +29,7 @@ export type Alert = {
   title: Scalars['String']
   description: Scalars['String']
   url?: Maybe<Scalars['String']>
+  bulletinId: Scalars['String']
 }
 
 export enum AlertCategory {
@@ -274,6 +275,24 @@ export type DepartureJourney = {
   _numInstance?: Maybe<Scalars['Int']>
 }
 
+export type DriverEvent = {
+  __typename?: 'DriverEvent'
+  id: Scalars['ID']
+  journeyType: Scalars['String']
+  eventType: Scalars['String']
+  uniqueVehicleId?: Maybe<Scalars['VehicleId']>
+  operatorId?: Maybe<Scalars['String']>
+  vehicleId?: Maybe<Scalars['String']>
+  mode?: Maybe<Scalars['String']>
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  receivedAt?: Maybe<Scalars['DateTime']>
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
+}
+
 export type Equipment = {
   __typename?: 'Equipment'
   id: Scalars['ID']
@@ -354,6 +373,7 @@ export type JourneyCancellationEvent = {
   isCancelled: Scalars['Boolean']
   cancellationType: CancellationType
   cancellationEffect: CancellationEffect
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type JourneyEvent = {
@@ -367,7 +387,9 @@ export type JourneyEvent = {
   stopId?: Maybe<Scalars['String']>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
   _isVirtual?: Maybe<Scalars['Boolean']>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type JourneyEventType =
@@ -397,12 +419,14 @@ export type JourneyStopEvent = {
   departureId?: Maybe<Scalars['Int']>
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
-  index?: Maybe<Scalars['Int']>
+  index: Scalars['Int']
   stop?: Maybe<Stop>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
   unplannedStop: Scalars['Boolean']
   _isVirtual?: Maybe<Scalars['Boolean']>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 export type ObservedArrival = {
@@ -412,6 +436,7 @@ export type ObservedArrival = {
   arrivalTime: Scalars['Time']
   arrivalDateTime: Scalars['DateTime']
   arrivalTimeDifference: Scalars['Int']
+  loc?: Maybe<Scalars['String']>
 }
 
 export type ObservedDeparture = {
@@ -421,6 +446,7 @@ export type ObservedDeparture = {
   departureTime: Scalars['Time']
   departureDateTime: Scalars['DateTime']
   departureTimeDifference: Scalars['Int']
+  loc?: Maybe<Scalars['String']>
 }
 
 export type Operator = {
@@ -460,8 +486,9 @@ export type PlannedStopEvent = {
   departureId?: Maybe<Scalars['Int']>
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
-  index?: Maybe<Scalars['Int']>
+  index: Scalars['Int']
   stop?: Maybe<Stop>
+  _sort?: Maybe<Scalars['Int']>
 }
 
 /** Any object that describes something with a position implements this interface. */
@@ -487,6 +514,7 @@ export type Query = {
   journey?: Maybe<Journey>
   journeys: Array<Maybe<Journey>>
   vehicleJourneys: Array<Maybe<VehicleJourney>>
+  driverEvents: Array<Maybe<DriverEvent>>
   journeysByBbox: Array<Maybe<Journey>>
   unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
   alerts: Alert[]
@@ -576,6 +604,11 @@ export type QueryVehicleJourneysArgs = {
   uniqueVehicleId: Scalars['VehicleId']
   date: Scalars['Date']
   unsignedEvents?: Maybe<Scalars['Boolean']>
+}
+
+export type QueryDriverEventsArgs = {
+  uniqueVehicleId: Scalars['VehicleId']
+  date: Scalars['Date']
 }
 
 export type QueryJourneysByBboxArgs = {
@@ -691,6 +724,9 @@ export type StopRoute = {
   routeId: Scalars['String']
   direction: Scalars['Direction']
   isTimingStop: Scalars['Boolean']
+  destination?: Maybe<Scalars['String']>
+  origin?: Maybe<Scalars['String']>
+  name?: Maybe<Scalars['String']>
   mode?: Maybe<Scalars['String']>
 }
 
@@ -717,6 +753,7 @@ export type VehicleJourney = {
   recordedAtUnix: Scalars['Int']
   recordedTime: Scalars['Time']
   timeDifference: Scalars['Int']
+  loc?: Maybe<Scalars['String']>
   alerts: Alert[]
   cancellations: Cancellation[]
   isCancelled: Scalars['Boolean']
@@ -737,9 +774,11 @@ export type VehiclePosition = Position & {
   vehicleId?: Maybe<Scalars['String']>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
   velocity?: Maybe<Scalars['Float']>
   doorStatus?: Maybe<Scalars['Boolean']>
   delay?: Maybe<Scalars['Int']>
   heading?: Maybe<Scalars['Int']>
   mode?: Maybe<Scalars['String']>
+  _sort?: Maybe<Scalars['Int']>
 }

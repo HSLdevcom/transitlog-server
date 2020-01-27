@@ -11,7 +11,7 @@ const knexes: { [id: string]: Knex } = {}
 
 const connections = {
   jore: JORE_PG_CONNECTION,
-  hfp: HFP_PG_CONNECTION,
+  hfp: { ...HFP_PG_CONNECTION, ssl: true },
 }
 
 export function getKnex(id: databases = databases.JORE): Knex {

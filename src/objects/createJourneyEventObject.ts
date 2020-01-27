@@ -2,6 +2,7 @@ import {
   AlertDistribution,
   Cancellation,
   Departure,
+  DriverEvent,
   JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
@@ -25,8 +26,8 @@ import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 export function createJourneyEventObject(event: Vehicles): JourneyEvent {
   const id = createJourneyId(event)
 
-  const unix = parseInt(event.tsi, 10)
   const ts = moment.tz(event.tst, TZ)
+  const unix = ts.unix()
   const receivedTs = moment.tz(event.received_at, TZ)
 
   return {
@@ -34,12 +35,14 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
     type: event.event_type || 'VP',
     receivedAt: receivedTs.toISOString(true),
     recordedAt: ts.toISOString(true),
-    recordedAtUnix: ts.unix(),
+    recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
     stopId: (event.stop || '') + '' || null,
     lat: event.lat,
     lng: event.long,
+    loc: event.loc,
     _isVirtual: !!event._is_virtual,
+    _sort: unix,
   }
 }
 
@@ -48,12 +51,13 @@ export function createJourneyCancellationEventObject(
 ): JourneyCancellationEvent {
   const id = cancellation.id
   const ts = moment.tz(cancellation.lastModifiedDateTime, TZ)
+  const unix = ts.unix()
 
   return {
     id: `journey_cancellation_event_${id}`,
     type: 'CANCELLATION',
     recordedAt: ts.toISOString(true),
-    recordedAtUnix: ts.unix(),
+    recordedAtUnix: unix,
     recordedTime: ts.format(TIME_FORMAT),
     plannedDate: cancellation.departureDate,
     plannedTime: cancellation.journeyStartTime,
@@ -64,6 +68,7 @@ export function createJourneyCancellationEventObject(
     isCancelled: cancellation.isCancelled,
     cancellationType: cancellation.cancellationType,
     cancellationEffect: cancellation.cancellationEffect,
+    _sort: unix,
   }
 }
 
@@ -87,6 +92,9 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
     )
   })
 
+  const unix = moment.tz(departureDateTime, TZ).unix()
+  const stopIndex = departure?.index || -1
+
   return {
     id: `journey_planned_stop_event_${id}`,
     type: 'PLANNED',
@@ -94,13 +102,14 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
     plannedDate: departureDate,
     plannedTime: departureTime,
     plannedDateTime: departureDateTime,
-    plannedUnix: moment.tz(departureDateTime, TZ).unix(),
+    plannedUnix: unix,
     isNextDay,
     departureId: departure.departureId,
     isTimingStop: departure.isTimingStop,
     isOrigin: departure.isOrigin || false,
-    index: departure.index,
+    index: stopIndex,
     stop: departure.stop,
+    _sort: unix,
   }
 }
 
@@ -111,8 +120,8 @@ export function createJourneyStopEventObject(
   doorsOpened: boolean
 ): JourneyStopEvent {
   const id = createJourneyId(event)
-  const unix = parseInt(event.tsi, 10)
-  const ts = moment.tz(event.tst, TZ).toISOString(true)
+  const ts = moment.tz(event.tst, TZ)
+  const unix = ts.unix()
   const receivedTs = moment.tz(event.received_at, TZ).toISOString(true)
 
   const stopData = stop ? stop : departure ? departure?.stop : null
@@ -149,11 +158,13 @@ export function createJourneyStopEventObject(
       ? departurePlannedMoment.unix()
       : eventPlannedMoment.unix()
 
+  const stopIndex = departure?.index || -1
+
   return {
     id: `journey_stop_event_${event.event_type}_${id}_${unix}`,
     type: event.event_type,
     receivedAt: receivedTs,
-    recordedAt: ts,
+    recordedAt: ts.toISOString(true),
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
     stopId: (stopData?.stopId || event.stop) + '',
@@ -172,20 +183,22 @@ export function createJourneyStopEventObject(
     departureId: get(departure, 'departureId', null),
     isTimingStop: get(departure, 'isTimingStop', get(stop, 'isTimingStop', false)),
     isOrigin: get(departure, 'isOrigin', false),
-    index: get(departure, 'index', -1),
+    index: stopIndex,
     stop: stopData,
     unplannedStop: !departure,
     lat: event.lat,
     lng: event.long,
+    loc: event.loc,
     _isVirtual: !!event._is_virtual,
+    _sort: unix,
   }
 }
 
 export function createVehiclePositionObject(event: Vehicles, id?: string): VehiclePosition {
   const useId = id || createJourneyId(event)
-  const unix = parseInt(event.tsi, 10)
-  const ts = moment.tz(event.tst, TZ).toISOString(true)
-  const receivedTs = moment.tz(event.received_at, TZ).toISOString(true)
+  const ts = moment.tz(event.tst, TZ)
+  const unix = ts.unix()
+  const receivedTs = moment.tz(event.received_at, TZ)
 
   const journeyType = !event.journey_type
     ? typeof event.journey_start_time === 'undefined'
@@ -196,12 +209,37 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
   return {
     id: `vehicle_position_event_${useId}_${unix}_${event.lat}_${event.long}`,
     journeyType,
-    receivedAt: receivedTs,
-    recordedAt: ts,
+    receivedAt: receivedTs.toISOString(true),
+    recordedAt: ts.toISOString(true),
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
     stop: (event.stop || '') + '',
     nextStopId: (event.next_stop_id || '') + '',
+    lat: event.lat,
+    lng: event.long,
+    loc: event.loc,
+    doorStatus: event.drst,
+    velocity: event.spd,
+    delay: event.dl || 0,
+    heading: event.hdg,
+    mode: event.mode,
+    _sort: unix,
+  }
+}
+
+export function createUnsignedVehiclePositionObject(event: Vehicles): VehiclePosition {
+  const ts = moment.tz(event.tst, TZ)
+  const unix = ts.unix()
+  const receivedTs = moment.tz(event.received_at, TZ)
+
+  return {
+    id: `unsigned_position_${event.unique_vehicle_id}_${unix}_${event.lat}_${event.long}`,
+    journeyType: event.journey_type || 'deadrun',
+    receivedAt: receivedTs.toISOString(true),
+    recordedAt: ts.toISOString(true),
+    recordedAtUnix: unix,
+    recordedTime: getJourneyEventTime(event),
+    uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
     lat: event.lat,
     lng: event.long,
     doorStatus: event.drst,
@@ -212,25 +250,25 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
   }
 }
 
-export function createUnsignedVehiclePositionObject(event: Vehicles): VehiclePosition {
-  const unix = parseInt(event.tsi, 10)
-  const ts = moment.tz(event.tst, TZ).toISOString(true)
-  const receivedTs = moment.tz(event.received_at, TZ).toISOString(true)
+export function createDriverEventObject(event: Vehicles): DriverEvent {
+  const ts = moment.tz(event.tst, TZ)
+  const unix = ts.unix()
+  const receivedTs = moment.tz(event.received_at, TZ)
 
   return {
-    id: `unsigned_position_${event.unique_vehicle_id}_${unix}_${event.lat}_${event.long}`,
+    id: `driver_event_${event.event_type}_${event.unique_vehicle_id}_${unix}`,
     journeyType: event.journey_type || 'deadrun',
-    receivedAt: receivedTs,
-    recordedAt: ts,
+    eventType: event.event_type,
+    receivedAt: receivedTs.toISOString(true),
+    recordedAt: ts.toISOString(true),
     recordedAtUnix: unix,
     recordedTime: getJourneyEventTime(event),
     uniqueVehicleId: createValidVehicleId(event.unique_vehicle_id),
+    operatorId: event.owner_operator_id + '',
+    vehicleId: event.vehicle_number + '',
     lat: event.lat,
     lng: event.long,
-    doorStatus: event.drst,
-    velocity: event.spd,
-    delay: event.dl || 0,
-    heading: event.hdg,
+    loc: event.loc,
     mode: event.mode,
   }
 }

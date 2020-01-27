@@ -4,11 +4,12 @@ import { getDateFromDateTime, getNormalTime } from '../utils/time'
 import { Scalars } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
-import { DBAlert, DBCancellation, Vehicles } from '../types/EventsDb'
+import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
 import { databases, getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
 import { createHfpVehicleId } from '../utils/createUniqueVehicleId'
+import { orderBy } from 'lodash'
 
 const knex: Knex = getKnex(databases.HFP)
 
@@ -37,6 +38,7 @@ const vehicleFields = [
   'hdg',
   'lat',
   'long',
+  'loc',
   'dl',
   'drst',
   'oday',
@@ -54,6 +56,7 @@ const unsignedEventFields = [
   'hdg',
   'lat',
   'long',
+  'loc',
   'mode',
 ]
 
@@ -69,6 +72,7 @@ const routeDepartureFields = [
   'tst',
   'tsi',
   'oday',
+  'loc',
 ]
 
 const routeJourneyFields = [
@@ -84,6 +88,7 @@ const routeJourneyFields = [
   'unique_vehicle_id',
   'lat',
   'long',
+  'loc',
   'drst',
   'hdg',
   'mode',
@@ -158,15 +163,59 @@ export class HFPDataSource extends SQLDataSource {
    */
 
   async getAvailableVehicles(date): Promise<Vehicles[]> {
+    const { minTime, maxTime } = createTstRange(date)
+
     const query = this.db.raw(
       `
 SELECT DISTINCT ON (unique_vehicle_id) unique_vehicle_id,
 vehicle_number,
 owner_operator_id
-FROM vehicle_continuous_aggregate
-WHERE oday = :date;
+FROM otherevent
+WHERE tst >= :minTime
+  AND tst < :maxTime
+  AND event_type = 'VJA'
+ORDER BY unique_vehicle_id, tst DESC;
 `,
-      { date }
+      { date, minTime, maxTime }
+    )
+
+    return this.getBatched(query)
+  }
+
+  /**
+   * Fetches driver sign-in and sign-out events from the HFP database.
+   */
+
+  async getDriverEvents(uniqueVehicleId: string, date: string): Promise<Vehicles[]> {
+    const [operatorPart, vehiclePart] = uniqueVehicleId.split('/')
+    const operatorId = parseInt(operatorPart, 10)
+    const vehicleId = parseInt(vehiclePart, 10)
+
+    const queryVehicleId = `${operatorId}/${vehicleId}`
+    const { minTime, maxTime } = createTstRange(date)
+
+    const query = this.db.raw(
+      `
+SELECT journey_type,
+       event_type,
+       unique_vehicle_id,
+       vehicle_number,
+       owner_operator_id,
+       received_at,
+       tst,
+       tsi,
+       lat,
+       long,
+       loc,
+       mode
+FROM otherevent
+WHERE tst >= :minTime
+  AND tst <= :maxTime
+  AND unique_vehicle_id = :vehicleId
+  AND (event_type = 'DA' OR event_type = 'DOUT')
+ORDER BY tst;
+`,
+      { minTime, maxTime, vehicleId: queryVehicleId }
     )
 
     return this.getBatched(query)
@@ -188,30 +237,44 @@ WHERE oday = :date;
   ): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
 
-    const query = this.db.raw(
-      `
+    const createQuery = (table) => {
+      const query = this.db.raw(
+        `
 SELECT ${vehicleFields.join(',')}
-FROM vehicles
-WHERE event_type = 'VP'
-  ${!unsignedEvents ? `AND journey_type = 'journey'` : ''}
-  AND tst BETWEEN :minTime AND :maxTime
-  AND lat BETWEEN :minLat AND :maxLat
-  AND long BETWEEN :minLng AND :maxLng
+FROM :table:
+WHERE tst >= :minTime
+  AND tst <= :maxTime
+  AND lat >= :minLat
+  AND lat < :maxLat
+  AND long >= :minLng
+  AND long < :maxLng
   AND is_ongoing = true
-ORDER BY tst ASC;
+ORDER BY tst DESC;
     `,
-      {
-        date,
-        minTime: moment.tz(minTime, TZ).toISOString(true),
-        maxTime: moment.tz(maxTime, TZ).toISOString(true),
-        minLat,
-        maxLat,
-        minLng,
-        maxLng,
-      }
-    )
+        {
+          table,
+          date,
+          minTime: moment.tz(minTime, TZ).toISOString(true),
+          maxTime: moment.tz(maxTime, TZ).toISOString(true),
+          minLat,
+          maxLat,
+          minLng,
+          maxLng,
+        }
+      )
 
-    return this.getBatched(query)
+      return query
+    }
+
+    const queries = [this.getBatched(createQuery('vehicleposition'))]
+
+    if (unsignedEvents) {
+      queries.push(this.getBatched(createQuery('unsignedevent')))
+    }
+
+    return Promise.all(queries).then(([vp = [], unsigned = []]) =>
+      orderBy([...(vp || []), ...(unsigned || [])], 'tsi', 'asc')
+    )
   }
 
   /*
@@ -232,20 +295,18 @@ ORDER BY tst ASC;
 
     const eventsQuery = this.db.raw(
       `SELECT ${vehicleFields.join(',')}
-FROM vehicles
+FROM stopevent
 WHERE tst >= :minTime
-  AND tst < :maxTime
+  AND tst <= :maxTime
   AND event_type = 'DEP'
-  AND journey_type = 'journey'
   AND oday = :date
   AND unique_vehicle_id = :vehicleId
-  AND is_ongoing = true
 ORDER BY tst ASC;
 `,
       { date, minTime, maxTime, vehicleId: queryVehicleId }
     )
 
-    const legacyQuery = this.db('vehicles')
+    const legacyQuery = this.db('vehicleposition')
       .select(vehicleFields)
       .whereBetween('tst', [minTime, maxTime])
       .where('journey_type', 'journey')
@@ -273,19 +334,16 @@ ORDER BY tst ASC;
    */
 
   async getRouteJourneys(routeId, direction, date): Promise<Vehicles[]> {
-    return []
     const { minTime, maxTime } = createTstRange(date)
 
     const query = this.db.raw(
       `SELECT ${routeJourneyFields.join(',')}
-      FROM vehicles
+      FROM vehicleposition
       WHERE tst >= :minTime
-        AND tst < :maxTime
-        AND event_type = 'VP'
-        AND journey_type = 'journey'
+        AND tst <= :maxTime
         AND route_id = :routeId
         AND direction_id = :direction
-      ORDER BY tst;
+      ORDER BY tst DESC;
     `,
       { date, minTime, maxTime, routeId, direction }
     )
@@ -306,7 +364,7 @@ ORDER BY tst ASC;
     departureDate,
     departureTime,
     uniqueVehicleId = ''
-  ): Promise<Vehicles[]> {
+  ): Promise<JourneyEvents> {
     let operatorId
     let vehicleId
 
@@ -343,38 +401,64 @@ ORDER BY tst ASC;
         .format(TST_FORMAT)
     }
 
-    const query = this.db.raw(
-      `SELECT ${vehicleFields.join(',')}
-        FROM vehicles
-        WHERE tst >= :minTime
-          AND tst <= :maxTime
-          AND journey_type = 'journey'
-          ${uniqueVehicleId ? `AND unique_vehicle_id = :vehicleId` : ''}
-          AND journey_start_time = :departureTime
-          AND route_id = :routeId
-          AND direction_id = :direction
-          AND oday = :departureDate
-          AND is_ongoing = true
-        ORDER BY tst DESC;`,
-      {
-        departureDate,
-        departureTime: getNormalTime(departureTime),
-        minTime: useMinTime,
-        maxTime: useMaxTime,
-        routeId,
-        direction,
-        vehicleId: `${operatorId}/${vehicleId}`,
+    const queryVehicleId = `${operatorId}/${vehicleId}`
+
+    const createQuery = (table) => {
+      let query = this.db(table)
+        .select(vehicleFields)
+        .whereBetween('tst', [useMinTime, useMaxTime])
+        .where('journey_start_time', getNormalTime(departureTime))
+        .where('route_id', routeId)
+        .where('direction_id', direction)
+        .where('oday', departureDate)
+
+      if (uniqueVehicleId) {
+        query = query.where('unique_vehicle_id', queryVehicleId)
       }
-    )
 
-    let vehicles: Vehicles[] = await this.getBatched(query)
-
-    if (!uniqueVehicleId && vehicles.length !== 0) {
-      const firstVehicleId = vehicles[0].unique_vehicle_id
-      vehicles = vehicles.filter((event) => event.unique_vehicle_id === firstVehicleId)
+      return query
     }
 
-    return vehicles
+    const queries = [
+      createQuery('vehicleposition'),
+      createQuery('stopevent'),
+      createQuery('otherevent'),
+      createQuery('lightpriorityevent'),
+    ]
+
+    return Promise.all(queries).then(
+      (results: Vehicles[][]): JourneyEvents => {
+        let vehicleResults: Vehicles[][] = results
+
+        // If no uniqueVehicleId was provided, get the vehicle ID from the first
+        // event result and filter all events according to it.
+        if (!uniqueVehicleId && vehicleResults[0].length !== 0) {
+          const firstVehicleId = vehicleResults[0][0].unique_vehicle_id
+
+          vehicleResults = vehicleResults.reduce(
+            (filteredResults: Vehicles[][], eventsArr: Vehicles[]) => {
+              const filteredEvents = eventsArr.filter(
+                (event) => event.unique_vehicle_id === firstVehicleId
+              )
+              filteredResults.push(filteredEvents)
+              return filteredResults
+            },
+            []
+          )
+        }
+
+        const [vehiclePositions, stopEvents, otherEvents, lightPriorityEvents] = vehicleResults
+
+        const ensureArray = (val) =>
+          !!val && Array.isArray(val) && val.length !== 0 ? val : []
+
+        return {
+          vehiclePositions: ensureArray(vehiclePositions),
+          stopEvents: ensureArray(stopEvents),
+          otherEvents: [...ensureArray(otherEvents), ...ensureArray(lightPriorityEvents)],
+        }
+      }
+    )
   }
 
   /*
@@ -383,7 +467,7 @@ ORDER BY tst ASC;
   async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
     const { minTime, maxTime } = createTstRange(date)
 
-    const legacyQuery = this.db('vehicles')
+    const legacyQuery = this.db('vehicleposition')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${vehicleFields.join(',')}`
@@ -402,7 +486,7 @@ ORDER BY tst ASC;
     const eventsQuery = this.db.raw(
       `
 SELECT ${routeDepartureFields.join(',')}
-FROM vehicles
+FROM stopevent
 WHERE tst >= :minTime
   AND tst < :maxTime
   AND event_type IN ('DEP', 'PDE', 'PAS')
@@ -440,7 +524,7 @@ ORDER BY tst DESC;
   ): Promise<Vehicles[]> {
     const { minTime, maxTime } = createTstRange(date)
 
-    const legacyQuery = this.db('vehicles')
+    const legacyQuery = this.db('vehicleposition')
       .select(
         this.db.raw(
           `DISTINCT ON ("journey_start_time", "unique_vehicle_id") ${routeDepartureFields.join(
@@ -469,10 +553,10 @@ ORDER BY tst DESC;
 
     const eventsQuery = this.db.raw(
       `SELECT ${routeDepartureFields.join(',')}
-FROM vehicles
+FROM stopevent
 WHERE tst >= :minTime
   AND tst <= :maxTime
-  AND event_type IN ('${queryEventTypes.join("','")}')
+  AND event_type IN ('${queryEventTypes.join(`','`)}')
   AND stop = :stopId
   AND route_id = :routeId
   AND direction_id = :direction
@@ -508,12 +592,9 @@ ORDER BY tst DESC;
     const query = this.db.raw(
       `
       SELECT ${unsignedEventFields.join(',')}
-      FROM vehicles
-      WHERE tst >= :minTime AND tst < :maxTime
-        AND journey_type = 'deadrun'
-        AND event_type = 'VP'
+      FROM unsignedevent
+      WHERE tst >= :minTime AND tst <= :maxTime
         AND unique_vehicle_id = :vehicleId
-        AND is_ongoing = true
       ORDER BY tst DESC;
     `,
       { vehicleId: createHfpVehicleId(uniqueVehicleId), minTime, maxTime }
@@ -523,17 +604,22 @@ ORDER BY tst DESC;
   }
 
   getAlerts = async (date: string): Promise<DBAlert[]> => {
-    const queryDate = moment(date)
+    const fromDate = moment(date)
+      .tz(TZ)
+      .endOf('day')
+      .utc()
+      .format(TST_FORMAT)
+
+    const toDate = moment(date)
       .tz(TZ)
       .startOf('day')
-      .add(1, 'day')
       .utc()
       .format(TST_FORMAT)
 
     const query = this.db('alert')
       .select(alertFields)
-      .where('valid_from', '<=', queryDate)
-      .where('valid_to', '>=', queryDate)
+      .where('valid_from', '<=', fromDate)
+      .where('valid_to', '>=', toDate)
       .orderBy([
         { column: 'valid_from', order: 'asc' },
         { column: 'valid_to', order: 'asc' },
