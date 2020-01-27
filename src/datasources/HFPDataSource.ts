@@ -342,7 +342,7 @@ ORDER BY tst ASC;
         AND geohash_level <= 3
         AND route_id = :routeId
         AND direction_id = :direction
-      ORDER BY tst DESC;
+      ORDER BY tst ASC;
     `,
       { date, minTime, maxTime, routeId, direction }
     )
