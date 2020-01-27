@@ -56,6 +56,9 @@ export async function createStopResponse(
           routeId: stopRouteData.route_id,
           isTimingStop: !!stopRouteData.timing_stop_type,
           originStopId: stopRouteData.originstop_id,
+          name: stopRouteData.route_name,
+          origin: stopRouteData.origin_fi,
+          destination: stopRouteData.destination_fi,
           mode: stopRouteData.mode || 'BUS',
         }
 

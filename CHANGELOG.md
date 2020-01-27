@@ -1,5 +1,15 @@
 # Transitlog server changelog
 
+## Version 1.6.1, deployed 2020-01-23 @ 12:00
+
+- Add more route info to stop routes.
+- Refactor and fix journey events sorting.
+- Time fix for some midnight journeys not working.
+- Better handling of journeys with empty vehicle positions.
+- Fix for abnormal extra_departure value from JORE.
+- Add loc data to many responses.
+- Some preparations for a new JORE database.
+
 ## Version 1.6.0, deployed 2020-01-17 @ 10:00
 
 - Fix area search bug.

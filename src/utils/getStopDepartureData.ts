@@ -27,7 +27,7 @@ export const getStopDepartureData = (
     return null
   }
 
-  const { tst } = departureEvent
+  const { tst, loc = null } = departureEvent
   const eventTime = parse(tst)
 
   const departureDate = !date
@@ -44,6 +44,7 @@ export const getStopDepartureData = (
     departureTime: getJourneyEventTime(departureEvent),
     departureDateTime: moment.tz(eventTime, TZ).toISOString(true),
     departureTimeDifference: departureDiff,
+    loc,
   }
 }
 

@@ -132,6 +132,8 @@ WHERE route.route_id = :routeId
        route_data.originstop_id,
        route_data.route_length,
        route_data.route_name,
+       route_data.origin_fi,
+       route_data.destination_fi,
        route_data.mode,
        route_data.date_begin,
        route_data.date_end,
@@ -152,6 +154,8 @@ FROM :schema:.stop stop
                route.route_length,
                route.name_fi as route_name,
                route_mode(route) as mode,
+               route.origin_fi,
+               route.destination_fi,
                route_segment.stop_id,
                route_segment.date_begin,
                route_segment.date_end,
@@ -340,7 +344,6 @@ FROM :schema:.departure departure
       AND departure.route_id = :routeId
       AND departure.direction = :direction
       AND departure.date_begin <= :date
-      AND departure.date_end >= :date
 ORDER BY departure.departure_id ASC,
          departure.hours ASC,
          departure.minutes ASC;`,
@@ -454,7 +457,6 @@ SELECT DISTINCT ON (operator_id, route_id, direction, hours, minutes) operator_i
 FROM :schema:.departure
     WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
       AND date_begin <= :date
-      AND date_end >= :date
 ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
       { schema: SCHEMA, date }
     )

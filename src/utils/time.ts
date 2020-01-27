@@ -2,11 +2,16 @@ import { doubleDigit } from './doubleDigit'
 import format from 'date-fns/format'
 import moment from 'moment-timezone'
 import { get } from 'lodash'
-import { Departure } from '../types/generated/schema-types'
+import {
+  Departure,
+  JourneyEvent,
+  JourneyStopEvent,
+  VehiclePosition,
+} from '../types/generated/schema-types'
 import { Journey as JourneyType } from '../types/Journey'
 import { TZ } from '../constants'
 import { Moment } from 'moment'
-import { Vehicles } from '../types/EventsDb'
+import { EventsType, Vehicles } from '../types/EventsDb'
 
 const num = (val) => parseInt(val, 10)
 
@@ -69,7 +74,7 @@ export function getDateFromDateTime(date: string, time: string = '00:00:00'): Mo
   // Get the seconds elapsed during the date. The time can be a 24h+ time.
   const seconds = timeToSeconds(time)
   const baseDate = moment.tz(date, TZ)
-  // Create a Date from the date and add the seconds.
+  // Add the seconds. This is how we can use Moment to represent 24h+ times.
   const nextDate = baseDate.clone().add(seconds, 'seconds')
 
   // In Finland DST changes at 3am in the morning, so the baseDate will not be in DST but when we
@@ -86,16 +91,33 @@ export function getDateFromDateTime(date: string, time: string = '00:00:00'): Mo
 }
 
 // Get the (potentially) 24h+ time of the journey.
-export function getJourneyStartTime(event: JourneyType | null): string {
-  const journeyStartTime = get(event, 'journey_start_time', get(event, 'departureTime', false))
-  const recordedAtTimestamp = get(event, 'tst', get(event, 'events[0].recordedAt', 0))
+export function getJourneyStartTime(
+  event: JourneyType | null,
+  // Timing event can provide a better timestamp to compare the planned time
+  // against if the main event happened at an irregular time.
+  timingEvent: JourneyEvent | JourneyStopEvent | VehiclePosition | null = null
+): string {
+  const journeyStartTime = get(
+    event,
+    'journey_start_time',
+    get(event, 'departureTime', get(event, 'plannedTime', false))
+  )
+
+  const recordedAtTimestamp = timingEvent
+    ? timingEvent?.recordedAt
+    : get(event, 'tst', get(event, 'events[0].recordedAt', 0))
+
   const eventDate = moment.tz(recordedAtTimestamp, TZ)
 
   if (!journeyStartTime) {
     return ''
   }
 
-  const operationDay = get(event, 'oday', get(event, 'departureDate', false))
+  const operationDay = get(
+    event,
+    'oday',
+    get(event, 'departureDate', get(event, 'plannedDate', false))
+  )
 
   const odayDate = getDateFromDateTime(operationDay)
   const diff = eventDate.diff(odayDate, 'seconds')
@@ -104,7 +126,7 @@ export function getJourneyStartTime(event: JourneyType | null): string {
   let intHours = parseInt(hours, 10)
 
   /*
-    If the eventMoment was more than a day after the operation day, we're probably
+    If the journey time was more than a day after the operation day, we're probably
     dealing with a 24h+ journey. Also make sure that the start time hours are under 21,
     which was chosen as a time that shouldn't appear more than once in a 24h+ day.
     Thus, the maximum day length supported is 36h. After that things get weird.

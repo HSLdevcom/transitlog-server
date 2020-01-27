@@ -7,7 +7,7 @@
   "scripts": {
     "docker:build": "docker build --cpuset-cpus 2 -t hsldevcom/transitlog-server .",
     "docker:run": "docker run --name transitlog-server -p 4000:4000 hsldevcom/transitlog-server",
-    "start": "NODE_ICU_DATA=\"node_modules/full-icu\" ts-node-dev --no-notify --respawn --inspect -r dotenv/config src/server.ts",
+    "start": "NODE_ICU_DATA=\"node_modules/full-icu\" ts-node-dev --max-old-space-size=4096 --no-notify --respawn --inspect -r dotenv/config src/server.ts",
     "start:build": "NODE_ICU_DATA=\"node_modules/full-icu\" ts-node-dev --no-notify --respawn --inspect -r dotenv/config dist/server.js",
     "start:production": "NODE_ICU_DATA=\"node_modules/full-icu\" forever start -c \"node -r dotenv/config\" dist/server.js && sleep 10 && forever -f logs 0",
     "build": "tsc",

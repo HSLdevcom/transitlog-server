@@ -38,6 +38,7 @@ const vehicleFields = [
   'hdg',
   'lat',
   'long',
+  'loc',
   'dl',
   'drst',
   'oday',
@@ -55,6 +56,7 @@ const unsignedEventFields = [
   'hdg',
   'lat',
   'long',
+  'loc',
   'mode',
 ]
 
@@ -70,6 +72,7 @@ const routeDepartureFields = [
   'tst',
   'tsi',
   'oday',
+  'loc',
 ]
 
 const routeJourneyFields = [
@@ -85,6 +88,7 @@ const routeJourneyFields = [
   'unique_vehicle_id',
   'lat',
   'long',
+  'loc',
   'drst',
   'hdg',
   'mode',
@@ -202,6 +206,7 @@ SELECT journey_type,
        tsi,
        lat,
        long,
+       loc,
        mode
 FROM otherevent
 WHERE tst >= :minTime
@@ -233,7 +238,7 @@ ORDER BY tst;
     const { minLat, maxLat, minLng, maxLng } = bbox
 
     const createQuery = (table) => {
-      const query = this.db.raw(
+      return this.db.raw(
         `
 SELECT ${vehicleFields.join(',')}
 FROM :table:
@@ -257,8 +262,6 @@ ORDER BY tst DESC;
           maxLng,
         }
       )
-
-      return query
     }
 
     const queries = [this.getBatched(createQuery('vehicleposition'))]
@@ -336,9 +339,10 @@ ORDER BY tst ASC;
       FROM vehicleposition
       WHERE tst >= :minTime
         AND tst <= :maxTime
+        AND geohash_level <= 3
         AND route_id = :routeId
         AND direction_id = :direction
-      ORDER BY tst DESC;
+      ORDER BY tst ASC;
     `,
       { date, minTime, maxTime, routeId, direction }
     )
