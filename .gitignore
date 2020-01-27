@@ -4,6 +4,8 @@ dist
 node_modules
 postgres-data
 .env
+.env-old
+.env-citus
 .env-oldtables
 .env-newtables
 .env.local
