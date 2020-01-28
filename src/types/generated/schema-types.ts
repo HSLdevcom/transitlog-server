@@ -429,35 +429,6 @@ export type JourneyStopEvent = {
   _sort?: Maybe<Scalars['Int']>
 }
 
-export type LightPriorityEvent = {
-  __typename?: 'LightPriorityEvent'
-  requestId?: Maybe<Scalars['Int']>
-  requestType?: Maybe<TlpRequestType>
-  priorityLevel?: Maybe<TlpPriorityLevel>
-  reason?: Maybe<TlpReason>
-  attemptSeq?: Maybe<Scalars['Int']>
-  decision?: Maybe<TlpDecision>
-  junctionId?: Maybe<Scalars['Int']>
-  signalGroupId?: Maybe<Scalars['Int']>
-  signalGroupNbr?: Maybe<Scalars['Int']>
-  lineConfigId?: Maybe<Scalars['Int']>
-  pointConfigId?: Maybe<Scalars['Int']>
-  frequency?: Maybe<Scalars['Int']>
-  protocol?: Maybe<Scalars['String']>
-  recordedAt?: Maybe<Scalars['DateTime']>
-  recordedTime?: Maybe<Scalars['Time']>
-  lat?: Maybe<Scalars['Float']>
-  lng?: Maybe<Scalars['Float']>
-  loc?: Maybe<Scalars['String']>
-}
-
-export type LightPrioritySearchInput = {
-  all?: Maybe<Scalars['Boolean']>
-  junctionId?: Maybe<Scalars['Int']>
-  signalGroupId?: Maybe<Scalars['Int']>
-  signalGroupNbr?: Maybe<Scalars['Int']>
-}
-
 export type ObservedArrival = {
   __typename?: 'ObservedArrival'
   id: Scalars['ID']
@@ -541,7 +512,7 @@ export type Query = {
   unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
   alerts: Alert[]
   cancellations: Cancellation[]
-  lightPriorityEvents: LightPriorityEvent[]
+  tlpEvents: TlpEvent[]
   uiMessage: UiMessage
 }
 
@@ -659,9 +630,9 @@ export type QueryCancellationsArgs = {
   cancellationSearch?: Maybe<CancellationSearchInput>
 }
 
-export type QueryLightPriorityEventsArgs = {
+export type QueryTlpEventsArgs = {
   date?: Maybe<Scalars['Date']>
-  lightPrioritySearch?: Maybe<LightPrioritySearchInput>
+  tlpEventSearch?: Maybe<TlpEventSearchInput>
 }
 
 export type Route = {
@@ -761,6 +732,35 @@ export type StopRoute = {
 export enum TlpDecision {
   Ack = 'ACK',
   Nak = 'NAK',
+}
+
+export type TlpEvent = {
+  __typename?: 'TlpEvent'
+  requestId?: Maybe<Scalars['Int']>
+  requestType?: Maybe<TlpRequestType>
+  priorityLevel?: Maybe<TlpPriorityLevel>
+  reason?: Maybe<TlpReason>
+  attemptSeq?: Maybe<Scalars['Int']>
+  decision?: Maybe<TlpDecision>
+  junctionId?: Maybe<Scalars['Int']>
+  signalGroupId?: Maybe<Scalars['Int']>
+  signalGroupNbr?: Maybe<Scalars['Int']>
+  lineConfigId?: Maybe<Scalars['Int']>
+  pointConfigId?: Maybe<Scalars['Int']>
+  frequency?: Maybe<Scalars['Int']>
+  protocol?: Maybe<Scalars['String']>
+  recordedAt?: Maybe<Scalars['DateTime']>
+  recordedTime?: Maybe<Scalars['Time']>
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
+}
+
+export type TlpEventSearchInput = {
+  all?: Maybe<Scalars['Boolean']>
+  junctionId?: Maybe<Scalars['Int']>
+  signalGroupId?: Maybe<Scalars['Int']>
+  signalGroupNbr?: Maybe<Scalars['Int']>
 }
 
 export enum TlpPriorityLevel {

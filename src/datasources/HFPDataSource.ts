@@ -1,7 +1,7 @@
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { getDateFromDateTime, getNormalTime } from '../utils/time'
-import { Scalars, LightPrioritySearchInput } from '../types/generated/schema-types'
+import { Scalars, TlpEventSearchInput } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
 import {
@@ -9,7 +9,7 @@ import {
   DBCancellation,
   JourneyEvents,
   Vehicles,
-  DBLightPriorityEvent,
+  DBTlpEvent,
 } from '../types/EventsDb'
 import { databases, getKnex } from '../knex'
 import { isBefore } from 'date-fns'
@@ -128,7 +128,7 @@ const alertFields = [
   'ext_id_bulletin',
 ]
 
-const lightPriorityFields = [
+const tlpEventFields = [
   'tlp_requestid',
   'tlp_requesttype',
   'tlp_prioritylevel',
@@ -445,7 +445,7 @@ ORDER BY tst ASC;
       createQuery('vehicleposition'),
       createQuery('stopevent'),
       createQuery('otherevent'),
-      createQuery('lightpriorityevent'),
+      createQuery('tlpevent'),
     ]
 
     return Promise.all(queries).then(
@@ -469,7 +469,7 @@ ORDER BY tst ASC;
           )
         }
 
-        const [vehiclePositions, stopEvents, otherEvents, lightPriorityEvents] = vehicleResults
+        const [vehiclePositions, stopEvents, otherEvents, tlpEvents] = vehicleResults
 
         const ensureArray = (val) =>
           !!val && Array.isArray(val) && val.length !== 0 ? val : []
@@ -477,7 +477,7 @@ ORDER BY tst ASC;
         return {
           vehiclePositions: ensureArray(vehiclePositions),
           stopEvents: ensureArray(stopEvents),
-          otherEvents: [...ensureArray(otherEvents), ...ensureArray(lightPriorityEvents)],
+          otherEvents: [...ensureArray(otherEvents), ...ensureArray(tlpEvents)],
         }
       }
     )
@@ -664,26 +664,26 @@ ORDER BY tst DESC;
     return this.getBatched(query)
   }
 
-  getLightPriorityEvents = async (
+  getTlpEvents = async (
     date: string,
-    lightPrioritySearch: LightPrioritySearchInput
-  ): Promise<DBLightPriorityEvent[]> => {
+    tlpEventSearch: TlpEventSearchInput
+  ): Promise<DBTlpEvent[]> => {
     const { minTime, maxTime } = createTstRange(date)
-    const queryFields = [...vehicleFields, ...lightPriorityFields]
+    const queryFields = [...vehicleFields, ...tlpEventFields]
 
     const query = this.db('lightpriorityevent')
       .select(queryFields)
       .whereBetween('tst', [minTime, maxTime])
       .orderBy('tst', 'desc')
       .modify((query) => {
-        if (lightPrioritySearch.junctionId !== undefined) {
-          query.where('sid', lightPrioritySearch.junctionId)
+        if (tlpEventSearch.junctionId !== undefined) {
+          query.where('sid', tlpEventSearch.junctionId)
         }
-        if (lightPrioritySearch.signalGroupId !== undefined) {
-          query.where('signal_groupid', lightPrioritySearch.signalGroupId)
+        if (tlpEventSearch.signalGroupId !== undefined) {
+          query.where('signal_groupid', tlpEventSearch.signalGroupId)
         }
-        if (lightPrioritySearch.signalGroupNbr !== undefined) {
-          query.where('tlp_signalgroupnbr', lightPrioritySearch.signalGroupNbr)
+        if (tlpEventSearch.signalGroupNbr !== undefined) {
+          query.where('tlp_signalgroupnbr', tlpEventSearch.signalGroupNbr)
         }
       })
     return this.getBatched(query)

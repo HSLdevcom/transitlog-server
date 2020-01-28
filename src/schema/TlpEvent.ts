@@ -1,6 +1,6 @@
 import { gql } from 'apollo-server'
 
-export const LightPriorityEvent = gql`
+export const TlpEvent = gql`
   enum TlpRequestType {
     NORMAL
     DOOR_CLOSE
@@ -26,7 +26,7 @@ export const LightPriorityEvent = gql`
     NAK
   }
 
-  type LightPriorityEvent {
+  type TlpEvent {
     requestId: Int
     requestType: TlpRequestType
     priorityLevel: TlpPriorityLevel
@@ -47,7 +47,7 @@ export const LightPriorityEvent = gql`
     loc: String
   }
 
-  input LightPrioritySearchInput {
+  input TlpEventSearchInput {
     all: Boolean
     junctionId: Int
     signalGroupId: Int

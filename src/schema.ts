@@ -7,7 +7,7 @@ import { Equipment } from './schema/Equipment'
 import { ExceptionDays } from './schema/ExceptionDay'
 import { Alerts } from './schema/Alerts'
 import { DriverEvent } from './schema/DriverEvent'
-import { LightPriorityEvent } from './schema/LightPriorityEvent'
+import { TlpEvent } from './schema/TlpEvent'
 
 export default [
   Route,
@@ -18,6 +18,6 @@ export default [
   Equipment,
   ExceptionDays,
   Alerts,
-  LightPriorityEvent,
+  TlpEvent,
   Schema,
 ]

@@ -11,7 +11,7 @@ import { createAreaJourneysResponse } from '../creators/createAreaJourneysRespon
 import { createRouteJourneysResponse } from '../creators/createRouteJourneysResponse'
 import { createWeekDeparturesResponse } from '../creators/createWeekDeparturesResponse'
 import { createRouteDeparturesResponse } from '../creators/createRouteDeparturesResponse'
-import { createLightPriorityEventsResponse } from '../creators/createLightPriorityEventsResponse'
+import { createTlpEventsResponse } from '../creators/createTlpEventsResponse'
 import { format } from 'date-fns'
 import { compact, flatten, get } from 'lodash'
 import { getWeekDates } from '../utils/getWeekDates'
@@ -407,16 +407,12 @@ const cancellations = (
   )
 }
 
-const lightPriorityEvents = (
-  root,
-  { date, lightPrioritySearch },
-  { dataSources, user, skipCache }
-) => {
-  return createLightPriorityEventsResponse(
+const tlpEvents = (root, { date, tlpEventSearch }, { dataSources, user, skipCache }) => {
+  return createTlpEventsResponse(
     user,
-    () => dataSources.HFPAPI.getLightPriorityEvents(date, lightPrioritySearch),
+    () => dataSources.HFPAPI.getTlpEvents(date, tlpEventSearch),
     date,
-    lightPrioritySearch,
+    tlpEventSearch,
     skipCache
   )
 }
@@ -446,6 +442,6 @@ export const queryResolvers: QueryResolvers = {
   exceptionDays,
   alerts,
   cancellations,
-  lightPriorityEvents,
+  tlpEvents,
   uiMessage,
 }

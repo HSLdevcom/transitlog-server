@@ -126,7 +126,7 @@ export type JourneyEvents = {
   otherEvents: Vehicles[]
 }
 
-export interface DBLightPriorityEvent extends Vehicles {
+export interface DBTlpEvent extends Vehicles {
   tlp_requestid: Maybe<number>
   tlp_requesttype: Maybe<TlpRequestType>
   tlp_prioritylevel: Maybe<TlpPriorityLevel>

@@ -1117,7 +1117,7 @@
             "deprecationReason": null
           },
           {
-            "name": "lightPriorityEvents",
+            "name": "tlpEvents",
             "description": "",
             "args": [
               {
@@ -1131,11 +1131,11 @@
                 "defaultValue": null
               },
               {
-                "name": "lightPrioritySearch",
+                "name": "tlpEventSearch",
                 "description": "",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "LightPrioritySearchInput",
+                  "name": "TlpEventSearchInput",
                   "ofType": null
                 },
                 "defaultValue": null
@@ -1152,7 +1152,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "LightPriorityEvent",
+                    "name": "TlpEvent",
                     "ofType": null
                   }
                 }
@@ -7524,7 +7524,7 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "LightPrioritySearchInput",
+        "name": "TlpEventSearchInput",
         "description": "",
         "fields": null,
         "inputFields": [
@@ -7575,7 +7575,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "LightPriorityEvent",
+        "name": "TlpEvent",
         "description": "",
         "fields": [
           {
