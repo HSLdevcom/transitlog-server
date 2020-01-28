@@ -35,7 +35,7 @@ export function createLightPriorityEventObject(
     decision: get(lightPriorityEvent, 'tlp_decision', null),
     junctionId: get(lightPriorityEvent, 'sid', null),
     signalGroupId: get(lightPriorityEvent, 'signal_groupid', null),
-    signalGroupNum: get(lightPriorityEvent, 'tlp_signalgroupnbr', null),
+    signalGroupNbr: get(lightPriorityEvent, 'tlp_signalgroupnbr', null),
     lineConfigId: get(lightPriorityEvent, 'tlp_line_configid', null),
     pointConfigId: get(lightPriorityEvent, 'tlp_point_configid', null),
     frequency: get(lightPriorityEvent, 'tlp_frequency', null),

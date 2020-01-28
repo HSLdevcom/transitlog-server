@@ -7,12 +7,21 @@ import { AuthenticatedUser } from '../types/Authentication'
 import { createLightPriorityEventObject } from '../objects/createLightPriorityEventObject'
 import { uniqBy } from 'lodash'
 
+export type lightPrioritySearchProps = {
+  all?: boolean
+  junctionId?: number
+  signalGroupId?: number
+  signalGroupNbr?: number
+}
+
 export const createLightPriorityEventsResponse = async (
   user: AuthenticatedUser,
   getLightPriorityEvents: () => Promise<DBLightPriorityEvent[]>,
   date: string,
+  lightPrioritySearchProps: lightPrioritySearchProps,
   skipCache: boolean = true
 ): Promise<LightPriorityEvent[]> => {
+  const { all, junctionId, signalGroupId, signalGroupNbr } = lightPrioritySearchProps
   const fetchEvents: CachedFetcher<LightPriorityEvent[]> = async () => {
     const lightPriorityEvents = await getLightPriorityEvents()
 
@@ -27,7 +36,7 @@ export const createLightPriorityEventsResponse = async (
 
   // Cache events for the current day for 5 seconds, otherwise 24 hours.
   const cacheTTL: number = isToday(date) ? 5 : 24 * 60 * 60
-  const cacheKey = `light_priority_events_${date}`
+  const cacheKey = `light_priority_events_${date}_${all}_${junctionId}_${signalGroupId}_${signalGroupNbr}`
   const events = await cacheFetch<LightPriorityEvent[]>(
     cacheKey,
     fetchEvents,

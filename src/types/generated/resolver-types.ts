@@ -443,7 +443,7 @@ export type LightPriorityEvent = {
   decision?: Maybe<TlpDecision>
   junctionId?: Maybe<Scalars['Int']>
   signalGroupId?: Maybe<Scalars['Int']>
-  signalGroupNum?: Maybe<Scalars['Int']>
+  signalGroupNbr?: Maybe<Scalars['Int']>
   lineConfigId?: Maybe<Scalars['Int']>
   pointConfigId?: Maybe<Scalars['Int']>
   frequency?: Maybe<Scalars['Int']>
@@ -455,11 +455,11 @@ export type LightPriorityEvent = {
   loc?: Maybe<Scalars['String']>
 }
 
-export type LightPriorityEventSearchInput = {
+export type LightPrioritySearchInput = {
   all?: Maybe<Scalars['Boolean']>
-  sid?: Maybe<Scalars['Int']>
   junctionId?: Maybe<Scalars['Int']>
-  signalGroupid?: Maybe<Scalars['Int']>
+  signalGroupId?: Maybe<Scalars['Int']>
+  signalGroupNbr?: Maybe<Scalars['Int']>
 }
 
 export type ObservedArrival = {
@@ -665,6 +665,7 @@ export type QueryCancellationsArgs = {
 
 export type QueryLightPriorityEventsArgs = {
   date?: Maybe<Scalars['Date']>
+  lightPrioritySearch?: Maybe<LightPrioritySearchInput>
 }
 
 export type Route = {
@@ -977,13 +978,13 @@ export type ResolversTypes = {
   AreaEventsFilterInput: AreaEventsFilterInput
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
+  LightPrioritySearchInput: LightPrioritySearchInput
   LightPriorityEvent: ResolverTypeWrapper<LightPriorityEvent>
   TlpRequestType: TlpRequestType
   TlpPriorityLevel: TlpPriorityLevel
   TlpReason: TlpReason
   TlpDecision: TlpDecision
   UIMessage: ResolverTypeWrapper<UiMessage>
-  LightPriorityEventSearchInput: LightPriorityEventSearchInput
   BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
 
@@ -1047,13 +1048,13 @@ export type ResolversParentTypes = {
   AreaEventsFilterInput: AreaEventsFilterInput
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
+  LightPrioritySearchInput: LightPrioritySearchInput
   LightPriorityEvent: LightPriorityEvent
   TlpRequestType: TlpRequestType
   TlpPriorityLevel: TlpPriorityLevel
   TlpReason: TlpReason
   TlpDecision: TlpDecision
   UIMessage: UiMessage
-  LightPriorityEventSearchInput: LightPriorityEventSearchInput
   BBox: Scalars['BBox']
 }
 
@@ -1372,7 +1373,7 @@ export type LightPriorityEventResolvers<
   decision?: Resolver<Maybe<ResolversTypes['TlpDecision']>, ParentType, ContextType>
   junctionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   signalGroupId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
-  signalGroupNum?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  signalGroupNbr?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   lineConfigId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   pointConfigId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   frequency?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>

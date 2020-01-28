@@ -1,7 +1,7 @@
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { getDateFromDateTime, getNormalTime } from '../utils/time'
-import { Scalars } from '../types/generated/schema-types'
+import { Scalars, LightPrioritySearchInput } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
 import {
@@ -664,7 +664,10 @@ ORDER BY tst DESC;
     return this.getBatched(query)
   }
 
-  getLightPriorityEvents = async (date: string): Promise<DBLightPriorityEvent[]> => {
+  getLightPriorityEvents = async (
+    date: string,
+    lightPrioritySearch: LightPrioritySearchInput
+  ): Promise<DBLightPriorityEvent[]> => {
     const { minTime, maxTime } = createTstRange(date)
     const queryFields = [...vehicleFields, ...lightPriorityFields]
 
@@ -672,6 +675,17 @@ ORDER BY tst DESC;
       .select(queryFields)
       .whereBetween('tst', [minTime, maxTime])
       .orderBy('tst', 'desc')
+      .modify((query) => {
+        if (lightPrioritySearch.junctionId !== undefined) {
+          query.where('sid', lightPrioritySearch.junctionId)
+        }
+        if (lightPrioritySearch.signalGroupId !== undefined) {
+          query.where('signal_groupid', lightPrioritySearch.signalGroupId)
+        }
+        if (lightPrioritySearch.signalGroupNbr !== undefined) {
+          query.where('tlp_signalgroupnbr', lightPrioritySearch.signalGroupNbr)
+        }
+      })
     return this.getBatched(query)
   }
 }

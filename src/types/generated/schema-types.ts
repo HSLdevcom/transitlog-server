@@ -439,7 +439,7 @@ export type LightPriorityEvent = {
   decision?: Maybe<TlpDecision>
   junctionId?: Maybe<Scalars['Int']>
   signalGroupId?: Maybe<Scalars['Int']>
-  signalGroupNum?: Maybe<Scalars['Int']>
+  signalGroupNbr?: Maybe<Scalars['Int']>
   lineConfigId?: Maybe<Scalars['Int']>
   pointConfigId?: Maybe<Scalars['Int']>
   frequency?: Maybe<Scalars['Int']>
@@ -451,11 +451,11 @@ export type LightPriorityEvent = {
   loc?: Maybe<Scalars['String']>
 }
 
-export type LightPriorityEventSearchInput = {
+export type LightPrioritySearchInput = {
   all?: Maybe<Scalars['Boolean']>
-  sid?: Maybe<Scalars['Int']>
   junctionId?: Maybe<Scalars['Int']>
-  signalGroupid?: Maybe<Scalars['Int']>
+  signalGroupId?: Maybe<Scalars['Int']>
+  signalGroupNbr?: Maybe<Scalars['Int']>
 }
 
 export type ObservedArrival = {
@@ -661,6 +661,7 @@ export type QueryCancellationsArgs = {
 
 export type QueryLightPriorityEventsArgs = {
   date?: Maybe<Scalars['Date']>
+  lightPrioritySearch?: Maybe<LightPrioritySearchInput>
 }
 
 export type Route = {

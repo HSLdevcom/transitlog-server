@@ -407,11 +407,16 @@ const cancellations = (
   )
 }
 
-const lightPriorityEvents = (root, { date }, { dataSources, user, skipCache }) => {
+const lightPriorityEvents = (
+  root,
+  { date, lightPrioritySearch },
+  { dataSources, user, skipCache }
+) => {
   return createLightPriorityEventsResponse(
     user,
-    () => dataSources.HFPAPI.getLightPriorityEvents(date),
+    () => dataSources.HFPAPI.getLightPriorityEvents(date, lightPrioritySearch),
     date,
+    lightPrioritySearch,
     skipCache
   )
 }

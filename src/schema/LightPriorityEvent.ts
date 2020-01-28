@@ -35,7 +35,7 @@ export const LightPriorityEvent = gql`
     decision: TlpDecision
     junctionId: Int
     signalGroupId: Int
-    signalGroupNum: Int
+    signalGroupNbr: Int
     lineConfigId: Int
     pointConfigId: Int
     frequency: Int
@@ -47,10 +47,10 @@ export const LightPriorityEvent = gql`
     loc: String
   }
 
-  input LightPriorityEventSearchInput {
+  input LightPrioritySearchInput {
     all: Boolean
-    sid: Int
     junctionId: Int
-    signalGroupid: Int
+    signalGroupId: Int
+    signalGroupNbr: Int
   }
 `

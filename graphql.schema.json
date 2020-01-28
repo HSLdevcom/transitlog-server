@@ -1129,6 +1129,16 @@
                   "ofType": null
                 },
                 "defaultValue": null
+              },
+              {
+                "name": "lightPrioritySearch",
+                "description": "",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "LightPrioritySearchInput",
+                  "ofType": null
+                },
+                "defaultValue": null
               }
             ],
             "type": {
@@ -7513,6 +7523,57 @@
         "possibleTypes": null
       },
       {
+        "kind": "INPUT_OBJECT",
+        "name": "LightPrioritySearchInput",
+        "description": "",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "all",
+            "description": "",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null
+          },
+          {
+            "name": "junctionId",
+            "description": "",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Int",
+              "ofType": null
+            },
+            "defaultValue": null
+          },
+          {
+            "name": "signalGroupId",
+            "description": "",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Int",
+              "ofType": null
+            },
+            "defaultValue": null
+          },
+          {
+            "name": "signalGroupNbr",
+            "description": "",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Int",
+              "ofType": null
+            },
+            "defaultValue": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
         "kind": "OBJECT",
         "name": "LightPriorityEvent",
         "description": "",
@@ -7614,7 +7675,7 @@
             "deprecationReason": null
           },
           {
-            "name": "signalGroupNum",
+            "name": "signalGroupNbr",
             "description": "",
             "args": [],
             "type": {
@@ -8690,57 +8751,6 @@
             "deprecationReason": null
           }
         ],
-        "possibleTypes": null
-      },
-      {
-        "kind": "INPUT_OBJECT",
-        "name": "LightPriorityEventSearchInput",
-        "description": "",
-        "fields": null,
-        "inputFields": [
-          {
-            "name": "all",
-            "description": "",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "defaultValue": null
-          },
-          {
-            "name": "sid",
-            "description": "",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Int",
-              "ofType": null
-            },
-            "defaultValue": null
-          },
-          {
-            "name": "junctionId",
-            "description": "",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Int",
-              "ofType": null
-            },
-            "defaultValue": null
-          },
-          {
-            "name": "signalGroupid",
-            "description": "",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Int",
-              "ofType": null
-            },
-            "defaultValue": null
-          }
-        ],
-        "interfaces": null,
-        "enumValues": null,
         "possibleTypes": null
       },
       {
