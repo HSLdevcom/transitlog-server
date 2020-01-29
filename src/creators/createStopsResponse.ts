@@ -110,7 +110,7 @@ export async function createStopsResponse(
         date
       )
 
-      // The stops and route segments are cross-merged in the query, so now we need to
+      // The stops and route segments are joined in the query, so now we need to
       // combine distinct stops with all routes that go through them.
       stopData = filteredStops.reduce((stopsWithRoutes: JoreStop[], stop) => {
         const existingStop = stopsWithRoutes.find(({ stop_id }) => stop_id === stop.stop_id)

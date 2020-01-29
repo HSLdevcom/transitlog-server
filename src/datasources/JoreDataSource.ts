@@ -191,6 +191,8 @@ WHERE stop.stop_id = :stopId;`,
   }
 
   async getStops(date?: string): Promise<JoreStop[]> {
+    console.time('stops')
+
     const query = date
       ? this.db.raw(
           `
@@ -206,9 +208,10 @@ WHERE stop.stop_id = :stopId;`,
              route_segment.route_id,
              route_segment.direction,
              route_segment.timing_stop_type,
-             (select distinct jore.route_mode(jore.route_segment_route(route_segment, :date))) as modes
+             (select distinct jore.route_mode(route)) as modes
       FROM jore.stop stop
-           LEFT JOIN jore.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id;`,
+           LEFT JOIN jore.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id,
+           jore.route_segment_route(route_segment, :date) route;`,
           { date }
         )
       : this.db.raw(
@@ -224,7 +227,10 @@ WHERE stop.stop_id = :stopId;`,
     `
         )
 
-    return this.getBatched(query)
+    return this.getBatched(query).then((result) => {
+      console.timeEnd('stops')
+      return result
+    })
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
