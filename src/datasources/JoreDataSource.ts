@@ -191,8 +191,6 @@ WHERE stop.stop_id = :stopId;`,
   }
 
   async getStops(date?: string): Promise<JoreStop[]> {
-    console.time('stops')
-
     const query = date
       ? this.db.raw(
           `
@@ -227,10 +225,7 @@ WHERE stop.stop_id = :stopId;`,
     `
         )
 
-    return this.getBatched(query).then((result) => {
-      console.timeEnd('stops')
-      return result
-    })
+    return this.getBatched(query)
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
