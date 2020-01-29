@@ -42,28 +42,22 @@ export class JoreDataSource extends SQLDataSource {
   async getRoutes(): Promise<JoreRoute[]> {
     const query = this.db.raw(
       `
-                SELECT route.route_id,
-                       route.direction,
-                       route.destination_fi,
-                       route.destinationstop_id,
-                       route.origin_fi,
-                       route.originstop_id,
-                       route.name_fi,
-                       route.name_fi as route_name,
-                       route.date_begin,
-                       route.date_end,
-                       route.date_modified,
-                       route.route_length,
-                       case route.type
-                           when '02' then 'TRAM'::jore.MODE
-                           when '06' then 'SUBWAY'::jore.MODE
-                           when '07' then 'FERRY'::jore.MODE
-                           when '12' then 'RAIL'::jore.MODE
-                           when '13' then 'RAIL'::jore.MODE
-                           else 'BUS'::jore.MODE
-                           end       as mode
-                FROM :schema:.route route;
-      `,
+      SELECT
+        route.route_id,
+        route.direction,
+        route.destination_fi,
+        route.destinationstop_id,
+        route.origin_fi,
+        route.originstop_id,
+        route.name_fi,
+        route.name_fi as route_name,
+        route.date_begin,
+        route.date_end,
+        route.date_modified,
+        route.route_length,
+        route_mode(route) as mode
+      FROM :schema:.route route;
+    `,
       { schema: SCHEMA }
     )
 
@@ -73,30 +67,24 @@ export class JoreDataSource extends SQLDataSource {
   async getRoute(routeId, direction): Promise<JoreRoute[]> {
     const query = this.db.raw(
       `
-                SELECT route.route_id,
-                       route.direction,
-                       route.destination_fi,
-                       route.destinationstop_id,
-                       route.origin_fi,
-                       route.originstop_id,
-                       route.name_fi,
-                       route.name_fi as route_name,
-                       route.date_begin,
-                       route.date_end,
-                       route.date_modified,
-                       route.route_length,
-                       case route.type
-                           when '02' then 'TRAM'::jore.MODE
-                           when '06' then 'SUBWAY'::jore.MODE
-                           when '07' then 'FERRY'::jore.MODE
-                           when '12' then 'RAIL'::jore.MODE
-                           when '13' then 'RAIL'::jore.MODE
-                           else 'BUS'::jore.MODE
-                           end       as mode
-                FROM :schema:.route route
-                WHERE route.route_id = :routeId
-                  AND route.direction = :direction;
-      `,
+      SELECT
+        route.route_id,
+        route.direction,
+        route.destination_fi,
+        route.destinationstop_id,
+        route.origin_fi,
+        route.originstop_id,
+        route.name_fi,
+        route.name_fi as route_name,
+        route.date_begin,
+        route.date_end,
+        route.date_modified,
+        route.route_length,
+        route_mode(route) as mode
+      FROM :schema:.route route
+      WHERE route.route_id = :routeId
+        AND route.direction = :direction;
+    `,
       { schema: SCHEMA, routeId, direction: direction + '' }
     )
 
@@ -109,33 +97,27 @@ export class JoreDataSource extends SQLDataSource {
     date: string
   ): Promise<JoreRoute[]> {
     const query = this.db.raw(
-      `SELECT route.route_id,
-                route.direction,
-                route.route_length,
-                ST_AsGeoJSON(geometry.geom)::JSONB geometry,
-                geometry.date_begin,
-                geometry.date_end,
-                geometry.date_imported,
-                case route.type
-                    when '02' then 'TRAM'::jore.MODE
-                    when '06' then 'SUBWAY'::jore.MODE
-                    when '07' then 'FERRY'::jore.MODE
-                    when '12' then 'RAIL'::jore.MODE
-                    when '13' then 'RAIL'::jore.MODE
-                    else 'BUS'::jore.MODE
-                    end as mode
-         from :schema:.route route,
-             :schema:.geometry
-         WHERE route.route_id = :routeId
-           AND route.direction = :direction
-           AND geometry.route_id = route.route_id
-           AND geometry.direction = route.direction
-           AND :date >= geometry.date_begin
-           AND :date <= geometry.date_end
-           AND :date >= route.date_begin
-           AND :date <= route.date_end
-           AND route.date_begin <= geometry.date_end
-           AND route.date_end >= geometry.date_begin;`,
+      `SELECT
+        route.route_id,
+        route.direction,
+        route.route_length,
+        route_mode(route) as mode,
+        ST_AsGeoJSON(geometry.geom)::JSONB geometry,
+        geometry.date_begin,
+        geometry.date_end,
+        geometry.date_imported
+from :schema:.route route,
+     :schema:.geometry
+WHERE route.route_id = :routeId
+  AND route.direction = :direction
+  AND geometry.route_id = route.route_id
+  AND geometry.direction = route.direction
+  AND :date >= geometry.date_begin
+  AND :date <= geometry.date_end
+  AND :date >= route.date_begin
+  AND :date <= route.date_end
+  AND route.date_begin <= geometry.date_end
+  AND route.date_end >= geometry.date_begin;`,
       { schema: SCHEMA, routeId, direction: direction + '', date }
     )
 
@@ -144,61 +126,46 @@ export class JoreDataSource extends SQLDataSource {
 
   async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
     const query = this.db.raw(
-      `SELECT route_data.route_id,
-                route_data.direction,
-                route_data.originstop_id,
-                route_data.route_length,
-                route_data.route_name,
-                route_data.origin_fi,
-                route_data.destination_fi,
-                route_data.mode,
-                route_data.date_begin,
-                route_data.date_end,
-                route_data.timing_stop_type,
-                route_data.stop_index,
-                route_data.date_modified,
-                stop.lat,
-                stop.lon,
-                stop.stop_id,
-                stop.short_id,
-                stop.name_fi,
-                stop.stop_radius
-         FROM :schema:.stop stop
-             LEFT JOIN (
-             SELECT route.route_id,
-             route.direction,
-             route.originstop_id,
-             route.route_length,
-             route.name_fi as route_name,
-             route.origin_fi,
-             route.destination_fi,
-             route_segment.stop_id,
-             route_segment.date_begin,
-             route_segment.date_end,
-             route_segment.timing_stop_type,
-             route_segment.stop_index,
-             route_segment.date_modified,
-             case route.type
-             when '02' then 'TRAM'::jore.MODE
-             when '06' then 'SUBWAY'::jore.MODE
-             when '07' then 'FERRY'::jore.MODE
-             when '12' then 'RAIL'::jore.MODE
-             when '13' then 'RAIL'::jore.MODE
-             else 'BUS'::jore.MODE
-             end as mode
-             FROM :schema:.route_segment route_segment,
-             (
-             from jore.route route
-             where route_segment.route_id = route.route_id
-             and route_segment.direction = route.direction
-             and route.date_begin <= route_segment.date_end
-             and route.date_end >= route_segment.date_begin
-             and :date between route.date_begin and route.date_end
-             limit 1
-             ) route
-             ) route_data
-         ON stop.stop_id = route_data.stop_id
-         WHERE stop.stop_id = :stopId;`,
+      `SELECT
+       route_data.route_id,
+       route_data.direction,
+       route_data.originstop_id,
+       route_data.route_length,
+       route_data.route_name,
+       route_data.origin_fi,
+       route_data.destination_fi,
+       route_data.mode,
+       route_data.date_begin,
+       route_data.date_end,
+       route_data.timing_stop_type,
+       route_data.stop_index,
+       route_data.date_modified,
+       stop.lat,
+       stop.lon,
+       stop.stop_id,
+       stop.short_id,
+       stop.name_fi,
+       stop.stop_radius
+FROM :schema:.stop stop
+     LEFT JOIN (
+        SELECT route.route_id,
+               route.direction,
+               route.originstop_id,
+               route.route_length,
+               route.name_fi as route_name,
+               route_mode(route) as mode,
+               route.origin_fi,
+               route.destination_fi,
+               route_segment.stop_id,
+               route_segment.date_begin,
+               route_segment.date_end,
+               route_segment.timing_stop_type,
+               route_segment.stop_index,
+               route_segment.date_modified
+        FROM :schema:.route_segment route_segment,
+             :schema:.route_segment_route(route_segment, :date) route
+     ) route_data ON stop.stop_id = route_data.stop_id
+WHERE stop.stop_id = :stopId;`,
       { schema: SCHEMA, stopId, date }
     )
 
@@ -207,33 +174,17 @@ export class JoreDataSource extends SQLDataSource {
 
   async getSimpleStop(stopId: string): Promise<JoreStop | null> {
     const query = this.db.raw(
-      `SELECT stop.stop_id,
-                stop.short_id,
-                stop.lat,
-                stop.lon,
-                stop.name_fi,
-                stop.stop_radius,
-                (
-                    select distinct (
-                                        select case route.type
-                                                   when '02' then 'TRAM'::jore.MODE
-                                                   when '06' then 'SUBWAY'::jore.MODE
-                                                   when '07' then 'FERRY'::jore.MODE
-                                                   when '12' then 'RAIL'::jore.MODE
-                                                   when '13' then 'RAIL'::jore.MODE
-                                                   else 'BUS'::jore.MODE
-                                                   end
-                                        from jore.route route
-                                        where route_segment.route_id = route.route_id
-                                          and route_segment.direction = route.direction
-                                          and route.date_begin <= route_segment.date_end
-                                          and route.date_end >= route_segment.date_begin
-                                    ) as mode
-                    from jore.route_segment route_segment
-                    where route_segment.stop_id = stop.stop_id
-                ) as modes
-         FROM :schema:.stop stop
-         WHERE stop.stop_id = :stopId;`,
+      `
+      SELECT stop.stop_id,
+             stop.short_id,
+             stop.lat,
+             stop.lon,
+             stop.name_fi,
+             stop.stop_radius,
+             stop_modes(stop, null) as modes
+      FROM :schema:.stop stop
+        WHERE stop.stop_id = :stopId;
+    `,
       { schema: SCHEMA, stopId: (stopId || '') + '' }
     )
 
@@ -244,74 +195,35 @@ export class JoreDataSource extends SQLDataSource {
   async getStops(date?: string): Promise<JoreStop[]> {
     const query = date
       ? this.db.raw(
-          `SELECT stop.stop_id,
-                  stop.short_id,
-                  stop.lat,
-                  stop.lon,
-                  stop.name_fi,
-                  stop.stop_radius,
-                  route_segment.date_begin,
-                  route_segment.date_end,
-                  route_segment.date_modified,
-                  route_segment.route_id,
-                  route_segment.direction,
-                  route_segment.timing_stop_type,
-                  (
-                      select distinct (
-                                          select case route.type
-                                                     when '02' then 'TRAM':::schema:.MODE
-                                                     when '06' then 'SUBWAY':::schema:.MODE
-                                                     when '07' then 'FERRY':::schema:.MODE
-                                                     when '12' then 'RAIL':::schema:.MODE
-                                                     when '13' then 'RAIL':::schema:.MODE
-                                                     else 'BUS':::schema:.MODE
-                                                     end
-                                          from :schema:.route route
-                      where route_segment.route_id = route.route_id
-                        and route_segment.direction = route.direction
-                        and route.date_begin <= route_segment.date_end
-                        and route.date_end >= route_segment.date_begin
-                        and :date between route.date_begin and route.date_end
-                  ) as mode
-           from :schema:.route_segment route_segment
-           where route_segment.stop_id = stop.stop_id
-             and :date between route_segment.date_begin and route_segment.date_end
-               ) as modes
-           FROM :schema:.stop stop
-             LEFT JOIN (
-                SELECT *
-                FROM :schema:.route_segment inner_route_segment
-                WHERE :date between route_segment.date_begin and route_segment.date_end
-             ) route_segment USING (stop_id);`,
+          `
+      SELECT stop.stop_id,
+             stop.short_id,
+             stop.lat,
+             stop.lon,
+             stop.name_fi,
+             stop.stop_radius,
+             stop_modes(stop, :date) as modes,
+             route_segment.date_begin,
+             route_segment.date_end,
+             route_segment.date_modified,
+             route_segment.route_id,
+             route_segment.direction,
+             route_segment.timing_stop_type
+      FROM :schema:.stop stop
+           LEFT JOIN :schema:.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id;`,
           { schema: SCHEMA, date }
         )
       : this.db.raw(
-          `SELECT stop.stop_id,
-                  stop.short_id,
-                  stop.lat,
-                  stop.lon,
-                  stop.name_fi,
-                  stop.stop_radius,
-                  (
-                      select distinct (
-                                          select case route.type
-                                                     when '02' then 'TRAM':::schema:.MODE
-                                                     when '06' then 'SUBWAY':::schema:.MODE
-                                                     when '07' then 'FERRY':::schema:.MODE
-                                                     when '12' then 'RAIL':::schema:.MODE
-                                                     when '13' then 'RAIL':::schema:.MODE
-                                                     else 'BUS':::schema:.MODE
-                                                     end
-                                          from :schema:.route route
-                      where route_segment.route_id = route.route_id
-                        and route_segment.direction = route.direction
-                        and route.date_begin <= route_segment.date_end
-                        and route.date_end >= route_segment.date_begin
-                  ) as mode
-           from :schema:.route_segment route_segment
-           where route_segment.stop_id = stop.stop_id
-               ) as modes
-           FROM :schema:.stop stop;`,
+          `
+      SELECT stop.stop_id,
+             stop.short_id,
+             stop.lat,
+             stop.lon,
+             stop.name_fi,
+             stop.stop_radius,
+             stop_modes(stop, null) as modes
+      FROM :schema:.stop stop;
+    `,
           { schema: SCHEMA }
         )
 
@@ -359,6 +271,7 @@ export class JoreDataSource extends SQLDataSource {
        route.origin_fi,
        route.destinationstop_id,
        route.originstop_id,
+       route_mode(route) as mode,
        route_segment.next_stop_id,
        route_segment.date_begin,
        route_segment.date_end,
@@ -374,23 +287,10 @@ export class JoreDataSource extends SQLDataSource {
        stop.lon,
        stop.short_id,
        stop.name_fi,
-       stop.stop_radius,
-       case route.type
-         when '02' then 'TRAM':::schema:.MODE
-         when '06' then 'SUBWAY':::schema:.MODE
-         when '07' then 'FERRY':::schema:.MODE
-         when '12' then 'RAIL':::schema:.MODE
-         when '13' then 'RAIL':::schema:.MODE
-         else 'BUS':::schema:.MODE
-       end as mode
+       stop.stop_radius
 FROM :schema:.route route,
-     (select * from :schema:.route_segment route_segment
-        where route.route_id = route_segment.route_id
-          and route.direction = route_segment.direction
-          and route.date_begin <= route_segment.date_end
-          and route.date_end >= route_segment.date_begin
-      ) route_segment
-LEFT OUTER JOIN :schema:.stop stop USING (stop_id)
+     :schema:.route_route_segments(route) route_segment
+LEFT OUTER JOIN :schema:.stop stop ON stop.stop_id = route_segment.stop_id
 WHERE route.route_id = :routeId AND route.direction = :direction ${
         dateBegin && dateEnd
           ? this.db.raw(
@@ -460,52 +360,36 @@ ORDER BY departure.departure_id ASC,
 
     const query = this.db.raw(
       `
-                SELECT stop.stop_id,
-                       stop.lat,
-                       stop.lon,
-                       stop.short_id,
-                       stop.name_fi,
-                       stop.stop_radius,
-                       stop.stop_type,
-                       route_segment.date_begin,
-                       route_segment.date_end,
-                       route_segment.date_modified,
-                       route_segment.destination_fi,
-                       route_segment.distance_from_previous,
-                       route_segment.distance_from_start,
-                       route_segment.duration,
-                       route_segment.route_id,
-                       route_segment.direction,
-                       route_segment.stop_index,
-                       route_segment.next_stop_id,
-                       route_segment.timing_stop_type,
-                       route.originstop_id,
-                       route.destination_fi,
-                       route.origin_fi,
-                       route.route_length,
-                       route.name_fi as route_name,
-                       case route.type
-                         when '02' then 'TRAM':::schema:.MODE
-                         when '06' then 'SUBWAY':::schema:.MODE
-                         when '07' then 'FERRY':::schema:.MODE
-                         when '12' then 'RAIL':::schema:.MODE
-                         when '13' then 'RAIL':::schema:.MODE
-                         else 'BUS':::schema:.MODE
-                       end as mode
-                FROM :schema:.route_segment route_segment
-                    LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
-                    (
-                      select *
-                      from jore.route route
-                      where route_segment.route_id = route.route_id
-                        and route_segment.direction = route.direction
-                        and route.date_begin <= route_segment.date_end
-                        and route.date_end >= route_segment.date_begin
-                        and :date between route.date_begin and route.date_end end
-                      limit 1
-                    ) route
-                WHERE route_segment.route_id = :routeId
-                  AND route_segment.direction = :direction;`,
+SELECT stop.stop_id,
+       stop.lat,
+       stop.lon,
+       stop.short_id,
+       stop.name_fi,
+       stop.stop_radius,
+       stop.stop_type,
+       route_segment.date_begin,
+       route_segment.date_end,
+       route_segment.date_modified,
+       route_segment.destination_fi,
+       route_segment.distance_from_previous,
+       route_segment.distance_from_start,
+       route_segment.duration,
+       route_segment.route_id,
+       route_segment.direction,
+       route_segment.stop_index,
+       route_segment.next_stop_id,
+       route_segment.timing_stop_type,
+       route.originstop_id,
+       route.destination_fi,
+       route.origin_fi,
+       route.route_length,
+       route.name_fi as route_name,
+       route_mode(route) as mode
+FROM :schema:.route_segment route_segment
+     LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
+     :schema:.route_segment_route(route_segment, :date) route
+WHERE route_segment.route_id = :routeId
+  AND route_segment.direction = :direction;`,
       { schema: SCHEMA, routeId, direction: direction + '', date }
     )
 
@@ -527,43 +411,34 @@ ORDER BY departure.departure_id ASC,
 
     const query = this.db.raw(
       `
-                SELECT stop.stop_id,
-                       stop.lat,
-                       stop.lon,
-                       stop.short_id,
-                       stop.name_fi,
-                       stop.stop_radius,
-                       stop.stop_type,
-                       route_segment.date_begin,
-                       route_segment.date_end,
-                       route_segment.date_modified,
-                       route_segment.destination_fi,
-                       route_segment.distance_from_previous,
-                       route_segment.distance_from_start,
-                       route_segment.duration,
-                       route_segment.route_id,
-                       route_segment.direction,
-                       route_segment.stop_index,
-                       route_segment.next_stop_id,
-                       route_segment.timing_stop_type,
-                       route.destination_fi,
-                       route.origin_fi,
-                       route.route_length,
-                       route.name_fi     as route_name,
-                       route_mode(route) as mode
-                FROM :schema:.route_segment route_segment
-                    LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
-                    (
-                      select *
-                      from jore.route route
-                      where route_segment.route_id = route.route_id
-                        and route_segment.direction = route.direction
-                        and route.date_begin <= route_segment.date_end
-                        and route.date_end >= route_segment.date_begin
-                        and :date between route.date_begin and route.date_end end
-                      limit 1
-                    ) route
-                WHERE route_segment.stop_id = :stopId;`,
+SELECT stop.stop_id,
+       stop.lat,
+       stop.lon,
+       stop.short_id,
+       stop.name_fi,
+       stop.stop_radius,
+       stop.stop_type,
+       route_segment.date_begin,
+       route_segment.date_end,
+       route_segment.date_modified,
+       route_segment.destination_fi,
+       route_segment.distance_from_previous,
+       route_segment.distance_from_start,
+       route_segment.duration,
+       route_segment.route_id,
+       route_segment.direction,
+       route_segment.stop_index,
+       route_segment.next_stop_id,
+       route_segment.timing_stop_type,
+       route.destination_fi,
+       route.origin_fi,
+       route.route_length,
+       route.name_fi as route_name,
+       route_mode(route) as mode
+FROM :schema:.route_segment route_segment
+     LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
+     :schema:.route_segment_route(route_segment, null) route
+WHERE route_segment.stop_id = :stopId;`,
       { schema: SCHEMA, stopId, date }
     )
 
@@ -630,28 +505,7 @@ SELECT ${this.departureFields},
       origin_departure.departure_id as origin_departure_id,
       route.type as type
 FROM :schema:.departure departure
-    LEFT OUTER JOIN (
-      select *
-      from jore.departure inner_departure
-      where inner_departure.route_id = departure.route_id
-        and inner_departure.direction = departure.direction
-        and inner_departure.date_begin = departure.date_begin
-        and inner_departure.date_end = departure.date_end
-        and inner_departure.departure_id = departure.departure_id
-        and inner_departure.day_type = departure.day_type
-        and inner_departure.stop_id = (
-          select originstop_id
-          from jore.route route
-          where route.route_id = departure.route_id
-            and route.direction = departure.direction
-            and route.date_begin <= departure.date_end
-            and route.date_end >= departure.date_begin
-          order by route.date_begin desc
-          limit 1
-      )
-      order by inner_departure.hours asc, inner_departure.minutes asc
-      limit 1
-    ) origin_departure ON true
+    LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
     LEFT OUTER JOIN (SELECT
         inner_route.route_id,
         inner_route.direction,
@@ -731,28 +585,7 @@ SELECT ${this.departureFields},
       origin_departure.extra_departure as origin_extra_departure,
       origin_departure.departure_id as origin_departure_id
 FROM :schema:.departure departure
-    LEFT OUTER JOIN (
-      select *
-      from jore.departure inner_departure
-      where inner_departure.route_id = departure.route_id
-        and inner_departure.direction = departure.direction
-        and inner_departure.date_begin = departure.date_begin
-        and inner_departure.date_end = departure.date_end
-        and inner_departure.departure_id = departure.departure_id
-        and inner_departure.day_type = departure.day_type
-        and inner_departure.stop_id = (
-          select originstop_id
-          from jore.route route
-          where route.route_id = departure.route_id
-            and route.direction = departure.direction
-            and route.date_begin <= departure.date_end
-            and route.date_end >= departure.date_begin
-          order by route.date_begin desc
-          limit 1
-      )
-      order by inner_departure.hours asc, inner_departure.minutes asc
-      limit 1
-    ) origin_departure ON true
+    LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
 WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
@@ -778,25 +611,26 @@ WHERE departure.stop_id = :stopId
 
     const query = this.db.raw(
       `
-                SELECT ex_day.date_in_effect,
-                       ex_day.day_type,
-                       ex_day.exclusive,
-                       rep_day.scope,
-                       rep_day.time_begin,
-                       rep_day.time_end,
-                       CASE
-                           WHEN rep_day.replacing_day_type IS NULL
-                               THEN ARRAY [ex_day.exception_day_type, ex_day.day_type]
-                           ELSE ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type]
-                           END                       effective_day_types,
-                       rep_day.replacing_day_type as scoped_day_type
-                FROM :schema:.exception_days_calendar ex_day
-                    FULL OUTER JOIN :schema:.replacement_days_calendar rep_day USING (date_in_effect)
-                WHERE ex_day.date_in_effect >= :startDate
-                  AND
-                    ex_day.date_in_effect <= :endDate
-                ORDER BY ex_day.date_in_effect ASC;
-      `,
+SELECT ex_day.date_in_effect,
+   ex_desc.description,
+   ex_day.day_type,
+   ex_day.exclusive,
+   rep_day.scope,
+   rep_day.time_begin,
+   rep_day.time_end,
+   CASE WHEN rep_day.replacing_day_type
+        IS NULL THEN ARRAY [ex_day.exception_day_type, ex_day.day_type]
+        ELSE ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type]
+   END effective_day_types,
+   rep_day.replacing_day_type as scoped_day_type
+FROM :schema:.exception_days_calendar ex_day
+     LEFT OUTER JOIN :schema:.exception_days ex_desc
+                     ON ex_day.exception_day_type = ex_desc.exception_day_type
+     FULL OUTER JOIN :schema:.replacement_days_calendar rep_day USING (date_in_effect)
+WHERE ex_day.date_in_effect >= :startDate AND
+      ex_day.date_in_effect <= :endDate
+ORDER BY ex_day.date_in_effect ASC;
+    `,
       { schema: SCHEMA, startDate, endDate }
     )
 
@@ -893,16 +727,17 @@ WHERE departure.stop_id = :stopId
   async getTypeOfRoute(routeId: string, date: string): Promise<null | string> {
     const query = this.db.raw(
       `
-                SELECT route.date_begin,
-                       route.date_end,
-                       route.type
-                FROM :schema:.route route
-                WHERE route.route_id = :routeId
-                  AND route.date_begin <= :date
-                  AND route.date_end >= :date
-                ORDER BY route.date_imported DESC
-                    LIMIT 1;
-      `,
+      SELECT
+        route.date_begin,
+        route.date_end,
+        route.type
+      FROM :schema:.route route
+      WHERE route.route_id = :routeId
+        AND route.date_begin <= :date
+        AND route.date_end >= :date
+      ORDER BY route.date_imported DESC
+      LIMIT 1;
+    `,
       { schema: SCHEMA, routeId, date }
     )
 
