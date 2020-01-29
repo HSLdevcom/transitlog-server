@@ -200,13 +200,13 @@ WHERE stop.stop_id = :stopId;`,
              stop.lon,
              stop.name_fi,
              stop.stop_radius,
-             stop_modes(stop, :date) as modes,
              route_segment.date_begin,
              route_segment.date_end,
              route_segment.date_modified,
              route_segment.route_id,
              route_segment.direction,
-             route_segment.timing_stop_type
+             route_segment.timing_stop_type,
+             (select distinct jore.route_mode(jore.route_segment_route(route_segment, :date))) as modes
       FROM jore.stop stop
            LEFT JOIN jore.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id;`,
           { date }
