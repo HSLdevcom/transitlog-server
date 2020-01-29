@@ -56,8 +56,7 @@ export class JoreDataSource extends SQLDataSource {
         route.route_length,
         route_mode(route) as mode
       FROM jore.route route;
-    `,
-      { schema: SCHEMA }
+    `
     )
 
     return this.getBatched(query)
@@ -222,8 +221,7 @@ WHERE stop.stop_id = :stopId;`,
              stop.stop_radius,
              stop_modes(stop, null) as modes
       FROM jore.stop stop;
-    `,
-          { schema: SCHEMA }
+    `
         )
 
     return this.getBatched(query)
@@ -231,7 +229,7 @@ WHERE stop.stop_id = :stopId;`,
 
   async getEquipment(): Promise<JoreEquipment[]> {
     const query = this.db
-      .withSchema(SCHEMA)
+      .withSchema('jore')
       .select()
       .from('equipment')
 
@@ -246,7 +244,7 @@ WHERE stop.stop_id = :stopId;`,
     const joreOperatorId = (operatorId + '').padStart(4, '0')
 
     const query = this.db
-      .withSchema(SCHEMA)
+      .withSchema('jore')
       .select()
       .from('equipment')
       .where({ vehicle_id: joreVehicleId, operator_id: joreOperatorId })
