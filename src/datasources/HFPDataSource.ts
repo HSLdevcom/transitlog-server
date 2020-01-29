@@ -676,13 +676,13 @@ ORDER BY tst DESC;
       .whereBetween('tst', [minTime, maxTime])
       .orderBy('tst', 'desc')
       .modify((query) => {
-        if (tlpEventSearch.junctionId !== undefined) {
+        if (tlpEventSearch.junctionId) {
           query.where('sid', tlpEventSearch.junctionId)
         }
-        if (tlpEventSearch.signalGroupId !== undefined) {
+        if (tlpEventSearch.signalGroupId) {
           query.where('signal_groupid', tlpEventSearch.signalGroupId)
         }
-        if (tlpEventSearch.signalGroupNbr !== undefined) {
+        if (tlpEventSearch.signalGroupNbr) {
           query.where('tlp_signalgroupnbr', tlpEventSearch.signalGroupNbr)
         }
       })
