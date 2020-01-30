@@ -568,12 +568,31 @@ ORDER BY departure.hours ASC,
     stopId,
     routeId,
     direction,
-    exceptionDayTypes: string[] = []
+    exceptionDayTypes: string[] = [],
+    lastStopArrival = false
   ): Promise<JoreDeparture[]> {
     const queryDayTypes = uniq(exceptionDayTypes.concat(dayTypes))
 
-    const query = this.db.raw(
-      `
+    let query
+
+    if (!lastStopArrival) {
+      query = this.db.raw(
+        `
+SELECT ${this.departureFields}
+FROM jore.departure departure
+WHERE departure.stop_id = :stopId
+  AND departure.route_id = :routeId
+  AND departure.direction = :direction
+  AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')});`,
+        {
+          stopId,
+          routeId,
+          direction: direction + '',
+        }
+      )
+    } else {
+      query = this.db.raw(
+        `
 SELECT ${this.departureFields},
       origin_departure.stop_id as origin_stop_id,
       origin_departure.hours as origin_hours,
@@ -588,12 +607,13 @@ WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
   AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')});`,
-      {
-        stopId,
-        routeId,
-        direction: direction + '',
-      }
-    )
+        {
+          stopId,
+          routeId,
+          direction: direction + '',
+        }
+      )
+    }
 
     return this.getBatched(query)
   }

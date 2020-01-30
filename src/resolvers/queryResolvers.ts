@@ -208,7 +208,13 @@ const weeklyDepartures = async (
   )
 
   const getDepartures = () =>
-    dataSources.JoreAPI.getWeeklyDepartures(stopId, routeId, direction, exceptionDayTypes)
+    dataSources.JoreAPI.getWeeklyDepartures(
+      stopId,
+      routeId,
+      direction,
+      exceptionDayTypes,
+      lastStopArrival
+    )
 
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
 
