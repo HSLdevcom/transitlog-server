@@ -200,15 +200,18 @@ WHERE stop.stop_id = :stopId;`,
              stop.lon,
              stop.name_fi,
              stop.stop_radius,
-             route_segment.date_begin,
-             route_segment.date_end,
              route_segment.date_modified,
              route_segment.route_id,
              route_segment.direction,
              route_segment.timing_stop_type,
              (select distinct jore.route_mode(route)) as modes
       FROM jore.stop stop
-           LEFT JOIN jore.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id,
+           LEFT OUTER JOIN (
+                select distinct on (inner_route_segment.route_id, inner_route_segment.stop_id) *
+                from jore.route_segment inner_route_segment
+                where :date between inner_route_segment.date_begin and inner_route_segment.date_end
+                order by inner_route_segment.route_id, inner_route_segment.stop_id, inner_route_segment.timing_stop_type DESC, inner_route_segment.date_modified DESC
+           ) route_segment USING (stop_id),
            jore.route_segment_route(route_segment, :date) route;`,
           { date }
         )
