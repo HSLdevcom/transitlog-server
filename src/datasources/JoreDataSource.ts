@@ -54,7 +54,7 @@ export class JoreDataSource extends SQLDataSource {
         route.date_end,
         route.date_modified,
         route.route_length,
-        route_mode(route) as mode
+        jore.route_mode(route) as mode
       FROM jore.route route;
     `
     )
@@ -78,7 +78,7 @@ export class JoreDataSource extends SQLDataSource {
         route.date_end,
         route.date_modified,
         route.route_length,
-        route_mode(route) as mode
+        jore.route_mode(route) as mode
       FROM jore.route route
       WHERE route.route_id = :routeId
         AND route.direction = :direction;
@@ -99,13 +99,13 @@ export class JoreDataSource extends SQLDataSource {
         route.route_id,
         route.direction,
         route.route_length,
-        route_mode(route) as mode,
+        jore.route_mode(route) as mode,
         ST_AsGeoJSON(geometry.geom)::JSONB geometry,
         geometry.date_begin,
         geometry.date_end,
         geometry.date_imported
 from jore.route route,
-     jore.geometry
+     jore.geometry geometry
 WHERE route.route_id = :routeId
   AND route.direction = :direction
   AND geometry.route_id = route.route_id
@@ -151,7 +151,7 @@ FROM jore.stop stop
                route.originstop_id,
                route.route_length,
                route.name_fi as route_name,
-               route_mode(route) as mode,
+               jore.route_mode(route) as mode,
                route.origin_fi,
                route.destination_fi,
                route_segment.stop_id,
@@ -179,7 +179,7 @@ WHERE stop.stop_id = :stopId;`,
              stop.lon,
              stop.name_fi,
              stop.stop_radius,
-             stop_modes(stop, null) as modes
+             jore.stop_modes(stop, null) as modes
       FROM jore.stop stop
         WHERE stop.stop_id = :stopId;
     `,
@@ -220,7 +220,7 @@ WHERE stop.stop_id = :stopId;`,
              stop.lon,
              stop.name_fi,
              stop.stop_radius,
-             stop_modes(stop, null) as modes
+             jore.stop_modes(stop, null) as modes
       FROM jore.stop stop;
     `
         )
@@ -269,7 +269,7 @@ WHERE stop.stop_id = :stopId;`,
        route.origin_fi,
        route.destinationstop_id,
        route.originstop_id,
-       route_mode(route) as mode,
+       jore.route_mode(route) as mode,
        route_segment.next_stop_id,
        route_segment.date_begin,
        route_segment.date_end,
@@ -382,7 +382,7 @@ SELECT stop.stop_id,
        route.origin_fi,
        route.route_length,
        route.name_fi as route_name,
-       route_mode(route) as mode
+       jore.route_mode(route) as mode
 FROM jore.route_segment route_segment
      LEFT OUTER JOIN jore.stop stop USING (stop_id),
      jore.route_segment_route(route_segment, :date) route
@@ -432,7 +432,7 @@ SELECT stop.stop_id,
        route.origin_fi,
        route.route_length,
        route.name_fi as route_name,
-       route_mode(route) as mode
+       jore.route_mode(route) as mode
 FROM jore.route_segment route_segment
      LEFT OUTER JOIN jore.stop stop USING (stop_id),
      jore.route_segment_route(route_segment, null) route
