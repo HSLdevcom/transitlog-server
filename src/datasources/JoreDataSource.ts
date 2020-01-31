@@ -503,18 +503,30 @@ SELECT ${this.departureFields},
       origin_departure.is_next_day as origin_is_next_day,
       origin_departure.is_next_day as origin_is_next_day,
       origin_departure.extra_departure as origin_extra_departure,
-      origin_departure.departure_id as origin_departure_id,
-      route.type as type
+      origin_departure.departure_id as origin_departure_id
 FROM jore.departure departure
-    LEFT OUTER JOIN jore.departure_origin_departure(departure) origin_departure ON true
-    LEFT OUTER JOIN (SELECT
-        inner_route.route_id,
-        inner_route.direction,
-        inner_route.type
-      FROM jore.route inner_route
-      WHERE inner_route.date_begin <= :date
-        AND inner_route.date_end >= :date
-      ORDER BY inner_route.date_imported) route ON departure.route_id = route.route_id AND departure.direction = route.direction
+     LEFT JOIN LATERAL (
+      select *
+      from jore.departure inner_departure
+      where inner_departure.route_id = departure.route_id
+        and inner_departure.direction = departure.direction
+        and inner_departure.date_begin = departure.date_begin
+        and inner_departure.date_end = departure.date_end
+        and inner_departure.departure_id = departure.departure_id
+        and inner_departure.day_type = departure.day_type
+        and inner_departure.stop_id = (
+          select originstop_id
+          from jore.route route
+          where route.route_id = departure.route_id
+            and route.direction = departure.direction
+            and route.date_begin <= departure.date_end
+            and route.date_end >= departure.date_begin
+          order by route.date_begin desc, route.date_modified desc
+          limit 1
+         )
+      order by inner_departure.hours ASC, inner_departure.minutes ASC
+      limit 1
+    ) origin_departure ON true
 WHERE departure.stop_id = :stopId
   AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
 ORDER BY departure.hours ASC,

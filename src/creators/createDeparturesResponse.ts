@@ -30,6 +30,7 @@ import { Vehicles } from '../types/EventsDb'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
+import { getDayTypeFromDate } from '../utils/dayTypes'
 
 /*
   Common functions for route departures and stop departures.
@@ -113,9 +114,42 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
   return compact(departuresWithStops)
 }
 
+// Link observed events to departures. Events are ultimately grouped by vehicle ID
+// to separate the "instances" of the journey.
 export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
-  // Link observed events to departures. Events are ultimately grouped by vehicle ID
-  // to separate the "instances" of the journey.
+  // Index events by day type and journey start time, so that we don't need to filter
+  // through all events on each iteration of the departures loop.
+  const groupedEvents = events.reduce((eventsMap, event) => {
+    const eventDayType = getDayTypeFromDate(event.oday)
+    const journeyStartTime = getJourneyStartTime(event)
+    const routeId = event.route_id
+    const direction = getDirection(event.direction_id)
+
+    if (!eventDayType || !journeyStartTime) {
+      return eventsMap
+    }
+
+    const dayTypeGroup = eventsMap[eventDayType] || {}
+    const routeGroup = dayTypeGroup[routeId] || {}
+    const directionGroup = routeGroup[direction + ''] || {}
+    const journeyTimeEvents = directionGroup[journeyStartTime] || []
+
+    journeyTimeEvents.push(event)
+
+    eventsMap[eventDayType] = {
+      ...dayTypeGroup,
+      [routeId]: {
+        ...routeGroup,
+        [direction + '']: {
+          ...directionGroup,
+          [journeyStartTime]: journeyTimeEvents,
+        },
+      },
+    }
+
+    return eventsMap
+  }, {})
+
   const departuresWithEvents: Departure[][] = departures.map((departure) => {
     const departureTimePath = !!departure.originDepartureTime
       ? 'originDepartureTime'
@@ -132,17 +166,15 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
       return [departure]
     }
 
+    const dayType = departure?.dayType || ''
     const routeId = get(departure, 'routeId', '')
     const direction = getDirection(get(departure, 'direction'))
 
     // Match events to departures
-    const eventsForDeparture = events.filter(
-      (event) =>
-        event.route_id === routeId &&
-        getDirection(event.direction_id) === direction &&
-        // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
-        // for the event to match it with the 24h+ time of the origin departure.
-        getJourneyStartTime(event) === departureTime
+    const eventsForDeparture = get(
+      groupedEvents,
+      `${dayType}.${routeId}.${direction + ''}.${departureTime}`,
+      []
     )
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
@@ -239,6 +271,7 @@ export async function createDeparturesResponse(
       groupedDepartures,
       date
     )
+
     return filterByExceptions(
       combineDeparturesAndStops(validDepartures, stops, date),
       exceptions
@@ -273,17 +306,9 @@ export async function createDeparturesResponse(
     skipCache
   )
 
-  const alerts = await getAlerts(date, {
-    allStops: true,
-    allRoutes: true,
-    stop: true,
-    route: true,
-  })
-
   const cancellations = await getCancellations(date, { all: true }, skipCache)
 
   const departuresWithAlerts = authorizedDepartures.map((departure) => {
-    setAlertsOnDeparture(departure, alerts)
     setCancellationsOnDeparture(departure, cancellations)
     return departure
   })
