@@ -7,6 +7,7 @@ import { TZ } from '../constants'
 import { getDateFromDateTime, getJourneyEventTime, getJourneyStartTime } from '../utils/time'
 import moment from 'moment-timezone'
 import { Vehicles } from '../types/EventsDb'
+import { validModes } from '../utils/validModes'
 
 export const createVehicleJourneyObject = (
   event: Vehicles,
@@ -19,6 +20,8 @@ export const createVehicleJourneyObject = (
 
   const plannedDepartureTime = getDateFromDateTime(departureDate, getJourneyStartTime(event))
   const departureDiff = observedDepartureTime.diff(plannedDepartureTime, 'seconds')
+
+  const validMode = validModes(event?.mode)
 
   return {
     id: createJourneyId(event),
@@ -33,7 +36,7 @@ export const createVehicleJourneyObject = (
     operatorId: get(event, 'owner_operator_id', '') + '',
     vehicleId: get(event, 'vehicle_number', '') + '',
     headsign: get(event, 'headsign', ''),
-    mode: get(event, 'mode', 'BUS'),
+    mode: validMode[0],
     recordedAt: observedDepartureTime.toISOString(true),
     recordedAtUnix: parseInt(event.tsi, 10),
     recordedTime: getJourneyEventTime(event),

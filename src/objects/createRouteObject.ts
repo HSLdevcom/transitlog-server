@@ -1,7 +1,8 @@
 import { Alert, Cancellation, Route } from '../types/generated/schema-types'
-import { JoreRoute } from '../types/Jore'
+import { JoreRoute, Mode } from '../types/Jore'
 import { get } from 'lodash'
 import { getDirection } from '../utils/getDirection'
+import { validModes } from '../utils/validModes'
 
 function createRouteId(route: JoreRoute): string {
   return `${route.route_id}_${route.direction}_${route.date_begin}_${route.date_end}`
@@ -13,6 +14,8 @@ export function createRouteObject(
   cancellations?: Cancellation[],
   duration = 0
 ): Route {
+  const mode = validModes(route?.mode)
+
   return {
     id: createRouteId(route),
     routeId: route.route_id,
@@ -22,7 +25,7 @@ export function createRouteObject(
     name: get(route, 'route_name', get(route, 'name_fi', '')) || '',
     destinationStopId: route.destinationstop_id,
     originStopId: route.originstop_id,
-    mode: route.mode,
+    mode: mode[0],
     routeLength: route.route_length || 0,
     routeDurationMinutes: duration || route.duration || 0,
     alerts: alerts && alerts.length !== 0 ? alerts : [],

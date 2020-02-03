@@ -1,26 +1,14 @@
 import { JoreRouteDepartureData, JoreStop, JoreStopSegment, Mode } from '../types/Jore'
 import { Alert, Stop, StopRoute } from '../types/generated/schema-types'
 import { compact, get, uniq } from 'lodash'
+import { validModes } from '../utils/validModes'
 
 export function createStopObject(
   stop: JoreStop | JoreRouteDepartureData | JoreStopSegment,
   stopRoutes: StopRoute[] = [],
   alerts: Alert[] = []
 ): Stop {
-  const stopModes =
-    stop.modes && Array.isArray(stop.modes)
-      ? stop.modes
-      : typeof stop.modes === 'string'
-      ? [stop.modes]
-      : stop.mode
-      ? [stop.mode]
-      : []
-
-  const modes = uniq([...stopModes, ...compact(stopRoutes.map(({ mode }) => mode))])
-
-  if (modes.length === 0) {
-    modes.push(Mode.Bus)
-  }
+  const stopModes = validModes(stop.modes, stop.mode, ...stopRoutes)
 
   return {
     id: stop.stop_id,
@@ -30,7 +18,7 @@ export function createStopObject(
     lng: stop.lon,
     name: stop.name_fi,
     radius: stop.stop_radius,
-    modes,
+    modes: stopModes,
     routes: stopRoutes,
     alerts,
     stopIndex: get(stop, 'stop_index', 0),

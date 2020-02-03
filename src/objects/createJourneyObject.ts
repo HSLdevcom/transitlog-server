@@ -19,6 +19,7 @@ import { getJourneyStartTime } from '../utils/time'
 import { getDirection } from '../utils/getDirection'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import { Vehicles } from '../types/EventsDb'
+import { validModes } from '../utils/validModes'
 
 function isStopEvent(event): event is JourneyStopEvent {
   return event?.type !== 'PLANNED' && typeof event?.plannedTime !== 'undefined'
@@ -56,6 +57,8 @@ export function createJourneyObject(
   const vehicleId = createValidVehicleId(get(journey, 'unique_vehicle_id', ''))
   const [operator = '0000', vehicleNumber = '00'] = vehicleId.split('/')
 
+  const mode = validModes(journeyRoute?.mode, journey?.mode)
+
   return {
     id,
     journeyType: 'journey',
@@ -77,7 +80,7 @@ export function createJourneyObject(
     name: get(journeyRoute, 'name', ''),
     journeyLength: get(journeyRoute, 'routeLength', 0),
     journeyDurationMinutes: get(journeyRoute, 'routeDurationMinutes', 0),
-    mode: (get(journeyRoute, 'mode', get(journey, 'mode', '')) || '').toUpperCase(),
+    mode: mode[0],
     equipment: journeyEquipment ? createEquipmentObject(journeyEquipment) : null,
     vehiclePositions: vehiclePositions.map((event) => createVehiclePositionObject(event, id)),
     events,
