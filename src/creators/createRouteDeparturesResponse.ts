@@ -2,9 +2,9 @@ import { compact, groupBy, orderBy } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment } from '../types/Jore'
 import {
   Departure,
-  Scalars,
   ExceptionDay,
   RouteSegment,
+  Scalars,
 } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
@@ -19,10 +19,7 @@ import {
 import { getDirection } from '../utils/getDirection'
 import { createPlannedDepartureObject } from '../objects/createDepartureObject'
 import { filterByExceptions } from '../utils/filterByExceptions'
-import {
-  setAlertsOnDeparture,
-  setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlerts'
+import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { extraDepartureType } from '../utils/extraDepartureType'
 
@@ -41,20 +38,7 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
       return null
     }
 
-    // Since we fetched the actual origin departure, use it
-    // to create an origin departure time object.
-    departure.origin_departure = {
-      hours: departure.hours,
-      minutes: departure.minutes,
-      stop_id: departure.stop_id || '',
-      departure_id: departure.departure_id || 0,
-      is_next_day: departure.is_next_day || false,
-      extra_departure: extraDepartureType(departure.extra_departure) || 'N',
-      day_type: departure.day_type,
-      route_id: departure.route_id,
-      direction: departure.direction,
-    }
-
+    departure.origin_departure = null
     return createPlannedDepartureObject(departure, stop, date, 'route')
   })
 

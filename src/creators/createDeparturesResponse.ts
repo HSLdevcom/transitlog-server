@@ -108,7 +108,7 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
     }
 
     departure.origin_departure = createOriginDeparture(departure)
-    return createPlannedDepartureObject(departure, stop, date)
+    return createPlannedDepartureObject(departure, stop, date, 'stop')
   })
 
   return compact(departuresWithStops)
