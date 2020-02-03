@@ -553,17 +553,16 @@ ORDER BY tst DESC;
 
     const eventsQuery = this.db.raw(
       `SELECT ${routeDepartureFields.join(',')}
-FROM stopevent
-WHERE tst >= :minTime
-  AND tst <= :maxTime
-  AND event_type IN ('${queryEventTypes.join(`','`)}')
-  AND stop = :stopId
-  AND route_id = :routeId
-  AND direction_id = :direction
-  AND oday = :date
-  AND is_ongoing = true
-ORDER BY tst DESC;
-`,
+      FROM stopevent
+      WHERE tst >= :minTime
+        AND tst <= :maxTime
+        AND event_type IN ('${queryEventTypes.join(`','`)}')
+        AND stop = :stopId
+        AND route_id = :routeId
+        AND direction_id = :direction
+        AND oday = :date
+        AND is_ongoing = true
+      ORDER BY tst DESC;`,
       {
         minTime,
         maxTime,

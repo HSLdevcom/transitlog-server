@@ -150,28 +150,20 @@ export async function createRouteDeparturesResponse(
     skipCache
   )
 
-  const alerts = await getAlerts(date, {
-    allStops: true,
-    allRoutes: true,
-    stop: stopId,
-    route: routeId,
-  })
-
   const cancellations = await getCancellations(date, { routeId, direction }, skipCache)
 
-  const departuresWithAlerts = departures.map((departure) => {
-    setAlertsOnDeparture(departure, alerts)
+  const departuresWithCancellations = departures.map((departure) => {
     setCancellationsOnDeparture(departure, cancellations)
     return departure
   })
 
   // We can still return planned departures without observed events.
   if (!departureEvents || departureEvents.length === 0) {
-    return orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
+    return orderBy(departuresWithCancellations, 'plannedDepartureTime.departureTime')
   }
 
   const routeDepartures = combineDeparturesAndEvents(
-    departuresWithAlerts,
+    departuresWithCancellations,
     departureEvents,
     date
   )
