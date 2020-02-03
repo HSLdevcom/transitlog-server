@@ -1,6 +1,6 @@
-import { databases, getKnex } from '../knex'
+import { getKnex } from '../knex'
 
-const knex = getKnex(databases.JORE)
+const knex = getKnex()
 const schema = 'transitlog'
 const settingsTable = 'transitlog_settings'
 

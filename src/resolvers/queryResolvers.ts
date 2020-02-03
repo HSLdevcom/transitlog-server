@@ -29,7 +29,7 @@ const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => 
 
 const stops = (root, { filter, date }, { dataSources, skipCache }) => {
   const getStops = () => dataSources.JoreAPI.getStops(date)
-  return createStopsResponse(getStops, date, filter, null, skipCache)
+  return createStopsResponse(getStops, date, skipCache)
 }
 
 const stop = (root, { stopId, date }, { dataSources, skipCache }) => {
@@ -208,7 +208,13 @@ const weeklyDepartures = async (
   )
 
   const getDepartures = () =>
-    dataSources.JoreAPI.getWeeklyDepartures(stopId, routeId, direction, exceptionDayTypes)
+    dataSources.JoreAPI.getWeeklyDepartures(
+      stopId,
+      routeId,
+      direction,
+      exceptionDayTypes,
+      lastStopArrival
+    )
 
   const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
 

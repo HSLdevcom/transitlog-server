@@ -9,19 +9,18 @@ import {
   JoreStop,
   JoreStopSegment,
 } from '../types/Jore'
-import { Scalars, ExceptionDay } from '../types/generated/schema-types'
+import { ExceptionDay, Scalars } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
-import { orderBy, uniq, flatten, compact } from 'lodash'
+import { compact, flatten, orderBy, uniq } from 'lodash'
 import SQLDataSource from '../utils/SQLDataSource'
 import { PlannedJourneyData } from '../creators/createJourneyResponse'
 import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'date-fns'
 import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../objects/createExceptionDayObject'
-import { databases, getKnex } from '../knex'
+import { getKnex } from '../knex'
 
-const SCHEMA = 'jore'
-const knex = getKnex(databases.JORE)
+const knex = getKnex()
 const ONE_DAY = 24 * 60 * 60
 
 type ExceptionDaysScoped = {
@@ -55,11 +54,9 @@ export class JoreDataSource extends SQLDataSource {
         route.date_end,
         route.date_modified,
         route.route_length,
-        mode.mode
-      FROM :schema:.route route,
-           :schema:.route_mode(route) mode;
-    `,
-      { schema: SCHEMA }
+        jore.route_mode(route) as mode
+      FROM jore.route route;
+    `
     )
 
     return this.getBatched(query)
@@ -81,13 +78,12 @@ export class JoreDataSource extends SQLDataSource {
         route.date_end,
         route.date_modified,
         route.route_length,
-        mode.mode
-      FROM :schema:.route route,
-           :schema:.route_mode(route) mode
+        jore.route_mode(route) as mode
+      FROM jore.route route
       WHERE route.route_id = :routeId
         AND route.direction = :direction;
     `,
-      { schema: SCHEMA, routeId, direction: direction + '' }
+      { routeId, direction: direction + '' }
     )
 
     return this.getBatched(query)
@@ -103,14 +99,13 @@ export class JoreDataSource extends SQLDataSource {
         route.route_id,
         route.direction,
         route.route_length,
-        mode.mode,
+        jore.route_mode(route) as mode,
         ST_AsGeoJSON(geometry.geom)::JSONB geometry,
         geometry.date_begin,
         geometry.date_end,
         geometry.date_imported
-from :schema:.route route,
-     :schema:.route_mode(route) mode,
-     :schema:.geometry geometry
+from jore.route route,
+     jore.geometry geometry
 WHERE route.route_id = :routeId
   AND route.direction = :direction
   AND geometry.route_id = route.route_id
@@ -121,7 +116,7 @@ WHERE route.route_id = :routeId
   AND :date <= route.date_end
   AND route.date_begin <= geometry.date_end
   AND route.date_end >= geometry.date_begin;`,
-      { schema: SCHEMA, routeId, direction: direction + '', date }
+      { routeId, direction: direction + '', date }
     )
 
     return this.getBatched(query)
@@ -149,28 +144,27 @@ WHERE route.route_id = :routeId
        stop.short_id,
        stop.name_fi,
        stop.stop_radius
-FROM :schema:.stop stop
+FROM jore.stop stop
      LEFT JOIN (
         SELECT route.route_id,
                route.direction,
                route.originstop_id,
                route.route_length,
                route.name_fi as route_name,
+               jore.route_mode(route) as mode,
                route.origin_fi,
                route.destination_fi,
-               mode.mode,
                route_segment.stop_id,
                route_segment.date_begin,
                route_segment.date_end,
                route_segment.timing_stop_type,
                route_segment.stop_index,
                route_segment.date_modified
-        FROM :schema:.route_segment route_segment,
-             :schema:.route_segment_route(route_segment, :date) route,
-             :schema:.route_mode(route) mode
+        FROM jore.route_segment route_segment,
+             jore.route_segment_route(route_segment, :date) route
      ) route_data ON stop.stop_id = route_data.stop_id
 WHERE stop.stop_id = :stopId;`,
-      { schema: SCHEMA, stopId, date }
+      { stopId, date }
     )
 
     return this.getBatched(query)
@@ -185,11 +179,11 @@ WHERE stop.stop_id = :stopId;`,
              stop.lon,
              stop.name_fi,
              stop.stop_radius,
-             modes.modes
-      FROM :schema:.stop stop, :schema:.stop_modes(stop, null) modes
+             jore.stop_modes(stop, null) as modes
+      FROM jore.stop stop
         WHERE stop.stop_id = :stopId;
     `,
-      { schema: SCHEMA, stopId: (stopId || '') + '' }
+      { stopId: (stopId || '') + '' }
     )
 
     const result = await this.getBatched(query)
@@ -206,17 +200,20 @@ WHERE stop.stop_id = :stopId;`,
              stop.lon,
              stop.name_fi,
              stop.stop_radius,
-             modes.modes,
-             route_segment.date_begin,
-             route_segment.date_end,
              route_segment.date_modified,
              route_segment.route_id,
              route_segment.direction,
-             route_segment.timing_stop_type
-      FROM :schema:.stop stop
-           LEFT JOIN :schema:.stop_route_segments_for_date(stop, :date) route_segment ON stop.stop_id = route_segment.stop_id,
-           :schema:.stop_modes(stop, :date) modes`,
-          { schema: SCHEMA, date }
+             route_segment.timing_stop_type,
+             (select distinct jore.route_mode(route)) as modes
+      FROM jore.stop stop
+           LEFT OUTER JOIN (
+                select distinct on (inner_route_segment.route_id, inner_route_segment.stop_id) *
+                from jore.route_segment inner_route_segment
+                where :date between inner_route_segment.date_begin and inner_route_segment.date_end
+                order by inner_route_segment.route_id, inner_route_segment.stop_id, inner_route_segment.timing_stop_type DESC, inner_route_segment.date_modified DESC
+           ) route_segment USING (stop_id),
+           jore.route_segment_route(route_segment, :date) route;`,
+          { date }
         )
       : this.db.raw(
           `
@@ -226,10 +223,9 @@ WHERE stop.stop_id = :stopId;`,
              stop.lon,
              stop.name_fi,
              stop.stop_radius,
-             modes.modes
-      FROM :schema:.stop stop, :schema:.stop_modes(stop, null) modes;
-    `,
-          { schema: SCHEMA }
+             jore.stop_modes(stop, null) as modes
+      FROM jore.stop stop;
+    `
         )
 
     return this.getBatched(query)
@@ -237,7 +233,7 @@ WHERE stop.stop_id = :stopId;`,
 
   async getEquipment(): Promise<JoreEquipment[]> {
     const query = this.db
-      .withSchema(SCHEMA)
+      .withSchema('jore')
       .select()
       .from('equipment')
 
@@ -252,7 +248,7 @@ WHERE stop.stop_id = :stopId;`,
     const joreOperatorId = (operatorId + '').padStart(4, '0')
 
     const query = this.db
-      .withSchema(SCHEMA)
+      .withSchema('jore')
       .select()
       .from('equipment')
       .where({ vehicle_id: joreVehicleId, operator_id: joreOperatorId })
@@ -276,7 +272,7 @@ WHERE stop.stop_id = :stopId;`,
        route.origin_fi,
        route.destinationstop_id,
        route.originstop_id,
-       mode.mode,
+       jore.route_mode(route) as mode,
        route_segment.next_stop_id,
        route_segment.date_begin,
        route_segment.date_end,
@@ -293,10 +289,9 @@ WHERE stop.stop_id = :stopId;`,
        stop.short_id,
        stop.name_fi,
        stop.stop_radius
-FROM :schema:.route route,
-     :schema:.route_mode(route) mode,
-     :schema:.route_route_segments(route) route_segment
-LEFT OUTER JOIN :schema:.stop stop ON stop.stop_id = route_segment.stop_id
+FROM jore.route route,
+     jore.route_route_segments(route) route_segment
+LEFT OUTER JOIN jore.stop stop ON stop.stop_id = route_segment.stop_id
 WHERE route.route_id = :routeId AND route.direction = :direction ${
         dateBegin && dateEnd
           ? this.db.raw(
@@ -308,7 +303,7 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
             )
           : ''
       };`,
-      { schema: SCHEMA, routeId, direction: direction + '' }
+      { routeId, direction: direction + '' }
     )
 
     return this.getBatched(query)
@@ -345,7 +340,7 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
        departure.departure_id,
        departure.bid_target_id,
        departure.date_imported
-FROM :schema:.departure departure
+FROM jore.departure departure
     WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
       AND departure.route_id = :routeId
       AND departure.direction = :direction
@@ -353,7 +348,7 @@ FROM :schema:.departure departure
 ORDER BY departure.departure_id ASC,
          departure.hours ASC,
          departure.minutes ASC;`,
-      { schema: SCHEMA, routeId, direction: direction + '', date }
+      { routeId, direction: direction + '', date }
     )
 
     return this.getBatched(query)
@@ -390,14 +385,13 @@ SELECT stop.stop_id,
        route.origin_fi,
        route.route_length,
        route.name_fi as route_name,
-       mode.mode
-FROM :schema:.route_segment route_segment
-     LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
-     :schema:.route_segment_route(route_segment, :date) route,
-     :schema:.route_mode(route) mode
+       jore.route_mode(route) as mode
+FROM jore.route_segment route_segment
+     LEFT OUTER JOIN jore.stop stop USING (stop_id),
+     jore.route_segment_route(route_segment, :date) route
 WHERE route_segment.route_id = :routeId
   AND route_segment.direction = :direction;`,
-      { schema: SCHEMA, routeId, direction: direction + '', date }
+      { routeId, direction: direction + '', date }
     )
 
     return this.getBatched(query)
@@ -441,13 +435,12 @@ SELECT stop.stop_id,
        route.origin_fi,
        route.route_length,
        route.name_fi as route_name,
-       mode.mode
-FROM :schema:.route_segment route_segment
-     LEFT OUTER JOIN :schema:.stop stop USING (stop_id),
-     :schema:.route_segment_route(route_segment, null) route,
-     :schema:.route_mode(route) mode
+       jore.route_mode(route) as mode
+FROM jore.route_segment route_segment
+     LEFT OUTER JOIN jore.stop stop USING (stop_id),
+     jore.route_segment_route(route_segment, null) route
 WHERE route_segment.stop_id = :stopId;`,
-      { schema: SCHEMA, stopId, date }
+      { stopId, date }
     )
 
     return this.getBatched(query)
@@ -462,11 +455,11 @@ WHERE route_segment.stop_id = :stopId;`,
     const query = this.db.raw(
       `
 SELECT DISTINCT ON (operator_id, route_id, direction, hours, minutes) operator_id, route_id, direction, hours, minutes
-FROM :schema:.departure
+FROM jore.departure
     WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
       AND date_begin <= :date
 ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
-      { schema: SCHEMA, date }
+      { date }
     )
 
     return this.getCachedAndBatched(query, 24 * 60 * 60)
@@ -510,25 +503,37 @@ SELECT ${this.departureFields},
       origin_departure.is_next_day as origin_is_next_day,
       origin_departure.is_next_day as origin_is_next_day,
       origin_departure.extra_departure as origin_extra_departure,
-      origin_departure.departure_id as origin_departure_id,
-      route.type as type
-FROM :schema:.departure departure
-    LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
-    LEFT OUTER JOIN (SELECT
-        inner_route.route_id,
-        inner_route.direction,
-        inner_route.type
-      FROM :schema:.route inner_route
-      WHERE inner_route.date_begin <= :date
-        AND inner_route.date_end >= :date
-      ORDER BY inner_route.date_imported) route ON departure.route_id = route.route_id AND departure.direction = route.direction
+      origin_departure.departure_id as origin_departure_id
+FROM jore.departure departure
+     LEFT JOIN LATERAL (
+      select *
+      from jore.departure inner_departure
+      where inner_departure.route_id = departure.route_id
+        and inner_departure.direction = departure.direction
+        and inner_departure.date_begin = departure.date_begin
+        and inner_departure.date_end = departure.date_end
+        and inner_departure.departure_id = departure.departure_id
+        and inner_departure.day_type = departure.day_type
+        and inner_departure.stop_id = (
+          select originstop_id
+          from jore.route route
+          where route.route_id = departure.route_id
+            and route.direction = departure.direction
+            and route.date_begin <= departure.date_end
+            and route.date_end >= departure.date_begin
+          order by route.date_begin desc, route.date_modified desc
+          limit 1
+         )
+      order by inner_departure.hours ASC, inner_departure.minutes ASC
+      limit 1
+    ) origin_departure ON true
 WHERE departure.stop_id = :stopId
   AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
 ORDER BY departure.hours ASC,
          departure.minutes ASC,
          departure.route_id ASC,
          departure.direction ASC;`,
-      { schema: SCHEMA, stopId, date }
+      { stopId, date }
     )
 
     const result = await this.getBatched(query)
@@ -561,14 +566,14 @@ ORDER BY departure.hours ASC,
     const query = this.db.raw(
       `
 SELECT ${this.departureFields}
-FROM :schema:.departure departure
+FROM jore.departure departure
 WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
   AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
 ORDER BY departure.hours ASC,
          departure.minutes ASC;`,
-      { schema: SCHEMA, stopId, routeId, direction: direction + '' }
+      { stopId, routeId, direction: direction + '' }
     )
 
     return this.getBatched(query)
@@ -578,12 +583,31 @@ ORDER BY departure.hours ASC,
     stopId,
     routeId,
     direction,
-    exceptionDayTypes: string[] = []
+    exceptionDayTypes: string[] = [],
+    lastStopArrival = false
   ): Promise<JoreDeparture[]> {
     const queryDayTypes = uniq(exceptionDayTypes.concat(dayTypes))
 
-    const query = this.db.raw(
-      `
+    let query
+
+    if (!lastStopArrival) {
+      query = this.db.raw(
+        `
+SELECT ${this.departureFields}
+FROM jore.departure departure
+WHERE departure.stop_id = :stopId
+  AND departure.route_id = :routeId
+  AND departure.direction = :direction
+  AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')});`,
+        {
+          stopId,
+          routeId,
+          direction: direction + '',
+        }
+      )
+    } else {
+      query = this.db.raw(
+        `
 SELECT ${this.departureFields},
       origin_departure.stop_id as origin_stop_id,
       origin_departure.hours as origin_hours,
@@ -592,19 +616,19 @@ SELECT ${this.departureFields},
       origin_departure.is_next_day as origin_is_next_day,
       origin_departure.extra_departure as origin_extra_departure,
       origin_departure.departure_id as origin_departure_id
-FROM :schema:.departure departure
-    LEFT OUTER JOIN :schema:.departure_origin_departure(departure) origin_departure ON true
+FROM jore.departure departure
+    LEFT OUTER JOIN jore.departure_origin_departure(departure) origin_departure ON true
 WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
   AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')});`,
-      {
-        schema: SCHEMA,
-        stopId,
-        routeId,
-        direction: direction + '',
-      }
-    )
+        {
+          stopId,
+          routeId,
+          direction: direction + '',
+        }
+      )
+    }
 
     return this.getBatched(query)
   }
@@ -631,15 +655,15 @@ SELECT ex_day.date_in_effect,
         ELSE ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type]
    END effective_day_types,
    rep_day.replacing_day_type as scoped_day_type
-FROM :schema:.exception_days_calendar ex_day
-     LEFT OUTER JOIN :schema:.exception_days ex_desc
+FROM jore.exception_days_calendar ex_day
+     LEFT OUTER JOIN jore.exception_days ex_desc
                      ON ex_day.exception_day_type = ex_desc.exception_day_type
-     FULL OUTER JOIN :schema:.replacement_days_calendar rep_day USING (date_in_effect)
+     FULL OUTER JOIN jore.replacement_days_calendar rep_day USING (date_in_effect)
 WHERE ex_day.date_in_effect >= :startDate AND
       ex_day.date_in_effect <= :endDate
 ORDER BY ex_day.date_in_effect ASC;
     `,
-      { schema: SCHEMA, startDate, endDate }
+      { startDate, endDate }
     )
 
     return this.getBatched(query)
@@ -739,14 +763,14 @@ ORDER BY ex_day.date_in_effect ASC;
         route.date_begin,
         route.date_end,
         route.type
-      FROM :schema:.route route
+      FROM jore.route route
       WHERE route.route_id = :routeId
         AND route.date_begin <= :date
         AND route.date_end >= :date
       ORDER BY route.date_imported DESC
       LIMIT 1;
     `,
-      { schema: SCHEMA, routeId, date }
+      { routeId, date }
     )
 
     const result: Array<{ type: string }> = await this.getBatched(query)

@@ -1,4 +1,4 @@
-import { reduce, flatten } from 'lodash'
+import { reduce, flatten, partition } from 'lodash'
 import { filterByDate } from './filterByDate'
 import { ValidityRange } from '../types/ValidityRange'
 import { Dictionary } from '../types/Dictionary'
@@ -15,15 +15,8 @@ export function filterByDateChains<ItemType extends ValidityRange>(
         return filtered
       }
 
-      const withoutValidity = items.filter((item) => !item?.date_begin)
-
-      // Just return if none of them have validity.
-      if (items.length === withoutValidity.length) {
-        return [...filtered, ...items]
-      }
-
       filtered.push(date ? filterByDate(items, date) : items)
-      return [...filtered, ...withoutValidity]
+      return filtered
     },
     []
   )
