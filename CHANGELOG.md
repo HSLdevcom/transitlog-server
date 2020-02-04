@@ -1,10 +1,11 @@
 # Transitlog server changelog
 
-## Version 1.7.1, deployed 2020-02-04 @ 10:00
+## Version 1.7.1, deployed 2020-02-04 @ 14:00
 
 - Fix metro departure list.
 - Better handling of transport modes.
 - Fix journey departure to route matching.
+- Fix stop departure event matching.
 
 ## Version 1.7.0, deployed 2020-02-03 @ 10:00
 
