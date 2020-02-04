@@ -1,12 +1,19 @@
-import { Mode } from '../types/Jore'
+import { Maybe, Mode } from '../types/Jore'
 import { arrVal } from './arrVal'
 import { compact, flatten, uniq } from 'lodash'
 
 // The idea here is to throw in any number of whatevers and get out a list of unique
 // Mode strings. It converts single values to arrays and extracts modes from passed objects.
 
-type ObjWithMode = { mode?: string | Mode; modes?: string | Mode | Array<string | Mode> }
-type ModeArg = Array<string | Mode | ObjWithMode> | string | Mode | ObjWithMode
+type ModeValType = string | Mode | undefined | null | Maybe<Mode>
+
+type ObjWithMode = {
+  mode?: ModeValType
+  modes?: ModeValType | ModeValType[]
+}
+
+type ModeArgType = ModeValType | ObjWithMode
+type ModeArg = ModeArgType | ModeArgType[]
 
 function isObjWithMode(item): item is ObjWithMode {
   return typeof item?.modes !== 'undefined' || typeof item?.modes !== 'undefined'
