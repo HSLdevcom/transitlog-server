@@ -38,6 +38,8 @@ export interface JoreOriginDeparture {
   day_type: string
   route_id: string
   direction: string
+  date_begin: string
+  date_end: string
 }
 
 export interface JoreDeparture {
@@ -174,6 +176,8 @@ interface JoreOriginDepartureProps {
   origin_departure_id?: number
   origin_is_next_day?: boolean
   origin_extra_departure?: string
+  origin_date_begin?: string
+  origin_date_end?: string
 }
 
 export type JoreDepartureWithOrigin = JoreDeparture & JoreOriginDepartureProps

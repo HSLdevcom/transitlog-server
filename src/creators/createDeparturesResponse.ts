@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { compact, flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import {
@@ -22,10 +22,7 @@ import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { Dictionary } from '../types/Dictionary'
 import { isToday } from 'date-fns'
 import { filterByExceptions } from '../utils/filterByExceptions'
-import {
-  setAlertsOnDeparture,
-  setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlerts'
+import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
@@ -122,31 +119,19 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
   const groupedEvents = events.reduce((eventsMap, event) => {
     const eventDayType = getDayTypeFromDate(event.oday)
     const journeyStartTime = getJourneyStartTime(event)
+
     const routeId = event.route_id
-    const direction = getDirection(event.direction_id)
 
     if (!eventDayType || !journeyStartTime) {
       return eventsMap
     }
 
-    const dayTypeGroup = eventsMap[eventDayType] || {}
-    const routeGroup = dayTypeGroup[routeId] || {}
-    const directionGroup = routeGroup[direction + ''] || {}
-    const journeyTimeEvents = directionGroup[journeyStartTime] || []
+    const eventKey = `${eventDayType}/${routeId}/${event.direction_id}/${journeyStartTime}`
+    const eventsGroup = eventsMap[eventKey] || []
 
-    journeyTimeEvents.push(event)
+    eventsGroup.push(event)
 
-    eventsMap[eventDayType] = {
-      ...dayTypeGroup,
-      [routeId]: {
-        ...routeGroup,
-        [direction + '']: {
-          ...directionGroup,
-          [journeyStartTime]: journeyTimeEvents,
-        },
-      },
-    }
-
+    eventsMap[eventKey] = eventsGroup
     return eventsMap
   }, {})
 
@@ -173,7 +158,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     // Match events to departures
     const eventsForDeparture = get(
       groupedEvents,
-      `${dayType}.${routeId}.${direction + ''}.${departureTime}`,
+      `${dayType}/${routeId}/${direction}/${departureTime}`,
       []
     )
 

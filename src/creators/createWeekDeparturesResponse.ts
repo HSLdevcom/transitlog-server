@@ -50,16 +50,12 @@ const combineDeparturesAndEvents = (
       return eventsMap
     }
 
-    const dayTypeGroup = eventsMap[eventDayType] || {}
-    const journeyTimeEvents = dayTypeGroup[journeyStartTime] || []
+    const eventKey = `${eventDayType}/${journeyStartTime}`
+    const eventsGroup = eventsMap[eventKey] || []
 
-    journeyTimeEvents.push(event)
+    eventsGroup.push(event)
 
-    eventsMap[eventDayType] = {
-      ...dayTypeGroup,
-      [journeyStartTime]: journeyTimeEvents,
-    }
-
+    eventsMap[eventKey] = eventsGroup
     return eventsMap
   }, {})
 
@@ -80,7 +76,7 @@ const combineDeparturesAndEvents = (
     }
 
     // Match events to departures
-    const eventsForDeparture = get(groupedEvents, `${dayType}.${originDepartureTime}`, [])
+    const eventsForDeparture = get(groupedEvents, `${dayType}/${originDepartureTime}`, [])
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
       return departure

@@ -409,34 +409,34 @@ ORDER BY departure.departure_id ASC,
 
     const query = this.db.raw(
       `
-                SELECT stop.stop_id,
-                       stop.lat,
-                       stop.lon,
-                       stop.short_id,
-                       stop.name_fi,
-                       stop.stop_radius,
-                       stop.stop_type,
-                       route_segment.date_begin,
-                       route_segment.date_end,
-                       route_segment.date_modified,
-                       route_segment.destination_fi,
-                       route_segment.distance_from_previous,
-                       route_segment.distance_from_start,
-                       route_segment.duration,
-                       route_segment.route_id,
-                       route_segment.direction,
-                       route_segment.stop_index,
-                       route_segment.next_stop_id,
-                       route_segment.timing_stop_type,
-                       route.destination_fi,
-                       route.origin_fi,
-                       route.route_length,
-                       route.name_fi          as route_name,
-                       jore.route_mode(route) as mode
-                FROM jore.route_segment route_segment
-                LEFT JOIN jore.stop stop USING (stop_id)
-                LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
-                WHERE route_segment.stop_id = :stopId;`,
+      SELECT stop.stop_id,
+             stop.lat,
+             stop.lon,
+             stop.short_id,
+             stop.name_fi,
+             stop.stop_radius,
+             stop.stop_type,
+             route_segment.date_begin,
+             route_segment.date_end,
+             route_segment.date_modified,
+             route_segment.destination_fi,
+             route_segment.distance_from_previous,
+             route_segment.distance_from_start,
+             route_segment.duration,
+             route_segment.route_id,
+             route_segment.direction,
+             route_segment.stop_index,
+             route_segment.next_stop_id,
+             route_segment.timing_stop_type,
+             route.destination_fi,
+             route.origin_fi,
+             route.route_length,
+             route.name_fi          as route_name,
+             jore.route_mode(route) as mode
+      FROM jore.route_segment route_segment
+      LEFT JOIN jore.stop stop USING (stop_id)
+      LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
+      WHERE route_segment.stop_id = :stopId;`,
       { stopId, date }
     )
 
@@ -493,43 +493,44 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
 
     const query = this.db.raw(
       `
-SELECT ${this.departureFields},
-      origin_departure.stop_id as origin_stop_id,
-      origin_departure.hours as origin_hours,
-      origin_departure.minutes as origin_minutes,
-      origin_departure.is_next_day as origin_is_next_day,
-      origin_departure.is_next_day as origin_is_next_day,
-      origin_departure.extra_departure as origin_extra_departure,
-      origin_departure.departure_id as origin_departure_id
-FROM jore.departure departure
-     LEFT JOIN LATERAL (
-      select *
-      from jore.departure inner_departure
-      where inner_departure.route_id = departure.route_id
-        and inner_departure.direction = departure.direction
-        and inner_departure.date_begin = departure.date_begin
-        and inner_departure.date_end = departure.date_end
-        and inner_departure.departure_id = departure.departure_id
-        and inner_departure.day_type = departure.day_type
-        and inner_departure.stop_id = (
-          select originstop_id
-          from jore.route route
-          where route.route_id = departure.route_id
-            and route.direction = departure.direction
-            and route.date_begin <= departure.date_end
-            and route.date_end >= departure.date_begin
-          order by route.date_begin desc, route.date_modified desc
-          limit 1
-         )
-      order by inner_departure.hours ASC, inner_departure.minutes ASC
-      limit 1
-    ) origin_departure ON true
-WHERE departure.stop_id = :stopId
-  AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-ORDER BY departure.hours ASC,
-         departure.minutes ASC,
-         departure.route_id ASC,
-         departure.direction ASC;`,
+      SELECT ${this.departureFields},
+            origin_departure.stop_id as origin_stop_id,
+            origin_departure.hours as origin_hours,
+            origin_departure.minutes as origin_minutes,
+            origin_departure.is_next_day as origin_is_next_day,
+            origin_departure.is_next_day as origin_is_next_day,
+            origin_departure.extra_departure as origin_extra_departure,
+            origin_departure.departure_id as origin_departure_id,
+            origin_departure.date_begin as origin_date_begin,
+            origin_departure.date_end as origin_date_end
+      FROM jore.departure departure
+           LEFT JOIN LATERAL (
+            select *
+            from jore.departure inner_departure
+            where inner_departure.route_id = departure.route_id
+              and inner_departure.direction = departure.direction
+              and inner_departure.date_begin = departure.date_begin
+              and inner_departure.date_end = departure.date_end
+              and inner_departure.departure_id = departure.departure_id
+              and inner_departure.day_type = departure.day_type
+              and inner_departure.stop_id = (
+                select originstop_id
+                from jore.route route
+                where route.route_id = departure.route_id
+                  and route.direction = departure.direction
+                  and route.date_begin <= departure.date_end
+                  and route.date_end >= departure.date_begin
+                order by route.date_modified desc, route.date_begin desc 
+                limit 1
+              )
+            order by inner_departure.hours ASC, inner_departure.minutes ASC
+          ) origin_departure ON true
+      WHERE departure.stop_id = :stopId
+        AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+      ORDER BY departure.hours ASC,
+               departure.minutes ASC,
+               departure.route_id ASC,
+               departure.direction ASC;`,
       { stopId, date }
     )
 
