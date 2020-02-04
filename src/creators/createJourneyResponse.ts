@@ -182,8 +182,6 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     return { route: journeyRoute, departures: [] }
   }
 
-  console.log(originDeparture, departures)
-
   const orderedStops = orderBy(validStops, 'stop_index', 'asc')
 
   const plannedDuration = get(last(orderedStops), 'duration', 0)
