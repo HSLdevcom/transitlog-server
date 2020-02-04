@@ -63,6 +63,7 @@ import { intval } from '../utils/isWithinRange'
 import { toLatLng } from '../geometry/LatLng'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
+import { createOriginDeparture } from '../utils/createOriginDeparture'
 
 type JourneyRoute = {
   route: Route | null
@@ -147,17 +148,27 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   const departures: JoreRouteDepartureData[] = get(plannedJourney, 'departures', []) || []
   const stops: JoreStopSegment[] = get(plannedJourney, 'stops', []) || []
 
-  // A stop segment contains all necessary info for the route
-  let journeyRoute = createRouteObject(stops[0])
+  // Group stops by stop_index and validate each stop. This way we'll get
+  // the version of the stop that was in effect at the time of the departure.
+  const stopSegmentGroups = groupBy(stops, 'stop_index')
+  const validStops = filterByDateChains<JoreStopSegment>(stopSegmentGroups, date)
 
-  const validDepartures = filterByDateChains<JoreRouteDepartureData>(
-    groupBy(
-      departures,
-      ({ departure_id, stop_id, day_type, extra_departure }) =>
-        `${departure_id}_${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
-    ),
-    date
+  const firstStop = validStops.find((stop) => stop.stop_index === 1)
+
+  // A stop segment contains all necessary info for the route
+  let journeyRoute = createRouteObject(!firstStop ? stops[0] : firstStop)
+
+  if (validStops.length === 0) {
+    return { route: journeyRoute, departures: [] }
+  }
+
+  const groupedDepartures = groupBy(
+    departures,
+    ({ departure_id, stop_id, day_type, extra_departure }) =>
+      `${departure_id}_${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
   )
+
+  const validDepartures = filterByDateChains<JoreRouteDepartureData>(groupedDepartures, date)
 
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
@@ -171,12 +182,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     return { route: journeyRoute, departures: [] }
   }
 
-  const stopSegmentGroups = groupBy(stops, 'stop_index')
-  const validStops = filterByDateChains<JoreStopSegment>(stopSegmentGroups, date)
-
-  if (validStops.length === 0) {
-    return { route: journeyRoute, departures: [] }
-  }
+  console.log(originDeparture, departures)
 
   const orderedStops = orderBy(validStops, 'stop_index', 'asc')
 
@@ -202,6 +208,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     }
 
     const stop = createStopObject(stopSegment)
+
     return createPlannedDepartureObject(
       departure,
       stop,
@@ -383,7 +390,7 @@ export async function createJourneyResponse(
   const originDeparture = authorizedDepartures[0] || null
 
   // Terminal and recovery time needs to be hidden from unauthorized users.
-  if (!requireVehicleAuthorization(user, vehicleId)) {
+  if (originDeparture && !requireVehicleAuthorization(user, vehicleId)) {
     originDeparture.recoveryTime = null
     originDeparture.terminalTime = null
   }

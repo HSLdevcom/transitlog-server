@@ -12,6 +12,7 @@ import { TZ } from '../constants'
 export const createAreaJourneyObject = (events: Vehicles[], alerts: Alert[] = []): Journey => {
   const journey = events[0]
   const departureTime = getJourneyStartTime(journey)
+
   const journeyDate = moment.tz(journey.tst, TZ).format('YYYY-MM-DD')
   const departureDate = get(journey, 'oday', journeyDate) || journeyDate
 
