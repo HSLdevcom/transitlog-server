@@ -4,6 +4,7 @@
 
 - Fix metro departure list.
 - Better handling of transport modes.
+- Fix journey departure to route matching.
 
 ## Version 1.7.0, deployed 2020-02-03 @ 10:00
 
