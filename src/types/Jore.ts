@@ -109,8 +109,8 @@ export interface JoreTerminal {
   terminal_id: string
   name_fi: string
   name_se: string
-  lat: number
-  lon: number
+  lat: string
+  lon: string
   date_imported: string
   stop_id?: string
   stop_terminal_id?: string
