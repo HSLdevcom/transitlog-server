@@ -35,6 +35,7 @@ export const Stop = gql`
     lat: Float!
     lng: Float!
     stops: [Stop!]
+    modes: [String!]
   }
 
   input StopFilterInput {

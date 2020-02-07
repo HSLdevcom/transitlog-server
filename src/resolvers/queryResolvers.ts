@@ -20,6 +20,7 @@ import { getCancellations } from '../getCancellations'
 import { getSettings } from '../datasources/transitlogServer'
 import { createUnsignedVehicleEventsResponse } from '../creators/createUnsignedVehicleEventsResponse'
 import { createDriverEventsResponse } from '../creators/createDriverEventsResponse'
+import { createTerminalsResponse } from '../creators/createTerminalsResponse'
 
 const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -35,6 +36,13 @@ const stops = (root, { filter, date }, { dataSources, skipCache }) => {
 const stop = (root, { stopId, date }, { dataSources, skipCache }) => {
   const getStopSegments = () => dataSources.JoreAPI.getStopSegments(stopId, date)
   return createStopResponse(getStopSegments, date, stopId, skipCache)
+}
+
+const terminals = (root, { date }, { dataSources, skipCache }) => {
+  const getTerminals = () => dataSources.JoreAPI.getTerminals(date)
+  const getStops = (terminalId: string) =>
+    dataSources.JoreAPI.getStopsForTerminal(date, terminalId)
+  return createTerminalsResponse(getTerminals, getStops, date, skipCache)
 }
 
 const route = async (root, { routeId, direction, date }, { dataSources, user, skipCache }) => {
@@ -421,6 +429,7 @@ export const queryResolvers: QueryResolvers = {
   equipment,
   stop,
   stops,
+  terminals,
   route,
   routes,
   routeGeometry,

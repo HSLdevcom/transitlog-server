@@ -735,6 +735,7 @@ export type Terminal = Position & {
   lat: Scalars['Float']
   lng: Scalars['Float']
   stops?: Maybe<Stop[]>
+  modes?: Maybe<Array<Scalars['String']>>
 }
 
 export type UiMessage = {

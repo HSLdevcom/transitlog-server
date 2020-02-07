@@ -105,6 +105,15 @@ export interface JoreStop {
   routes?: StopRoute[]
 }
 
+export interface JoreTerminal {
+  terminal_id: string
+  name_fi: string
+  name_se: string
+  lat: number
+  lon: number
+  date_imported: string
+}
+
 export interface JoreRoute {
   route_id: string
   date_begin: string

@@ -739,6 +739,7 @@ export type Terminal = Position & {
   lat: Scalars['Float']
   lng: Scalars['Float']
   stops?: Maybe<Stop[]>
+  modes?: Maybe<Array<Scalars['String']>>
 }
 
 export type UiMessage = {
@@ -1624,6 +1625,7 @@ export type TerminalResolvers<
   lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   stops?: Resolver<Maybe<Array<ResolversTypes['Stop']>>, ParentType, ContextType>
+  modes?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
 }
 
 export interface TimeScalarConfig
