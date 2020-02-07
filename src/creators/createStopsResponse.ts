@@ -126,7 +126,12 @@ export async function createStopsResponse(
   skipCache = false
 ): Promise<Stop[]> {
   const cacheKey = `stops_${date || 'undated'}`
-  const stops = await cacheFetch<Stop[]>(cacheKey, fetchStops, 30 * 24 * 60 * 60, skipCache)
+  const stops = await cacheFetch<Stop[]>(
+    cacheKey,
+    () => fetchStops(getStops),
+    30 * 24 * 60 * 60,
+    skipCache
+  )
 
   if (!stops) {
     return []
