@@ -1,14 +1,13 @@
 import { Terminal } from '../types/generated/schema-types'
-import { JoreStop, JoreTerminal } from '../types/Jore'
+import { JoreTerminal } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
-import { fetchStops } from './createStopsResponse'
-import { createTerminalObject } from '../objects/createTerminalObject'
-import pMap from 'p-map'
+import { createTerminalObject, TerminalStop } from '../objects/createTerminalObject'
+import { get, groupBy } from 'lodash'
+import { validModes } from '../utils/validModes'
 
 export async function createTerminalsResponse(
   getTerminals: () => Promise<JoreTerminal[]>,
-  getStops: (terminalId: string) => Promise<JoreStop[]>,
   date?: string,
   skipCache = false
 ): Promise<Terminal[]> {
@@ -19,16 +18,23 @@ export async function createTerminalsResponse(
       return false
     }
 
-    return pMap(
+    const terminalGroups: { [terminalId: string]: JoreTerminal[] } = groupBy(
       fetchedTerminals,
-      async (terminal) => {
-        let terminalStops = await fetchStops(() => getStops(terminal.terminal_id))
-        terminalStops = terminalStops || []
-
-        return createTerminalObject(terminal, terminalStops)
-      },
-      { concurrency: 5 }
+      'stop_terminal_id'
     )
+
+    return Object.keys(terminalGroups).map((terminalId) => {
+      const terminalItems: JoreTerminal[] = get(terminalGroups, terminalId, [])
+
+      const terminalStops: TerminalStop[] = terminalItems.map(
+        (terminalStop): TerminalStop => ({
+          stopId: terminalStop.stop_id || '',
+          modes: validModes(terminalStop),
+        })
+      )
+
+      return createTerminalObject(terminalItems[0], terminalStops)
+    })
   }
 
   const cacheKey = `terminals_${date}`

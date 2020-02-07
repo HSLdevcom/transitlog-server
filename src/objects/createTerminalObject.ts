@@ -1,8 +1,13 @@
 import { JoreTerminal } from '../types/Jore'
-import { Stop, Terminal } from '../types/generated/schema-types'
+import { Terminal } from '../types/generated/schema-types'
 import { validModes } from '../utils/validModes'
 
-export function createTerminalObject(terminal: JoreTerminal, stops: Stop[]): Terminal {
+export type TerminalStop = {
+  stopId: string
+  modes: string[]
+}
+
+export function createTerminalObject(terminal: JoreTerminal, stops: TerminalStop[]): Terminal {
   const stopModes = validModes(...stops)
 
   return {
@@ -10,7 +15,7 @@ export function createTerminalObject(terminal: JoreTerminal, stops: Stop[]): Ter
     name: terminal.name_fi,
     lat: terminal.lat,
     lng: terminal.lon,
-    stops,
+    stops: stops.map((stop) => stop.stopId),
     modes: stopModes,
   }
 }

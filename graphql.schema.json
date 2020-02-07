@@ -2602,8 +2602,8 @@
                 "kind": "NON_NULL",
                 "name": null,
                 "ofType": {
-                  "kind": "OBJECT",
-                  "name": "Stop",
+                  "kind": "SCALAR",
+                  "name": "String",
                   "ofType": null
                 }
               }

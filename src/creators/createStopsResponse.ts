@@ -86,13 +86,11 @@ export const fetchStops: CachedFetcher<Stop[]> = async (fetcher) => {
     return false
   }
 
-  let stopData = fetchedStops
-
   // The stops and route segments are joined in the query, so now we need to
   // combine distinct stops with all routes that go through them.
   const stopGroups = groupBy(fetchedStops, 'stop_id')
 
-  stopData = Object.values(stopGroups).map((stops) => {
+  const stopData = Object.values(stopGroups).map((stops) => {
     const currentStop = stops[0]
 
     currentStop.routes = stops.reduce((stopRoutes: StopRoute[], stop) => {

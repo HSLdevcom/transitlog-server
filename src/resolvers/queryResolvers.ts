@@ -39,9 +39,8 @@ const stop = (root, { stopId, date }, { dataSources, skipCache }) => {
 }
 
 const terminals = (root, { date }, { dataSources, skipCache }) => {
-  const getTerminals = () => dataSources.JoreAPI.getTerminals(date)
-  const getStops = (terminalId: string) => dataSources.JoreAPI.getStops(date, terminalId)
-  return createTerminalsResponse(getTerminals, getStops, date, skipCache)
+  const getTerminals = () => dataSources.JoreAPI.getTerminals()
+  return createTerminalsResponse(getTerminals, date, skipCache)
 }
 
 const route = async (root, { routeId, direction, date }, { dataSources, user, skipCache }) => {

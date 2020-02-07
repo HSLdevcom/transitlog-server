@@ -734,7 +734,7 @@ export type Terminal = Position & {
   name: Scalars['String']
   lat: Scalars['Float']
   lng: Scalars['Float']
-  stops?: Maybe<Stop[]>
+  stops?: Maybe<Array<Scalars['String']>>
   modes?: Maybe<Array<Scalars['String']>>
 }
 

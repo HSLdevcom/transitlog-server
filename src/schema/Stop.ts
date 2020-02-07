@@ -34,7 +34,7 @@ export const Stop = gql`
     name: String!
     lat: Float!
     lng: Float!
-    stops: [Stop!]
+    stops: [String!]
     modes: [String!]
   }
 

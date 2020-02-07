@@ -112,6 +112,9 @@ export interface JoreTerminal {
   lat: number
   lon: number
   date_imported: string
+  stop_id?: string
+  stop_terminal_id?: string
+  modes?: Maybe<Mode[] | Mode>
 }
 
 export interface JoreRoute {

@@ -738,7 +738,7 @@ export type Terminal = Position & {
   name: Scalars['String']
   lat: Scalars['Float']
   lng: Scalars['Float']
-  stops?: Maybe<Stop[]>
+  stops?: Maybe<Array<Scalars['String']>>
   modes?: Maybe<Array<Scalars['String']>>
 }
 
@@ -1624,7 +1624,7 @@ export type TerminalResolvers<
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
-  stops?: Resolver<Maybe<Array<ResolversTypes['Stop']>>, ParentType, ContextType>
+  stops?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
   modes?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
 }
 

@@ -232,16 +232,19 @@ export class JoreDataSource extends SQLDataSource {
     return this.getBatched(query)
   }
 
-  async getTerminals(date: string): Promise<JoreTerminal[]> {
+  async getTerminals(): Promise<JoreTerminal[]> {
     const query = this.db.raw(
       `SELECT terminal.terminal_id,
              terminal.lat,
              terminal.lon,
              terminal.name_fi,
              terminal.name_se,
-             terminal.date_imported
-      FROM jore.terminal terminal;`,
-      { date }
+             terminal.date_imported,
+             stop.stop_id,
+             stop.terminal_id as stop_terminal_id,
+             jore.stop_modes(stop, null) as modes
+      FROM jore.terminal terminal
+        LEFT JOIN jore.stop stop USING (terminal_id);`
     )
 
     return this.getBatched(query)
