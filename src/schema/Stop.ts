@@ -29,6 +29,14 @@ export const Stop = gql`
     alerts: [Alert!]!
   }
 
+  type Terminal implements Position {
+    id: ID!
+    name: String!
+    lat: Float!
+    lng: Float!
+    stops: [Stop!]
+  }
+
   input StopFilterInput {
     search: String
   }

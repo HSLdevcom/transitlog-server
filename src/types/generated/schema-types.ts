@@ -496,6 +496,7 @@ export type Query = {
   equipment: Array<Maybe<Equipment>>
   stop?: Maybe<Stop>
   stops: Array<Maybe<Stop>>
+  terminals: Array<Maybe<Terminal>>
   route?: Maybe<Route>
   routes: Array<Maybe<Route>>
   routeGeometry?: Maybe<RouteGeometry>
@@ -528,6 +529,10 @@ export type QueryStopArgs = {
 export type QueryStopsArgs = {
   date?: Maybe<Scalars['Date']>
   filter?: Maybe<StopFilterInput>
+}
+
+export type QueryTerminalsArgs = {
+  date?: Maybe<Scalars['Date']>
 }
 
 export type QueryRouteArgs = {
@@ -721,6 +726,15 @@ export type StopRoute = {
   origin?: Maybe<Scalars['String']>
   name?: Maybe<Scalars['String']>
   mode?: Maybe<Scalars['String']>
+}
+
+export type Terminal = Position & {
+  __typename?: 'Terminal'
+  id: Scalars['ID']
+  name: Scalars['String']
+  lat: Scalars['Float']
+  lng: Scalars['Float']
+  stops?: Maybe<Stop[]>
 }
 
 export type UiMessage = {

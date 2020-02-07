@@ -500,6 +500,7 @@ export type Query = {
   equipment: Array<Maybe<Equipment>>
   stop?: Maybe<Stop>
   stops: Array<Maybe<Stop>>
+  terminals: Array<Maybe<Terminal>>
   route?: Maybe<Route>
   routes: Array<Maybe<Route>>
   routeGeometry?: Maybe<RouteGeometry>
@@ -532,6 +533,10 @@ export type QueryStopArgs = {
 export type QueryStopsArgs = {
   date?: Maybe<Scalars['Date']>
   filter?: Maybe<StopFilterInput>
+}
+
+export type QueryTerminalsArgs = {
+  date?: Maybe<Scalars['Date']>
 }
 
 export type QueryRouteArgs = {
@@ -727,6 +732,15 @@ export type StopRoute = {
   mode?: Maybe<Scalars['String']>
 }
 
+export type Terminal = Position & {
+  __typename?: 'Terminal'
+  id: Scalars['ID']
+  name: Scalars['String']
+  lat: Scalars['Float']
+  lng: Scalars['Float']
+  stops?: Maybe<Stop[]>
+}
+
 export type UiMessage = {
   __typename?: 'UIMessage'
   date?: Maybe<Scalars['String']>
@@ -880,6 +894,7 @@ export type ResolversTypes = {
   AlertImpact: AlertImpact
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>
   StopFilterInput: StopFilterInput
+  Terminal: ResolverTypeWrapper<Terminal>
   Route: ResolverTypeWrapper<Route>
   Cancellation: ResolverTypeWrapper<Cancellation>
   Time: ResolverTypeWrapper<Scalars['Time']>
@@ -944,6 +959,7 @@ export type ResolversParentTypes = {
   AlertImpact: AlertImpact
   DateTime: Scalars['DateTime']
   StopFilterInput: StopFilterInput
+  Terminal: Terminal
   Route: Route
   Cancellation: Cancellation
   Time: Scalars['Time']
@@ -1360,7 +1376,7 @@ export type PositionResolvers<
   ParentType extends ResolversParentTypes['Position'] = ResolversParentTypes['Position']
 > = {
   __resolveType: TypeResolveFn<
-    'Stop' | 'RouteGeometryPoint' | 'RouteSegment' | 'VehiclePosition',
+    'Stop' | 'Terminal' | 'RouteGeometryPoint' | 'RouteSegment' | 'VehiclePosition',
     ParentType,
     ContextType
   >
@@ -1394,6 +1410,12 @@ export type QueryResolvers<
     ParentType,
     ContextType,
     QueryStopsArgs
+  >
+  terminals?: Resolver<
+    Array<Maybe<ResolversTypes['Terminal']>>,
+    ParentType,
+    ContextType,
+    QueryTerminalsArgs
   >
   route?: Resolver<
     Maybe<ResolversTypes['Route']>,
@@ -1593,6 +1615,17 @@ export type StopRouteResolvers<
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
+export type TerminalResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Terminal'] = ResolversParentTypes['Terminal']
+> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  stops?: Resolver<Maybe<Array<ResolversTypes['Stop']>>, ParentType, ContextType>
+}
+
 export interface TimeScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes['Time'], any> {
   name: 'Time'
@@ -1693,6 +1726,7 @@ export type Resolvers<ContextType = any> = {
   RouteSegment?: RouteSegmentResolvers<ContextType>
   Stop?: StopResolvers<ContextType>
   StopRoute?: StopRouteResolvers<ContextType>
+  Terminal?: TerminalResolvers<ContextType>
   Time?: GraphQLScalarType
   UIMessage?: UiMessageResolvers<ContextType>
   VehicleId?: GraphQLScalarType
