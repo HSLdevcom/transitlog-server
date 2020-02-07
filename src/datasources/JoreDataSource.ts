@@ -211,8 +211,8 @@ export class JoreDataSource extends SQLDataSource {
                        inner_route_segment.timing_stop_type DESC, inner_route_segment.date_modified DESC
           ) route_segment USING (stop_id)
           LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
-          WHERE case when :terminalId is null then true else :terminalId = stop.terminal_id END;`,
-          { date, terminalId: terminalId || '' }
+          WHERE :terminalId IS NULL OR stop.terminal_id = :terminalId;`,
+          { date, terminalId: terminalId || knex.raw('NULL') }
         )
       : this.db.raw(
           `
@@ -224,9 +224,9 @@ export class JoreDataSource extends SQLDataSource {
                  stop.stop_radius,
                  jore.stop_modes(stop, null) as modes
           FROM jore.stop stop
-          WHERE case when :terminalId is null then true else :terminalId = stop.terminal_id END;
+          WHERE :terminalId IS NULL OR stop.terminal_id = :terminalId;
         `,
-          { terminalId: terminalId || '' }
+          { terminalId: terminalId || knex.raw('NULL') }
         )
 
     return this.getBatched(query)

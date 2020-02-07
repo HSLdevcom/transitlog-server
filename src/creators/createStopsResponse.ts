@@ -79,57 +79,52 @@ export async function createStopResponse(
   return stop
 }
 
-export const fetchStops: CachedFetcher<Stop[]> = async (fetcher) => {
-  const fetchedStops = await fetcher()
-
-  if (!fetchedStops || fetchedStops.length === 0) {
-    return false
-  }
-
-  // The stops and route segments are joined in the query, so now we need to
-  // combine distinct stops with all routes that go through them.
-  const stopGroups = groupBy(fetchedStops, 'stop_id')
-
-  const stopData = Object.values(stopGroups).map((stops) => {
-    const currentStop = stops[0]
-
-    currentStop.routes = stops.reduce((stopRoutes: StopRoute[], stop) => {
-      if (!stop.route_id) {
-        return stopRoutes
-      }
-
-      const stopRoute = {
-        id: `stop_route_${stop.route_id}_${stop.direction}_${
-          stop.timing_stop_type ? 'timing_stop' : ''
-        }`,
-        routeId: stop.route_id || '',
-        direction: getDirection(stop.direction),
-        isTimingStop: !!stop.timing_stop_type,
-        mode: Array.isArray(stop.modes) ? stop.modes[0] : stop.modes,
-      }
-
-      stopRoutes.push(stopRoute)
-      return stopRoutes
-    }, [])
-
-    return currentStop
-  })
-
-  return stopData.map((stop) => createStopObject(stop, stop.routes, []))
-}
-
 export async function createStopsResponse(
   getStops: () => Promise<JoreStop[]>,
   date?: string,
   skipCache = false
 ): Promise<Stop[]> {
+  const fetchStops: CachedFetcher<Stop[]> = async () => {
+    const fetchedStops = await getStops()
+
+    if (!fetchedStops || fetchedStops.length === 0) {
+      return false
+    }
+
+    // The stops and route segments are joined in the query, so now we need to
+    // combine distinct stops with all routes that go through them.
+    const stopGroups = groupBy(fetchedStops, 'stop_id')
+
+    const stopData = Object.values(stopGroups).map((stops) => {
+      const currentStop = stops[0]
+
+      currentStop.routes = stops.reduce((stopRoutes: StopRoute[], stop) => {
+        if (!stop.route_id) {
+          return stopRoutes
+        }
+
+        const stopRoute = {
+          id: `stop_route_${stop.route_id}_${stop.direction}_${
+            stop.timing_stop_type ? 'timing_stop' : ''
+          }`,
+          routeId: stop.route_id || '',
+          direction: getDirection(stop.direction),
+          isTimingStop: !!stop.timing_stop_type,
+          mode: Array.isArray(stop.modes) ? stop.modes[0] : stop.modes,
+        }
+
+        stopRoutes.push(stopRoute)
+        return stopRoutes
+      }, [])
+
+      return currentStop
+    })
+
+    return stopData.map((stop) => createStopObject(stop, stop.routes, []))
+  }
+
   const cacheKey = `stops_${date || 'undated'}`
-  const stops = await cacheFetch<Stop[]>(
-    cacheKey,
-    () => fetchStops(getStops),
-    30 * 24 * 60 * 60,
-    skipCache
-  )
+  const stops = await cacheFetch<Stop[]>(cacheKey, fetchStops, 30 * 24 * 60 * 60, skipCache)
 
   if (!stops) {
     return []
