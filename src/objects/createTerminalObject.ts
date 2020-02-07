@@ -4,7 +4,6 @@ import { validModes } from '../utils/validModes'
 
 export function createTerminalObject(terminal: JoreTerminal, stops: Stop[]): Terminal {
   const stopModes = validModes(...stops)
-  console.log(stopModes)
 
   return {
     id: terminal.terminal_id,

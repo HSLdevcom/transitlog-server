@@ -40,8 +40,7 @@ const stop = (root, { stopId, date }, { dataSources, skipCache }) => {
 
 const terminals = (root, { date }, { dataSources, skipCache }) => {
   const getTerminals = () => dataSources.JoreAPI.getTerminals(date)
-  const getStops = (terminalId: string) =>
-    dataSources.JoreAPI.getStopsForTerminal(date, terminalId)
+  const getStops = (terminalId: string) => dataSources.JoreAPI.getStops(date, terminalId)
   return createTerminalsResponse(getTerminals, getStops, date, skipCache)
 }
 

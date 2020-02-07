@@ -8,6 +8,7 @@ import {
   JoreRouteDepartureData,
   JoreStop,
   JoreStopSegment,
+  JoreTerminal,
 } from '../types/Jore'
 import { ExceptionDay, Scalars } from '../types/generated/schema-types'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
@@ -186,7 +187,7 @@ export class JoreDataSource extends SQLDataSource {
     return result[0] || null
   }
 
-  async getStops(date?: string): Promise<JoreStop[]> {
+  async getStops(date?: string, terminalId?: string): Promise<JoreStop[]> {
     const query = date
       ? this.db.raw(
           `
@@ -209,8 +210,9 @@ export class JoreDataSource extends SQLDataSource {
               order by inner_route_segment.route_id, inner_route_segment.stop_id,
                        inner_route_segment.timing_stop_type DESC, inner_route_segment.date_modified DESC
           ) route_segment USING (stop_id)
-          LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end);`,
-          { date }
+          LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
+          WHERE case when :terminalId is null then true else :terminalId = stop.terminal_id END;`,
+          { date, terminalId: terminalId || '' }
         )
       : this.db.raw(
           `
@@ -221,9 +223,26 @@ export class JoreDataSource extends SQLDataSource {
                  stop.name_fi,
                  stop.stop_radius,
                  jore.stop_modes(stop, null) as modes
-          FROM jore.stop stop;
-        `
+          FROM jore.stop stop
+          WHERE case when :terminalId is null then true else :terminalId = stop.terminal_id END;
+        `,
+          { terminalId: terminalId || '' }
         )
+
+    return this.getBatched(query)
+  }
+
+  async getTerminals(date: string): Promise<JoreTerminal[]> {
+    const query = this.db.raw(
+      `SELECT terminal.terminal_id,
+             terminal.lat,
+             terminal.lon,
+             terminal.name_fi,
+             terminal.name_se,
+             terminal.date_imported
+      FROM jore.terminal terminal;`,
+      { date }
+    )
 
     return this.getBatched(query)
   }
