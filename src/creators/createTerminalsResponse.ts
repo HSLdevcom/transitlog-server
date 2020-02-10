@@ -1,10 +1,58 @@
-import { Terminal } from '../types/generated/schema-types'
+import { Stop, Terminal } from '../types/generated/schema-types'
 import { JoreTerminal } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createTerminalObject, TerminalStop } from '../objects/createTerminalObject'
-import { get, groupBy, compact } from 'lodash'
+import { compact, get, groupBy } from 'lodash'
 import { validModes } from '../utils/validModes'
+import { createStopResponse, JoreCombinedStop } from './createStopsResponse'
+import pMap from 'p-map'
+
+export async function createTerminalResponse(
+  getTerminal: () => Promise<JoreTerminal[]>,
+  getStops: (stopId: string) => Promise<JoreCombinedStop[]>,
+  terminalId: string,
+  date: string,
+  skipCache = false
+) {
+  const fetchTerminal: CachedFetcher<Terminal> = async () => {
+    const fetchedTerminalStops = await getTerminal()
+
+    if (!fetchedTerminalStops || fetchedTerminalStops.length === 0) {
+      return false
+    }
+
+    const terminalStops: Array<Stop | null> = await pMap(
+      fetchedTerminalStops,
+      async (terminalStop) => {
+        const stopId = terminalStop.stop_id || ''
+        return createStopResponse(() => getStops(stopId), date, stopId, skipCache)
+      }
+    )
+
+    const terminal = createTerminalObject(fetchedTerminalStops[0], compact(terminalStops))
+
+    if (!terminal) {
+      return false
+    }
+
+    return terminal
+  }
+
+  const cacheKey = `single_terminal_${terminalId}_${date}`
+  const terminal = await cacheFetch<Terminal>(
+    cacheKey,
+    fetchTerminal,
+    30 * 24 * 60 * 60,
+    skipCache
+  )
+
+  if (!terminal) {
+    return null
+  }
+
+  return terminal
+}
 
 export async function createTerminalsResponse(
   getTerminals: () => Promise<JoreTerminal[]>,

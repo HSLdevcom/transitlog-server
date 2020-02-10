@@ -232,6 +232,26 @@ export class JoreDataSource extends SQLDataSource {
     return this.getBatched(query)
   }
 
+  async getTerminal(terminalId): Promise<JoreTerminal | null> {
+    const query = this.db.raw(
+      `SELECT terminal.terminal_id,
+             terminal.lat,
+             terminal.lon,
+             terminal.name_fi,
+             terminal.name_se,
+             terminal.date_imported,
+             stop.stop_id,
+             stop.terminal_id as stop_terminal_id,
+             jore.stop_modes(stop, null) as modes
+      FROM jore.terminal terminal
+        LEFT JOIN jore.stop stop USING (terminal_id)
+      WHERE terminal.terminal_id = :terminalId;`,
+      { terminalId }
+    )
+
+    return this.getBatched(query)
+  }
+
   async getTerminals(): Promise<JoreTerminal[]> {
     const query = this.db.raw(
       `SELECT terminal.terminal_id,

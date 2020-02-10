@@ -501,6 +501,7 @@ export type Query = {
   stop?: Maybe<Stop>
   stops: Array<Maybe<Stop>>
   terminals: Array<Maybe<Terminal>>
+  terminal?: Maybe<Terminal>
   route?: Maybe<Route>
   routes: Array<Maybe<Route>>
   routeGeometry?: Maybe<RouteGeometry>
@@ -536,6 +537,11 @@ export type QueryStopsArgs = {
 }
 
 export type QueryTerminalsArgs = {
+  date?: Maybe<Scalars['Date']>
+}
+
+export type QueryTerminalArgs = {
+  terminalId?: Maybe<Scalars['String']>
   date?: Maybe<Scalars['Date']>
 }
 
@@ -738,7 +744,8 @@ export type Terminal = Position & {
   name: Scalars['String']
   lat: Scalars['Float']
   lng: Scalars['Float']
-  stops?: Maybe<Array<Scalars['String']>>
+  stopIds?: Maybe<Array<Scalars['String']>>
+  stops?: Maybe<Stop[]>
   modes?: Maybe<Array<Scalars['String']>>
 }
 
@@ -1418,6 +1425,12 @@ export type QueryResolvers<
     ContextType,
     QueryTerminalsArgs
   >
+  terminal?: Resolver<
+    Maybe<ResolversTypes['Terminal']>,
+    ParentType,
+    ContextType,
+    QueryTerminalArgs
+  >
   route?: Resolver<
     Maybe<ResolversTypes['Route']>,
     ParentType,
@@ -1624,7 +1637,8 @@ export type TerminalResolvers<
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
-  stops?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
+  stopIds?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
+  stops?: Resolver<Maybe<Array<ResolversTypes['Stop']>>, ParentType, ContextType>
   modes?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
 }
 

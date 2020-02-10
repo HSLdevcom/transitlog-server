@@ -8,7 +8,7 @@ import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
 
 // Result from the query is a join of a stop and route segments.
-type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute
+export type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute
 
 export async function createStopResponse(
   getStops: () => Promise<JoreCombinedStop[]>,

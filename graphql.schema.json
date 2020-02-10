@@ -166,6 +166,39 @@
             "deprecationReason": null
           },
           {
+            "name": "terminal",
+            "description": "",
+            "args": [
+              {
+                "name": "terminalId",
+                "description": "",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null
+              },
+              {
+                "name": "date",
+                "description": "",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Date",
+                  "ofType": null
+                },
+                "defaultValue": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "Terminal",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "route",
             "description": "",
             "args": [
@@ -2592,7 +2625,7 @@
             "deprecationReason": null
           },
           {
-            "name": "stops",
+            "name": "stopIds",
             "description": "",
             "args": [],
             "type": {
@@ -2604,6 +2637,26 @@
                 "ofType": {
                   "kind": "SCALAR",
                   "name": "String",
+                  "ofType": null
+                }
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "stops",
+            "description": "",
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "OBJECT",
+                  "name": "Stop",
                   "ofType": null
                 }
               }
