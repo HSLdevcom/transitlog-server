@@ -122,45 +122,30 @@ export class JoreDataSource extends SQLDataSource {
 
   async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
     const query = this.db.raw(
-      `SELECT route_data.route_id,
-                route_data.direction,
-                route_data.originstop_id,
-                route_data.route_length,
-                route_data.route_name,
-                route_data.origin_fi,
-                route_data.destination_fi,
-                route_data.mode,
-                route_data.date_begin,
-                route_data.date_end,
-                route_data.timing_stop_type,
-                route_data.stop_index,
-                route_data.date_modified,
-                stop.lat,
-                stop.lon,
-                stop.stop_id,
-                stop.short_id,
-                stop.name_fi,
-                stop.stop_radius
+      `SELECT route_segment.route_id,
+              route_segment.direction,
+              route.originstop_id,
+              route.route_length,
+              route.name_fi as route_name,
+              route.origin_fi,
+              route.destination_fi,
+              route_segment.date_begin,
+              route_segment.date_end,
+              route_segment.timing_stop_type,
+              route_segment.stop_index,
+              route_segment.date_modified,
+              jore.route_mode(route) as mode,
+              stop.lat,
+              stop.lon,
+              stop.stop_id,
+              stop.short_id,
+              stop.name_fi,
+              stop.stop_radius
          FROM jore.stop stop
-                  LEFT JOIN (
-             SELECT route.route_id,
-                    route.direction,
-                    route.originstop_id,
-                    route.route_length,
-                    route.name_fi          as route_name,
-                    jore.route_mode(route) as mode,
-                    route.origin_fi,
-                    route.destination_fi,
-                    route_segment.stop_id,
-                    route_segment.date_begin,
-                    route_segment.date_end,
-                    route_segment.timing_stop_type,
-                    route_segment.stop_index,
-                    route_segment.date_modified
-             FROM jore.route_segment route_segment
-             LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
-         ) route_data ON stop.stop_id = route_data.stop_id
-         WHERE stop.stop_id = :stopId;`,
+            LEFT JOIN jore.route_segment route_segment USING (stop_id)
+            LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
+         WHERE stop.stop_id = :stopId
+           AND route.route_id IS NOT NULL;`,
       { stopId, date }
     )
 
