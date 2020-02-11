@@ -1,12 +1,13 @@
 import { CachedFetcher } from '../types/CachedFetcher'
 import { compact, flatten, get, groupBy, orderBy, uniq } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
+import { JoreDepartureWithOrigin, JoreStopSegment, JoreTerminal, Mode } from '../types/Jore'
 import {
   Departure,
   DepartureFilterInput,
   ExceptionDay,
   RouteSegment,
+  Terminal,
 } from '../types/generated/schema-types'
 import { cacheFetch } from '../cache'
 import {
@@ -153,7 +154,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     }
 
     const dayType = departure?.dayType || ''
-    const stopId = departure.stopId || ''
+    const stopId = departure?.stopId || ''
     const routeId = get(departure, 'routeId', '')
     const direction = getDirection(get(departure, 'direction'))
 
@@ -212,9 +213,10 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
 
 export async function createDeparturesResponse(
   user,
-  getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
+  getDepartures: (fetchStop: string) => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
-  getEvents: (stopIds: string) => Promise<Vehicles[]>,
+  getTerminals: () => Promise<string[]>,
+  getEvents: (stopIds: string[]) => Promise<Vehicles[]>,
   getCancellations,
   getAlerts,
   exceptions: ExceptionDay[],
@@ -228,7 +230,7 @@ export async function createDeparturesResponse(
   const fetchTarget = terminalId ? 'terminal' : 'stop'
 
   // Fetches the departures and stop data for the stop and validates them.
-  const fetchDepartures: CachedFetcher<Departure[]> = async () => {
+  const fetchDepartures: CachedFetcher<Departure[]> = async (stopIds) => {
     const stopsCacheKey = `departure_stops_${fetchTarget}_${fetchId}_${date}`
 
     // Do NOT await these yet as we can fetch them in parallel.
@@ -239,10 +241,10 @@ export async function createDeparturesResponse(
       skipCache
     )
 
-    const departuresPromise = getDepartures()
+    const departuresPromises = stopIds.map((fetchStopId) => getDepartures(fetchStopId))
 
-    // Fetch stops and departures in parallel
-    const [stops, departures] = await Promise.all([stopsPromise, departuresPromise])
+    const [stops, ...stopDepartures] = await Promise.all([stopsPromise, ...departuresPromises])
+    const departures = flatten(stopDepartures)
 
     // If either of these fail, we've got nothing of value.
     // Be aware that `stops` can be falsy.
@@ -270,13 +272,60 @@ export async function createDeparturesResponse(
     )
   }
 
-  const departuresCacheKey = `departures_${stopId}_${date}`
-  const departures = await cacheFetch<Departure[]>(
+  let stops: string[] = []
+
+  if (fetchTarget === 'terminal') {
+    const terminalsCacheKey = `departure_terminal_${terminalId}_${date}`
+    const terminalStops = await cacheFetch<string[]>(
+      terminalsCacheKey,
+      async () => {
+        const terminals = await getTerminals()
+
+        if (!terminals || terminals.length === 0) {
+          return false
+        }
+
+        return terminals
+      },
+      30 * 24 * 60 * 60,
+      skipCache
+    )
+
+    if (!terminalStops || terminalStops.length === 0) {
+      return []
+    }
+
+    stops = terminalStops
+  } else {
+    stops = [stopId]
+  }
+
+  // Fetch planned departures and departure events simultaneously.
+  const departuresCacheKey = `departures_${fetchTarget}_${fetchId}_${date}`
+  const departuresPromise = cacheFetch<Departure[]>(
     departuresCacheKey,
-    fetchDepartures,
+    () => fetchDepartures(stops),
     24 * 60 * 60,
     skipCache
   )
+
+  // Cache events for the current day for 10 seconds only.
+  // Older dates can be cached for longer.
+  const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
+
+  const eventsCacheKey = `departure_events_${fetchTarget}_${fetchId}_${date}`
+  const departureEventsPromise = cacheFetch<Vehicles[]>(
+    eventsCacheKey,
+    () => fetchEvents(getEvents, stops),
+    journeyTTL,
+    skipCache
+  )
+
+  // The promises are not awaited so we can run them simultaneously.
+  const [departures, departureEvents] = await Promise.all([
+    departuresPromise,
+    departureEventsPromise,
+  ])
 
   if (!departures || departures.length === 0) {
     return []
@@ -285,20 +334,6 @@ export async function createDeparturesResponse(
   const authorizedDepartures = removeUnauthorizedData<Departure>(departures, user, [
     'operatingUnit',
   ])
-
-  const departureStops = uniq(departures.map((dep) => dep.stopId))
-
-  // Cache events for the current day for 10 seconds only.
-  // Older dates can be cached for longer.
-  const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
-
-  const eventsCacheKey = `departure_events_${fetchTarget}_${fetchId}_${date}`
-  const departureEvents = await cacheFetch<Vehicles[]>(
-    eventsCacheKey,
-    () => fetchEvents(getEvents, departureStops),
-    journeyTTL,
-    skipCache
-  )
 
   const cancellations = await getCancellations(date, { all: true }, skipCache)
 
