@@ -417,26 +417,32 @@
             "description": "",
             "args": [
               {
+                "name": "stopId",
+                "description": "",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null
+              },
+              {
+                "name": "terminalId",
+                "description": "",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null
+              },
+              {
                 "name": "filter",
                 "description": "",
                 "type": {
                   "kind": "INPUT_OBJECT",
                   "name": "DepartureFilterInput",
                   "ofType": null
-                },
-                "defaultValue": null
-              },
-              {
-                "name": "stopId",
-                "description": "",
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  }
                 },
                 "defaultValue": null
               },

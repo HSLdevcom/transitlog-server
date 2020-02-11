@@ -569,8 +569,9 @@ export type QueryRouteSegmentsArgs = {
 }
 
 export type QueryDeparturesArgs = {
+  stopId?: Maybe<Scalars['String']>
+  terminalId?: Maybe<Scalars['String']>
   filter?: Maybe<DepartureFilterInput>
-  stopId: Scalars['String']
   date: Scalars['Date']
 }
 
@@ -1459,7 +1460,7 @@ export type QueryResolvers<
     Array<Maybe<ResolversTypes['Departure']>>,
     ParentType,
     ContextType,
-    RequireFields<QueryDeparturesArgs, 'stopId' | 'date'>
+    RequireFields<QueryDeparturesArgs, 'date'>
   >
   routeDepartures?: Resolver<
     Array<Maybe<ResolversTypes['Departure']>>,

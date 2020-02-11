@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { compact, flatten, get, groupBy, orderBy } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy, uniq } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import {
@@ -79,8 +79,8 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
 
 // Fetches the events for the departures. The fetch function will
 // be different for stop and route departures.
-export const fetchEvents: CachedFetcher<Vehicles[]> = async (getEvents) => {
-  const events = await getEvents()
+export const fetchEvents: CachedFetcher<Vehicles[]> = async (getEvents, stopIds) => {
+  const events = await getEvents(stopIds)
 
   if (!events || events.length === 0) {
     return false
@@ -118,6 +118,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
   // through all events on each iteration of the departures loop.
   const groupedEvents = events.reduce((eventsMap, event) => {
     const eventDayType = getDayTypeFromDate(event.oday)
+    const eventStopId = event.stop
     const journeyStartTime = getJourneyStartTime(event)
 
     const routeId = event.route_id
@@ -126,7 +127,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
       return eventsMap
     }
 
-    const eventKey = `${eventDayType}/${routeId}/${event.direction_id}/${journeyStartTime}`
+    const eventKey = `${eventDayType}/${eventStopId}/${routeId}/${event.direction_id}/${journeyStartTime}`
     const eventsGroup = eventsMap[eventKey] || []
 
     eventsGroup.push(event)
@@ -152,13 +153,14 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
     }
 
     const dayType = departure?.dayType || ''
+    const stopId = departure.stopId || ''
     const routeId = get(departure, 'routeId', '')
     const direction = getDirection(get(departure, 'direction'))
 
     // Match events to departures
     const eventsForDeparture = get(
       groupedEvents,
-      `${dayType}/${routeId}/${direction}/${departureTime}`,
+      `${dayType}/${stopId}/${routeId}/${direction}/${departureTime}`,
       []
     )
 
@@ -212,26 +214,31 @@ export async function createDeparturesResponse(
   user,
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
-  getEvents: () => Promise<Vehicles[]>,
+  getEvents: (stopIds: string) => Promise<Vehicles[]>,
   getCancellations,
   getAlerts,
   exceptions: ExceptionDay[],
   stopId: string,
+  terminalId: string,
   date: string,
   filters: DepartureFilterInput,
   skipCache: boolean = false
 ) {
+  const fetchId = terminalId || stopId
+  const fetchTarget = terminalId ? 'terminal' : 'stop'
+
   // Fetches the departures and stop data for the stop and validates them.
   const fetchDepartures: CachedFetcher<Departure[]> = async () => {
-    const stopsCacheKey = `departure_stops_${stopId}_${date}`
+    const stopsCacheKey = `departure_stops_${fetchTarget}_${fetchId}_${date}`
 
     // Do NOT await these yet as we can fetch them in parallel.
     const stopsPromise = cacheFetch<RouteSegment[]>(
       stopsCacheKey,
-      () => fetchStops(getStops, date),
+      () => fetchStops(getStops, date), // Fetches AND validates
       24 * 60 * 60,
       skipCache
     )
+
     const departuresPromise = getDepartures()
 
     // Fetch stops and departures in parallel
@@ -279,14 +286,16 @@ export async function createDeparturesResponse(
     'operatingUnit',
   ])
 
+  const departureStops = uniq(departures.map((dep) => dep.stopId))
+
   // Cache events for the current day for 10 seconds only.
   // Older dates can be cached for longer.
   const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
 
-  const eventsCacheKey = `departure_events_${stopId}_${date}`
+  const eventsCacheKey = `departure_events_${fetchTarget}_${fetchId}_${date}`
   const departureEvents = await cacheFetch<Vehicles[]>(
     eventsCacheKey,
-    () => fetchEvents(getEvents),
+    () => fetchEvents(getEvents, departureStops),
     journeyTTL,
     skipCache
   )

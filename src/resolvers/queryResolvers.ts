@@ -134,13 +134,28 @@ const routeSegments = (
 
 const departures = async (
   root,
-  { filter, stopId, date },
+  { filter, stopId = '', terminalId = '', date },
   { dataSources, user, skipCache }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
-  const getDepartures = () => dataSources.JoreAPI.getDeparturesForStop(stopId, date)
-  const getStops = () => dataSources.JoreAPI.getDepartureStops(stopId, date)
-  const getDepartureEvents = () => dataSources.HFPAPI.getDepartureEvents(stopId, date)
+  const getDepartures = () => {
+    if (terminalId) {
+      return dataSources.JoreAPI.getDeparturesForTerminal(terminalId, date)
+    }
+
+    return dataSources.JoreAPI.getDeparturesForStop(stopId, date)
+  }
+
+  const getStops = () => {
+    if (terminalId) {
+      return dataSources.JoreAPI.getTerminalDeparturesStops(stopId, date)
+    }
+
+    return dataSources.JoreAPI.getDeparturesStops(stopId, date)
+  }
+
+  const getDepartureEvents = (stopIds: string) =>
+    dataSources.HFPAPI.getDepartureEvents(stopIds, date)
 
   const fetchCancellations = getCancellations.bind(
     null,
@@ -160,6 +175,7 @@ const departures = async (
     fetchAlerts,
     exceptions,
     stopId,
+    terminalId,
     date,
     filter,
     skipCache

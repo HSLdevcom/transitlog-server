@@ -36,7 +36,12 @@ export const Schema = gql`
     routes(filter: RouteFilterInput, date: Date): [Route]!
     routeGeometry(routeId: String!, direction: Direction!, date: Date!): RouteGeometry
     routeSegments(routeId: String!, direction: Direction!, date: Date!): [RouteSegment]!
-    departures(filter: DepartureFilterInput, stopId: String!, date: Date!): [Departure]!
+    departures(
+      stopId: String
+      terminalId: String
+      filter: DepartureFilterInput
+      date: Date!
+    ): [Departure]!
     routeDepartures(
       stopId: String!
       routeId: String!

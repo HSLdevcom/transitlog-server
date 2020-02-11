@@ -565,8 +565,9 @@ export type QueryRouteSegmentsArgs = {
 }
 
 export type QueryDeparturesArgs = {
+  stopId?: Maybe<Scalars['String']>
+  terminalId?: Maybe<Scalars['String']>
   filter?: Maybe<DepartureFilterInput>
-  stopId: Scalars['String']
   date: Scalars['Date']
 }
 
