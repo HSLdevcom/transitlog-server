@@ -243,10 +243,9 @@ export class JoreDataSource extends SQLDataSource {
     }
 
     const query = this.db.raw(
-      `SELECT DISTINCT ON (stop_id) stop.stop_id
+      `SELECT stop.stop_id
       FROM jore.stop stop
-      WHERE stop.terminal_id = :terminalId
-      ORDER BY stop.stop_id;`,
+      WHERE stop.terminal_id = :terminalId;`,
       { terminalId }
     )
 
