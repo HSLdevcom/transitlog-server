@@ -46,8 +46,6 @@ export async function createRouteResponse(
     return null
   }
 
-  const routeAlerts = await getAlerts(date, { allRoutes: true, route: validRoute.route_id })
-
   const routeCancellations = await getCancellations(
     date,
     {
@@ -57,7 +55,7 @@ export async function createRouteResponse(
     skipCache
   )
 
-  return createRouteObject(validRoute, routeAlerts, routeCancellations)
+  return createRouteObject(validRoute, routeCancellations)
 }
 
 export async function createRoutesResponse(

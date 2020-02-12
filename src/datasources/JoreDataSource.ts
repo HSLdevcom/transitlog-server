@@ -172,11 +172,12 @@ export class JoreDataSource extends SQLDataSource {
     return result[0] || null
   }
 
-  async getStops(date?: string, terminalId?: string): Promise<JoreStop[]> {
+  async getStops(): Promise<JoreStop[]>
+  async getStops(date?: string): Promise<JoreRouteData[]> {
     const query = date
       ? this.db.raw(
           `
-          SELECT stop.stop_id,
+          SELECT DISTINCT ON (route_segment.route_id, route_segment.direction, route_segment.stop_id) stop.stop_id,
                  stop.short_id,
                  stop.lat,
                  stop.lon,
@@ -186,18 +187,24 @@ export class JoreDataSource extends SQLDataSource {
                  route_segment.route_id,
                  route_segment.direction,
                  route_segment.timing_stop_type,
-                 (select distinct jore.route_mode(route)) as modes
+                 route_segment.date_begin,
+                 route_segment.date_end,
+                 (select distinct jore.route_mode(route)) as modes,
+                 route.originstop_id,
+                 route.route_length,
+                 route.name_fi as route_name,
+                 route.origin_fi,
+                 route.destination_fi
           FROM jore.stop stop
-          LEFT OUTER JOIN (
-              select distinct on (inner_route_segment.route_id, inner_route_segment.stop_id) *
-              from jore.route_segment inner_route_segment
-              where :date between inner_route_segment.date_begin and inner_route_segment.date_end
-              order by inner_route_segment.route_id, inner_route_segment.stop_id,
-                       inner_route_segment.timing_stop_type DESC, inner_route_segment.date_modified DESC
-          ) route_segment USING (stop_id)
-          LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
-          WHERE :terminalId IS NULL OR stop.terminal_id = :terminalId;`,
-          { date, terminalId: terminalId || knex.raw('NULL') }
+            LEFT JOIN jore.route_segment route_segment USING (stop_id)
+            LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
+          WHERE :date BETWEEN route_segment.date_begin AND route_segment.date_end
+            AND route.route_id IS NOT NULL
+          ORDER BY route_segment.route_id,
+                   route_segment.direction,
+                   route_segment.stop_id,
+                   route_segment.date_modified DESC;`,
+          { date }
         )
       : this.db.raw(
           `
@@ -208,10 +215,8 @@ export class JoreDataSource extends SQLDataSource {
                  stop.name_fi,
                  stop.stop_radius,
                  jore.stop_modes(stop, null) as modes
-          FROM jore.stop stop
-          WHERE :terminalId IS NULL OR stop.terminal_id = :terminalId;
-        `,
-          { terminalId: terminalId || knex.raw('NULL') }
+          FROM jore.stop stop;
+        `
         )
 
     return this.getBatched(query)

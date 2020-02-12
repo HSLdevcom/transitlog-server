@@ -7,6 +7,7 @@ import { compact, get, groupBy } from 'lodash'
 import { validModes } from '../utils/validModes'
 import { createStopResponse, JoreCombinedStop } from './createStopsResponse'
 import pMap from 'p-map'
+import { stop } from '../utils/knexLogger'
 
 export async function createTerminalResponse(
   getTerminal: () => Promise<JoreTerminal[]>,
@@ -26,7 +27,18 @@ export async function createTerminalResponse(
       fetchedTerminalStops,
       async (terminalStop) => {
         const stopId = terminalStop.stop_id || ''
-        return createStopResponse(() => getStops(stopId), date, stopId, skipCache)
+        const stopResponse = await createStopResponse(
+          () => getStops(stopId),
+          date,
+          stopId,
+          skipCache
+        )
+
+        if (stopResponse) {
+          stopResponse.id = 'terminal_' + stopResponse.id
+        }
+
+        return stopResponse
       }
     )
 

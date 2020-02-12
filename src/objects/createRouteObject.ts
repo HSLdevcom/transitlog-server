@@ -10,7 +10,6 @@ function createRouteId(route: JoreRoute): string {
 
 export function createRouteObject(
   route: JoreRoute,
-  alerts?: Alert[],
   cancellations?: Cancellation[],
   duration = 0
 ): Route {
@@ -28,7 +27,7 @@ export function createRouteObject(
     mode: mode[0],
     routeLength: route.route_length || 0,
     routeDurationMinutes: duration || route.duration || 0,
-    alerts: alerts && alerts.length !== 0 ? alerts : [],
+    alerts: [],
     cancellations: cancellations && cancellations.length !== 0 ? cancellations : [],
     // @ts-ignore
     _matchScore: route._matchScore,
