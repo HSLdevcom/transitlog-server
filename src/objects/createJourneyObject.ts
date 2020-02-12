@@ -66,8 +66,6 @@ export function createJourneyObject(
 
   const mode = validModes(journeyRoute?.mode, journey?.mode)
 
-  console.log(journeyRoute)
-
   return {
     id,
     journeyType: 'journey',

@@ -63,7 +63,6 @@ import { intval } from '../utils/isWithinRange'
 import { toLatLng } from '../geometry/LatLng'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
-import { createOriginDeparture } from '../utils/createOriginDeparture'
 
 type JourneyRoute = {
   route: Route | null
@@ -379,8 +378,6 @@ export async function createJourneyResponse(
     route: null,
     departures: [],
   }
-
-  console.log(route)
 
   const authorizedDepartures = removeUnauthorizedData<Departure>(departures, user, [
     'operatingUnit',
