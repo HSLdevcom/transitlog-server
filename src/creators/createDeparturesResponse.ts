@@ -154,8 +154,8 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
 
     const dayType = departure?.dayType || ''
     const stopId = departure?.stopId || ''
-    const routeId = get(departure, 'routeId', '')
-    const direction = getDirection(get(departure, 'direction'))
+    const routeId = departure?.routeId || ''
+    const direction = getDirection(departure?.direction || '')
 
     // Match events to departures
     const eventsForDeparture = get(

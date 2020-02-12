@@ -488,7 +488,7 @@ ORDER BY tst ASC;
 SELECT ${routeDepartureFields.join(',')}
 FROM stopevent
 WHERE tst >= :minTime
-  AND tst < :maxTime
+  AND tst <= :maxTime
   AND event_type IN ('DEP', 'PDE', 'PAS')
   AND stop IN ('${stopIds.join("', '")}')
   AND oday = :date
