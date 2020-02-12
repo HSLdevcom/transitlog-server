@@ -330,8 +330,8 @@ export async function createJourneyResponse(
 
   // If both of our fetches failed we'll just bail here with null.
   if (
-    journeyEvents?.vehiclePositions?.length === 0 &&
-    (!routeAndDepartures || routeAndDepartures?.departures?.length === 0)
+    journeyEvents?.vehiclePositions?.length === 0 ||
+    routeAndDepartures?.departures?.length === 0
   ) {
     return null
   }
@@ -410,7 +410,9 @@ export async function createJourneyResponse(
     departureTime,
   })
 
-  setCancellationsOnDeparture(originDeparture, journeyCancellations)
+  if (originDeparture) {
+    setCancellationsOnDeparture(originDeparture, journeyCancellations)
+  }
 
   const cancellationEvents: JourneyCancellationEvent[] = journeyCancellations.map(
     (cancellation) => createJourneyCancellationEventObject(cancellation)
@@ -437,7 +439,8 @@ export async function createJourneyResponse(
       null,
       null,
       journeyAlerts,
-      journeyCancellations
+      journeyCancellations,
+      departureDate
     )
   }
 

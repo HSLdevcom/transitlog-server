@@ -1,13 +1,12 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { compact, flatten, get, groupBy, orderBy, uniq } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { JoreDepartureWithOrigin, JoreStopSegment, JoreTerminal, Mode } from '../types/Jore'
+import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import {
   Departure,
   DepartureFilterInput,
   ExceptionDay,
   RouteSegment,
-  Terminal,
 } from '../types/generated/schema-types'
 import { cacheFetch } from '../cache'
 import {
@@ -212,7 +211,6 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
  */
 
 export async function createDeparturesResponse(
-  user,
   getDepartures: (fetchStops: string[]) => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
   getTerminals: () => Promise<string[]>,
@@ -224,6 +222,7 @@ export async function createDeparturesResponse(
   terminalId: string,
   date: string,
   filters: DepartureFilterInput,
+  user,
   skipCache: boolean = false
 ) {
   const fetchId = terminalId || stopId
@@ -250,11 +249,17 @@ export async function createDeparturesResponse(
       return false
     }
 
+    const departuresWithOrigin = departures.filter((dep) => !!dep.origin_stop_id)
+
+    if (departuresWithOrigin.length === 0) {
+      return false
+    }
+
     // Group and validate departures with date chains
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
-      departures,
-      ({ departure_id, stop_id, day_type, extra_departure, route_id, direction }) =>
-        `${route_id}_${direction}_${departure_id}_${stop_id}_${day_type}_${extraDepartureType(
+      departuresWithOrigin,
+      ({ stop_id, day_type, extra_departure, route_id, direction, departure_id }) =>
+        `${route_id}_${direction}_${stop_id}_${day_type}_${departure_id}_${extraDepartureType(
           extra_departure
         )}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
@@ -264,8 +269,40 @@ export async function createDeparturesResponse(
       date
     )
 
+    // Additional filtering for doubles since they can exist in terminal departure queries.
+    // Each departure is identified by the departure time from the first stop.
+
+    const uniqueDepartureGroups = groupBy(
+      validDepartures,
+      ({
+        stop_id,
+        day_type,
+        extra_departure,
+        route_id,
+        direction,
+        origin_hours,
+        origin_minutes,
+      }) =>
+        `${route_id}_${direction}_${stop_id}_${day_type}_${origin_hours}_${origin_minutes}_${extraDepartureType(
+          extra_departure
+        )}`
+    )
+
+    const uniqueDepartures: JoreDepartureWithOrigin[] = Object.values(
+      uniqueDepartureGroups
+    ).map((departureGroup: JoreDepartureWithOrigin[]) => {
+      // Get the most recently updated departure by sorting by the date info we have.
+      const orderedGroup = orderBy(
+        departureGroup,
+        [(dep) => dep.date_imported.getTime(), 'date_begin'],
+        ['desc', 'desc']
+      )
+
+      return orderedGroup[0]
+    })
+
     return filterByExceptions(
-      combineDeparturesAndStops(validDepartures, stops, date),
+      combineDeparturesAndStops(uniqueDepartures, stops, date),
       exceptions
     )
   }

@@ -386,10 +386,11 @@ WHERE route.route_id = :routeId AND route.direction = :direction ${
        departure.bid_target_id,
        departure.date_imported
 FROM jore.departure departure
-    WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-      AND departure.route_id = :routeId
-      AND departure.direction = :direction
-      AND departure.date_begin <= :date
+WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+  AND departure.route_id = :routeId
+  AND departure.direction = :direction
+  AND departure.date_begin <= :date
+  AND departure.date_end >= :date
 ORDER BY departure.departure_id ASC,
          departure.hours ASC,
          departure.minutes ASC;`,
@@ -406,36 +407,36 @@ ORDER BY departure.departure_id ASC,
 
     const query = this.db.raw(
       `
-                SELECT stop.stop_id,
-                       stop.lat,
-                       stop.lon,
-                       stop.short_id,
-                       stop.name_fi,
-                       stop.stop_radius,
-                       stop.stop_type,
-                       route_segment.date_begin,
-                       route_segment.date_end,
-                       route_segment.date_modified,
-                       route_segment.destination_fi,
-                       route_segment.distance_from_previous,
-                       route_segment.distance_from_start,
-                       route_segment.duration,
-                       route_segment.route_id,
-                       route_segment.direction,
-                       route_segment.stop_index,
-                       route_segment.next_stop_id,
-                       route_segment.timing_stop_type,
-                       route.originstop_id,
-                       route.destination_fi,
-                       route.origin_fi,
-                       route.route_length,
-                       route.name_fi as route_name,
-                       jore.route_mode(route) as mode
-                FROM jore.route_segment route_segment
-                     LEFT JOIN jore.stop stop USING (stop_id)
-                     LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
-                WHERE route_segment.route_id = :routeId
-                  AND route_segment.direction = :direction;`,
+        SELECT stop.stop_id,
+               stop.lat,
+               stop.lon,
+               stop.short_id,
+               stop.name_fi,
+               stop.stop_radius,
+               stop.stop_type,
+               route_segment.date_begin,
+               route_segment.date_end,
+               route_segment.date_modified,
+               route_segment.destination_fi,
+               route_segment.distance_from_previous,
+               route_segment.distance_from_start,
+               route_segment.duration,
+               route_segment.route_id,
+               route_segment.direction,
+               route_segment.stop_index,
+               route_segment.next_stop_id,
+               route_segment.timing_stop_type,
+               route.originstop_id,
+               route.destination_fi,
+               route.origin_fi,
+               route.route_length,
+               route.name_fi as route_name,
+               jore.route_mode(route) as mode
+        FROM jore.route_segment route_segment
+             LEFT JOIN jore.stop stop USING (stop_id)
+             LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
+        WHERE route_segment.route_id = :routeId
+          AND route_segment.direction = :direction;`,
       { routeId, direction: direction + '', date }
     )
 
@@ -607,10 +608,13 @@ LEFT JOIN LATERAL (
            ${this.originDepartureQueryFragment}
       WHERE departure.stop_id IN (${stopIds.map((stopId) => `'${stopId}'`).join(',')})
         AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+        AND departure.date_begin <= :date
+        AND departure.date_end >= :date
       ORDER BY departure.hours ASC,
                departure.minutes ASC,
                departure.route_id ASC,
-               departure.direction ASC;`,
+               departure.direction ASC,
+               departure.date_imported DESC;`,
       { date }
     )
 

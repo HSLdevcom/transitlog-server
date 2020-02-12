@@ -165,7 +165,6 @@ const departures = async (
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   return createDeparturesResponse(
-    user,
     getDepartures,
     getStops,
     getTerminals,
@@ -177,6 +176,7 @@ const departures = async (
     terminalId,
     date,
     filter,
+    user,
     skipCache
   )
 }

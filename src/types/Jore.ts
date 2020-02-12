@@ -54,6 +54,7 @@ export interface JoreDeparture {
   is_accessible: boolean
   date_begin: string
   date_end: string
+  date_imported: Date
   stop_role: number
   vehicle?: Maybe<string>
   note?: Maybe<string>
