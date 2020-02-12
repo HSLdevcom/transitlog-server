@@ -141,8 +141,8 @@ const departures = async (
 
   const getTerminals = () => dataSources.JoreAPI.getTerminalStops(terminalId)
 
-  const getDepartures = (fetchStop) =>
-    dataSources.JoreAPI.getDeparturesForStop(fetchStop, date)
+  const getDepartures = (fetchStops: string[]) =>
+    dataSources.JoreAPI.getDeparturesForStops(fetchStops, date)
 
   const getStops = () => {
     if (terminalId) {

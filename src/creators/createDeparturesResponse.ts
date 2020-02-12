@@ -213,7 +213,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
 
 export async function createDeparturesResponse(
   user,
-  getDepartures: (fetchStop: string) => Promise<JoreDepartureWithOrigin[]>,
+  getDepartures: (fetchStops: string[]) => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
   getTerminals: () => Promise<string[]>,
   getEvents: (stopIds: string[]) => Promise<Vehicles[]>,
@@ -241,13 +241,11 @@ export async function createDeparturesResponse(
       skipCache
     )
 
-    const departuresPromises = stopIds.map((fetchStopId) => getDepartures(fetchStopId))
+    const departuresPromise = getDepartures(stopIds)
 
-    const [stops, ...stopDepartures] = await Promise.all([stopsPromise, ...departuresPromises])
-    const departures = flatten(stopDepartures)
+    const [stops, departures] = await Promise.all([stopsPromise, departuresPromise])
 
     // If either of these fail, we've got nothing of value.
-    // Be aware that `stops` can be falsy.
     if (!stops || stops.length === 0 || !departures || departures.length === 0) {
       return false
     }
