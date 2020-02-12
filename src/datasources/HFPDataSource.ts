@@ -464,7 +464,7 @@ ORDER BY tst ASC;
   /*
    * Get all departures for a specific stop during a date.
    */
-  async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
+  async getDepartureEvents(stopIds: string[], date: string): Promise<Vehicles[]> {
     const { minTime, maxTime } = createTstRange(date)
 
     const legacyQuery = this.db('vehicleposition')
@@ -476,7 +476,7 @@ ORDER BY tst ASC;
       .whereBetween('tst', [minTime, maxTime])
       .where('event_type', 'VP')
       .where('oday', date)
-      .where('stop', stopId)
+      .whereIn('stop', stopIds)
       .orderBy([
         { column: 'journey_start_time', order: 'asc' },
         { column: 'unique_vehicle_id', order: 'asc' },
@@ -488,14 +488,14 @@ ORDER BY tst ASC;
 SELECT ${routeDepartureFields.join(',')}
 FROM stopevent
 WHERE tst >= :minTime
-  AND tst < :maxTime
+  AND tst <= :maxTime
   AND event_type IN ('DEP', 'PDE', 'PAS')
+  AND stop IN ('${stopIds.join("', '")}')
   AND oday = :date
-  AND stop = :stopId
   AND is_ongoing = true
 ORDER BY tst DESC;
 `,
-      { date, stopId, minTime, maxTime }
+      { date, minTime, maxTime }
     )
 
     if (isBefore(date, EVENTS_CUTOFF_DATE)) {

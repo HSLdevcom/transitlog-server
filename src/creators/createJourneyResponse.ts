@@ -63,7 +63,6 @@ import { intval } from '../utils/isWithinRange'
 import { toLatLng } from '../geometry/LatLng'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
-import { createOriginDeparture } from '../utils/createOriginDeparture'
 
 type JourneyRoute = {
   route: Route | null
@@ -185,7 +184,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   const orderedStops = orderBy(validStops, 'stop_index', 'asc')
 
   const plannedDuration = get(last(orderedStops), 'duration', 0)
-  journeyRoute = createRouteObject(orderedStops[0], [], [], plannedDuration)
+  journeyRoute = createRouteObject(orderedStops[0], [], plannedDuration)
 
   const journeyDepartures = validDepartures.filter(
     (departure) =>
@@ -330,8 +329,8 @@ export async function createJourneyResponse(
 
   // If both of our fetches failed we'll just bail here with null.
   if (
-    journeyEvents?.vehiclePositions?.length === 0 &&
-    (!routeAndDepartures || routeAndDepartures?.departures?.length === 0)
+    journeyEvents?.vehiclePositions?.length === 0 ||
+    routeAndDepartures?.departures?.length === 0
   ) {
     return null
   }
@@ -410,7 +409,9 @@ export async function createJourneyResponse(
     departureTime,
   })
 
-  setCancellationsOnDeparture(originDeparture, journeyCancellations)
+  if (originDeparture) {
+    setCancellationsOnDeparture(originDeparture, journeyCancellations)
+  }
 
   const cancellationEvents: JourneyCancellationEvent[] = journeyCancellations.map(
     (cancellation) => createJourneyCancellationEventObject(cancellation)
@@ -437,7 +438,8 @@ export async function createJourneyResponse(
       null,
       null,
       journeyAlerts,
-      journeyCancellations
+      journeyCancellations,
+      departureDate
     )
   }
 

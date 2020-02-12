@@ -54,6 +54,7 @@ export interface JoreDeparture {
   is_accessible: boolean
   date_begin: string
   date_end: string
+  date_imported: Date
   stop_role: number
   vehicle?: Maybe<string>
   note?: Maybe<string>
@@ -103,6 +104,18 @@ export interface JoreStop {
   date_begin?: string
   date_end?: string
   routes?: StopRoute[]
+}
+
+export interface JoreTerminal {
+  terminal_id: string
+  name_fi: string
+  name_se: string
+  lat: string
+  lon: string
+  date_imported: string
+  stop_id?: string
+  stop_terminal_id?: string
+  modes?: Maybe<Mode[] | Mode>
 }
 
 export interface JoreRoute {

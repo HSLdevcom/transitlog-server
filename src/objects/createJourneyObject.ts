@@ -20,6 +20,7 @@ import { getDirection } from '../utils/getDirection'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import { Vehicles } from '../types/EventsDb'
 import { validModes } from '../utils/validModes'
+import { strict } from 'assert'
 
 function isStopEvent(event): event is JourneyStopEvent {
   return event?.type !== 'PLANNED' && typeof event?.plannedTime !== 'undefined'
@@ -33,7 +34,8 @@ export function createJourneyObject(
   departures: Departure[] | null = null,
   journeyEquipment?: JoreEquipment | null,
   alerts: Alert[] = [],
-  cancellations: Cancellation[] = []
+  cancellations: Cancellation[] = [],
+  fallbackDepartureDate: string = ''
 ): Journey {
   const firstStopEvent: JourneyStopEvent | null =
     (events.find((evt) => isStopEvent(evt) && evt.type === 'DEP') as JourneyStopEvent) || null
@@ -41,7 +43,12 @@ export function createJourneyObject(
   const journey =
     vehiclePositions.find((event) => event.journey_type === 'journey') || vehiclePositions[0]
 
-  const departureDate = get(originDeparture, 'plannedDepartureTime.departureDate', '')
+  const departureDate = get(
+    originDeparture,
+    'plannedDepartureTime.departureDate',
+    get(journey, 'oday', fallbackDepartureDate)
+  )
+
   const departureTime = !journey
     ? get(originDeparture, 'plannedDepartureTime.departureTime', '')
     : getJourneyStartTime(journey, firstStopEvent)
@@ -71,7 +78,7 @@ export function createJourneyObject(
         get(originDeparture, 'direction', get(journeyRoute, 'direction', 1))
       )
     ),
-    departureDate: get(journey, 'oday', departureDate),
+    departureDate,
     departureTime,
     uniqueVehicleId: vehicleId,
     operatorId: operator,
