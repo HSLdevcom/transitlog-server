@@ -63,17 +63,7 @@ const route = async (root, { routeId, direction, date }, { dataSources, user, sk
     () => dataSources.JoreAPI.getDepartureOperators(date)
   )
 
-  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-
-  return createRouteResponse(
-    getRoute,
-    fetchCancellations,
-    fetchAlerts,
-    date,
-    routeId,
-    direction,
-    skipCache
-  )
+  return createRouteResponse(getRoute, fetchCancellations, date, routeId, direction, skipCache)
 }
 
 const routes = async (root, { filter, date }, { dataSources, user, skipCache }) => {
@@ -86,17 +76,7 @@ const routes = async (root, { filter, date }, { dataSources, user, skipCache }) 
     () => dataSources.JoreAPI.getDepartureOperators(date)
   )
 
-  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-
-  return createRoutesResponse(
-    user,
-    getRoutes,
-    fetchCancellations,
-    fetchAlerts,
-    date,
-    filter,
-    skipCache
-  )
+  return createRoutesResponse(user, getRoutes, fetchCancellations, date, filter, skipCache)
 }
 
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {

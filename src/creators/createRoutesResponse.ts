@@ -2,12 +2,7 @@ import { groupBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { createRouteObject } from '../objects/createRouteObject'
 import { JoreRoute } from '../types/Jore'
-import {
-  AlertDistribution,
-  Scalars,
-  Route,
-  RouteFilterInput,
-} from '../types/generated/schema-types'
+import { Route, RouteFilterInput, Scalars } from '../types/generated/schema-types'
 import { cacheFetch } from '../cache'
 import { filterRoutes } from '../filters/filterRoutes'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -17,7 +12,6 @@ import { requireUser } from '../auth/requireUser'
 export async function createRouteResponse(
   getRoute: () => Promise<JoreRoute[]>,
   getCancellations,
-  getAlerts,
   date: string,
   routeId: string,
   direction: Scalars['Direction'],
@@ -62,7 +56,6 @@ export async function createRoutesResponse(
   user,
   getRoutes: () => Promise<JoreRoute[]>,
   getCancellations,
-  getAlerts,
   date: string,
   filter?: RouteFilterInput,
   skipCache = false
@@ -74,7 +67,6 @@ export async function createRoutesResponse(
       return false
     }
 
-    const alerts = await getAlerts(date, { allRoutes: true, route: true })
     const cancellations = await getCancellations(date, { all: true }, skipCache)
 
     const groupedRoutes = groupBy(
@@ -84,19 +76,13 @@ export async function createRoutesResponse(
     const filteredRoutes = filterByDateChains<JoreRoute>(groupedRoutes, date)
 
     return filteredRoutes.map((route) => {
-      const routeAlerts = alerts.filter(
-        (alert) =>
-          alert.distribution === AlertDistribution.AllRoutes ||
-          alert.affectedId === route.route_id
-      )
-
       const routeCancellations = cancellations.filter(
         (cancellation) =>
           cancellation.routeId === route.route_id &&
           cancellation.direction === getDirection(route.direction)
       )
 
-      return createRouteObject(route, routeAlerts, routeCancellations)
+      return createRouteObject(route, routeCancellations)
     })
   }
 

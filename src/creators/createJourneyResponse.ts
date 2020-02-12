@@ -185,7 +185,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   const orderedStops = orderBy(validStops, 'stop_index', 'asc')
 
   const plannedDuration = get(last(orderedStops), 'duration', 0)
-  journeyRoute = createRouteObject(orderedStops[0], [], [], plannedDuration)
+  journeyRoute = createRouteObject(orderedStops[0], [], plannedDuration)
 
   const journeyDepartures = validDepartures.filter(
     (departure) =>
@@ -379,6 +379,8 @@ export async function createJourneyResponse(
     route: null,
     departures: [],
   }
+
+  console.log(route)
 
   const authorizedDepartures = removeUnauthorizedData<Departure>(departures, user, [
     'operatingUnit',

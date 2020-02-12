@@ -1,17 +1,16 @@
 import { Stop, Terminal } from '../types/generated/schema-types'
-import { JoreTerminal } from '../types/Jore'
+import { JoreRouteData, JoreTerminal } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createTerminalObject, TerminalStop } from '../objects/createTerminalObject'
 import { compact, get, groupBy } from 'lodash'
 import { validModes } from '../utils/validModes'
-import { createStopResponse, JoreCombinedStop } from './createStopsResponse'
+import { createStopResponse } from './createStopsResponse'
 import pMap from 'p-map'
-import { stop } from '../utils/knexLogger'
 
 export async function createTerminalResponse(
   getTerminal: () => Promise<JoreTerminal[]>,
-  getStops: (stopId: string) => Promise<JoreCombinedStop[]>,
+  getStops: (stopId: string) => Promise<JoreRouteData[]>,
   terminalId: string,
   date: string,
   skipCache = false
