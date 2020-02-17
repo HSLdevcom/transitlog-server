@@ -1,5 +1,13 @@
 # Transitlog server changelog
 
+## Version 1.8.0, deployed 2020-02-12 @ 13:00
+
+- Add query resolver for listing terminals.
+- Enable querying for terminal timetables with the Departure query.
+- Enable querying for terminals stops.
+- Optimize departure database queries.
+- Various smaller fixes for stop responses.
+
 ## Version 1.7.1, deployed 2020-02-04 @ 14:00
 
 - Fix metro departure list.
