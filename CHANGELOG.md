@@ -1,5 +1,9 @@
 # Transitlog server changelog
 
+## Version 1.8.1, deployed 2020-02-20 @ 09:00
+
+- No server changes
+
 ## Version 1.8.0, deployed 2020-02-12 @ 13:00
 
 - Add query resolver for listing terminals.
