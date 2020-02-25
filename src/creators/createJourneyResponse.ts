@@ -153,17 +153,27 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   const departures: JoreRouteDepartureData[] = get(plannedJourney, 'departures', []) || []
   const stops: JoreStopSegment[] = get(plannedJourney, 'stops', []) || []
 
-  // A stop segment contains all necessary info for the route
-  let journeyRoute = createRouteObject(stops[0])
+  // Group stops by stop_index and validate each stop. This way we'll get
+  // the version of the stop that was in effect at the time of the departure.
+  const stopSegmentGroups = groupBy(stops, 'stop_index')
+  const validStops = filterByDateChains<JoreStopSegment>(stopSegmentGroups, date)
 
-  const validDepartures = filterByDateChains<JoreRouteDepartureData>(
-    groupBy(
-      departures,
-      ({ departure_id, stop_id, day_type, extra_departure }) =>
-        `${departure_id}_${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
-    ),
-    date
+  const firstStop = validStops.find((stop) => stop.stop_index === 1)
+
+  // A stop segment contains all necessary info for the route
+  let journeyRoute = createRouteObject(!firstStop ? stops[0] : firstStop)
+
+  if (validStops.length === 0) {
+    return { route: journeyRoute, departures: [] }
+  }
+
+  const groupedDepartures = groupBy(
+    departures,
+    ({ departure_id, stop_id, day_type, extra_departure }) =>
+      `${departure_id}_${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
   )
+
+  const validDepartures = filterByDateChains<JoreRouteDepartureData>(groupedDepartures, date)
 
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
@@ -177,17 +187,10 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     return { route: journeyRoute, departures: [] }
   }
 
-  const stopSegmentGroups = groupBy(stops, 'stop_index')
-  const validStops = filterByDateChains<JoreStopSegment>(stopSegmentGroups, date)
-
-  if (validStops.length === 0) {
-    return { route: journeyRoute, departures: [] }
-  }
-
   const orderedStops = orderBy(validStops, 'stop_index', 'asc')
 
   const plannedDuration = get(last(orderedStops), 'duration', 0)
-  journeyRoute = createRouteObject(orderedStops[0], [], [], plannedDuration)
+  journeyRoute = createRouteObject(orderedStops[0], [], plannedDuration)
 
   const journeyDepartures = validDepartures.filter(
     (departure) =>
@@ -208,6 +211,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     }
 
     const stop = createStopObject(stopSegment)
+
     return createPlannedDepartureObject(
       departure,
       stop,
@@ -331,8 +335,8 @@ export async function createJourneyResponse(
 
   // If both of our fetches failed we'll just bail here with null.
   if (
-    journeyEvents?.vehiclePositions?.length === 0 &&
-    (!routeAndDepartures || routeAndDepartures?.departures?.length === 0)
+    journeyEvents?.vehiclePositions?.length === 0 ||
+    routeAndDepartures?.departures?.length === 0
   ) {
     return null
   }
@@ -389,7 +393,7 @@ export async function createJourneyResponse(
   const originDeparture = authorizedDepartures[0] || null
 
   // Terminal and recovery time needs to be hidden from unauthorized users.
-  if (!requireVehicleAuthorization(user, vehicleId)) {
+  if (originDeparture && !requireVehicleAuthorization(user, vehicleId)) {
     originDeparture.recoveryTime = null
     originDeparture.terminalTime = null
   }
@@ -411,7 +415,9 @@ export async function createJourneyResponse(
     departureTime,
   })
 
-  setCancellationsOnDeparture(originDeparture, journeyCancellations)
+  if (originDeparture) {
+    setCancellationsOnDeparture(originDeparture, journeyCancellations)
+  }
 
   const cancellationEvents: JourneyCancellationEvent[] = journeyCancellations.map(
     (cancellation) => createJourneyCancellationEventObject(cancellation)
@@ -438,7 +444,8 @@ export async function createJourneyResponse(
       null,
       null,
       journeyAlerts,
-      journeyCancellations
+      journeyCancellations,
+      departureDate
     )
   }
 

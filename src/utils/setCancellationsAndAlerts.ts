@@ -11,9 +11,13 @@ export const setCancellationsOnDeparture = (
   departure: Departure,
   cancellations: Cancellation[]
 ) => {
-  const departureTime = departure.originDepartureTime
-    ? departure.originDepartureTime.departureTime
-    : departure.plannedDepartureTime.departureTime
+  if (!departure) {
+    return null
+  }
+
+  const departureTime = departure?.originDepartureTime
+    ? departure?.originDepartureTime?.departureTime
+    : departure?.plannedDepartureTime?.departureTime
 
   const departureCancellations: Cancellation[] = cancellations.filter(
     (cancellation) =>

@@ -1,21 +1,14 @@
-import { Scalars, Stop, StopFilterInput, StopRoute } from '../types/generated/schema-types'
-import { JoreRoute, JoreRouteSegment, JoreStop } from '../types/Jore'
+import { Stop, StopRoute } from '../types/generated/schema-types'
+import { JoreRouteData } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { createStopObject } from '../objects/createStopObject'
-import { search } from '../filters/search'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { groupBy, orderBy, uniqBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
-import { filterStopsByBBox } from '../filters/filterStopsByBBox'
-import { ValidityRange } from '../types/ValidityRange'
-import { Dictionary } from '../types/Dictionary'
-
-// Result from the query is a join of a stop and route segments.
-type JoreCombinedStop = JoreStop & JoreRouteSegment & JoreRoute
 
 export async function createStopResponse(
-  getStops: () => Promise<JoreCombinedStop[]>,
+  getStops: () => Promise<JoreRouteData[]>,
   date: string,
   stopId: string,
   skipCache = false
@@ -27,8 +20,8 @@ export async function createStopResponse(
       return false
     }
 
-    let validStops = filterByDateChains<JoreCombinedStop>(
-      groupBy<JoreCombinedStop>(stops, (segment) =>
+    let validStops = filterByDateChains<JoreRouteData>(
+      groupBy<JoreRouteData>(stops, (segment) =>
         !segment.route_id
           ? segment.stop_id
           : segment.route_id + segment.direction + segment.stop_index
@@ -36,7 +29,7 @@ export async function createStopResponse(
       date
     )
 
-    validStops = uniqBy<JoreCombinedStop>(validStops, (stop) =>
+    validStops = uniqBy<JoreRouteData>(validStops, (stop) =>
       !stop?.route_id ? stop.stop_id : stop?.route_id || 'no_route'
     )
 
@@ -44,29 +37,26 @@ export async function createStopResponse(
       return false
     }
 
-    let stopRoutes = validStops.reduce(
-      (routes: StopRoute[], stopRouteData: JoreCombinedStop) => {
-        if (!stopRouteData?.route_id) {
-          return routes
-        }
-
-        const stopRoute: StopRoute = {
-          id: `stop_route_${stopRouteData.route_id}_${stopRouteData.direction}_${stopRouteData.date_begin}_${stopRouteData.date_end}`,
-          direction: getDirection(stopRouteData.direction),
-          routeId: stopRouteData.route_id,
-          isTimingStop: !!stopRouteData.timing_stop_type,
-          originStopId: stopRouteData.originstop_id,
-          name: stopRouteData.route_name,
-          origin: stopRouteData.origin_fi,
-          destination: stopRouteData.destination_fi,
-          mode: stopRouteData.mode || 'BUS',
-        }
-
-        routes.push(stopRoute)
+    let stopRoutes = validStops.reduce((routes: StopRoute[], stopRouteData: JoreRouteData) => {
+      if (!stopRouteData?.route_id) {
         return routes
-      },
-      []
-    )
+      }
+
+      const stopRoute: StopRoute = {
+        id: `stop_route_${stopRouteData.route_id}_${stopRouteData.direction}_${stopRouteData.date_begin}_${stopRouteData.date_end}`,
+        direction: getDirection(stopRouteData.direction),
+        routeId: stopRouteData.route_id,
+        isTimingStop: !!stopRouteData.timing_stop_type,
+        originStopId: stopRouteData.originstop_id,
+        name: stopRouteData.route_name,
+        origin: stopRouteData.origin_fi,
+        destination: stopRouteData.destination_fi,
+        mode: stopRouteData.mode || 'BUS',
+      }
+
+      routes.push(stopRoute)
+      return routes
+    }, [])
 
     const stop = validStops[0]
     stopRoutes = orderBy(stopRoutes, 'route_id')
@@ -84,10 +74,8 @@ export async function createStopResponse(
 }
 
 export async function createStopsResponse(
-  getStops: () => Promise<JoreStop[]>,
+  getStops: () => Promise<JoreRouteData[]>,
   date?: string,
-  filter?: StopFilterInput,
-  bbox: Scalars['BBox'] | null = null,
   skipCache = false
 ): Promise<Stop[]> {
   const fetchStops: CachedFetcher<Stop[]> = async () => {
@@ -97,68 +85,36 @@ export async function createStopsResponse(
       return false
     }
 
-    let stopData = fetchedStops
+    // The stops and route segments are joined in the query, so now we need to
+    // combine distinct stops with all routes that go through them.
+    const stopGroups = groupBy(fetchedStops, 'stop_id')
 
-    // The stop data also contains route segments which we must filter by validity date.
-    if (date && fetchedStops.some(({ date_begin, date_end }) => !!date_begin && !!date_end)) {
-      const filteredStops = filterByDateChains<JoreStop & ValidityRange>(
-        groupBy(
-          stopData,
-          (stop) =>
-            stop.stop_id + (stop?.route_id || 'no_route') + (stop?.direction || 'no_direction')
-        ) as Dictionary<Array<JoreStop & ValidityRange>>,
-        date
-      )
+    const stopData = Object.values(stopGroups).map((stops) => {
+      const currentStop = stops[0]
 
-      // The stops and route segments are cross-merged in the query, so now we need to
-      // combine distinct stops with all routes that go through them.
-      stopData = filteredStops.reduce((stopsWithRoutes: JoreStop[], stop) => {
-        const existingStop = stopsWithRoutes.find(({ stop_id }) => stop_id === stop.stop_id)
-
-        // If there's no route info then the routes array on the stop object should be empty.
-        if (
-          (typeof stop.route_id === 'undefined' || typeof stop.direction === 'undefined') &&
-          !existingStop
-        ) {
-          stop.routes = []
-          stopsWithRoutes.push(stop)
-          return stopsWithRoutes
+      currentStop.routes = stops.reduce((stopRoutes: StopRoute[], stop: JoreRouteData) => {
+        if (!stop.route_id) {
+          return stopRoutes
         }
 
-        // Either add the route data from the current item to an existing stop object
-        // or use the current item as a new stop object.
-        const useStop = existingStop || stop
-        useStop.routes = useStop.routes || []
-
-        // We only need some route data for the stop response.
-        const route: StopRoute | null = stop.route_id
-          ? {
-              id: `stop_route_${stop.route_id}_${stop.route_id}_${stop.date_begin}_${stop.date_end}`,
-              routeId: stop.route_id || '',
-              direction: getDirection(stop.direction),
-              isTimingStop: !!stop.timing_stop_type,
-              mode: Array.isArray(stop.modes) ? stop.modes[0] : stop.modes,
-            }
-          : null
-
-        // Add the route to the stop if it doesn't have it already
-        if (
-          route &&
-          !useStop.routes.find(
-            ({ routeId, direction }) =>
-              routeId === route.routeId && direction === route.direction
-          )
-        ) {
-          useStop.routes.push(route)
+        const stopRoute: StopRoute = {
+          id: `stop_route_${stop.route_id}_${stop.direction}_${stop.date_begin}_${stop.date_end}`,
+          direction: getDirection(stop.direction),
+          routeId: stop.route_id,
+          isTimingStop: !!stop.timing_stop_type,
+          originStopId: stop.originstop_id,
+          name: stop.route_name,
+          origin: stop.origin_fi,
+          destination: stop.destination_fi,
+          mode: Array.isArray(stop.modes) ? stop.modes[0] : stop.modes,
         }
 
-        if (!existingStop) {
-          stopsWithRoutes.push(useStop)
-        }
-
-        return stopsWithRoutes
+        stopRoutes.push(stopRoute)
+        return stopRoutes
       }, [])
-    }
+
+      return currentStop
+    })
 
     return stopData.map((stop) => createStopObject(stop, stop.routes, []))
   }
@@ -170,19 +126,5 @@ export async function createStopsResponse(
     return []
   }
 
-  let filteredStops = stops
-
-  if (bbox) {
-    filteredStops = filterStopsByBBox(filteredStops, bbox)
-  }
-
-  if (filter && filter.search) {
-    filteredStops = search<Stop>(stops, filter.search, [
-      { name: 'shortId', weight: 0.7 },
-      { name: 'name', weight: 0.1 },
-      { name: 'stopId', weight: 0.2 },
-    ])
-  }
-
-  return filteredStops
+  return stops
 }

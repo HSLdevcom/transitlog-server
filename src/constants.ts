@@ -34,20 +34,12 @@ export const TZ = secretsEnv.TZ || 'Europe/Helsinki'
 export const DATE_FORMAT = secretsEnv.DATE_FORMAT || 'YYYY-MM-DD'
 export const TIME_FORMAT = secretsEnv.TIME_FORMAT || 'HH:mm:ss'
 
-export const JORE_PG_CONNECTION = {
-  host: secretsEnv.JORE_POSTGRES_HOST,
-  port: secretsEnv.JORE_POSTGRES_PORT,
-  user: secretsEnv.JORE_POSTGRES_USER,
-  password: secretsEnv.JORE_POSTGRES_PASSWORD,
-  database: secretsEnv.JORE_POSTGRES_DB,
-}
-
-export const HFP_PG_CONNECTION = {
-  host: secretsEnv.HFP_POSTGRES_HOST,
-  port: secretsEnv.HFP_POSTGRES_PORT,
-  user: secretsEnv.HFP_POSTGRES_USER,
-  password: secretsEnv.HFP_POSTGRES_PASSWORD,
-  database: secretsEnv.HFP_POSTGRES_DB,
+export const PG_CONNECTION = {
+  host: secretsEnv.POSTGRES_HOST,
+  port: secretsEnv.POSTGRES_PORT,
+  user: secretsEnv.POSTGRES_USER,
+  password: secretsEnv.POSTGRES_PASSWORD,
+  database: secretsEnv.POSTGRES_DB,
   ssl: true,
 }
 

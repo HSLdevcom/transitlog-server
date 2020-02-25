@@ -524,6 +524,8 @@ export type Query = {
   equipment: Array<Maybe<Equipment>>
   stop?: Maybe<Stop>
   stops: Array<Maybe<Stop>>
+  terminals: Array<Maybe<Terminal>>
+  terminal?: Maybe<Terminal>
   route?: Maybe<Route>
   routes: Array<Maybe<Route>>
   routeGeometry?: Maybe<RouteGeometry>
@@ -558,6 +560,15 @@ export type QueryStopsArgs = {
   filter?: Maybe<StopFilterInput>
 }
 
+export type QueryTerminalsArgs = {
+  date?: Maybe<Scalars['Date']>
+}
+
+export type QueryTerminalArgs = {
+  terminalId?: Maybe<Scalars['String']>
+  date?: Maybe<Scalars['Date']>
+}
+
 export type QueryRouteArgs = {
   routeId: Scalars['String']
   direction: Scalars['Direction']
@@ -582,8 +593,9 @@ export type QueryRouteSegmentsArgs = {
 }
 
 export type QueryDeparturesArgs = {
+  stopId?: Maybe<Scalars['String']>
+  terminalId?: Maybe<Scalars['String']>
   filter?: Maybe<DepartureFilterInput>
-  stopId: Scalars['String']
   date: Scalars['Date']
 }
 
@@ -749,6 +761,17 @@ export type StopRoute = {
   origin?: Maybe<Scalars['String']>
   name?: Maybe<Scalars['String']>
   mode?: Maybe<Scalars['String']>
+}
+
+export type Terminal = Position & {
+  __typename?: 'Terminal'
+  id: Scalars['ID']
+  name: Scalars['String']
+  lat: Scalars['Float']
+  lng: Scalars['Float']
+  stopIds?: Maybe<Array<Scalars['String']>>
+  stops?: Maybe<Stop[]>
+  modes?: Maybe<Array<Scalars['String']>>
 }
 
 export enum TlpDecision {

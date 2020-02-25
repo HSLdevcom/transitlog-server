@@ -63,7 +63,7 @@ export function createPlannedDepartureTimeObject(
   date: string
 ): PlannedDeparture {
   const departureTime = getDepartureTime(departure)
-  const departureId = createDepartureId(departure)
+  const departureId = createDepartureId(departure, date)
   const departureDateTime = getDateFromDateTime(date, departureTime).toISOString(true)
 
   return {

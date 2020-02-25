@@ -206,6 +206,9 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
       : 'journey'
     : event.journey_type
 
+  const formattedMode = (event?.mode || 'BUS').toUpperCase()
+  const mode = formattedMode === 'METRO' ? 'SUBWAY' : formattedMode
+
   return {
     id: `vehicle_position_event_${useId}_${unix}_${event.lat}_${event.long}`,
     journeyType,
@@ -222,7 +225,7 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
     velocity: event.spd,
     delay: event.dl || 0,
     heading: event.hdg,
-    mode: event.mode,
+    mode,
     _sort: unix,
   }
 }
@@ -231,6 +234,9 @@ export function createUnsignedVehiclePositionObject(event: Vehicles): VehiclePos
   const ts = moment.tz(event.tst, TZ)
   const unix = ts.unix()
   const receivedTs = moment.tz(event.received_at, TZ)
+
+  const formattedMode = (event?.mode || 'BUS').toUpperCase()
+  const mode = formattedMode === 'METRO' ? 'SUBWAY' : formattedMode
 
   return {
     id: `unsigned_position_${event.unique_vehicle_id}_${unix}_${event.lat}_${event.long}`,
@@ -246,7 +252,7 @@ export function createUnsignedVehiclePositionObject(event: Vehicles): VehiclePos
     velocity: event.spd,
     delay: event.dl || 0,
     heading: event.hdg,
-    mode: event.mode,
+    mode,
   }
 }
 
@@ -254,6 +260,9 @@ export function createDriverEventObject(event: Vehicles): DriverEvent {
   const ts = moment.tz(event.tst, TZ)
   const unix = ts.unix()
   const receivedTs = moment.tz(event.received_at, TZ)
+
+  const formattedMode = (event?.mode || 'BUS').toUpperCase()
+  const mode = formattedMode === 'METRO' ? 'SUBWAY' : formattedMode
 
   return {
     id: `driver_event_${event.event_type}_${event.unique_vehicle_id}_${unix}`,
@@ -269,6 +278,6 @@ export function createDriverEventObject(event: Vehicles): DriverEvent {
     lat: event.lat,
     lng: event.long,
     loc: event.loc,
-    mode: event.mode,
+    mode,
   }
 }

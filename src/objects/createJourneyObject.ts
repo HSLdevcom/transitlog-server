@@ -20,6 +20,8 @@ import { getJourneyStartTime } from '../utils/time'
 import { getDirection } from '../utils/getDirection'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import { Vehicles } from '../types/EventsDb'
+import { validModes } from '../utils/validModes'
+import { strict } from 'assert'
 
 function isStopEvent(event): event is JourneyStopEvent {
   return event?.type !== 'PLANNED' && typeof event?.plannedTime !== 'undefined'
@@ -39,7 +41,8 @@ export function createJourneyObject(
   departures: Departure[] | null = null,
   journeyEquipment?: JoreEquipment | null,
   alerts: Alert[] = [],
-  cancellations: Cancellation[] = []
+  cancellations: Cancellation[] = [],
+  fallbackDepartureDate: string = ''
 ): Journey {
   const firstStopEvent: JourneyStopEvent | null =
     (events.find((evt) => isStopEvent(evt) && evt.type === 'DEP') as JourneyStopEvent) || null
@@ -47,7 +50,12 @@ export function createJourneyObject(
   const journey =
     vehiclePositions.find((event) => event.journey_type === 'journey') || vehiclePositions[0]
 
-  const departureDate = get(originDeparture, 'plannedDepartureTime.departureDate', '')
+  const departureDate = get(
+    originDeparture,
+    'plannedDepartureTime.departureDate',
+    get(journey, 'oday', fallbackDepartureDate)
+  )
+
   const departureTime = !journey
     ? get(originDeparture, 'plannedDepartureTime.departureTime', '')
     : getJourneyStartTime(journey, firstStopEvent)
@@ -63,6 +71,8 @@ export function createJourneyObject(
   const vehicleId = createValidVehicleId(get(journey, 'unique_vehicle_id', ''))
   const [operator = '0000', vehicleNumber = '00'] = vehicleId.split('/')
 
+  const mode = validModes(journeyRoute?.mode, journey?.mode)
+
   return {
     id,
     journeyType: 'journey',
@@ -75,7 +85,7 @@ export function createJourneyObject(
         get(originDeparture, 'direction', get(journeyRoute, 'direction', 1))
       )
     ),
-    departureDate: get(journey, 'oday', departureDate),
+    departureDate,
     departureTime,
     uniqueVehicleId: vehicleId,
     operatorId: operator,
@@ -84,7 +94,7 @@ export function createJourneyObject(
     name: get(journeyRoute, 'name', ''),
     journeyLength: get(journeyRoute, 'routeLength', 0),
     journeyDurationMinutes: get(journeyRoute, 'routeDurationMinutes', 0),
-    mode: (get(journeyRoute, 'mode', get(journey, 'mode', '')) || '').toUpperCase(),
+    mode: mode[0],
     equipment: journeyEquipment ? createEquipmentObject(journeyEquipment) : null,
     vehiclePositions: vehiclePositions.map((event) => createVehiclePositionObject(event, id)),
     events,

@@ -66,7 +66,7 @@ export const getStopDepartureEvent = (events, requireDep: boolean = false) => {
     }
   }
 
-  if (!departureEvent && !requireDep) {
+  if (!departureEvent) {
     departureEvent = events[0] || null
   }
 

@@ -40,14 +40,30 @@ const combineDeparturesAndEvents = (
   events: Vehicles[],
   lastStopArrival = false
 ): Departure[] => {
+  // Index events by day type and journey start time, so that we don't need to filter
+  // through all events on each iteration of the departures loop.
+  const groupedEvents = events.reduce((eventsMap, event) => {
+    const eventDayType = getDayTypeFromDate(event.oday)
+    const journeyStartTime = getJourneyStartTime(event)
+
+    if (!eventDayType || !journeyStartTime) {
+      return eventsMap
+    }
+
+    const eventKey = `${eventDayType}/${journeyStartTime}`
+    const eventsGroup = eventsMap[eventKey] || []
+
+    eventsGroup.push(event)
+
+    eventsMap[eventKey] = eventsGroup
+    return eventsMap
+  }, {})
+
   // Link observed events to departures.
   const departuresWithEvents: Departure[] = departures.map((departure) => {
     let plannedDate = ''
     let originDepartureTime = ''
-
-    const routeId = get(departure, 'routeId', '')
-    const direction = getDirection(get(departure, 'direction'))
-    const dayType = get(departure, 'dayType', '')
+    const dayType = departure?.dayType || ''
 
     if (lastStopArrival) {
       plannedDate = get(departure, 'plannedArrivalTime.arrivalDate', null)
@@ -55,20 +71,12 @@ const combineDeparturesAndEvents = (
     } else {
       // We can use info that the departure happened during "the next day" when calculating
       // the 24h+ time of the event.
-      originDepartureTime = get(departure, 'plannedDepartureTime.departureTime', null)
-      plannedDate = get(departure, 'plannedDepartureTime.departureDate', null)
+      originDepartureTime = departure?.plannedDepartureTime?.departureTime || null
+      plannedDate = departure?.plannedDepartureTime?.departureDate || null
     }
 
     // Match events to departures
-    const eventsForDeparture = events.filter(
-      (event) =>
-        event.route_id === routeId &&
-        getDirection(event.direction_id) === direction &&
-        // All times are given as 24h+ times wherever possible, including here. Calculate 24h+ times
-        // for the event to match it with the 24h+ time of the origin departure.
-        getJourneyStartTime(event) === originDepartureTime &&
-        (getDayTypeFromDate(event.oday) === dayType || event.oday === plannedDate)
-    )
+    const eventsForDeparture = get(groupedEvents, `${dayType}/${originDepartureTime}`, [])
 
     if (!eventsForDeparture || eventsForDeparture.length === 0) {
       return departure
@@ -175,7 +183,7 @@ export const combineDeparturesAndStops = (
       ? 'weekly_destination_arrival'
       : 'weekly_origin_departure'
 
-    departure.origin_departure = createOriginDeparture(departure)
+    departure.origin_departure = lastStopArrival ? createOriginDeparture(departure) : null
 
     return uniq(departureDates).map((departureDate) =>
       createPlannedDepartureObject(
@@ -221,6 +229,7 @@ export const createWeekDeparturesResponse = async (
       skipCache
     )
 
+    // Do NOT await these yet as we can fetch them in parallel.
     const departuresPromise: Promise<JoreDepartureWithOrigin[]> = getDepartures()
 
     // Fetch stops and departures in parallel
@@ -256,7 +265,7 @@ export const createWeekDeparturesResponse = async (
   }
 
   const departuresCacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}_${
-    lastStopArrival ? 'dest_arrival' : 'orig_departure'
+    lastStopArrival ? 'dest_arrivals' : 'orig_departures'
   }`
 
   const departures = await cacheFetch<Departure[]>(
@@ -280,16 +289,16 @@ export const createWeekDeparturesResponse = async (
     const fetchMoment = minDateMoment.clone().add(i, 'day')
     const fetchDate = fetchMoment.format('YYYY-MM-DD')
 
+    // Unnecessary to fetch dates too far into the future
+    if (isAfter(fetchDate, startOfTomorrow())) {
+      break
+    }
+
     cancellations[fetchDate] = await getCancellations(
       fetchDate,
       { routeId, direction },
       skipCache
     )
-
-    // Unnecessary to fetch dates too far into the future
-    if (isAfter(fetchDate, startOfTomorrow())) {
-      break
-    }
 
     const journeyTTL: number = isToday(fetchDate) ? 5 * 60 : 24 * 60 * 60
     const eventsCacheKey = `departure_events_${stopId}_${fetchDate}_${routeId}_${direction}_${
@@ -328,16 +337,8 @@ export const createWeekDeparturesResponse = async (
       return []
     }
 
-    const alerts = await getAlerts(date, {
-      allStops: true,
-      allRoutes: true,
-      stop: stopId,
-      route: routeId,
-    })
-
     return routeDepartures.map((departure) => {
       const cancellationsForDate = cancellations[departure.departureDate] || []
-      setAlertsOnDeparture(departure, alerts)
       setCancellationsOnDeparture(departure, cancellationsForDate)
       return departure
     })

@@ -44,7 +44,7 @@ export const createRouteJourneysResponse = async (
     journeysKey,
     fetchAllJourneys,
     journeysTTL,
-    skipCache
+    false
   )
 
   if (!journeys || journeys.length === 0) {

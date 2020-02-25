@@ -2,9 +2,9 @@ import { compact, groupBy, orderBy } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment } from '../types/Jore'
 import {
   Departure,
-  Scalars,
   ExceptionDay,
   RouteSegment,
+  Scalars,
 } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
@@ -19,10 +19,7 @@ import {
 import { getDirection } from '../utils/getDirection'
 import { createPlannedDepartureObject } from '../objects/createDepartureObject'
 import { filterByExceptions } from '../utils/filterByExceptions'
-import {
-  setAlertsOnDeparture,
-  setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlerts'
+import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { extraDepartureType } from '../utils/extraDepartureType'
 
@@ -150,28 +147,20 @@ export async function createRouteDeparturesResponse(
     skipCache
   )
 
-  const alerts = await getAlerts(date, {
-    allStops: true,
-    allRoutes: true,
-    stop: stopId,
-    route: routeId,
-  })
-
   const cancellations = await getCancellations(date, { routeId, direction }, skipCache)
 
-  const departuresWithAlerts = departures.map((departure) => {
-    setAlertsOnDeparture(departure, alerts)
+  const departuresWithCancellations = departures.map((departure) => {
     setCancellationsOnDeparture(departure, cancellations)
     return departure
   })
 
   // We can still return planned departures without observed events.
   if (!departureEvents || departureEvents.length === 0) {
-    return orderBy(departuresWithAlerts, 'plannedDepartureTime.departureTime')
+    return orderBy(departuresWithCancellations, 'plannedDepartureTime.departureTime')
   }
 
   const routeDepartures = combineDeparturesAndEvents(
-    departuresWithAlerts,
+    departuresWithCancellations,
     departureEvents,
     date
   )

@@ -5,13 +5,13 @@ import { Scalars } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
 import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
-import { databases, getKnex } from '../knex'
+import { getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
 import { createHfpVehicleId } from '../utils/createUniqueVehicleId'
 import { orderBy } from 'lodash'
 
-const knex: Knex = getKnex(databases.HFP)
+const knex: Knex = getKnex()
 
 // Data from before this date doesn't necessarily have other events than VP.
 const EVENTS_CUTOFF_DATE = '2019-09-18'
@@ -481,7 +481,7 @@ ORDER BY tst ASC;
   /*
    * Get all departures for a specific stop during a date.
    */
-  async getDepartureEvents(stopId: string, date: string): Promise<Vehicles[]> {
+  async getDepartureEvents(stopIds: string[], date: string): Promise<Vehicles[]> {
     const { minTime, maxTime } = createTstRange(date)
 
     const legacyQuery = this.db('vehicleposition')
@@ -493,7 +493,7 @@ ORDER BY tst ASC;
       .whereBetween('tst', [minTime, maxTime])
       .where('event_type', 'VP')
       .where('oday', date)
-      .where('stop', stopId)
+      .whereIn('stop', stopIds)
       .orderBy([
         { column: 'journey_start_time', order: 'asc' },
         { column: 'unique_vehicle_id', order: 'asc' },
@@ -505,14 +505,14 @@ ORDER BY tst ASC;
 SELECT ${routeDepartureFields.join(',')}
 FROM stopevent
 WHERE tst >= :minTime
-  AND tst < :maxTime
+  AND tst <= :maxTime
   AND event_type IN ('DEP', 'PDE', 'PAS')
+  AND stop IN ('${stopIds.join("', '")}')
   AND oday = :date
-  AND stop = :stopId
   AND is_ongoing = true
 ORDER BY tst DESC;
 `,
-      { date, stopId, minTime, maxTime }
+      { date, minTime, maxTime }
     )
 
     if (isBefore(date, EVENTS_CUTOFF_DATE)) {
@@ -570,17 +570,16 @@ ORDER BY tst DESC;
 
     const eventsQuery = this.db.raw(
       `SELECT ${routeDepartureFields.join(',')}
-FROM stopevent
-WHERE tst >= :minTime
-  AND tst <= :maxTime
-  AND event_type IN ('${queryEventTypes.join(`','`)}')
-  AND stop = :stopId
-  AND route_id = :routeId
-  AND direction_id = :direction
-  AND oday = :date
-  AND is_ongoing = true
-ORDER BY tst DESC;
-`,
+      FROM stopevent
+      WHERE tst >= :minTime
+        AND tst <= :maxTime
+        AND event_type IN ('${queryEventTypes.join(`','`)}')
+        AND stop = :stopId
+        AND route_id = :routeId
+        AND direction_id = :direction
+        AND oday = :date
+        AND is_ongoing = true
+      ORDER BY tst DESC;`,
       {
         minTime,
         maxTime,

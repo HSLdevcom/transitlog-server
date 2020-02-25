@@ -1,5 +1,32 @@
 # Transitlog server changelog
 
+## Version 1.8.1, deployed 2020-02-20 @ 09:00
+
+- No server changes
+
+## Version 1.8.0, deployed 2020-02-12 @ 13:00
+
+- Add query resolver for listing terminals.
+- Enable querying for terminal timetables with the Departure query.
+- Enable querying for terminals stops.
+- Optimize departure database queries.
+- Various smaller fixes for stop responses.
+
+## Version 1.7.1, deployed 2020-02-04 @ 14:00
+
+- Fix metro departure list.
+- Better handling of transport modes.
+- Fix journey departure to route matching.
+- Fix stop departure event matching.
+
+## Version 1.7.0, deployed 2020-02-03 @ 10:00
+
+- Use the Citus database for JORE data.
+- Fixes and updates related to the new JORE database, including removing the old JORE database and the JORE importer from the swarm.
+- Improve and simplify stop query and response.
+- Improve and fix weekly departures query and response.
+- Fix route journeys to remove unrelated events from the result.
+
 ## Version 1.6.1, deployed 2020-01-23 @ 12:00
 
 - Add more route info to stop routes.
