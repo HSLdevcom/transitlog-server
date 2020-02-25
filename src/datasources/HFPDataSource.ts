@@ -122,6 +122,22 @@ const alertFields = [
   'ext_id_bulletin',
 ]
 
+const tlpEventFields = [
+  'tlp_requestid',
+  'tlp_requesttype',
+  'tlp_prioritylevel',
+  'tlp_reason',
+  'tlp_att_seq',
+  'tlp_decision',
+  'sid',
+  'signal_groupid',
+  'tlp_signalgroupnbr',
+  'tlp_line_configid',
+  'tlp_point_configid',
+  'tlp_frequency',
+  'tlp_protocol',
+]
+
 type TstRange = {
   minTime: string
   maxTime: string
@@ -456,6 +472,7 @@ ORDER BY tst ASC;
           vehiclePositions: ensureArray(vehiclePositions),
           stopEvents: ensureArray(stopEvents),
           otherEvents: [...ensureArray(otherEvents), ...ensureArray(lightPriorityEvents)],
+          tlpEvents: [],
         }
       }
     )

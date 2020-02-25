@@ -9,6 +9,7 @@ import {
   JourneyEvent,
   JourneyStopEvent,
   PlannedStopEvent,
+  JourneyTlpEvent,
   Route,
 } from '../types/generated/schema-types'
 import { createVehiclePositionObject } from './createJourneyEventObject'
@@ -26,7 +27,13 @@ function isStopEvent(event): event is JourneyStopEvent {
 
 export function createJourneyObject(
   vehiclePositions: Vehicles[],
-  events: Array<JourneyEvent | JourneyStopEvent | PlannedStopEvent | JourneyCancellationEvent>,
+  events: Array<
+    | JourneyEvent
+    | JourneyStopEvent
+    | PlannedStopEvent
+    | JourneyCancellationEvent
+    | JourneyTlpEvent
+  >,
   journeyRoute?: Route | null,
   originDeparture: Departure | null = null,
   departures: Departure[] | null = null,

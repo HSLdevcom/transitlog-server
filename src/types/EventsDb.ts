@@ -9,6 +9,11 @@ import {
   JourneyEvent,
   JourneyStopEvent,
   PlannedStopEvent,
+  JourneyTlpEvent,
+  TlpDecision,
+  TlpPriorityLevel,
+  TlpRequestType,
+  TlpReason,
 } from './generated/schema-types'
 
 export enum DBCancellationStatus {
@@ -116,10 +121,27 @@ export interface Vehicles {
   _is_virtual?: boolean
 }
 
+export interface TlpEvents extends Vehicles {
+  tlp_requestid: Maybe<number>
+  tlp_requesttype: Maybe<TlpRequestType>
+  tlp_prioritylevel: Maybe<TlpPriorityLevel>
+  tlp_reason: Maybe<TlpReason>
+  tlp_att_seq: Maybe<number>
+  tlp_decision: Maybe<TlpDecision>
+  sid: Maybe<number>
+  signal_groupid: Maybe<number>
+  tlp_signalgroupnbr: Maybe<number>
+  tlp_line_configid: Maybe<number>
+  tlp_point_configid: Maybe<number>
+  tlp_frequency: Maybe<number>
+  tlp_protocol: Maybe<string>
+}
+
 export type JourneyEvents = {
   vehiclePositions: Vehicles[]
   stopEvents: Vehicles[]
   otherEvents: Vehicles[]
+  tlpEvents: TlpEvents[]
 }
 
 export type EventsType =
@@ -127,3 +149,4 @@ export type EventsType =
   | JourneyEvent
   | PlannedStopEvent
   | JourneyCancellationEvent
+  | JourneyTlpEvent

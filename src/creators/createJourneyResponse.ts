@@ -14,6 +14,7 @@ import {
   JourneyEvent,
   JourneyStopEvent,
   PlannedStopEvent,
+  JourneyTlpEvent,
   Route,
   Scalars,
   Stop,
@@ -69,7 +70,12 @@ type JourneyRoute = {
   departures: Departure[]
 }
 
-type EventsType = JourneyStopEvent | JourneyEvent | PlannedStopEvent | JourneyCancellationEvent
+type EventsType =
+  | JourneyStopEvent
+  | JourneyEvent
+  | PlannedStopEvent
+  | JourneyCancellationEvent
+  | JourneyTlpEvent
 
 export type PlannedJourneyData = {
   departures: JoreRouteDepartureData[]
