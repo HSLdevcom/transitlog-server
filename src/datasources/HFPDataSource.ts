@@ -4,7 +4,7 @@ import { getDateFromDateTime, getNormalTime } from '../utils/time'
 import { Scalars } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
-import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
+import { DBAlert, DBCancellation, JourneyEvents, Vehicles, TlpEvents } from '../types/EventsDb'
 import { getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
@@ -418,9 +418,9 @@ ORDER BY tst ASC;
 
     const queryVehicleId = `${operatorId}/${vehicleId}`
 
-    const createQuery = (table) => {
+    const createQuery = (table, fields) => {
       let query = this.db(table)
-        .select(vehicleFields)
+        .select(fields)
         .whereBetween('tst', [useMinTime, useMaxTime])
         .where('journey_start_time', getNormalTime(departureTime))
         .where('route_id', routeId)
@@ -436,10 +436,10 @@ ORDER BY tst ASC;
     }
 
     const queries = [
-      createQuery('vehicleposition'),
-      createQuery('stopevent'),
-      createQuery('otherevent'),
-      createQuery('lightpriorityevent'),
+      createQuery('vehicleposition', vehicleFields),
+      createQuery('stopevent', vehicleFields),
+      createQuery('otherevent', vehicleFields),
+      createQuery('lightpriorityevent', [...vehicleFields, ...tlpEventFields]),
     ]
 
     return Promise.all(queries).then(
@@ -471,8 +471,8 @@ ORDER BY tst ASC;
         return {
           vehiclePositions: ensureArray(vehiclePositions),
           stopEvents: ensureArray(stopEvents),
-          otherEvents: [...ensureArray(otherEvents), ...ensureArray(lightPriorityEvents)],
-          tlpEvents: [],
+          tlpEvents: ensureArray(lightPriorityEvents),
+          otherEvents: ensureArray(otherEvents),
         }
       }
     )

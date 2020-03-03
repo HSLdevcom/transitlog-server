@@ -52,6 +52,7 @@ import {
   createJourneyEventObject,
   createJourneyStopEventObject,
   createPlannedStopEventObject,
+  createJourneyTlpEventObject,
 } from '../objects/createJourneyEventObject'
 import { createStopObject } from '../objects/createStopObject'
 import moment from 'moment-timezone'
@@ -450,7 +451,12 @@ export async function createJourneyResponse(
   }
 
   // Separate the HFP events into vehicle positions, stop events and the rest of the events.
-  const { vehiclePositions = [], stopEvents = [], otherEvents: events = [] } = journeyEvents
+  const {
+    vehiclePositions = [],
+    stopEvents = [],
+    tlpEvents = [],
+    otherEvents: events = [],
+  } = journeyEvents
 
   let journeyEquipment = null
   const ascVehiclePositions = orderBy(vehiclePositions, 'tsi', 'asc')
@@ -617,9 +623,14 @@ export async function createJourneyResponse(
   // Planned stops should be ordered by stop order.
   const sortedPlannedEvents: PlannedStopEvent[] = orderBy(stopsWithoutEvents, 'index')
 
+  // Greate TLP event objects
+  const tlpEventObjects: JourneyTlpEvent[] = tlpEvents.map((event) =>
+    createJourneyTlpEventObject(event)
+  )
+
   // Objects with observed data (ie real events) should be ordered by timestamp.
   const sortedJourneyEvents: EventsType[] = orderBy(
-    [...stopEventObjects, ...journeyEventObjects],
+    [...stopEventObjects, ...journeyEventObjects, ...tlpEventObjects],
     '_sort'
   )
 

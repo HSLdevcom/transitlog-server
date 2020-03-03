@@ -26,6 +26,10 @@ export const Journey = gql`
     ACK
     NAK
   }
+  enum TlpType {
+    TLR
+    TLA
+  }
   type JourneyEvent {
     id: ID!
     type: String!
@@ -106,6 +110,7 @@ export const Journey = gql`
   }
   type JourneyTlpEvent {
     id: ID!
+    tlpType: TlpType
     requestId: Int
     requestType: TlpRequestType
     priorityLevel: TlpPriorityLevel

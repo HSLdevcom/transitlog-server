@@ -21,6 +21,12 @@ export enum DBCancellationStatus {
   RUNNING = 'RUNNING',
 }
 
+export enum TlpPriorityLevelDb {
+  Normal = 'normal',
+  High = 'high',
+  Norequest = 'norequest',
+}
+
 export type CancellationDataType = {
   title?: string
   category?: AlertCategory
@@ -124,7 +130,7 @@ export interface Vehicles {
 export interface TlpEvents extends Vehicles {
   tlp_requestid: Maybe<number>
   tlp_requesttype: Maybe<TlpRequestType>
-  tlp_prioritylevel: Maybe<TlpPriorityLevel>
+  tlp_prioritylevel: Maybe<TlpPriorityLevelDb>
   tlp_reason: Maybe<TlpReason>
   tlp_att_seq: Maybe<number>
   tlp_decision: Maybe<TlpDecision>

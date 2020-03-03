@@ -433,6 +433,7 @@ export type JourneyStopEvent = {
 export type JourneyTlpEvent = {
   __typename?: 'JourneyTlpEvent'
   id: Scalars['ID']
+  tlpType?: Maybe<TlpType>
   requestId?: Maybe<Scalars['Int']>
   requestType?: Maybe<TlpRequestType>
   priorityLevel?: Maybe<TlpPriorityLevel>
@@ -797,6 +798,11 @@ export enum TlpRequestType {
   DoorClose = 'DOOR_CLOSE',
   DoorOpen = 'DOOR_OPEN',
   Advance = 'ADVANCE',
+}
+
+export enum TlpType {
+  Tlr = 'TLR',
+  Tla = 'TLA',
 }
 
 export type UiMessage = {

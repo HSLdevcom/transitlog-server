@@ -437,6 +437,7 @@ export type JourneyStopEvent = {
 export type JourneyTlpEvent = {
   __typename?: 'JourneyTlpEvent'
   id: Scalars['ID']
+  tlpType?: Maybe<TlpType>
   requestId?: Maybe<Scalars['Int']>
   requestType?: Maybe<TlpRequestType>
   priorityLevel?: Maybe<TlpPriorityLevel>
@@ -803,6 +804,11 @@ export enum TlpRequestType {
   Advance = 'ADVANCE',
 }
 
+export enum TlpType {
+  Tlr = 'TLR',
+  Tla = 'TLA',
+}
+
 export type UiMessage = {
   __typename?: 'UIMessage'
   date?: Maybe<Scalars['String']>
@@ -991,6 +997,7 @@ export type ResolversTypes = {
   JourneyCancellationEvent: ResolverTypeWrapper<JourneyCancellationEvent>
   PlannedStopEvent: ResolverTypeWrapper<PlannedStopEvent>
   JourneyTlpEvent: ResolverTypeWrapper<JourneyTlpEvent>
+  TlpType: TlpType
   TlpRequestType: TlpRequestType
   TlpPriorityLevel: TlpPriorityLevel
   TlpReason: TlpReason
@@ -1062,6 +1069,7 @@ export type ResolversParentTypes = {
   JourneyCancellationEvent: JourneyCancellationEvent
   PlannedStopEvent: PlannedStopEvent
   JourneyTlpEvent: JourneyTlpEvent
+  TlpType: TlpType
   TlpRequestType: TlpRequestType
   TlpPriorityLevel: TlpPriorityLevel
   TlpReason: TlpReason
@@ -1388,6 +1396,7 @@ export type JourneyTlpEventResolvers<
   ParentType extends ResolversParentTypes['JourneyTlpEvent'] = ResolversParentTypes['JourneyTlpEvent']
 > = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  tlpType?: Resolver<Maybe<ResolversTypes['TlpType']>, ParentType, ContextType>
   requestId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   requestType?: Resolver<Maybe<ResolversTypes['TlpRequestType']>, ParentType, ContextType>
   priorityLevel?: Resolver<Maybe<ResolversTypes['TlpPriorityLevel']>, ParentType, ContextType>

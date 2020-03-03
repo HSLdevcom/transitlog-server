@@ -31,7 +31,9 @@ export const resolvers: StringIndexed<any> = {
       ) {
         return 'JourneyCancellationEvent'
       }
-
+      if (typeof obj.tlpType !== 'undefined') {
+        return 'JourneyTlpEvent'
+      }
       if (
         typeof obj.stopId !== 'undefined' &&
         typeof obj.recordedAt !== 'undefined' &&

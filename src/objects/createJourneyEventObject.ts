@@ -6,16 +6,19 @@ import {
   JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
+  JourneyTlpEvent,
+  TlpPriorityLevel,
   PlannedArrival,
   PlannedDeparture,
   PlannedStopEvent,
   Stop,
   VehiclePosition,
+  TlpType,
 } from '../types/generated/schema-types'
 import { TIME_FORMAT, TZ } from '../constants'
 import moment from 'moment-timezone'
 import { getDateFromDateTime, getJourneyEventTime } from '../utils/time'
-import { Vehicles } from '../types/EventsDb'
+import { Vehicles, TlpEvents, EventType, TlpPriorityLevelDb } from '../types/EventsDb'
 import { createJourneyId } from '../utils/createJourneyId'
 import { get } from 'lodash'
 import { createDepartureId } from './createDepartureObject'
@@ -190,6 +193,55 @@ export function createJourneyStopEventObject(
     lng: event.long,
     loc: event.loc,
     _isVirtual: !!event._is_virtual,
+    _sort: unix,
+  }
+}
+
+const mapTlpPriorityLevel = (
+  tlpPriorityLevel: TlpPriorityLevelDb | null
+): TlpPriorityLevel | null => {
+  return tlpPriorityLevel === TlpPriorityLevelDb.Normal
+    ? TlpPriorityLevel.Normal
+    : tlpPriorityLevel === TlpPriorityLevelDb.High
+    ? TlpPriorityLevel.High
+    : tlpPriorityLevel === TlpPriorityLevelDb.Norequest
+    ? TlpPriorityLevel.Norequest
+    : null
+}
+
+const mapEventTypeToTlpType = (eventType: EventType): TlpType | null => {
+  return eventType === 'TLA' ? TlpType.Tla : eventType === 'TLR' ? TlpType.Tlr : null
+}
+
+export function createJourneyTlpEventObject(event: TlpEvents): JourneyTlpEvent {
+  const id = createJourneyId(event)
+  const ts = moment.tz(event.tst, TZ)
+  const unix = ts.unix()
+  const receivedTs = moment.tz(event.received_at, TZ)
+
+  return {
+    id: `journey_tlp_event_${event.event_type}_${id}_${unix}`,
+    tlpType: mapEventTypeToTlpType(event.event_type),
+    requestId: get(event, 'tlp_requestid', null),
+    requestType: get(event, 'tlp_requesttype', null),
+    priorityLevel: mapTlpPriorityLevel(event.tlp_prioritylevel),
+    reason: get(event, 'tlp_reason', null),
+    attemptSeq: get(event, 'tlp_att_seq', null),
+    decision: get(event, 'tlp_decision', null),
+    junctionId: get(event, 'sid', null),
+    signalGroupId: get(event, 'signal_groupid', null),
+    signalGroupNbr: get(event, 'tlp_signalgroupnbr', null),
+    lineConfigId: get(event, 'tlp_line_configid', null),
+    pointConfigId: get(event, 'tlp_point_configid', null),
+    frequency: get(event, 'tlp_frequency', null),
+    protocol: get(event, 'tlp_protocol', null),
+    receivedAt: receivedTs.toISOString(true),
+    recordedAt: ts.toISOString(true),
+    recordedAtUnix: unix,
+    recordedTime: getJourneyEventTime(event),
+    lat: event.lat,
+    lng: event.long,
+    loc: event.loc,
     _sort: unix,
   }
 }
