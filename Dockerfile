@@ -1,5 +1,7 @@
 FROM node:12-alpine
 
+RUN apk --no-cache add curl
+
 ENV WORK /opt/transitlog
 
 # Create app directory
