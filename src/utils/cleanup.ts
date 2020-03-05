@@ -1,6 +1,7 @@
 export function cleanup(callback: () => any) {
   // do app specific cleaning before exiting
   process.on('exit', () => {
+    console.log('exit')
     callback()
   })
 
@@ -24,6 +25,6 @@ export function cleanup(callback: () => any) {
   process.on('uncaughtException', (e) => {
     console.log('Uncaught Exception...')
     console.log(e.stack)
-    process.exit(99)
+    process.exit(2)
   })
 }

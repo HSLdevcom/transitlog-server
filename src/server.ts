@@ -3,12 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import { json } from 'body-parser'
 import { COOKIE_SECRET, HSL_GROUP_NAME, SECURE_COOKIE, TZ } from './constants'
-// Set the default timezone for the app
-moment.tz.setDefault(TZ)
-
 import { types } from 'pg'
-types.setTypeParser(1082, (val) => val)
-
 import schema from './schema'
 import { ApolloServer } from 'apollo-server-express'
 import { resolvers } from './resolvers/'
@@ -21,6 +16,12 @@ import path from 'path'
 import { createEngine } from 'express-react-views'
 import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
 import { adminController } from './admin/adminController'
+import { cleanup } from './utils/cleanup'
+import { getKnex } from './knex'
+// Set the default timezone for the app
+moment.tz.setDefault(TZ)
+
+types.setTypeParser(1082, (val) => val)
 
 const session = require('express-session')
 const RedisSession = require('connect-redis')(session)
@@ -65,10 +66,6 @@ type RequestContext = {
   app.engine('js', createEngine({ transformViews: false }))
   app.set('view engine', 'js')
   app.set('views', path.join(__dirname, 'views'))
-
-  app.get('/check', (req, res) => {
-    res.status(200).send('ok')
-  })
 
   const redisClient = await getRedis()
 
@@ -115,6 +112,17 @@ type RequestContext = {
 
   app.use(express.urlencoded({ extended: true }))
 
+  app.get('/check', async (req, res) => {
+    const client = await getRedis()
+    const knex = getKnex()
+
+    if (client.status === 'ready' && expressServer.listening && !knex.client.pool.destroyed) {
+      res.status(200).send('Ok')
+    } else {
+      res.status(503).send('Not OK')
+    }
+  })
+
   const adminPath = '/admin'
   const adminRouter = await adminController(adminPath)
   app.use(adminPath, requireUserMiddleware(HSL_GROUP_NAME), adminRouter)
@@ -126,3 +134,13 @@ type RequestContext = {
   // Set a generous timeout. 1200 seconds is used in Azure and nginx.
   expressServer.setTimeout(1200 * 1000)
 })()
+
+cleanup(() => {
+  const knex = getKnex()
+
+  if (knex) {
+    knex.destroy()
+  }
+
+  getRedis().then((client) => client.quit())
+})

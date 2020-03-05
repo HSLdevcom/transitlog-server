@@ -1,5 +1,5 @@
 import Redis, { Redis as RedisType } from 'ioredis'
-import { REDIS_HOST, REDIS_PORT, DISABLE_CACHE } from './constants'
+import { DISABLE_CACHE, REDIS_HOST, REDIS_PORT } from './constants'
 import { get } from 'lodash'
 
 let redisClient: RedisType | null = null
@@ -9,19 +9,19 @@ export async function getRedis() {
     return redisClient
   }
 
-  const client = new Redis({
+  redisClient = new Redis({
     host: REDIS_HOST,
     port: typeof REDIS_PORT === 'string' ? parseInt(REDIS_PORT, 10) : REDIS_PORT,
     lazyConnect: true,
+    maxRetriesPerRequest: 10,
   })
 
-  redisClient = client
+  redisClient.on('error', (error) => {
+    console.log(error)
+    process.exit(1)
+  })
 
-  try {
-    await client.connect()
-  } catch (err) {
-    console.log(err.message)
-  }
+  await redisClient.connect()
 
   return redisClient
 }

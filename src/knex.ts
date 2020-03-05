@@ -1,7 +1,5 @@
 import Knex from 'knex'
 import { PG_CONNECTION } from './constants'
-import { cleanup } from './utils/cleanup'
-
 let knexInstance: Knex | null = null
 
 export function getKnex(): Knex {
@@ -21,9 +19,3 @@ export function getKnex(): Knex {
 
   return knexInstance
 }
-
-cleanup(() => {
-  if (knexInstance instanceof Knex) {
-    knexInstance.destroy()
-  }
-})
