@@ -1,5 +1,9 @@
 # Transitlog server changelog
 
+## Version 1.8.2, deployed 2020-03-06 @ 08:00
+
+- Use health check in Docker Swarm.
+
 ## Version 1.8.1, deployed 2020-02-20 @ 09:00
 
 - No server changes
