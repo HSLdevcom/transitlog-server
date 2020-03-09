@@ -623,53 +623,44 @@ export async function createJourneyResponse(
   // Planned stops should be ordered by stop order.
   const sortedPlannedEvents: PlannedStopEvent[] = orderBy(stopsWithoutEvents, 'index')
 
-  // Greate TLP event objects
+  // Create TLP event objects
   const tlpEventObjects: JourneyTlpEvent[] = tlpEvents.map((event) =>
     createJourneyTlpEventObject(event)
   )
 
-  // TLA events don't know their sid (junction id) whereas TLR events don't konow their decision (if any)
-  // Thus map these details by event type and requestId
-  const mappedTlpEventObjects = tlpEventObjects.reduce(
-    (mappedEvents: JourneyTlpEvent[], tlpEvent) => {
-      const mappedEvent = { ...tlpEvent }
-      if (mappedEvent.type === 'TLR') {
-        const matchingTlaEvents = tlpEventObjects.filter(
-          (maybeTlaEvent) =>
-            maybeTlaEvent.type === 'TLA' && maybeTlaEvent.requestId === mappedEvent.requestId
+  const tlaEvents = tlpEventObjects.filter((event) => event.type === 'TLA')
+  const tlrEvents = tlpEventObjects.filter((event) => event.type === 'TLR')
+
+  tlaEvents.forEach((tlaEvent) => {
+    const matchingTlrEvents = tlrEvents.filter(
+      (tlrEvent) => tlrEvent.requestId === tlaEvent.requestId
+    )
+    if (matchingTlrEvents.length > 0) {
+      // set junctionId of the TLA from one of the corresponding TLR events
+      tlaEvent.junctionId = matchingTlrEvents[0].junctionId
+      if (matchingTlrEvents.length === 1) {
+        matchingTlrEvents[0].decision = tlaEvent.decision
+      }
+      // if more than one TLR corresponds to the TLA, only set the decision of the last TLR
+      if (matchingTlrEvents.length > 1) {
+        const attemptSeqs: number[] = matchingTlrEvents
+          .map((event) => event.attemptSeq!)
+          .filter((attempt) => attempt)
+
+        const lastAttemptSeq = Math.max(...attemptSeqs)
+        const lastTlrAttemptEvent = matchingTlrEvents.find(
+          (event) => event.attemptSeq === lastAttemptSeq
         )
-        if (matchingTlaEvents.length > 0) {
-          mappedEvent.decision = matchingTlaEvents[0].decision
-          // set decision of the previous attempts with the same request id to null
-          if (mappedEvent.attemptSeq && mappedEvent.attemptSeq > 1) {
-            const previousAttempts = mappedEvents.filter(
-              (event) =>
-                event.requestId === mappedEvent.requestId &&
-                event.attemptSeq &&
-                mappedEvent.attemptSeq &&
-                event.attemptSeq < mappedEvent.attemptSeq
-            )
-            previousAttempts.forEach((event) => (event.decision = null))
-          }
-        }
-      } else if (mappedEvent.type === 'TLA') {
-        const matchingTlrEvents = tlpEventObjects.filter(
-          (maybeTlrEvent) =>
-            maybeTlrEvent.type === 'TLR' && maybeTlrEvent.requestId === mappedEvent.requestId
-        )
-        if (matchingTlrEvents.length > 0) {
-          mappedEvent.junctionId = matchingTlrEvents[0].junctionId
+        if (lastTlrAttemptEvent) {
+          lastTlrAttemptEvent.decision = tlaEvent.decision
         }
       }
-      mappedEvents.push(mappedEvent)
-      return mappedEvents
-    },
-    []
-  )
+    }
+  })
 
   // Objects with observed data (ie real events) should be ordered by timestamp.
   const sortedJourneyEvents: EventsType[] = orderBy(
-    [...stopEventObjects, ...journeyEventObjects, ...mappedTlpEventObjects],
+    [...stopEventObjects, ...journeyEventObjects, ...tlrEvents, ...tlaEvents],
     '_sort'
   )
 
