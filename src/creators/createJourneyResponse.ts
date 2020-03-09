@@ -628,9 +628,48 @@ export async function createJourneyResponse(
     createJourneyTlpEventObject(event)
   )
 
+  // TLA events don't know their sid (junction id) whereas TLR events don't konow their decision (if any)
+  // Thus map these details by event type and requestId
+  const mappedTlpEventObjects = tlpEventObjects.reduce(
+    (mappedEvents: JourneyTlpEvent[], tlpEvent) => {
+      const mappedEvent = { ...tlpEvent }
+      if (mappedEvent.type === 'TLR') {
+        const matchingTlaEvents = tlpEventObjects.filter(
+          (maybeTlaEvent) =>
+            maybeTlaEvent.type === 'TLA' && maybeTlaEvent.requestId === mappedEvent.requestId
+        )
+        if (matchingTlaEvents.length > 0) {
+          mappedEvent.decision = matchingTlaEvents[0].decision
+          // set decision of the previous attempts with the same request id to null
+          if (mappedEvent.attemptSeq && mappedEvent.attemptSeq > 1) {
+            const previousAttempts = mappedEvents.filter(
+              (event) =>
+                event.requestId === mappedEvent.requestId &&
+                event.attemptSeq &&
+                mappedEvent.attemptSeq &&
+                event.attemptSeq < mappedEvent.attemptSeq
+            )
+            previousAttempts.forEach((event) => (event.decision = null))
+          }
+        }
+      } else if (mappedEvent.type === 'TLA') {
+        const matchingTlrEvents = tlpEventObjects.filter(
+          (maybeTlrEvent) =>
+            maybeTlrEvent.type === 'TLR' && maybeTlrEvent.requestId === mappedEvent.requestId
+        )
+        if (matchingTlrEvents.length > 0) {
+          mappedEvent.junctionId = matchingTlrEvents[0].junctionId
+        }
+      }
+      mappedEvents.push(mappedEvent)
+      return mappedEvents
+    },
+    []
+  )
+
   // Objects with observed data (ie real events) should be ordered by timestamp.
   const sortedJourneyEvents: EventsType[] = orderBy(
-    [...stopEventObjects, ...journeyEventObjects, ...tlpEventObjects],
+    [...stopEventObjects, ...journeyEventObjects, ...mappedTlpEventObjects],
     '_sort'
   )
 
