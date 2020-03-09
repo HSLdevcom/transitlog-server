@@ -110,7 +110,7 @@ export const Journey = gql`
   }
   type JourneyTlpEvent {
     id: ID!
-    tlpType: TlpType
+    type: String!
     requestId: Int
     requestType: TlpRequestType
     priorityLevel: TlpPriorityLevel

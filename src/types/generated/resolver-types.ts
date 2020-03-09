@@ -437,7 +437,7 @@ export type JourneyStopEvent = {
 export type JourneyTlpEvent = {
   __typename?: 'JourneyTlpEvent'
   id: Scalars['ID']
-  tlpType?: Maybe<TlpType>
+  type: Scalars['String']
   requestId?: Maybe<Scalars['Int']>
   requestType?: Maybe<TlpRequestType>
   priorityLevel?: Maybe<TlpPriorityLevel>
@@ -997,7 +997,6 @@ export type ResolversTypes = {
   JourneyCancellationEvent: ResolverTypeWrapper<JourneyCancellationEvent>
   PlannedStopEvent: ResolverTypeWrapper<PlannedStopEvent>
   JourneyTlpEvent: ResolverTypeWrapper<JourneyTlpEvent>
-  TlpType: TlpType
   TlpRequestType: TlpRequestType
   TlpPriorityLevel: TlpPriorityLevel
   TlpReason: TlpReason
@@ -1009,6 +1008,7 @@ export type ResolversTypes = {
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
   UIMessage: ResolverTypeWrapper<UiMessage>
+  TlpType: TlpType
   BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
 
@@ -1069,7 +1069,6 @@ export type ResolversParentTypes = {
   JourneyCancellationEvent: JourneyCancellationEvent
   PlannedStopEvent: PlannedStopEvent
   JourneyTlpEvent: JourneyTlpEvent
-  TlpType: TlpType
   TlpRequestType: TlpRequestType
   TlpPriorityLevel: TlpPriorityLevel
   TlpReason: TlpReason
@@ -1081,6 +1080,7 @@ export type ResolversParentTypes = {
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
   UIMessage: UiMessage
+  TlpType: TlpType
   BBox: Scalars['BBox']
 }
 
@@ -1396,7 +1396,7 @@ export type JourneyTlpEventResolvers<
   ParentType extends ResolversParentTypes['JourneyTlpEvent'] = ResolversParentTypes['JourneyTlpEvent']
 > = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
-  tlpType?: Resolver<Maybe<ResolversTypes['TlpType']>, ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   requestId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   requestType?: Resolver<Maybe<ResolversTypes['TlpRequestType']>, ParentType, ContextType>
   priorityLevel?: Resolver<Maybe<ResolversTypes['TlpPriorityLevel']>, ParentType, ContextType>

@@ -209,10 +209,6 @@ const mapTlpPriorityLevel = (
     : null
 }
 
-const mapEventTypeToTlpType = (eventType: EventType): TlpType | null => {
-  return eventType === 'TLA' ? TlpType.Tla : eventType === 'TLR' ? TlpType.Tlr : null
-}
-
 export function createJourneyTlpEventObject(event: TlpEvents): JourneyTlpEvent {
   const id = createJourneyId(event)
   const ts = moment.tz(event.tst, TZ)
@@ -221,7 +217,7 @@ export function createJourneyTlpEventObject(event: TlpEvents): JourneyTlpEvent {
 
   return {
     id: `journey_tlp_event_${event.event_type}_${id}_${unix}`,
-    tlpType: mapEventTypeToTlpType(event.event_type),
+    type: event.event_type,
     requestId: get(event, 'tlp_requestid', null),
     requestType: get(event, 'tlp_requesttype', null),
     priorityLevel: mapTlpPriorityLevel(event.tlp_prioritylevel),

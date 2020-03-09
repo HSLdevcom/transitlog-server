@@ -433,7 +433,7 @@ export type JourneyStopEvent = {
 export type JourneyTlpEvent = {
   __typename?: 'JourneyTlpEvent'
   id: Scalars['ID']
-  tlpType?: Maybe<TlpType>
+  type: Scalars['String']
   requestId?: Maybe<Scalars['Int']>
   requestType?: Maybe<TlpRequestType>
   priorityLevel?: Maybe<TlpPriorityLevel>
