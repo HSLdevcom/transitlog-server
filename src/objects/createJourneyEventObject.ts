@@ -238,7 +238,8 @@ export function createJourneyTlpEventObject(event: TlpEvents): JourneyTlpEvent {
     lat: event.lat,
     lng: event.long,
     loc: event.loc,
-    _sort: unix,
+    // Sort TLA events after TLR events
+    _sort: event.event_type === 'TLA' ? unix + 1 : unix,
   }
 }
 
