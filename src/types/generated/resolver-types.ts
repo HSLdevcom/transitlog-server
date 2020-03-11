@@ -401,6 +401,7 @@ export type JourneyEventType =
   | JourneyStopEvent
   | JourneyCancellationEvent
   | PlannedStopEvent
+  | JourneyTlpEvent
 
 export type JourneyStopEvent = {
   __typename?: 'JourneyStopEvent'
@@ -430,6 +431,34 @@ export type JourneyStopEvent = {
   loc?: Maybe<Scalars['String']>
   unplannedStop: Scalars['Boolean']
   _isVirtual?: Maybe<Scalars['Boolean']>
+  _sort?: Maybe<Scalars['Int']>
+}
+
+export type JourneyTlpEvent = {
+  __typename?: 'JourneyTlpEvent'
+  id: Scalars['ID']
+  type: Scalars['String']
+  requestId?: Maybe<Scalars['Int']>
+  requestType?: Maybe<TlpRequestType>
+  priorityLevel?: Maybe<TlpPriorityLevel>
+  reason?: Maybe<TlpReason>
+  attemptSeq?: Maybe<Scalars['Int']>
+  decision?: Maybe<TlpDecision>
+  junctionId?: Maybe<Scalars['Int']>
+  signalGroupId?: Maybe<Scalars['Int']>
+  signalGroupNbr?: Maybe<Scalars['Int']>
+  lineConfigId?: Maybe<Scalars['Int']>
+  pointConfigId?: Maybe<Scalars['Int']>
+  frequency?: Maybe<Scalars['Int']>
+  protocol?: Maybe<Scalars['String']>
+  receivedAt: Scalars['DateTime']
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  nextStopId?: Maybe<Scalars['String']>
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -750,6 +779,36 @@ export type Terminal = Position & {
   modes?: Maybe<Array<Scalars['String']>>
 }
 
+export enum TlpDecision {
+  Ack = 'ACK',
+  Nak = 'NAK',
+}
+
+export enum TlpPriorityLevel {
+  Normal = 'NORMAL',
+  High = 'HIGH',
+  Norequest = 'NOREQUEST',
+}
+
+export enum TlpReason {
+  Global = 'GLOBAL',
+  Ahead = 'AHEAD',
+  Line = 'LINE',
+  Prioexep = 'PRIOEXEP',
+}
+
+export enum TlpRequestType {
+  Normal = 'NORMAL',
+  DoorClose = 'DOOR_CLOSE',
+  DoorOpen = 'DOOR_OPEN',
+  Advance = 'ADVANCE',
+}
+
+export enum TlpType {
+  Tlr = 'TLR',
+  Tla = 'TLA',
+}
+
 export type UiMessage = {
   __typename?: 'UIMessage'
   date?: Maybe<Scalars['String']>
@@ -933,9 +992,15 @@ export type ResolversTypes = {
     | ResolversTypes['JourneyStopEvent']
     | ResolversTypes['JourneyCancellationEvent']
     | ResolversTypes['PlannedStopEvent']
+    | ResolversTypes['JourneyTlpEvent']
   JourneyEvent: ResolverTypeWrapper<JourneyEvent>
   JourneyCancellationEvent: ResolverTypeWrapper<JourneyCancellationEvent>
   PlannedStopEvent: ResolverTypeWrapper<PlannedStopEvent>
+  JourneyTlpEvent: ResolverTypeWrapper<JourneyTlpEvent>
+  TlpRequestType: TlpRequestType
+  TlpPriorityLevel: TlpPriorityLevel
+  TlpReason: TlpReason
+  TlpDecision: TlpDecision
   VehicleJourney: ResolverTypeWrapper<VehicleJourney>
   DriverEvent: ResolverTypeWrapper<DriverEvent>
   PreciseBBox: ResolverTypeWrapper<Scalars['PreciseBBox']>
@@ -943,6 +1008,7 @@ export type ResolversTypes = {
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
   UIMessage: ResolverTypeWrapper<UiMessage>
+  TlpType: TlpType
   BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
 
@@ -998,9 +1064,15 @@ export type ResolversParentTypes = {
     | ResolversParentTypes['JourneyStopEvent']
     | ResolversParentTypes['JourneyCancellationEvent']
     | ResolversParentTypes['PlannedStopEvent']
+    | ResolversParentTypes['JourneyTlpEvent']
   JourneyEvent: JourneyEvent
   JourneyCancellationEvent: JourneyCancellationEvent
   PlannedStopEvent: PlannedStopEvent
+  JourneyTlpEvent: JourneyTlpEvent
+  TlpRequestType: TlpRequestType
+  TlpPriorityLevel: TlpPriorityLevel
+  TlpReason: TlpReason
+  TlpDecision: TlpDecision
   VehicleJourney: VehicleJourney
   DriverEvent: DriverEvent
   PreciseBBox: Scalars['PreciseBBox']
@@ -1008,6 +1080,7 @@ export type ResolversParentTypes = {
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
   UIMessage: UiMessage
+  TlpType: TlpType
   BBox: Scalars['BBox']
 }
 
@@ -1275,7 +1348,11 @@ export type JourneyEventTypeResolvers<
   ParentType extends ResolversParentTypes['JourneyEventType'] = ResolversParentTypes['JourneyEventType']
 > = {
   __resolveType: TypeResolveFn<
-    'JourneyEvent' | 'JourneyStopEvent' | 'JourneyCancellationEvent' | 'PlannedStopEvent',
+    | 'JourneyEvent'
+    | 'JourneyStopEvent'
+    | 'JourneyCancellationEvent'
+    | 'PlannedStopEvent'
+    | 'JourneyTlpEvent',
     ParentType,
     ContextType
   >
@@ -1311,6 +1388,36 @@ export type JourneyStopEventResolvers<
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   unplannedStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+}
+
+export type JourneyTlpEventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['JourneyTlpEvent'] = ResolversParentTypes['JourneyTlpEvent']
+> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  requestId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  requestType?: Resolver<Maybe<ResolversTypes['TlpRequestType']>, ParentType, ContextType>
+  priorityLevel?: Resolver<Maybe<ResolversTypes['TlpPriorityLevel']>, ParentType, ContextType>
+  reason?: Resolver<Maybe<ResolversTypes['TlpReason']>, ParentType, ContextType>
+  attemptSeq?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  decision?: Resolver<Maybe<ResolversTypes['TlpDecision']>, ParentType, ContextType>
+  junctionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  signalGroupId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  signalGroupNbr?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  lineConfigId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  pointConfigId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  frequency?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  protocol?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  receivedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  nextStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
@@ -1729,6 +1836,7 @@ export type Resolvers<ContextType = any> = {
   JourneyEvent?: JourneyEventResolvers<ContextType>
   JourneyEventType?: JourneyEventTypeResolvers
   JourneyStopEvent?: JourneyStopEventResolvers<ContextType>
+  JourneyTlpEvent?: JourneyTlpEventResolvers<ContextType>
   ObservedArrival?: ObservedArrivalResolvers<ContextType>
   ObservedDeparture?: ObservedDepartureResolvers<ContextType>
   PlannedArrival?: PlannedArrivalResolvers<ContextType>

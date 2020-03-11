@@ -5,6 +5,31 @@ import { gql } from 'apollo-server'
  */
 
 export const Journey = gql`
+  enum TlpRequestType {
+    NORMAL
+    DOOR_CLOSE
+    DOOR_OPEN
+    ADVANCE
+  }
+  enum TlpPriorityLevel {
+    NORMAL
+    HIGH
+    NOREQUEST
+  }
+  enum TlpReason {
+    GLOBAL
+    AHEAD
+    LINE
+    PRIOEXEP
+  }
+  enum TlpDecision {
+    ACK
+    NAK
+  }
+  enum TlpType {
+    TLR
+    TLA
+  }
   type JourneyEvent {
     id: ID!
     type: String!
@@ -83,12 +108,38 @@ export const Journey = gql`
     stop: Stop
     _sort: Int
   }
-
+  type JourneyTlpEvent {
+    id: ID!
+    type: String!
+    requestId: Int
+    requestType: TlpRequestType
+    priorityLevel: TlpPriorityLevel
+    reason: TlpReason
+    attemptSeq: Int
+    decision: TlpDecision
+    junctionId: Int
+    signalGroupId: Int
+    signalGroupNbr: Int
+    lineConfigId: Int
+    pointConfigId: Int
+    frequency: Int
+    protocol: String
+    receivedAt: DateTime!
+    recordedAt: DateTime!
+    recordedAtUnix: Int!
+    recordedTime: Time!
+    nextStopId: String
+    lat: Float
+    lng: Float
+    loc: String
+    _sort: Int
+  }
   union JourneyEventType =
       JourneyEvent
     | JourneyStopEvent
     | JourneyCancellationEvent
     | PlannedStopEvent
+    | JourneyTlpEvent
 
   type VehiclePosition implements Position {
     id: ID!

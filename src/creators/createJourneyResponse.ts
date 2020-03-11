@@ -14,6 +14,7 @@ import {
   JourneyEvent,
   JourneyStopEvent,
   PlannedStopEvent,
+  JourneyTlpEvent,
   Route,
   Scalars,
   Stop,
@@ -51,6 +52,7 @@ import {
   createJourneyEventObject,
   createJourneyStopEventObject,
   createPlannedStopEventObject,
+  createJourneyTlpEventObject,
 } from '../objects/createJourneyEventObject'
 import { createStopObject } from '../objects/createStopObject'
 import moment from 'moment-timezone'
@@ -69,7 +71,12 @@ type JourneyRoute = {
   departures: Departure[]
 }
 
-type EventsType = JourneyStopEvent | JourneyEvent | PlannedStopEvent | JourneyCancellationEvent
+type EventsType =
+  | JourneyStopEvent
+  | JourneyEvent
+  | PlannedStopEvent
+  | JourneyCancellationEvent
+  | JourneyTlpEvent
 
 export type PlannedJourneyData = {
   departures: JoreRouteDepartureData[]
@@ -444,7 +451,12 @@ export async function createJourneyResponse(
   }
 
   // Separate the HFP events into vehicle positions, stop events and the rest of the events.
-  const { vehiclePositions = [], stopEvents = [], otherEvents: events = [] } = journeyEvents
+  const {
+    vehiclePositions = [],
+    stopEvents = [],
+    tlpEvents = [],
+    otherEvents: events = [],
+  } = journeyEvents
 
   let journeyEquipment = null
   const ascVehiclePositions = orderBy(vehiclePositions, 'tsi', 'asc')
@@ -611,9 +623,44 @@ export async function createJourneyResponse(
   // Planned stops should be ordered by stop order.
   const sortedPlannedEvents: PlannedStopEvent[] = orderBy(stopsWithoutEvents, 'index')
 
+  // Create TLP event objects
+  const tlpEventObjects: JourneyTlpEvent[] = tlpEvents.map((event) =>
+    createJourneyTlpEventObject(event)
+  )
+
+  const tlaEvents = tlpEventObjects.filter((event) => event.type === 'TLA')
+  const tlrEvents = tlpEventObjects.filter((event) => event.type === 'TLR')
+
+  tlaEvents.forEach((tlaEvent) => {
+    const matchingTlrEvents = tlrEvents.filter(
+      (tlrEvent) => tlrEvent.requestId === tlaEvent.requestId
+    )
+    if (matchingTlrEvents.length > 0) {
+      // set junctionId of the TLA from one of the corresponding TLR events
+      tlaEvent.junctionId = matchingTlrEvents[0].junctionId
+      if (matchingTlrEvents.length === 1) {
+        matchingTlrEvents[0].decision = tlaEvent.decision
+      }
+      // if more than one TLR corresponds to the TLA, only set the decision of the last TLR
+      if (matchingTlrEvents.length > 1) {
+        const attemptSeqs: number[] = matchingTlrEvents
+          .map((event) => event.attemptSeq!)
+          .filter((attempt) => attempt)
+
+        const lastAttemptSeq = Math.max(...attemptSeqs)
+        const lastTlrAttemptEvent = matchingTlrEvents.find(
+          (event) => event.attemptSeq === lastAttemptSeq
+        )
+        if (lastTlrAttemptEvent) {
+          lastTlrAttemptEvent.decision = tlaEvent.decision
+        }
+      }
+    }
+  })
+
   // Objects with observed data (ie real events) should be ordered by timestamp.
   const sortedJourneyEvents: EventsType[] = orderBy(
-    [...stopEventObjects, ...journeyEventObjects],
+    [...stopEventObjects, ...journeyEventObjects, ...tlrEvents, ...tlaEvents],
     '_sort'
   )
 

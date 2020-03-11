@@ -397,6 +397,7 @@ export type JourneyEventType =
   | JourneyStopEvent
   | JourneyCancellationEvent
   | PlannedStopEvent
+  | JourneyTlpEvent
 
 export type JourneyStopEvent = {
   __typename?: 'JourneyStopEvent'
@@ -426,6 +427,34 @@ export type JourneyStopEvent = {
   loc?: Maybe<Scalars['String']>
   unplannedStop: Scalars['Boolean']
   _isVirtual?: Maybe<Scalars['Boolean']>
+  _sort?: Maybe<Scalars['Int']>
+}
+
+export type JourneyTlpEvent = {
+  __typename?: 'JourneyTlpEvent'
+  id: Scalars['ID']
+  type: Scalars['String']
+  requestId?: Maybe<Scalars['Int']>
+  requestType?: Maybe<TlpRequestType>
+  priorityLevel?: Maybe<TlpPriorityLevel>
+  reason?: Maybe<TlpReason>
+  attemptSeq?: Maybe<Scalars['Int']>
+  decision?: Maybe<TlpDecision>
+  junctionId?: Maybe<Scalars['Int']>
+  signalGroupId?: Maybe<Scalars['Int']>
+  signalGroupNbr?: Maybe<Scalars['Int']>
+  lineConfigId?: Maybe<Scalars['Int']>
+  pointConfigId?: Maybe<Scalars['Int']>
+  frequency?: Maybe<Scalars['Int']>
+  protocol?: Maybe<Scalars['String']>
+  receivedAt: Scalars['DateTime']
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  nextStopId?: Maybe<Scalars['String']>
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  loc?: Maybe<Scalars['String']>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -744,6 +773,36 @@ export type Terminal = Position & {
   stopIds?: Maybe<Array<Scalars['String']>>
   stops?: Maybe<Stop[]>
   modes?: Maybe<Array<Scalars['String']>>
+}
+
+export enum TlpDecision {
+  Ack = 'ACK',
+  Nak = 'NAK',
+}
+
+export enum TlpPriorityLevel {
+  Normal = 'NORMAL',
+  High = 'HIGH',
+  Norequest = 'NOREQUEST',
+}
+
+export enum TlpReason {
+  Global = 'GLOBAL',
+  Ahead = 'AHEAD',
+  Line = 'LINE',
+  Prioexep = 'PRIOEXEP',
+}
+
+export enum TlpRequestType {
+  Normal = 'NORMAL',
+  DoorClose = 'DOOR_CLOSE',
+  DoorOpen = 'DOOR_OPEN',
+  Advance = 'ADVANCE',
+}
+
+export enum TlpType {
+  Tlr = 'TLR',
+  Tla = 'TLA',
 }
 
 export type UiMessage = {
