@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { compact, flatten, get, groupBy, orderBy, uniqBy } from 'lodash'
+import { compact, flatten, get, groupBy, orderBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
 import {
@@ -258,8 +258,8 @@ export async function createDeparturesResponse(
     // Group and validate departures with date chains
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
       departuresWithOrigin,
-      ({ stop_id, day_type, extra_departure, route_id, direction, departure_id }) =>
-        `${route_id}_${direction}_${stop_id}_${day_type}_${departure_id}_${extraDepartureType(
+      ({ origin_stop_id, day_type, extra_departure, route_id, direction, departure_id }) =>
+        `${route_id}_${direction}_${origin_stop_id}_${day_type}_${departure_id}_${extraDepartureType(
           extra_departure
         )}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
@@ -275,7 +275,7 @@ export async function createDeparturesResponse(
     const uniqueDepartureGroups = groupBy(
       validDepartures,
       ({
-        stop_id,
+        origin_stop_id,
         day_type,
         extra_departure,
         route_id,
@@ -283,7 +283,7 @@ export async function createDeparturesResponse(
         origin_hours,
         origin_minutes,
       }) =>
-        `${route_id}_${direction}_${stop_id}_${day_type}_${origin_hours}_${origin_minutes}_${extraDepartureType(
+        `${route_id}_${direction}_${origin_stop_id}_${day_type}_${origin_hours}_${origin_minutes}_${extraDepartureType(
           extra_departure
         )}`
     )
