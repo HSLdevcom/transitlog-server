@@ -658,11 +658,29 @@ export async function createJourneyResponse(
     }
   })
 
-  // Objects with observed data (ie real events) should be ordered by timestamp.
-  const sortedJourneyEvents: EventsType[] = orderBy(
-    [...stopEventObjects, ...journeyEventObjects, ...tlrEvents, ...tlaEvents],
-    '_sort'
-  )
+  // Sort observed (ie real) events by timestamp, but also with additional logic as (old) timestamps do not include milliseconds
+  const sortedJourneyEvents: EventsType[] = [
+    ...stopEventObjects,
+    ...journeyEventObjects,
+    ...tlrEvents,
+    ...tlaEvents,
+  ].sort((eventA, eventB) => {
+    if (eventA._sort && eventB._sort) {
+      const sort = eventA._sort - eventB._sort
+      if (sort === 0) {
+        // order TLA event after TLR
+        if (eventA.type === 'TLA' && eventB.type === 'TLR') {
+          return 1
+        } else {
+          return -1
+        }
+      } else {
+        return sort
+      }
+    } else {
+      return -1
+    }
+  })
 
   // Get the time info from an event.
   const getTimeFromEvent = (event: EventsType): number => {
