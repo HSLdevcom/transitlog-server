@@ -17,3 +17,4 @@ ssh_tunnel.sh
 greylog_dev.sh
 greylog_stage.sh
 greylog_prod.sh
+.vscode/settings.json
