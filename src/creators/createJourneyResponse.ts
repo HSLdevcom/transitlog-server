@@ -91,6 +91,8 @@ const isStopEvent = (event: any): event is PlannedStopEvent | JourneyStopEvent =
 const isTlpEvent = (event: any): event is JourneyTlpEvent =>
   typeof event.requestId !== 'undefined'
 
+const tlpEventRequestId = (event: any): event is JourneyTlpEvent => event.requestId
+
 /**
  * Fetch the journey events and filter out the invalid ones.
  * @param fetcher async function that fetches the journey events
@@ -670,8 +672,16 @@ export async function createJourneyResponse(
   ].sort((eventA, eventB) => {
     if (eventA._sort && eventB._sort) {
       const sort = eventA._sort - eventB._sort
+      // introduce custom ordering logic for events with same timestamp
       if (sort === 0) {
-        if (eventA.type === 'TLA' && eventB.type === 'TLR') {
+        // order TLP events by requestId (if different)
+        if (
+          tlpEventRequestId(eventA) &&
+          tlpEventRequestId(eventB) &&
+          tlpEventRequestId(eventA) !== tlpEventRequestId(eventB)
+        ) {
+          return tlpEventRequestId(eventA) > tlpEventRequestId(eventB) ? 1 : -1
+        } else if (eventA.type === 'TLA' && eventB.type === 'TLR') {
           // order TLA event after TLR
           return 1
         } else if (eventA.type === 'TLR' && eventB.type === 'TLA') {
