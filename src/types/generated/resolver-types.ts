@@ -16,6 +16,7 @@ export type Scalars = {
   Time: any
   VehicleId: any
   PreciseBBox: any
+  Upload: any
   BBox: any
 }
 
@@ -335,6 +336,13 @@ export type ExceptionDay = {
   endTime?: Maybe<Scalars['Time']>
 }
 
+export type File = {
+  __typename?: 'File'
+  filename: Scalars['String']
+  mimetype: Scalars['String']
+  encoding: Scalars['String']
+}
+
 export type Journey = {
   __typename?: 'Journey'
   id: Scalars['ID']
@@ -463,6 +471,20 @@ export type JourneyTlpEvent = {
   _sort?: Maybe<Scalars['Int']>
 }
 
+export type Mutation = {
+  __typename?: 'Mutation'
+  singleUpload: File
+  singleUploadStream: File
+}
+
+export type MutationSingleUploadArgs = {
+  file: Scalars['Upload']
+}
+
+export type MutationSingleUploadStreamArgs = {
+  file: Scalars['Upload']
+}
+
 export type ObservedArrival = {
   __typename?: 'ObservedArrival'
   id: Scalars['ID']
@@ -527,6 +549,7 @@ export type Position = {
 
 export type Query = {
   __typename?: 'Query'
+  uploads?: Maybe<Array<Maybe<File>>>
   equipment: Array<Maybe<Equipment>>
   stop?: Maybe<Stop>
   stops: Array<Maybe<Stop>>
@@ -944,8 +967,9 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Query: ResolverTypeWrapper<{}>
-  EquipmentFilterInput: EquipmentFilterInput
+  File: ResolverTypeWrapper<File>
   String: ResolverTypeWrapper<Scalars['String']>
+  EquipmentFilterInput: EquipmentFilterInput
   Date: ResolverTypeWrapper<Scalars['Date']>
   Equipment: ResolverTypeWrapper<Equipment>
   ID: ResolverTypeWrapper<Scalars['ID']>
@@ -1009,6 +1033,8 @@ export type ResolversTypes = {
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
   UIMessage: ResolverTypeWrapper<UiMessage>
+  Mutation: ResolverTypeWrapper<{}>
+  Upload: ResolverTypeWrapper<Scalars['Upload']>
   TlpType: TlpType
   BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
@@ -1016,8 +1042,9 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Query: {}
-  EquipmentFilterInput: EquipmentFilterInput
+  File: File
   String: Scalars['String']
+  EquipmentFilterInput: EquipmentFilterInput
   Date: Scalars['Date']
   Equipment: Equipment
   ID: Scalars['ID']
@@ -1081,6 +1108,8 @@ export type ResolversParentTypes = {
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
   UIMessage: UiMessage
+  Mutation: {}
+  Upload: Scalars['Upload']
   TlpType: TlpType
   BBox: Scalars['BBox']
 }
@@ -1269,6 +1298,15 @@ export type ExceptionDayResolvers<
   endTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
 }
 
+export type FileResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']
+> = {
+  filename?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  mimetype?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  encoding?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+}
+
 export type JourneyResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Journey'] = ResolversParentTypes['Journey']
@@ -1423,6 +1461,24 @@ export type JourneyTlpEventResolvers<
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
+export type MutationResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']
+> = {
+  singleUpload?: Resolver<
+    ResolversTypes['File'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationSingleUploadArgs, 'file'>
+  >
+  singleUploadStream?: Resolver<
+    ResolversTypes['File'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationSingleUploadStreamArgs, 'file'>
+  >
+}
+
 export type ObservedArrivalResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['ObservedArrival'] = ResolversParentTypes['ObservedArrival']
@@ -1511,6 +1567,7 @@ export type QueryResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']
 > = {
+  uploads?: Resolver<Maybe<Array<Maybe<ResolversTypes['File']>>>, ParentType, ContextType>
   equipment?: Resolver<
     Array<Maybe<ResolversTypes['Equipment']>>,
     ParentType,
@@ -1765,6 +1822,11 @@ export type UiMessageResolvers<
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
+export interface UploadScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['Upload'], any> {
+  name: 'Upload'
+}
+
 export interface VehicleIdScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes['VehicleId'], any> {
   name: 'VehicleId'
@@ -1833,12 +1895,14 @@ export type Resolvers<ContextType = any> = {
   DriverEvent?: DriverEventResolvers<ContextType>
   Equipment?: EquipmentResolvers<ContextType>
   ExceptionDay?: ExceptionDayResolvers<ContextType>
+  File?: FileResolvers<ContextType>
   Journey?: JourneyResolvers<ContextType>
   JourneyCancellationEvent?: JourneyCancellationEventResolvers<ContextType>
   JourneyEvent?: JourneyEventResolvers<ContextType>
   JourneyEventType?: JourneyEventTypeResolvers
   JourneyStopEvent?: JourneyStopEventResolvers<ContextType>
   JourneyTlpEvent?: JourneyTlpEventResolvers<ContextType>
+  Mutation?: MutationResolvers<ContextType>
   ObservedArrival?: ObservedArrivalResolvers<ContextType>
   ObservedDeparture?: ObservedDepartureResolvers<ContextType>
   PlannedArrival?: PlannedArrivalResolvers<ContextType>
@@ -1856,6 +1920,7 @@ export type Resolvers<ContextType = any> = {
   Terminal?: TerminalResolvers<ContextType>
   Time?: GraphQLScalarType
   UIMessage?: UiMessageResolvers<ContextType>
+  Upload?: GraphQLScalarType
   VehicleId?: GraphQLScalarType
   VehicleJourney?: VehicleJourneyResolvers<ContextType>
   VehiclePosition?: VehiclePositionResolvers<ContextType>

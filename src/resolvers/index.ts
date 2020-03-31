@@ -8,7 +8,29 @@ import { DirectionScalar } from './scalars/Direction'
 import { StringIndexed } from '../types/StringIndexed'
 
 export const resolvers: StringIndexed<any> = {
-  Query: queryResolvers,
+  Query: { ...queryResolvers, uploads: (parent, args) => {} },
+  Mutation: {
+    singleUpload: (parent, args) => {
+      return args.file.then((file) => {
+        const { createReadStream, filename, mimetype } = file
+
+        const fileStream = createReadStream()
+        console.log('fileStream', fileStream)
+
+        return file
+      })
+    },
+    singleUploadStream: async (parent, args) => {
+      console.log('parent', parent)
+      console.log('args', args)
+      const file = await args.file
+      console.log('file', file)
+      // const { createReadStream, filename, mimetype } = file
+      // const fileStream = createReadStream()
+
+      return file
+    },
+  },
   Date: DateScalar,
   Time: TimeScalar,
   DateTime: DateTimeScalar,

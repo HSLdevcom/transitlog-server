@@ -19,6 +19,7 @@ export const Schema = gql`
 
   schema {
     query: Query
+    mutation: Mutation
   }
 
   type UIMessage {
@@ -27,6 +28,7 @@ export const Schema = gql`
   }
 
   type Query {
+    uploads: [File]
     equipment(filter: EquipmentFilterInput, date: Date): [Equipment]!
     stop(stopId: String!, date: Date!): Stop
     stops(date: Date, filter: StopFilterInput): [Stop]!
@@ -83,5 +85,16 @@ export const Schema = gql`
     alerts(time: String, language: String!, alertSearch: AlertSearchInput): [Alert!]!
     cancellations(date: Date, cancellationSearch: CancellationSearchInput): [Cancellation!]!
     uiMessage: UIMessage!
+  }
+
+  type File {
+    filename: String!
+    mimetype: String!
+    encoding: String!
+  }
+
+  type Mutation {
+    singleUpload(file: Upload!): File!
+    singleUploadStream(file: Upload!): File!
   }
 `

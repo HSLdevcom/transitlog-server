@@ -12,6 +12,7 @@ export type Scalars = {
   Time: any
   VehicleId: any
   PreciseBBox: any
+  Upload: any
   BBox: any
 }
 
@@ -331,6 +332,13 @@ export type ExceptionDay = {
   endTime?: Maybe<Scalars['Time']>
 }
 
+export type File = {
+  __typename?: 'File'
+  filename: Scalars['String']
+  mimetype: Scalars['String']
+  encoding: Scalars['String']
+}
+
 export type Journey = {
   __typename?: 'Journey'
   id: Scalars['ID']
@@ -459,6 +467,20 @@ export type JourneyTlpEvent = {
   _sort?: Maybe<Scalars['Int']>
 }
 
+export type Mutation = {
+  __typename?: 'Mutation'
+  singleUpload: File
+  singleUploadStream: File
+}
+
+export type MutationSingleUploadArgs = {
+  file: Scalars['Upload']
+}
+
+export type MutationSingleUploadStreamArgs = {
+  file: Scalars['Upload']
+}
+
 export type ObservedArrival = {
   __typename?: 'ObservedArrival'
   id: Scalars['ID']
@@ -523,6 +545,7 @@ export type Position = {
 
 export type Query = {
   __typename?: 'Query'
+  uploads?: Maybe<Array<Maybe<File>>>
   equipment: Array<Maybe<Equipment>>
   stop?: Maybe<Stop>
   stops: Array<Maybe<Stop>>
