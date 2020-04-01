@@ -335,6 +335,13 @@ export type ExceptionDay = {
   endTime?: Maybe<Scalars['Time']>
 }
 
+export type Feedback = {
+  __typename?: 'Feedback'
+  text: Scalars['String']
+  email: Scalars['String']
+  msgTs: Scalars['String']
+}
+
 export type File = {
   __typename?: 'File'
   filename: Scalars['String']
@@ -472,16 +479,19 @@ export type JourneyTlpEvent = {
 
 export type Mutation = {
   __typename?: 'Mutation'
-  singleUpload: File
-  singleUploadStream: File
+  sendFeedback: Feedback
+  uploadFeedbackImage: File
 }
 
-export type MutationSingleUploadArgs = {
-  file: Scalars['Upload']
+export type MutationSendFeedbackArgs = {
+  text: Scalars['String']
+  email: Scalars['String']
+  url: Scalars['String']
 }
 
-export type MutationSingleUploadStreamArgs = {
+export type MutationUploadFeedbackImageArgs = {
   file: Scalars['Upload']
+  msgTs?: Maybe<Scalars['String']>
 }
 
 export type ObservedArrival = {
@@ -1033,6 +1043,7 @@ export type ResolversTypes = {
   CancellationSearchInput: CancellationSearchInput
   UIMessage: ResolverTypeWrapper<UiMessage>
   Mutation: ResolverTypeWrapper<{}>
+  Feedback: ResolverTypeWrapper<Feedback>
   Upload: ResolverTypeWrapper<Scalars['Upload']>
   TlpType: TlpType
   BBox: ResolverTypeWrapper<Scalars['BBox']>
@@ -1108,6 +1119,7 @@ export type ResolversParentTypes = {
   CancellationSearchInput: CancellationSearchInput
   UIMessage: UiMessage
   Mutation: {}
+  Feedback: Feedback
   Upload: Scalars['Upload']
   TlpType: TlpType
   BBox: Scalars['BBox']
@@ -1296,6 +1308,15 @@ export type ExceptionDayResolvers<
   endTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
 }
 
+export type FeedbackResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Feedback'] = ResolversParentTypes['Feedback']
+> = {
+  text?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  msgTs?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+}
+
 export type FileResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']
@@ -1463,17 +1484,17 @@ export type MutationResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']
 > = {
-  singleUpload?: Resolver<
-    ResolversTypes['File'],
+  sendFeedback?: Resolver<
+    ResolversTypes['Feedback'],
     ParentType,
     ContextType,
-    RequireFields<MutationSingleUploadArgs, 'file'>
+    RequireFields<MutationSendFeedbackArgs, 'text' | 'email' | 'url'>
   >
-  singleUploadStream?: Resolver<
+  uploadFeedbackImage?: Resolver<
     ResolversTypes['File'],
     ParentType,
     ContextType,
-    RequireFields<MutationSingleUploadStreamArgs, 'file'>
+    RequireFields<MutationUploadFeedbackImageArgs, 'file'>
   >
 }
 
@@ -1893,6 +1914,7 @@ export type Resolvers<ContextType = any> = {
   DriverEvent?: DriverEventResolvers<ContextType>
   Equipment?: EquipmentResolvers<ContextType>
   ExceptionDay?: ExceptionDayResolvers<ContextType>
+  Feedback?: FeedbackResolvers<ContextType>
   File?: FileResolvers<ContextType>
   Journey?: JourneyResolvers<ContextType>
   JourneyCancellationEvent?: JourneyCancellationEventResolvers<ContextType>

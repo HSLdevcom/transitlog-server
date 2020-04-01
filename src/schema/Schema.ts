@@ -93,8 +93,14 @@ export const Schema = gql`
     encoding: String!
   }
 
+  type Feedback {
+    text: String!
+    email: String!
+    msgTs: String!
+  }
+
   type Mutation {
-    singleUpload(file: Upload!): File!
-    singleUploadStream(file: Upload!): File!
+    sendFeedback(text: String!, email: String!, url: String!): Feedback!
+    uploadFeedbackImage(file: Upload!, msgTs: String): File!
   }
 `

@@ -331,6 +331,13 @@ export type ExceptionDay = {
   endTime?: Maybe<Scalars['Time']>
 }
 
+export type Feedback = {
+  __typename?: 'Feedback'
+  text: Scalars['String']
+  email: Scalars['String']
+  msgTs: Scalars['String']
+}
+
 export type File = {
   __typename?: 'File'
   filename: Scalars['String']
@@ -468,16 +475,19 @@ export type JourneyTlpEvent = {
 
 export type Mutation = {
   __typename?: 'Mutation'
-  singleUpload: File
-  singleUploadStream: File
+  sendFeedback: Feedback
+  uploadFeedbackImage: File
 }
 
-export type MutationSingleUploadArgs = {
-  file: Scalars['Upload']
+export type MutationSendFeedbackArgs = {
+  text: Scalars['String']
+  email: Scalars['String']
+  url: Scalars['String']
 }
 
-export type MutationSingleUploadStreamArgs = {
+export type MutationUploadFeedbackImageArgs = {
   file: Scalars['Upload']
+  msgTs?: Maybe<Scalars['String']>
 }
 
 export type ObservedArrival = {
