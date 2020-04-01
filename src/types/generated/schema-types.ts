@@ -248,6 +248,7 @@ export type Departure = {
   observedArrivalTime?: Maybe<ObservedArrival>
   plannedDepartureTime: PlannedDeparture
   observedDepartureTime?: Maybe<ObservedDeparture>
+  _normalDayType?: Maybe<Scalars['String']>
 }
 
 export type DepartureFilterInput = {

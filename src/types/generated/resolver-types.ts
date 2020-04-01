@@ -252,6 +252,7 @@ export type Departure = {
   observedArrivalTime?: Maybe<ObservedArrival>
   plannedDepartureTime: PlannedDeparture
   observedDepartureTime?: Maybe<ObservedDeparture>
+  _normalDayType?: Maybe<Scalars['String']>
 }
 
 export type DepartureFilterInput = {
@@ -1185,6 +1186,7 @@ export type DepartureResolvers<
     ParentType,
     ContextType
   >
+  _normalDayType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
 export type DepartureJourneyResolvers<

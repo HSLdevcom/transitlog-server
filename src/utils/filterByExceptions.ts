@@ -46,7 +46,12 @@ export const filterByExceptions = (
           )
 
           if (departuresForDayType.length !== 0) {
-            departuresForDate = departuresForDayType
+            departuresForDate = departuresForDayType.map((departure) => {
+              // The departure will be of an abnormal type, so add the normal dayType here
+              // in order to match observed events with this departure.
+              departure._normalDayType = exception.dayType
+              return departure
+            })
             break
           }
         }
