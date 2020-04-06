@@ -79,3 +79,10 @@ export const REDIS_SSL: boolean = secretsEnv.REDIS_SSL === 'true'
 export const DISABLE_CACHE = secretsEnv.DISABLE_CACHE === 'true'
 export const COOKIE_SECRET = secretsEnv.COOKIE_SECRET
 export const SECURE_COOKIE = secretsEnv.SECURE_COOKIE === 'true'
+
+// SLACK API
+export const SLACK_API_KEY = secretsEnv.SLACK_API_KEY
+
+// AZURE BLOB STORAGE IN TRANSITLOG-DEV (FOR SHARING FEEDBACK ATTACHMENTS)
+export const AZURE_FEEDBACK_BLOB_CONN = secretsEnv.AZURE_FEEDBACK_BLOB_CONN
+export const AZURE_FEEDBACK_BLOB_SAS = secretsEnv.AZURE_FEEDBACK_BLOB_SAS

@@ -1,10 +1,13 @@
 import { v4 as uuidv4 } from 'uuid'
 import { BlobServiceClient } from '@azure/storage-blob'
 import { WebClient, MessageAttachment } from '@slack/web-api'
+import {
+  SLACK_API_KEY,
+  AZURE_FEEDBACK_BLOB_CONN,
+  AZURE_FEEDBACK_BLOB_SAS,
+} from './../constants'
 
-const slack = new WebClient(process.env.SLACK_API_KEY)
-const azureStorageConn: any = process.env.AZURE_FEEDBACK_BLOB_CONN
-const azureBlobSas: any = process.env.AZURE_FEEDBACK_BLOB_SAS
+const slack = new WebClient(SLACK_API_KEY)
 
 export const mutationResolvers = {
   sendFeedback: async (parent, args) => {
@@ -27,13 +30,17 @@ export const mutationResolvers = {
 
     // upload image to azure blob
     const blobName = uuidv4() + '.' + filename.split('.').pop()
-    const blobServiceClient = await BlobServiceClient.fromConnectionString(azureStorageConn)
+    const blobServiceClient = await BlobServiceClient.fromConnectionString(
+      AZURE_FEEDBACK_BLOB_CONN
+    )
     const container = blobServiceClient.getContainerClient('feedback-images')
     const blockBlob = container.getBlockBlobClient(blobName)
     blockBlob.uploadStream(createReadStream())
 
     const downloadUrl =
-      'https://feedbackfiles.blob.core.windows.net/feedback-images/' + blobName + azureBlobSas
+      'https://feedbackfiles.blob.core.windows.net/feedback-images/' +
+      blobName +
+      AZURE_FEEDBACK_BLOB_SAS
 
     // post download link to slack
     const downloadLink = '<' + downloadUrl + `|download attached image: ${filename}>`
