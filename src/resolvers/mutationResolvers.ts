@@ -2,13 +2,13 @@ import { v4 as uuidv4 } from 'uuid'
 import { BlobServiceClient } from '@azure/storage-blob'
 import { WebClient, MessageAttachment } from '@slack/web-api'
 import {
-  SLACK_API_KEY,
+  SLACK_TOKEN_FEEDBACK,
   AZURE_FEEDBACK_BLOB_CONN,
   AZURE_FEEDBACK_BLOB_SAS,
 } from './../constants'
 import { ApolloError } from 'apollo-server'
 
-const slack = new WebClient(SLACK_API_KEY)
+const slack = new WebClient(SLACK_TOKEN_FEEDBACK)
 
 const isImageFile = (mimetype): boolean => {
   if (!mimetype.includes('/') || mimetype.split('/')[0] !== 'image') {
