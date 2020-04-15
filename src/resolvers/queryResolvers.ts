@@ -167,6 +167,7 @@ const routeDepartures = async (
   { dataSources, user, skipCache }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
+
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   const getDepartures = () =>
