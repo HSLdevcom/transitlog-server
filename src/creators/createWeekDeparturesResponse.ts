@@ -63,7 +63,7 @@ const combineDeparturesAndEvents = (
   const departuresWithEvents: Departure[] = departures.map((departure) => {
     let plannedDate = ''
     let originDepartureTime = ''
-    const dayType = departure?.dayType || ''
+    const dayType = departure?._normalDayType || departure?.dayType || ''
 
     if (lastStopArrival) {
       plannedDate = get(departure, 'plannedArrivalTime.arrivalDate', null)

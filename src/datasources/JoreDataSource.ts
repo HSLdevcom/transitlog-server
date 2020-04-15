@@ -829,10 +829,12 @@ WHERE departure.stop_id = :stopId
   }
 
   async getDayTypesForDateAndRoute(date: string, routeId: string): Promise<string[]> {
-    const routeType = await this.getTypeOfRoute(routeId, date)
+    const routeTypeScope = await this.getTypeOfRoute(routeId, date)
     const exceptionTypesScoped = await this.getDayTypesForDate(date)
 
-    const exceptionTypesForScope = (!!routeType ? exceptionTypesScoped[routeType] : []) || []
+    const exceptionTypesForScope =
+      (!!routeTypeScope ? exceptionTypesScoped[routeTypeScope] : []) || []
+
     const exceptionTypesForAll = exceptionTypesScoped.all || []
 
     // If there are no scoped replacement days, also include the normal day type.

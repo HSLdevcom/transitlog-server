@@ -85,6 +85,7 @@ export const Departure = gql`
     observedArrivalTime: ObservedArrival
     plannedDepartureTime: PlannedDeparture!
     observedDepartureTime: ObservedDeparture
+    _normalDayType: String
   }
 
   input DepartureFilterInput {
