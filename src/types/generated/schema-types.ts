@@ -12,6 +12,7 @@ export type Scalars = {
   Time: any
   VehicleId: any
   PreciseBBox: any
+  Upload: any
   BBox: any
 }
 
@@ -248,6 +249,7 @@ export type Departure = {
   observedArrivalTime?: Maybe<ObservedArrival>
   plannedDepartureTime: PlannedDeparture
   observedDepartureTime?: Maybe<ObservedDeparture>
+  _normalDayType?: Maybe<Scalars['String']>
 }
 
 export type DepartureFilterInput = {
@@ -328,6 +330,20 @@ export type ExceptionDay = {
   exclusive: Scalars['Boolean']
   startTime?: Maybe<Scalars['Time']>
   endTime?: Maybe<Scalars['Time']>
+}
+
+export type Feedback = {
+  __typename?: 'Feedback'
+  text: Scalars['String']
+  email: Scalars['String']
+  msgTs: Scalars['String']
+}
+
+export type File = {
+  __typename?: 'File'
+  filename: Scalars['String']
+  mimetype: Scalars['String']
+  encoding: Scalars['String']
 }
 
 export type Journey = {
@@ -458,6 +474,23 @@ export type JourneyTlpEvent = {
   _sort?: Maybe<Scalars['Int']>
 }
 
+export type Mutation = {
+  __typename?: 'Mutation'
+  sendFeedback: Feedback
+  uploadFeedbackImage: File
+}
+
+export type MutationSendFeedbackArgs = {
+  text: Scalars['String']
+  email: Scalars['String']
+  url: Scalars['String']
+}
+
+export type MutationUploadFeedbackImageArgs = {
+  file: Scalars['Upload']
+  msgTs?: Maybe<Scalars['String']>
+}
+
 export type ObservedArrival = {
   __typename?: 'ObservedArrival'
   id: Scalars['ID']
@@ -522,6 +555,7 @@ export type Position = {
 
 export type Query = {
   __typename?: 'Query'
+  uploads?: Maybe<Array<Maybe<File>>>
   equipment: Array<Maybe<Equipment>>
   stop?: Maybe<Stop>
   stops: Array<Maybe<Stop>>

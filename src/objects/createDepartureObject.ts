@@ -23,6 +23,7 @@ import { Vehicles } from '../types/EventsDb'
 import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { extraDepartureType } from '../utils/extraDepartureType'
+import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 
 function createJoreDepartureId(departure: JoreDeparture, date) {
   return `${departure.route_id}_${departure.direction}_${doubleDigit(
@@ -122,6 +123,9 @@ export function createPlannedDepartureObject(
 
   const plannedArrivalTime = createPlannedArrivalTimeObject(departure, departureDate)
   const plannedDepartureTime = createPlannedDepartureTimeObject(departure, departureDate)
+  const normalDepartureDayType = dayTypes.includes(departure.day_type)
+    ? departure.day_type
+    : getDayTypeFromDate(departureDate)
 
   return {
     id: prefix + '/' + departureId,
@@ -155,5 +159,6 @@ export function createPlannedDepartureObject(
       : null,
     plannedArrivalTime,
     plannedDepartureTime,
+    _normalDayType: normalDepartureDayType, // If there are dayType exceptions, set the normal dayType of the date here.
   }
 }

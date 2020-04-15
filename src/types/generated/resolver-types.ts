@@ -16,6 +16,7 @@ export type Scalars = {
   Time: any
   VehicleId: any
   PreciseBBox: any
+  Upload: any
   BBox: any
 }
 
@@ -252,6 +253,7 @@ export type Departure = {
   observedArrivalTime?: Maybe<ObservedArrival>
   plannedDepartureTime: PlannedDeparture
   observedDepartureTime?: Maybe<ObservedDeparture>
+  _normalDayType?: Maybe<Scalars['String']>
 }
 
 export type DepartureFilterInput = {
@@ -332,6 +334,20 @@ export type ExceptionDay = {
   exclusive: Scalars['Boolean']
   startTime?: Maybe<Scalars['Time']>
   endTime?: Maybe<Scalars['Time']>
+}
+
+export type Feedback = {
+  __typename?: 'Feedback'
+  text: Scalars['String']
+  email: Scalars['String']
+  msgTs: Scalars['String']
+}
+
+export type File = {
+  __typename?: 'File'
+  filename: Scalars['String']
+  mimetype: Scalars['String']
+  encoding: Scalars['String']
 }
 
 export type Journey = {
@@ -462,6 +478,23 @@ export type JourneyTlpEvent = {
   _sort?: Maybe<Scalars['Int']>
 }
 
+export type Mutation = {
+  __typename?: 'Mutation'
+  sendFeedback: Feedback
+  uploadFeedbackImage: File
+}
+
+export type MutationSendFeedbackArgs = {
+  text: Scalars['String']
+  email: Scalars['String']
+  url: Scalars['String']
+}
+
+export type MutationUploadFeedbackImageArgs = {
+  file: Scalars['Upload']
+  msgTs?: Maybe<Scalars['String']>
+}
+
 export type ObservedArrival = {
   __typename?: 'ObservedArrival'
   id: Scalars['ID']
@@ -526,6 +559,7 @@ export type Position = {
 
 export type Query = {
   __typename?: 'Query'
+  uploads?: Maybe<Array<Maybe<File>>>
   equipment: Array<Maybe<Equipment>>
   stop?: Maybe<Stop>
   stops: Array<Maybe<Stop>>
@@ -943,8 +977,9 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Query: ResolverTypeWrapper<{}>
-  EquipmentFilterInput: EquipmentFilterInput
+  File: ResolverTypeWrapper<File>
   String: ResolverTypeWrapper<Scalars['String']>
+  EquipmentFilterInput: EquipmentFilterInput
   Date: ResolverTypeWrapper<Scalars['Date']>
   Equipment: ResolverTypeWrapper<Equipment>
   ID: ResolverTypeWrapper<Scalars['ID']>
@@ -1008,6 +1043,9 @@ export type ResolversTypes = {
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
   UIMessage: ResolverTypeWrapper<UiMessage>
+  Mutation: ResolverTypeWrapper<{}>
+  Feedback: ResolverTypeWrapper<Feedback>
+  Upload: ResolverTypeWrapper<Scalars['Upload']>
   TlpType: TlpType
   BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
@@ -1015,8 +1053,9 @@ export type ResolversTypes = {
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Query: {}
-  EquipmentFilterInput: EquipmentFilterInput
+  File: File
   String: Scalars['String']
+  EquipmentFilterInput: EquipmentFilterInput
   Date: Scalars['Date']
   Equipment: Equipment
   ID: Scalars['ID']
@@ -1080,6 +1119,9 @@ export type ResolversParentTypes = {
   AlertSearchInput: AlertSearchInput
   CancellationSearchInput: CancellationSearchInput
   UIMessage: UiMessage
+  Mutation: {}
+  Feedback: Feedback
+  Upload: Scalars['Upload']
   TlpType: TlpType
   BBox: Scalars['BBox']
 }
@@ -1185,6 +1227,7 @@ export type DepartureResolvers<
     ParentType,
     ContextType
   >
+  _normalDayType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
 export type DepartureJourneyResolvers<
@@ -1265,6 +1308,24 @@ export type ExceptionDayResolvers<
   exclusive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   startTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
   endTime?: Resolver<Maybe<ResolversTypes['Time']>, ParentType, ContextType>
+}
+
+export type FeedbackResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Feedback'] = ResolversParentTypes['Feedback']
+> = {
+  text?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  msgTs?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+}
+
+export type FileResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']
+> = {
+  filename?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  mimetype?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  encoding?: Resolver<ResolversTypes['String'], ParentType, ContextType>
 }
 
 export type JourneyResolvers<
@@ -1421,6 +1482,24 @@ export type JourneyTlpEventResolvers<
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
+export type MutationResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']
+> = {
+  sendFeedback?: Resolver<
+    ResolversTypes['Feedback'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationSendFeedbackArgs, 'text' | 'email' | 'url'>
+  >
+  uploadFeedbackImage?: Resolver<
+    ResolversTypes['File'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationUploadFeedbackImageArgs, 'file'>
+  >
+}
+
 export type ObservedArrivalResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['ObservedArrival'] = ResolversParentTypes['ObservedArrival']
@@ -1509,6 +1588,7 @@ export type QueryResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']
 > = {
+  uploads?: Resolver<Maybe<Array<Maybe<ResolversTypes['File']>>>, ParentType, ContextType>
   equipment?: Resolver<
     Array<Maybe<ResolversTypes['Equipment']>>,
     ParentType,
@@ -1763,6 +1843,11 @@ export type UiMessageResolvers<
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
+export interface UploadScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['Upload'], any> {
+  name: 'Upload'
+}
+
 export interface VehicleIdScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes['VehicleId'], any> {
   name: 'VehicleId'
@@ -1831,12 +1916,15 @@ export type Resolvers<ContextType = any> = {
   DriverEvent?: DriverEventResolvers<ContextType>
   Equipment?: EquipmentResolvers<ContextType>
   ExceptionDay?: ExceptionDayResolvers<ContextType>
+  Feedback?: FeedbackResolvers<ContextType>
+  File?: FileResolvers<ContextType>
   Journey?: JourneyResolvers<ContextType>
   JourneyCancellationEvent?: JourneyCancellationEventResolvers<ContextType>
   JourneyEvent?: JourneyEventResolvers<ContextType>
   JourneyEventType?: JourneyEventTypeResolvers
   JourneyStopEvent?: JourneyStopEventResolvers<ContextType>
   JourneyTlpEvent?: JourneyTlpEventResolvers<ContextType>
+  Mutation?: MutationResolvers<ContextType>
   ObservedArrival?: ObservedArrivalResolvers<ContextType>
   ObservedDeparture?: ObservedDepartureResolvers<ContextType>
   PlannedArrival?: PlannedArrivalResolvers<ContextType>
@@ -1854,6 +1942,7 @@ export type Resolvers<ContextType = any> = {
   Terminal?: TerminalResolvers<ContextType>
   Time?: GraphQLScalarType
   UIMessage?: UiMessageResolvers<ContextType>
+  Upload?: GraphQLScalarType
   VehicleId?: GraphQLScalarType
   VehicleJourney?: VehicleJourneyResolvers<ContextType>
   VehiclePosition?: VehiclePositionResolvers<ContextType>

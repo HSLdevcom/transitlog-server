@@ -113,11 +113,16 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
 
 // Link observed events to departures. Events are ultimately grouped by vehicle ID
 // to separate the "instances" of the journey.
-export const combineDeparturesAndEvents = (departures, events, date): Departure[] => {
+export const combineDeparturesAndEvents = (
+  departures: Departure[],
+  events,
+  date,
+  exceptions?: ExceptionDay[]
+): Departure[] => {
   // Index events by day type and journey start time, so that we don't need to filter
   // through all events on each iteration of the departures loop.
   const groupedEvents = events.reduce((eventsMap, event) => {
-    const eventDayType = getDayTypeFromDate(event.oday)
+    const eventDayType = getDayTypeFromDate(event.oday, exceptions)
     const eventStopId = event.stop
     const journeyStartTime = getJourneyStartTime(event)
 
@@ -152,7 +157,7 @@ export const combineDeparturesAndEvents = (departures, events, date): Departure[
       return [departure]
     }
 
-    const dayType = departure?.dayType || ''
+    const dayType = departure?._normalDayType || departure?.dayType || ''
     const stopId = departure?.stopId || ''
     const routeId = departure?.routeId || ''
     const direction = getDirection(departure?.direction || '')
@@ -386,7 +391,8 @@ export async function createDeparturesResponse(
     departuresWithEvents = combineDeparturesAndEvents(
       departuresWithAlerts,
       departureEvents,
-      date
+      date,
+      exceptions
     )
   }
 

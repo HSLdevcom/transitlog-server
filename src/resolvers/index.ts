@@ -1,4 +1,5 @@
 import { queryResolvers } from './queryResolvers'
+import { mutationResolvers } from './mutationResolvers'
 import { DateScalar } from './scalars/Date'
 import { TimeScalar } from './scalars/Time'
 import { DateTimeScalar } from './scalars/DateTime'
@@ -8,7 +9,8 @@ import { DirectionScalar } from './scalars/Direction'
 import { StringIndexed } from '../types/StringIndexed'
 
 export const resolvers: StringIndexed<any> = {
-  Query: queryResolvers,
+  Query: { ...queryResolvers, uploads: (parent, args) => {} },
+  Mutation: mutationResolvers,
   Date: DateScalar,
   Time: TimeScalar,
   DateTime: DateTimeScalar,

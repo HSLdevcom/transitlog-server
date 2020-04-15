@@ -162,7 +162,8 @@ export async function createRouteDeparturesResponse(
   const routeDepartures = combineDeparturesAndEvents(
     departuresWithCancellations,
     departureEvents,
-    date
+    date,
+    exceptions
   )
 
   if (!routeDepartures || routeDepartures.length === 0) {
