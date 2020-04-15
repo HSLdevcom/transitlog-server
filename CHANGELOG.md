@@ -1,5 +1,11 @@
 # Transitlog server changelog
 
+## Version 1.9.0, deployed 2020-04-15 @ 08:00
+
+- New feedback feature which posts to Slack with image upload.
+- Order TLP events by requestId.
+- Fix departure replacement days not being matched with HFP events in some cases.
+
 ## Version 1.8.2, deployed 2020-03-06 @ 08:00
 
 - Use health check in Docker Swarm.
