@@ -566,7 +566,8 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
 
   originDepartureQueryFragment = `
 LEFT JOIN LATERAL (
-  SELECT originstop_id
+  SELECT originstop_id,
+         route.type
   FROM jore.route route
   WHERE route.route_id = departure.route_id
     AND route.direction = departure.direction
@@ -600,6 +601,7 @@ LEFT JOIN LATERAL (
     const query = this.db.raw(
       `
       SELECT ${this.departureFields},
+            route.type,
             origin_departure.stop_id as origin_stop_id,
             origin_departure.hours as origin_hours,
             origin_departure.minutes as origin_minutes,
