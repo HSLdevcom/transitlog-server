@@ -18,7 +18,7 @@ const AdminView = ({ adminPath, settings }) => {
         If the cache contains old data you may clear the whole cache here. Remember that this
         will result in some queries taking longer due to being fetched from the DB.
       </p>
-      <form method="post" action={join(adminPath, 'set-ui-message')}>
+      <form method="post" action={join(adminPath, 'clear-cache')}>
         <input type="submit" value="Clear cache" />
       </form>
     </>

@@ -24,7 +24,6 @@ export async function getRedis() {
   })
 
   await redisClient.connect()
-
   return redisClient
 }
 

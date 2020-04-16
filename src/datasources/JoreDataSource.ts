@@ -308,9 +308,7 @@ export class JoreDataSource extends SQLDataSource {
 
   async getRouteSegments(
     routeId: string,
-    direction: Scalars['Direction'],
-    dateBegin?: string,
-    dateEnd?: string
+    direction: Scalars['Direction']
   ): Promise<JoreRouteData[]> {
     const query = this.db.raw(
       `select route.route_id,
@@ -339,20 +337,10 @@ export class JoreDataSource extends SQLDataSource {
        stop.short_id,
        stop.name_fi,
        stop.stop_radius
-FROM jore.route route,
-     jore.route_route_segments(route) route_segment
-LEFT OUTER JOIN jore.stop stop ON stop.stop_id = route_segment.stop_id
-WHERE route.route_id = :routeId AND route.direction = :direction ${
-        dateBegin && dateEnd
-          ? this.db.raw(
-              `AND route.date_begin = :dateBegin AND route.date_end = :dateEnd LIMIT 1`,
-              {
-                dateBegin,
-                dateEnd,
-              }
-            )
-          : ''
-      };`,
+FROM jore.route_segment route_segment
+        LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
+        LEFT JOIN jore.stop stop USING (stop_id)
+WHERE route_segment.route_id = :routeId AND route_segment.direction = :direction;`,
       { routeId, direction: direction + '' }
     )
 
@@ -405,51 +393,8 @@ ORDER BY departure.departure_id ASC,
     return this.getBatched(query)
   }
 
-  async getJourneyStops(routeId, direction, date): Promise<JoreStopSegment[]> {
-    if (!routeId || !direction || !date) {
-      return []
-    }
-
-    const query = this.db.raw(
-      `
-        SELECT stop.stop_id,
-               stop.lat,
-               stop.lon,
-               stop.short_id,
-               stop.name_fi,
-               stop.stop_radius,
-               stop.stop_type,
-               route_segment.date_begin,
-               route_segment.date_end,
-               route_segment.date_modified,
-               route_segment.destination_fi,
-               route_segment.distance_from_previous,
-               route_segment.distance_from_start,
-               route_segment.duration,
-               route_segment.route_id,
-               route_segment.direction,
-               route_segment.stop_index,
-               route_segment.next_stop_id,
-               route_segment.timing_stop_type,
-               route.originstop_id,
-               route.destination_fi,
-               route.origin_fi,
-               route.route_length,
-               route.name_fi as route_name,
-               jore.route_mode(route) as mode
-        FROM jore.route_segment route_segment
-             LEFT JOIN jore.stop stop USING (stop_id)
-             LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
-        WHERE route_segment.route_id = :routeId
-          AND route_segment.direction = :direction;`,
-      { routeId, direction: direction + '', date }
-    )
-
-    return this.getBatched(query)
-  }
-
   async getDepartureData(routeId, direction, date): Promise<PlannedJourneyData> {
-    const stopsPromise = this.getJourneyStops(routeId, direction, date)
+    const stopsPromise = this.getRouteSegments(routeId, direction)
     const departuresPromise = this.getJourneyDepartures(routeId, direction, date)
 
     const [stops = [], departures = []] = await Promise.all([stopsPromise, departuresPromise])

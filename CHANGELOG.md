@@ -1,5 +1,10 @@
 # Transitlog server changelog
 
+## Version 1.9.1, deployed 2020-04-16 @ 15:00
+
+- Fix route segments filter to remove invalid stops.
+- Fix admin clear cache button.
+
 ## Version 1.9.0, deployed 2020-04-15 @ 08:00
 
 - New feedback feature which posts to Slack with image upload.
