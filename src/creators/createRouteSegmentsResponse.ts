@@ -10,7 +10,7 @@ import { requireUser } from '../auth/requireUser'
 // invalid even though the stop itself is still valid. This is because
 // our JORE database never removes records, and sometimes invalid items
 // persist. Anything before the origin stop or after the destination stop is removed.
-function trimRouteSegments(routeSegments: JoreRouteData[]) {
+export function trimRouteSegments(routeSegments: JoreRouteData[]) {
   // Remove all stops before the originstop_id.
   // Remove all stops after the first encountered stop with a null next_stop_id. This means that the route has ended.
   let filteredSegments = routeSegments.reduce((routeChain: JoreRouteData[], routeStop) => {
