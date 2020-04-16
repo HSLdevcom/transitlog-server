@@ -28,7 +28,7 @@
     "no-shadowed-variable": false,
     "no-empty": false,
     "prefer-conditional-expression": false,
-    "prefer-const": [true, { "destructuring": "all" }],
+    "prefer-const": false,
     "member-ordering": false,
     "prettier": [true, ".prettierrc"]
   }

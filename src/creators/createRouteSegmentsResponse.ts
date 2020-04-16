@@ -1,29 +1,37 @@
-import { groupBy, sortBy, get } from 'lodash'
+import { groupBy, sortBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreRouteData } from '../types/Jore'
 import { cacheFetch } from '../cache'
-import { Scalars, RouteSegment } from '../types/generated/schema-types'
+import { RouteSegment, Scalars } from '../types/generated/schema-types'
 import { createRouteSegmentObject } from '../objects/createRouteSegmentObject'
 import { requireUser } from '../auth/requireUser'
 
-// Filter out any additional stops from the start or end of the route that may be
-// invalid even though the stop itself is still valid. This is because our JORE
-// database never removes records, and sometimes invalid items persist. Anything
-// before the true origin stop or after the true destination stop is removed.
+// Filter out any additional stops from the start and end of the route that may be
+// invalid even though the stop itself is still valid. This is because
+// our JORE database never removes records, and sometimes invalid items
+// persist. Anything before the origin stop or after the destination stop is removed.
 function trimRouteSegments(routeSegments: JoreRouteData[]) {
-  let trimmedSegments = routeSegments
+  // Remove all stops after the first encountered stop with a null next_stop_id.
+  // This means that the route has ended.
+  let filteredSegments = routeSegments.reduce((routeChain: JoreRouteData[], routeStop) => {
+    if (
+      // Only add the first stop if it matches the originstop_id.
+      (routeChain.length === 0 && routeStop.originstop_id === routeStop.stop_id) ||
+      // Otherwise add stops until the last stop in the chain has a null next_stop_id.
+      !!routeChain[routeChain.length - 1].next_stop_id
+    ) {
+      routeChain.push(routeStop)
+    }
 
-  const { destinationstop_id = '' } = trimmedSegments[0] || {}
+    return routeChain
+  }, [])
 
-  const realLastStopIndex = trimmedSegments.findIndex(
-    (rs) => rs.stop_id === destinationstop_id
-  )
-
-  if (realLastStopIndex !== -1) {
-    trimmedSegments = trimmedSegments.slice(0, realLastStopIndex + 1)
+  if (filteredSegments.length !== 0) {
+    return filteredSegments
   }
 
-  return trimmedSegments
+  // If the filter left the segments array empty, just return the original segments.
+  return routeSegments
 }
 
 export async function createRouteSegmentsResponse(
@@ -37,8 +45,8 @@ export async function createRouteSegmentsResponse(
   skipCache = false
 ): Promise<RouteSegment[]> {
   const fetchAndValidate = async () => {
-    const routes = await getRouteSegments()
-    const validRoutes = filterByDateChains<JoreRouteData>(groupBy(routes, 'stop_index'), date)
+    let routes = await getRouteSegments()
+    let validRoutes = filterByDateChains<JoreRouteData>(groupBy(routes, 'stop_index'), date)
 
     if (!validRoutes || validRoutes.length === 0) {
       return false
@@ -47,11 +55,6 @@ export async function createRouteSegmentsResponse(
     // Sorted by the order of the stops in the journey.
     let routeSegments: JoreRouteData[] = sortBy(validRoutes, 'stop_index')
     routeSegments = trimRouteSegments(routeSegments)
-
-    const alerts = await getAlerts(date, {
-      allStops: true,
-      stop: true,
-    })
 
     const cancellations = await getCancellations(
       date,
@@ -69,13 +72,9 @@ export async function createRouteSegmentsResponse(
     // the stops, since stops are otherwise oblivious to route-specific things.
     return routeSegments.map(
       (routeSegment): RouteSegment => {
-        const segmentAlerts = alerts.filter(
-          (alert) => alert.affectedId === routeSegment.stop_id
-        )
-
         // Merge the route segment and the stop data, picking what we need from the segment and
         // the stop. What we really need from the segment is the timing stop type and the stop index.
-        return createRouteSegmentObject(routeSegment, null, segmentAlerts, cancellations)
+        return createRouteSegmentObject(routeSegment, null, [], cancellations)
       }
     )
   }

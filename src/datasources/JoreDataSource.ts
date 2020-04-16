@@ -308,9 +308,7 @@ export class JoreDataSource extends SQLDataSource {
 
   async getRouteSegments(
     routeId: string,
-    direction: Scalars['Direction'],
-    dateBegin?: string,
-    dateEnd?: string
+    direction: Scalars['Direction']
   ): Promise<JoreRouteData[]> {
     const query = this.db.raw(
       `select route.route_id,
@@ -339,20 +337,10 @@ export class JoreDataSource extends SQLDataSource {
        stop.short_id,
        stop.name_fi,
        stop.stop_radius
-FROM jore.route route,
-     jore.route_route_segments(route) route_segment
-LEFT OUTER JOIN jore.stop stop ON stop.stop_id = route_segment.stop_id
-WHERE route.route_id = :routeId AND route.direction = :direction ${
-        dateBegin && dateEnd
-          ? this.db.raw(
-              `AND route.date_begin = :dateBegin AND route.date_end = :dateEnd LIMIT 1`,
-              {
-                dateBegin,
-                dateEnd,
-              }
-            )
-          : ''
-      };`,
+FROM jore.route_segment route_segment
+        LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
+        LEFT JOIN jore.stop stop USING (stop_id)
+WHERE route_segment.route_id = :routeId AND route_segment.direction = :direction;`,
       { routeId, direction: direction + '' }
     )
 
