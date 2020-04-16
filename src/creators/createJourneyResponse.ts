@@ -13,8 +13,8 @@ import {
   JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
-  PlannedStopEvent,
   JourneyTlpEvent,
+  PlannedStopEvent,
   Route,
   Scalars,
   Stop,
@@ -51,8 +51,8 @@ import {
   createJourneyCancellationEventObject,
   createJourneyEventObject,
   createJourneyStopEventObject,
-  createPlannedStopEventObject,
   createJourneyTlpEventObject,
+  createPlannedStopEventObject,
 } from '../objects/createJourneyEventObject'
 import { createStopObject } from '../objects/createStopObject'
 import moment from 'moment-timezone'
@@ -65,6 +65,7 @@ import { intval } from '../utils/isWithinRange'
 import { toLatLng } from '../geometry/LatLng'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
+import { trimRouteSegments } from './createRouteSegmentsResponse'
 
 type JourneyRoute = {
   route: Route | null
@@ -163,13 +164,17 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   // the version of the stop that was in effect at the time of the departure.
   const stopSegmentGroups = groupBy(stops, 'stop_index')
   const validStops = filterByDateChains<JoreStopSegment>(stopSegmentGroups, date)
+  // Sorted by the order of the stops in the journey.
+  let routeStops: JoreStopSegment[] = orderBy(validStops, 'stop_index', 'asc')
+  // Trim stops to only contain ACTUALLY valid stops.
+  routeStops = trimRouteSegments(routeStops)
 
-  const firstStop = validStops.find((stop) => stop.stop_index === 1)
+  const firstStop = routeStops.find((stop) => stop.stop_index === 1)
 
   // A stop segment contains all necessary info for the route
   let journeyRoute = createRouteObject(!firstStop ? stops[0] : firstStop)
 
-  if (validStops.length === 0) {
+  if (routeStops.length === 0) {
     return { route: journeyRoute, departures: [] }
   }
 
@@ -193,10 +198,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     return { route: journeyRoute, departures: [] }
   }
 
-  const orderedStops = orderBy(validStops, 'stop_index', 'asc')
-
-  const plannedDuration = get(last(orderedStops), 'duration', 0)
-  journeyRoute = createRouteObject(orderedStops[0], [], plannedDuration)
+  const plannedDuration = get(last(routeStops), 'duration', 0)
+  journeyRoute = createRouteObject(routeStops[0], [], plannedDuration)
 
   const journeyDepartures = validDepartures.filter(
     (departure) =>
@@ -205,7 +208,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   )
 
   const stopDepartures: Array<Departure | null> = journeyDepartures.map((departure) => {
-    const stopSegment = orderedStops.find(
+    const stopSegment = routeStops.find(
       (stopSegment) =>
         stopSegment.stop_id === departure.stop_id &&
         stopSegment.route_id === departure.route_id &&

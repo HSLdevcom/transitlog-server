@@ -172,6 +172,7 @@ export interface JoreRouteSegment {
   via_se?: Maybe<string>
   timing_stop_type: number
   has_regular_day_departures?: Maybe<boolean>
+  date_modified?: Maybe<string>
 }
 
 export type JoreRouteData = JoreRoute & JoreRouteSegment & JoreStop

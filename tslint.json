@@ -3,6 +3,7 @@
   "defaultSeverity": "warning",
   "rules": {
     "object-literal-sort-keys": false,
+    "no-object-literal-type-assertion": false,
     "ban": false,
     "ban-types": false,
     "ordered-imports": false,
@@ -28,7 +29,7 @@
     "no-shadowed-variable": false,
     "no-empty": false,
     "prefer-conditional-expression": false,
-    "prefer-const": [true, { "destructuring": "all" }],
+    "prefer-const": false,
     "member-ordering": false,
     "prettier": [true, ".prettierrc"]
   }
