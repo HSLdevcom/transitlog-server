@@ -22,6 +22,7 @@ import { filterByExceptions } from '../utils/filterByExceptions'
 import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { extraDepartureType } from '../utils/extraDepartureType'
+import { validateDepartures } from '../utils/validateDepartures'
 
 // Combines departures and stops into PlannedDepartures.
 export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
@@ -112,7 +113,9 @@ export async function createRouteDeparturesResponse(
       date
     )
 
-    const routeDepartures = combineDeparturesAndStops(validDepartures, stops, date)
+    let validConsecutiveDepartures = validateDepartures(validDepartures)
+
+    const routeDepartures = combineDeparturesAndStops(validConsecutiveDepartures, stops, date)
     return filterByExceptions(routeDepartures, exceptions)
   }
 

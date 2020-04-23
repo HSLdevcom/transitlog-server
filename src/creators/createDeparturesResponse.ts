@@ -28,6 +28,7 @@ import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
 import { getDayTypeFromDate } from '../utils/dayTypes'
+import { validateDepartures } from '../utils/validateDepartures'
 
 /*
   Common functions for route departures and stop departures.
@@ -306,8 +307,10 @@ export async function createDeparturesResponse(
       return orderedGroup[0]
     })
 
+    let validConsecutiveDepartures = validateDepartures(uniqueDepartures)
+
     return filterByExceptions(
-      combineDeparturesAndStops(uniqueDepartures, stops, date),
+      combineDeparturesAndStops(validConsecutiveDepartures, stops, date),
       exceptions
     )
   }
