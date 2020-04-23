@@ -26,14 +26,12 @@ import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { filterByExceptions } from '../utils/filterByExceptions'
-import {
-  setAlertsOnDeparture,
-  setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlerts'
+import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { getStopArrivalData, getStopArrivalEvent } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { extraDepartureType } from '../utils/extraDepartureType'
+import { validateDepartures } from '../utils/validateDepartures'
 
 const combineDeparturesAndEvents = (
   departures,
@@ -261,7 +259,16 @@ export const createWeekDeparturesResponse = async (
       groupedDepartures,
       date
     )
-    return combineDeparturesAndStops(validDepartures, stops, exceptions, date, lastStopArrival)
+
+    let validConsecutiveDepartures = validateDepartures(validDepartures)
+
+    return combineDeparturesAndStops(
+      validConsecutiveDepartures,
+      stops,
+      exceptions,
+      date,
+      lastStopArrival
+    )
   }
 
   const departuresCacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}_${

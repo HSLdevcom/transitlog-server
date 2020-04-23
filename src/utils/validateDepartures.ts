@@ -14,7 +14,7 @@ export function validateDepartures(departures: JoreDepartureWithOrigin[]) {
   let validConsecutiveDepartures: JoreDepartureWithOrigin[] = []
 
   let groupedAndOrdered = Object.values(
-    groupBy(departures, (dep) => `${dep.route_id}_${dep.direction}`)
+    groupBy(departures, (dep) => `${dep.route_id}_${dep.direction}_${dep.day_type}`)
   ).map((routeDepartures) => orderBy(routeDepartures, 'departure_id'))
 
   for (let routeDepartures of groupedAndOrdered) {
