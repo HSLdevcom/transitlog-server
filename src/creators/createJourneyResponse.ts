@@ -66,6 +66,7 @@ import { toLatLng } from '../geometry/LatLng'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
 import { trimRouteSegments } from './createRouteSegmentsResponse'
+import { filterByDateGroups } from '../utils/filterByDateGroups'
 
 type JourneyRoute = {
   route: Route | null
@@ -160,10 +161,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   const departures: JoreRouteDepartureData[] = get(plannedJourney, 'departures', []) || []
   const stops: JoreStopSegment[] = get(plannedJourney, 'stops', []) || []
 
-  // Group stops by stop_index and validate each stop. This way we'll get
-  // the version of the stop that was in effect at the time of the departure.
-  const stopSegmentGroups = groupBy(stops, 'stop_index')
-  const validStops = filterByDateChains<JoreStopSegment>(stopSegmentGroups, date)
+  const validStops = filterByDateGroups<JoreStopSegment>(stops, date)
   // Sorted by the order of the stops in the journey.
   let routeStops: JoreStopSegment[] = orderBy(validStops, 'stop_index', 'asc')
   // Trim stops to only contain ACTUALLY valid stops.
@@ -180,8 +178,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 
   const groupedDepartures = groupBy(
     departures,
-    ({ departure_id, stop_id, day_type, extra_departure }) =>
-      `${departure_id}_${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
+    ({ stop_id, day_type, extra_departure }) =>
+      `${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
   )
 
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(groupedDepartures, date)

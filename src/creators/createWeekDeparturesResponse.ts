@@ -243,16 +243,14 @@ export const createWeekDeparturesResponse = async (
       ? ['arrival_hours', 'arrival_minutes']
       : ['hours', 'minutes']
 
-    const orderedDepartures = orderBy(departures, orderByProps, 'asc')
-
     // Group and validate departures with date chains.
     const groupedDepartures = groupBy<JoreDeparture>(
-      orderedDepartures,
-      ({ departure_id, extra_departure, day_type }) =>
+      departures,
+      ({ extra_departure, day_type }) =>
         // Careful with this group key. You want to group departures that are the same but have different
         // validity times without including any items that shouldn't be included or excluding any items
         // that should be included. Duh!
-        `${departure_id}_${extraDepartureType(extra_departure)}_${day_type}`
+        `${day_type}_${extraDepartureType(extra_departure)}`
     ) as Dictionary<JoreDeparture[]>
 
     const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
@@ -260,15 +258,7 @@ export const createWeekDeparturesResponse = async (
       date
     )
 
-    let validConsecutiveDepartures = validateDepartures(validDepartures)
-
-    return combineDeparturesAndStops(
-      validConsecutiveDepartures,
-      stops,
-      exceptions,
-      date,
-      lastStopArrival
-    )
+    return combineDeparturesAndStops(validDepartures, stops, exceptions, date, lastStopArrival)
   }
 
   const departuresCacheKey = `week_departures_${stopId}_${routeId}_${direction}_${weekNumber}_${

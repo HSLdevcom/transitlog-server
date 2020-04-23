@@ -28,7 +28,6 @@ import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
 import { getDayTypeFromDate } from '../utils/dayTypes'
-import { validateDepartures } from '../utils/validateDepartures'
 
 /*
   Common functions for route departures and stop departures.
@@ -48,7 +47,7 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
   // within their groups using date chain logic.
   const groupedRouteSegments = groupBy(
     stops,
-    ({ route_id, direction, stop_index }) => route_id + direction + stop_index
+    ({ route_id, direction }) => route_id + direction
   )
 
   // Validate by date chains and return only segments valid during the requested date.
@@ -264,8 +263,8 @@ export async function createDeparturesResponse(
     // Group and validate departures with date chains
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
       departuresWithOrigin,
-      ({ origin_stop_id, day_type, extra_departure, route_id, direction, departure_id }) =>
-        `${route_id}_${direction}_${origin_stop_id}_${day_type}_${departure_id}_${extraDepartureType(
+      ({ origin_stop_id, day_type, extra_departure, route_id, direction }) =>
+        `${route_id}_${direction}_${origin_stop_id}_${day_type}_${extraDepartureType(
           extra_departure
         )}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
@@ -307,10 +306,8 @@ export async function createDeparturesResponse(
       return orderedGroup[0]
     })
 
-    let validConsecutiveDepartures = validateDepartures(uniqueDepartures)
-
     return filterByExceptions(
-      combineDeparturesAndStops(validConsecutiveDepartures, stops, date),
+      combineDeparturesAndStops(uniqueDepartures, stops, date),
       exceptions
     )
   }

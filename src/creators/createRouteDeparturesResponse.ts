@@ -22,7 +22,6 @@ import { filterByExceptions } from '../utils/filterByExceptions'
 import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { extraDepartureType } from '../utils/extraDepartureType'
-import { validateDepartures } from '../utils/validateDepartures'
 
 // Combines departures and stops into PlannedDepartures.
 export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
@@ -104,8 +103,7 @@ export async function createRouteDeparturesResponse(
     // Group and validate departures with date chains.
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
       departures,
-      ({ departure_id, day_type, extra_departure }) =>
-        `${departure_id}_${day_type}_${extraDepartureType(extra_departure)}`
+      ({ day_type, extra_departure }) => `${day_type}_${extraDepartureType(extra_departure)}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
     const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
@@ -113,9 +111,7 @@ export async function createRouteDeparturesResponse(
       date
     )
 
-    let validConsecutiveDepartures = validateDepartures(validDepartures)
-
-    const routeDepartures = combineDeparturesAndStops(validConsecutiveDepartures, stops, date)
+    const routeDepartures = combineDeparturesAndStops(validDepartures, stops, date)
     return filterByExceptions(routeDepartures, exceptions)
   }
 

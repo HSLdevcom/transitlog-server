@@ -8,6 +8,7 @@ import { filterRoutes } from '../filters/filterRoutes'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { getDirection } from '../utils/getDirection'
 import { requireUser } from '../auth/requireUser'
+import { filterByDateGroups } from '../utils/filterByDateGroups'
 
 export async function createRouteResponse(
   getRoute: () => Promise<JoreRoute[]>,
@@ -24,7 +25,7 @@ export async function createRouteResponse(
       return false
     }
 
-    const validRoute = filterByDateChains<JoreRoute>([routes], date)
+    const validRoute = filterByDateGroups<JoreRoute>(routes, date)
     return validRoute[0]
   }
 

@@ -4,6 +4,7 @@ import { JoreRoute } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { Scalars, RouteGeometry } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
+import { filterByDateGroups } from '../utils/filterByDateGroups'
 
 export async function createRouteGeometryResponse(
   getRouteGeometry: () => Promise<JoreRoute[]>,
@@ -13,7 +14,7 @@ export async function createRouteGeometryResponse(
 ): Promise<RouteGeometry | null> {
   const fetchAndValidate: CachedFetcher<RouteGeometry> = async () => {
     const routes = await getRouteGeometry()
-    const validRoutes = filterByDateChains<JoreRoute>({ routes }, date)
+    const validRoutes = filterByDateGroups<JoreRoute>(routes, date)
     const selectedRoute = validRoutes ? validRoutes[0] : null
 
     if (!selectedRoute) {
