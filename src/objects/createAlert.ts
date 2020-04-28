@@ -51,7 +51,7 @@ export function createAlert(alert: DBAlert, language: string = 'fi'): Alert {
     lastModifiedDateTime: moment.tz(alert.last_modified, TZ).toISOString(true),
     title: get(title, 'text', ''),
     description: get(description, 'text', ''),
-    url: get(url, 'text', null),
+    url: get(url, 'text', ''),
     bulletinId: alert?.ext_id_bulletin || 'unknown',
   }
 }
