@@ -31,7 +31,6 @@ import { Vehicles } from '../types/EventsDb'
 import { getStopArrivalData, getStopArrivalEvent } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { extraDepartureType } from '../utils/extraDepartureType'
-import { validateDepartures } from '../utils/validateDepartures'
 
 const combineDeparturesAndEvents = (
   departures,
@@ -301,6 +300,7 @@ export const createWeekDeparturesResponse = async (
     const eventsCacheKey = `departure_events_${stopId}_${fetchDate}_${routeId}_${direction}_${
       lastStopArrival ? 'dest_arrival' : 'orig_departure'
     }`
+
     const eventsPromise = cacheFetch<Vehicles[]>(
       eventsCacheKey,
       () => getEvents(fetchDate),
