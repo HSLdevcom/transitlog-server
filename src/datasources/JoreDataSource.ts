@@ -599,15 +599,19 @@ LEFT JOIN LATERAL (
 
     const query = this.db.raw(
       `
-SELECT ${this.departureFields}
+SELECT DISTINCT ON (departure.departure_id) ${this.departureFields}
 FROM jore.departure departure
 WHERE departure.stop_id = :stopId
   AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
   AND departure.route_id = :routeId
   AND departure.direction = :direction
-ORDER BY departure.hours ASC,
-         departure.minutes ASC;`,
-      { stopId, routeId, direction: direction + '' }
+  AND :date >= departure.date_begin
+  AND :date <= departure.date_end
+ORDER BY departure.departure_id,
+         departure.date_begin DESC,
+         departure.date_end DESC,
+         departure.date_imported DESC;`,
+      { stopId, routeId, direction: direction + '', date }
     )
 
     return this.getBatched(query)
@@ -627,7 +631,7 @@ ORDER BY departure.hours ASC,
     if (!lastStopArrival) {
       query = this.db.raw(
         `
-SELECT ${this.departureFields}
+SELECT DISTINCT ON (departure.departure_id, departure.day_type) ${this.departureFields}
 FROM jore.departure departure
 WHERE departure.stop_id = :stopId
   AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
