@@ -11,3 +11,4 @@ dist
 .env-citus
 .env-oldtables
 .env-newtables
+.run
