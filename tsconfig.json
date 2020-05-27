@@ -30,6 +30,7 @@
     "scripts",
     "secrets",
     "knexfile.js",
+    ".run",
     "jest.config.js"
   ]
 }
