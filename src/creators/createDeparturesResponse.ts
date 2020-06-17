@@ -179,8 +179,6 @@ export const combineDeparturesAndEvents = (
 
     const firstStopId = get(departure, 'stop.originStopId', '')
 
-    console.log(departure.stop)
-
     return eventsPerVehicleJourney.map((events, index, instances) => {
       // Timing stops and origin stops use DEP (exit stop radius) as the
       // departure event, but normal stops use PDE (doors closed).

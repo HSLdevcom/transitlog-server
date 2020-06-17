@@ -4,7 +4,10 @@ import { EventType, Vehicles } from '../types/EventsDb'
 import { get } from 'lodash'
 import moment from 'moment'
 
-export const createVirtualStopEvents = (vehiclePositions, departures): Vehicles[] => {
+export const createVirtualStopEvents = (
+  vehiclePositions: Vehicles[],
+  departures
+): Vehicles[] => {
   if (vehiclePositions.length === 0 || departures.length === 0) {
     return []
   }
@@ -29,19 +32,24 @@ export const createVirtualStopEvents = (vehiclePositions, departures): Vehicles[
     // Although they have a similar signature, the arrival and departure filters do not
     // work the same way. The arrival looks at door openings and the departure uses the
     // desc-sorted events array.
-    const stopArrival = getLegacyStopArrivalEvent(stopEvents)
-    const stopDeparture = stopEvents[0]
+    const stopArrivalEvent = getLegacyStopArrivalEvent(stopEvents)
+    const stopDepartureEvent = stopEvents[0]
 
-    const arrivalEvent = stopArrival ? createVirtualEvent(stopArrival, 'ARS') : null
-    const departureEvent = stopDeparture
-      ? createVirtualEvent(stopDeparture, isTimingStopOrOrigin ? 'DEP' : 'PDE')
+    const arrivalEvent = stopArrivalEvent ? createVirtualEvent(stopArrivalEvent, 'ARS') : null
+
+    let departureEventType = (stopDepartureEvent.loc === 'ODO' || !isTimingStopOrOrigin
+      ? 'PDE'
+      : 'DEP') as EventType
+
+    const departureEvent = stopDepartureEvent
+      ? createVirtualEvent(stopDepartureEvent, departureEventType)
       : null
 
     const isMetro = get(arrivalEvent, 'mode', get(departureEvent, 'mode', '')) === 'metro'
 
     const doorOpenEvent =
-      stopArrival && (stopArrival.drst || isMetro)
-        ? createVirtualEvent(stopArrival, 'DOO')
+      stopArrivalEvent && (stopArrivalEvent.drst || isMetro)
+        ? createVirtualEvent(stopArrivalEvent, 'DOO')
         : null
 
     if (arrivalEvent) {
