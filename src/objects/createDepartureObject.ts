@@ -96,7 +96,7 @@ export function createDepartureJourneyObject(
     journeyType:
       event?.journey_type ||
       (typeof event?.journey_start_time === 'undefined' ? 'deadrun' : 'journey'),
-    type: event?.event_type || 'DEP',
+    type: event?.event_type || 'PDE',
     routeId: event?.route_id || '',
     direction: event?.direction_id,
     originStopId,

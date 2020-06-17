@@ -45,6 +45,7 @@ export const getStopDepartureData = (
     departureDateTime: moment.tz(eventTime, TZ).toISOString(true),
     departureTimeDifference: departureDiff,
     loc,
+    eventType: departureEvent.event_type,
   }
 }
 

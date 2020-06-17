@@ -5,7 +5,7 @@ import { json } from 'body-parser'
 import { COOKIE_SECRET, HSL_GROUP_NAME, SECURE_COOKIE, TZ } from './constants'
 import { types } from 'pg'
 import schema from './schema'
-import { ApolloServer } from 'apollo-server-express'
+import { ApolloServer, makeExecutableSchema } from 'apollo-server-express'
 import { resolvers } from './resolvers/'
 import { JoreDataSource } from './datasources/JoreDataSource'
 import { HFPDataSource } from './datasources/HFPDataSource'
@@ -39,9 +39,13 @@ type RequestContext = {
   skipCache: boolean
 }
 ;(async () => {
-  const server = new ApolloServer({
+  let executableSchema = makeExecutableSchema({
     typeDefs: schema,
     resolvers,
+  })
+
+  const server = new ApolloServer({
+    schema: executableSchema,
     dataSources: () => ({
       JoreAPI: new JoreDataSource(),
       HFPAPI: new HFPDataSource(),

@@ -503,6 +503,7 @@ export type ObservedArrival = {
   arrivalDateTime: Scalars['DateTime']
   arrivalTimeDifference: Scalars['Int']
   loc?: Maybe<Scalars['String']>
+  eventType?: Maybe<Scalars['String']>
 }
 
 export type ObservedDeparture = {
@@ -513,6 +514,7 @@ export type ObservedDeparture = {
   departureDateTime: Scalars['DateTime']
   departureTimeDifference: Scalars['Int']
   loc?: Maybe<Scalars['String']>
+  eventType?: Maybe<Scalars['String']>
 }
 
 export type PlannedArrival = {
@@ -1510,6 +1512,7 @@ export type ObservedArrivalResolvers<
   arrivalDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   arrivalTimeDifference?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  eventType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
 export type ObservedDepartureResolvers<
@@ -1522,6 +1525,7 @@ export type ObservedDepartureResolvers<
   departureDateTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
   departureTimeDifference?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  eventType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
 export type PlannedArrivalResolvers<

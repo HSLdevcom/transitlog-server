@@ -499,6 +499,7 @@ export type ObservedArrival = {
   arrivalDateTime: Scalars['DateTime']
   arrivalTimeDifference: Scalars['Int']
   loc?: Maybe<Scalars['String']>
+  eventType?: Maybe<Scalars['String']>
 }
 
 export type ObservedDeparture = {
@@ -509,6 +510,7 @@ export type ObservedDeparture = {
   departureDateTime: Scalars['DateTime']
   departureTimeDifference: Scalars['Int']
   loc?: Maybe<Scalars['String']>
+  eventType?: Maybe<Scalars['String']>
 }
 
 export type PlannedArrival = {

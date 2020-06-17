@@ -1,6 +1,7 @@
 import { gql } from 'apollo-server'
 
 export const Schema = gql`
+  scalar Upload
   scalar Date
   scalar Time
   scalar DateTime
