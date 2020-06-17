@@ -101,8 +101,8 @@ const combineDeparturesAndEvents = (
     } else if (departure) {
       // Timing stops and origin stops use DEP (exit stop radius) as the
       // departure event, but normal stops use PDE (doors closed).
-      const useDEP = departure.isTimingStop || departure.isOrigin
-      event = getStopDepartureEvent(firstInstanceEvents, !!useDEP)
+      const isTimingStopOrOrigin = departure.isTimingStop || !!departure.isOrigin
+      event = getStopDepartureEvent(firstInstanceEvents, isTimingStopOrOrigin)
       eventData = getStopDepartureData(event, departure, plannedDate)
     }
 

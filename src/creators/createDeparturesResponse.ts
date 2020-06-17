@@ -179,11 +179,13 @@ export const combineDeparturesAndEvents = (
 
     const firstStopId = get(departure, 'stop.originStopId', '')
 
+    console.log(departure.stop)
+
     return eventsPerVehicleJourney.map((events, index, instances) => {
       // Timing stops and origin stops use DEP (exit stop radius) as the
       // departure event, but normal stops use PDE (doors closed).
-      const useDEP = departure.isTimingStop || departure.isOrigin
-      const departureEvent = getStopDepartureEvent(events, !!useDEP)
+      const isTimingStopOrOrigin = departure.isTimingStop || !!departure.isOrigin
+      const departureEvent = getStopDepartureEvent(events, isTimingStopOrOrigin)
 
       const stopDeparture = departure
         ? getStopDepartureData(departureEvent, departure, date)
@@ -342,34 +344,28 @@ export async function createDeparturesResponse(
 
   // Fetch planned departures and departure events simultaneously.
   const departuresCacheKey = `departures_${fetchTarget}_${fetchId}_${date}`
-  const departuresPromise = cacheFetch<Departure[]>(
+  const departures = await cacheFetch<Departure[]>(
     departuresCacheKey,
     () => fetchDepartures(stops),
     24 * 60 * 60,
     skipCache
   )
 
+  if (!departures || departures.length === 0) {
+    return []
+  }
+
   // Cache events for the current day for 10 seconds only.
   // Older dates can be cached for longer.
   const journeyTTL: number = isToday(date) ? 5 : 24 * 60 * 60
 
   const eventsCacheKey = `departure_events_${fetchTarget}_${fetchId}_${date}`
-  const departureEventsPromise = cacheFetch<Vehicles[]>(
+  const departureEvents = await cacheFetch<Vehicles[]>(
     eventsCacheKey,
     () => fetchEvents(getEvents, stops),
     journeyTTL,
     skipCache
   )
-
-  // The promises are not awaited so we can run them simultaneously.
-  const [departures, departureEvents] = await Promise.all([
-    departuresPromise,
-    departureEventsPromise,
-  ])
-
-  if (!departures || departures.length === 0) {
-    return []
-  }
 
   const authorizedDepartures = removeUnauthorizedData<Departure>(departures, user, [
     'operatingUnit',

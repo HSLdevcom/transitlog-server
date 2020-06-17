@@ -587,9 +587,14 @@ export async function createJourneyResponse(
         doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
       }
 
-      const useDEP = get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
-      const shouldCreateStopEventObject =
-        !!stop && ['ARS', useDEP ? 'DEP' : 'PDE', 'PAS'].includes(eventItem.event_type)
+      let isTimingOrOrigin =
+        get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
+      let onlyPDE = eventsForStop.some((evt) => evt.event_type === 'PDE' && evt.loc === 'ODO')
+
+      let departureEventType = !onlyPDE && isTimingOrOrigin ? 'DEP' : 'PDE'
+
+      let shouldCreateStopEventObject =
+        !!stop && ['ARS', departureEventType, 'PAS'].includes(eventItem.event_type)
 
       if (!shouldCreateStopEventObject) {
         // If this should not be a stop event, put it in the journeyEventObjects array.
