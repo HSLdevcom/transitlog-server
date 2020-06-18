@@ -589,7 +589,10 @@ export async function createJourneyResponse(
 
       let isTimingOrOrigin =
         get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
-      let onlyPDE = eventsForStop.some((evt) => evt.event_type === 'PDE' && evt.loc === 'ODO')
+
+      let onlyPDE = eventsForStop.some(
+        (evt) => evt.event_type === 'PDE' && ['ODO', 'MAN'].includes(evt.loc || '')
+      )
 
       let departureEventType = !onlyPDE && isTimingOrOrigin ? 'DEP' : 'PDE'
 
@@ -669,6 +672,8 @@ export async function createJourneyResponse(
     }
   })
 
+  const stopEventOrder = ['ARR', 'ARS', 'PAS', 'PDE', 'DEP']
+
   // Sort observed (ie real) events by timestamp, but also with additional logic as (old) timestamps do not include milliseconds
   const sortedJourneyEvents: EventsType[] = [
     ...stopEventObjects,
@@ -695,9 +700,17 @@ export async function createJourneyResponse(
         } else if (isTlpEvent(eventA) && !isTlpEvent(eventB)) {
           // order TLP events after other events with same timestamp
           return 1
-        } else {
-          return -1
         }
+
+        let typeAIdx = stopEventOrder.indexOf(eventA.type)
+        let typeBIdx = stopEventOrder.indexOf(eventB.type)
+
+        if (typeAIdx >= 0 && typeBIdx >= 0) {
+          return typeAIdx > typeBIdx ? 1 : -1
+        }
+
+        // By default sort event A before event B.
+        return -1
       } else {
         return sort
       }

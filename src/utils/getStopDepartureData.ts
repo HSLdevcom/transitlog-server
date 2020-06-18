@@ -57,7 +57,10 @@ export const getStopDepartureEvent = (events: Vehicles[], isTimingStopOrOrigin =
   // In the beginning of 2020 PDE events were changed to be triggered from the odometer, which created a new "version"
   // of PDE events. All ODO-triggered PDE events should be used as the official stop departure event.
   // If no ODO-PDE events were found, AND the stop is the origin or a timing stop, fall back to DEP.
-  let onlyPDE = events.some((evt) => evt.event_type === 'PDE' && evt.loc === 'ODO')
+  let onlyPDE = events.some(
+    (evt) => evt.event_type === 'PDE' && ['ODO', 'MAN'].includes(evt.loc || '')
+  )
+
   const validEventTypes = [!onlyPDE && isTimingStopOrOrigin ? 'DEP' : 'PDE', 'PAS']
 
   let departureEvent: Vehicles | undefined
