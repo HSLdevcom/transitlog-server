@@ -1,4 +1,4 @@
-import { getStopEvents } from './getStopEvents'
+import { getVehicleEventsAtStop } from './getVehicleEventsAtStop'
 import { getLegacyStopArrivalEvent } from './getStopArrivalData'
 import { EventType, Vehicles } from '../types/EventsDb'
 import { get } from 'lodash'
@@ -25,7 +25,14 @@ export const createVirtualStopEvents = (
     // To get the events for a stop, first get all events with the next_stop_id matching
     // the current stop ID and sort by the timestamp in descending order. The departure
     // event will then be the first element in the array.
-    const stopEvents = getStopEvents(vehiclePositions, departure.stopId)
+    const stopEvents = getVehicleEventsAtStop(vehiclePositions, departure.stopId)
+    console.log(departure.stopId)
+
+    if (stopEvents.length === 0) {
+      continue
+    }
+
+    console.log(stopEvents)
 
     const isTimingStopOrOrigin = !!departure.isTimingStop || departure.isOrigin || false
 
@@ -37,7 +44,7 @@ export const createVirtualStopEvents = (
 
     const arrivalEvent = stopArrivalEvent ? createVirtualEvent(stopArrivalEvent, 'ARS') : null
 
-    let departureEventType = (stopDepartureEvent.loc === 'ODO' || !isTimingStopOrOrigin
+    let departureEventType = (stopDepartureEvent?.loc === 'ODO' || !isTimingStopOrOrigin
       ? 'PDE'
       : 'DEP') as EventType
 

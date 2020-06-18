@@ -46,6 +46,10 @@ type RequestContext = {
 
   const server = new ApolloServer({
     schema: executableSchema,
+    formatError: (err) => {
+      console.log(err)
+      return err
+    },
     dataSources: () => ({
       JoreAPI: new JoreDataSource(),
       HFPAPI: new HFPDataSource(),
