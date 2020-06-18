@@ -26,13 +26,10 @@ export const createVirtualStopEvents = (
     // the current stop ID and sort by the timestamp in descending order. The departure
     // event will then be the first element in the array.
     const stopEvents = getVehicleEventsAtStop(vehiclePositions, departure.stopId)
-    console.log(departure.stopId)
 
     if (stopEvents.length === 0) {
       continue
     }
-
-    console.log(stopEvents)
 
     const isTimingStopOrOrigin = !!departure.isTimingStop || departure.isOrigin || false
 
@@ -44,7 +41,8 @@ export const createVirtualStopEvents = (
 
     const arrivalEvent = stopArrivalEvent ? createVirtualEvent(stopArrivalEvent, 'ARS') : null
 
-    let departureEventType = (stopDepartureEvent?.loc === 'ODO' || !isTimingStopOrOrigin
+    let departureEventType = (['ODO', 'MAN'].includes(stopDepartureEvent?.loc || '') ||
+    !isTimingStopOrOrigin
       ? 'PDE'
       : 'DEP') as EventType
 

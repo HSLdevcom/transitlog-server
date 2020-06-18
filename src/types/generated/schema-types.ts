@@ -404,6 +404,7 @@ export type JourneyEvent = {
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
+  mode?: Maybe<Scalars['String']>
   _isVirtual?: Maybe<Scalars['Boolean']>
   _sort?: Maybe<Scalars['Int']>
 }
@@ -441,6 +442,7 @@ export type JourneyStopEvent = {
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
+  mode?: Maybe<Scalars['String']>
   unplannedStop: Scalars['Boolean']
   _isVirtual?: Maybe<Scalars['Boolean']>
   _sort?: Maybe<Scalars['Int']>
@@ -471,6 +473,7 @@ export type JourneyTlpEvent = {
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
+  mode?: Maybe<Scalars['String']>
   _sort?: Maybe<Scalars['Int']>
 }
 

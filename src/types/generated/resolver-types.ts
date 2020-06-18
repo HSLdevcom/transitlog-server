@@ -408,6 +408,7 @@ export type JourneyEvent = {
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
+  mode?: Maybe<Scalars['String']>
   _isVirtual?: Maybe<Scalars['Boolean']>
   _sort?: Maybe<Scalars['Int']>
 }
@@ -445,6 +446,7 @@ export type JourneyStopEvent = {
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
+  mode?: Maybe<Scalars['String']>
   unplannedStop: Scalars['Boolean']
   _isVirtual?: Maybe<Scalars['Boolean']>
   _sort?: Maybe<Scalars['Int']>
@@ -475,6 +477,7 @@ export type JourneyTlpEvent = {
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
+  mode?: Maybe<Scalars['String']>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -1402,6 +1405,7 @@ export type JourneyEventResolvers<
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
@@ -1449,6 +1453,7 @@ export type JourneyStopEventResolvers<
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   unplannedStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
@@ -1481,6 +1486,7 @@ export type JourneyTlpEventResolvers<
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
