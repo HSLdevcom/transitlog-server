@@ -103,8 +103,7 @@ export async function createRouteDeparturesResponse(
     // Group and validate departures with date chains.
     const groupedDepartures = groupBy<JoreDepartureWithOrigin>(
       departures,
-      ({ departure_id, day_type, extra_departure }) =>
-        `${departure_id}_${day_type}_${extraDepartureType(extra_departure)}`
+      ({ day_type, extra_departure }) => `${day_type}_${extraDepartureType(extra_departure)}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
     const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(

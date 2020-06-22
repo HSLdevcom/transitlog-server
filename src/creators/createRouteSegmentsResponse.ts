@@ -5,6 +5,7 @@ import { cacheFetch } from '../cache'
 import { RouteSegment, Scalars } from '../types/generated/schema-types'
 import { createRouteSegmentObject } from '../objects/createRouteSegmentObject'
 import { requireUser } from '../auth/requireUser'
+import { filterByDateGroups } from '../utils/filterByDateGroups'
 
 // Filter out any additional stops from the start and end of the route that may be
 // invalid even though the stop itself is still valid. This is because
@@ -46,7 +47,7 @@ export async function createRouteSegmentsResponse(
 ): Promise<RouteSegment[]> {
   const fetchAndValidate = async () => {
     let routes = await getRouteSegments()
-    let validRoutes = filterByDateChains<JoreRouteData>(groupBy(routes, 'stop_index'), date)
+    let validRoutes = filterByDateGroups<JoreRouteData>(routes, date)
 
     if (!validRoutes || validRoutes.length === 0) {
       return false

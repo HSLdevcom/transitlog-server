@@ -1,5 +1,4 @@
 overwrite: true
-documents: null
 schema:
   'src/schema/**/*.ts':
     noRequire: true
@@ -11,6 +10,3 @@ generates:
     plugins:
       - typescript
       - typescript-resolvers
-  ./graphql.schema.json:
-    plugins:
-      - introspection

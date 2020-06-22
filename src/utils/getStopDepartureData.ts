@@ -45,16 +45,25 @@ export const getStopDepartureData = (
     departureDateTime: moment.tz(eventTime, TZ).toISOString(true),
     departureTimeDifference: departureDiff,
     loc,
+    eventType: departureEvent.event_type,
   }
 }
 
-export const getStopDepartureEvent = (events, requireDep: boolean = false) => {
+export const getStopDepartureEvent = (events: Vehicles[], isTimingStopOrOrigin = false) => {
   if (!events || events.length === 0) {
     return null
   }
 
-  const validEventTypes = [requireDep ? 'DEP' : 'PDE', 'PAS']
-  let departureEvent: Vehicles | null = null
+  // In the beginning of 2020 PDE events were changed to be triggered from the odometer, which created a new "version"
+  // of PDE events. All ODO-triggered PDE events should be used as the official stop departure event.
+  // If no ODO-PDE events were found, AND the stop is the origin or a timing stop, fall back to DEP.
+  let onlyPDE = events.some(
+    (evt) => evt.event_type === 'PDE' && ['ODO', 'MAN'].includes(evt.loc || '')
+  )
+
+  const validEventTypes = [!onlyPDE && isTimingStopOrOrigin ? 'DEP' : 'PDE', 'PAS']
+
+  let departureEvent: Vehicles | undefined
 
   for (const validType of validEventTypes) {
     departureEvent = events.find((event) => event.event_type === validType)
@@ -62,7 +71,7 @@ export const getStopDepartureEvent = (events, requireDep: boolean = false) => {
     if (departureEvent) {
       break
     } else {
-      departureEvent = null
+      departureEvent = undefined
     }
   }
 

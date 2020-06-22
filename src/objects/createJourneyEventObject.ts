@@ -28,10 +28,12 @@ import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 
 export function createJourneyEventObject(event: Vehicles): JourneyEvent {
   const id = createJourneyId(event)
-
   const ts = moment.tz(event.tst, TZ)
   const unix = ts.unix()
   const receivedTs = moment.tz(event.received_at, TZ)
+
+  const formattedMode = (event?.mode || 'BUS').toUpperCase()
+  const mode = formattedMode === 'METRO' ? 'SUBWAY' : formattedMode
 
   return {
     id: `journey_event_${event.event_type || 'VP'}_${id}_${unix}`,
@@ -44,6 +46,7 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
     lat: event.lat,
     lng: event.long,
     loc: event.loc,
+    mode,
     _isVirtual: !!event._is_virtual,
     _sort: unix,
   }
@@ -163,6 +166,9 @@ export function createJourneyStopEventObject(
 
   const stopIndex = departure?.index || -1
 
+  const formattedMode = (event?.mode || 'BUS').toUpperCase()
+  const mode = formattedMode === 'METRO' ? 'SUBWAY' : formattedMode
+
   return {
     id: `journey_stop_event_${event.event_type}_${id}_${unix}`,
     type: event.event_type,
@@ -192,6 +198,7 @@ export function createJourneyStopEventObject(
     lat: event.lat,
     lng: event.long,
     loc: event.loc,
+    mode,
     _isVirtual: !!event._is_virtual,
     _sort: unix,
   }
@@ -214,6 +221,9 @@ export function createJourneyTlpEventObject(event: TlpEvents): JourneyTlpEvent {
   const ts = moment.tz(event.tst, TZ)
   const unix = ts.unix()
   const receivedTs = moment.tz(event.received_at, TZ)
+
+  const formattedMode = (event?.mode || 'BUS').toUpperCase()
+  const mode = formattedMode === 'METRO' ? 'SUBWAY' : formattedMode
 
   return {
     id: `journey_tlp_event_${event.event_type}_${id}_${unix}`,
@@ -238,6 +248,7 @@ export function createJourneyTlpEventObject(event: TlpEvents): JourneyTlpEvent {
     lat: event.lat,
     lng: event.long,
     loc: event.loc,
+    mode,
     // Sort TLA events after TLR events
     _sort: unix,
   }

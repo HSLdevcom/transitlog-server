@@ -26,10 +26,7 @@ import { TZ } from '../constants'
 import moment from 'moment-timezone'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { filterByExceptions } from '../utils/filterByExceptions'
-import {
-  setAlertsOnDeparture,
-  setCancellationsOnDeparture,
-} from '../utils/setCancellationsAndAlerts'
+import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { getStopArrivalData, getStopArrivalEvent } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
@@ -104,8 +101,8 @@ const combineDeparturesAndEvents = (
     } else if (departure) {
       // Timing stops and origin stops use DEP (exit stop radius) as the
       // departure event, but normal stops use PDE (doors closed).
-      const useDEP = departure.isTimingStop || departure.isOrigin
-      event = getStopDepartureEvent(firstInstanceEvents, !!useDEP)
+      const isTimingStopOrOrigin = departure.isTimingStop || !!departure.isOrigin
+      event = getStopDepartureEvent(firstInstanceEvents, isTimingStopOrOrigin)
       eventData = getStopDepartureData(event, departure, plannedDate)
     }
 
@@ -245,22 +242,21 @@ export const createWeekDeparturesResponse = async (
       ? ['arrival_hours', 'arrival_minutes']
       : ['hours', 'minutes']
 
-    const orderedDepartures = orderBy(departures, orderByProps, 'asc')
-
     // Group and validate departures with date chains.
     const groupedDepartures = groupBy<JoreDeparture>(
-      orderedDepartures,
-      ({ departure_id, extra_departure, day_type }) =>
+      departures,
+      ({ extra_departure, day_type }) =>
         // Careful with this group key. You want to group departures that are the same but have different
         // validity times without including any items that shouldn't be included or excluding any items
         // that should be included. Duh!
-        `${departure_id}_${extraDepartureType(extra_departure)}_${day_type}`
+        `${day_type}_${extraDepartureType(extra_departure)}`
     ) as Dictionary<JoreDeparture[]>
 
     const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
       groupedDepartures,
       date
     )
+
     return combineDeparturesAndStops(validDepartures, stops, exceptions, date, lastStopArrival)
   }
 
@@ -304,6 +300,7 @@ export const createWeekDeparturesResponse = async (
     const eventsCacheKey = `departure_events_${stopId}_${fetchDate}_${routeId}_${direction}_${
       lastStopArrival ? 'dest_arrival' : 'orig_departure'
     }`
+
     const eventsPromise = cacheFetch<Vehicles[]>(
       eventsCacheKey,
       () => getEvents(fetchDate),

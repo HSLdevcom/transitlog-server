@@ -20,14 +20,11 @@ export async function createStopResponse(
       return false
     }
 
-    let validStops = filterByDateChains<JoreRouteData>(
-      groupBy<JoreRouteData>(stops, (segment) =>
-        !segment.route_id
-          ? segment.stop_id
-          : segment.route_id + segment.direction + segment.stop_index
-      ),
-      date
+    let stopRouteGroups = groupBy<JoreRouteData>(stops, (segment) =>
+      !segment.route_id ? segment.stop_id : segment.route_id + segment.direction
     )
+
+    let validStops = filterByDateChains<JoreRouteData>(stopRouteGroups, date)
 
     validStops = uniqBy<JoreRouteData>(validStops, (stop) =>
       !stop?.route_id ? stop.stop_id : stop?.route_id || 'no_route'

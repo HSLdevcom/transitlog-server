@@ -37,6 +37,7 @@ export function getStopArrivalData(
     arrivalDateTime: moment.tz(arrivalTime, TZ).toISOString(true),
     arrivalTimeDifference: arrivalDiff,
     loc,
+    eventType: arrivalEvent.event_type,
   }
 }
 

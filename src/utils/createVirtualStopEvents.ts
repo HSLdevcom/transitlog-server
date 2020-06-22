@@ -1,11 +1,13 @@
-import { getStopEvents } from './getStopEvents'
+import { getVehicleEventsAtStop } from './getVehicleEventsAtStop'
 import { getLegacyStopArrivalEvent } from './getStopArrivalData'
-import { getStopDepartureEvent } from './getStopDepartureData'
 import { EventType, Vehicles } from '../types/EventsDb'
 import { get } from 'lodash'
 import moment from 'moment'
 
-export const createVirtualStopEvents = (vehiclePositions, departures): Vehicles[] => {
+export const createVirtualStopEvents = (
+  vehiclePositions: Vehicles[],
+  departures
+): Vehicles[] => {
   if (vehiclePositions.length === 0 || departures.length === 0) {
     return []
   }
@@ -23,26 +25,36 @@ export const createVirtualStopEvents = (vehiclePositions, departures): Vehicles[
     // To get the events for a stop, first get all events with the next_stop_id matching
     // the current stop ID and sort by the timestamp in descending order. The departure
     // event will then be the first element in the array.
-    const stopEvents = getStopEvents(vehiclePositions, departure.stopId)
+    const stopEvents = getVehicleEventsAtStop(vehiclePositions, departure.stopId)
 
-    const useDEP = !!departure.isTimingStop || !!departure.isOrigin || false
+    if (stopEvents.length === 0) {
+      continue
+    }
+
+    const isTimingStopOrOrigin = !!departure.isTimingStop || departure.isOrigin || false
 
     // Although they have a similar signature, the arrival and departure filters do not
     // work the same way. The arrival looks at door openings and the departure uses the
     // desc-sorted events array.
-    const stopArrival = getLegacyStopArrivalEvent(stopEvents)
-    const stopDeparture = getStopDepartureEvent(stopEvents, useDEP)
+    const stopArrivalEvent = getLegacyStopArrivalEvent(stopEvents)
+    const stopDepartureEvent = stopEvents[0]
 
-    const arrivalEvent = stopArrival ? createVirtualEvent(stopArrival, 'ARS') : null
-    const departureEvent = stopDeparture
-      ? createVirtualEvent(stopDeparture, useDEP ? 'DEP' : 'PDE')
+    const arrivalEvent = stopArrivalEvent ? createVirtualEvent(stopArrivalEvent, 'ARS') : null
+
+    let departureEventType = (['ODO', 'MAN'].includes(stopDepartureEvent?.loc || '') ||
+    !isTimingStopOrOrigin
+      ? 'PDE'
+      : 'DEP') as EventType
+
+    const departureEvent = stopDepartureEvent
+      ? createVirtualEvent(stopDepartureEvent, departureEventType)
       : null
 
     const isMetro = get(arrivalEvent, 'mode', get(departureEvent, 'mode', '')) === 'metro'
 
     const doorOpenEvent =
-      stopArrival && (stopArrival.drst || isMetro)
-        ? createVirtualEvent(stopArrival, 'DOO')
+      stopArrivalEvent && (stopArrivalEvent.drst || isMetro)
+        ? createVirtualEvent(stopArrivalEvent, 'DOO')
         : null
 
     if (arrivalEvent) {

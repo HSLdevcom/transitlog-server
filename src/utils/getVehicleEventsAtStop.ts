@@ -1,7 +1,7 @@
 import { orderBy } from 'lodash'
 import { Vehicles } from '../types/EventsDb'
 
-export const getStopEvents = (events: Vehicles[], stopId: string) => {
+export const getVehicleEventsAtStop = (events: Vehicles[], stopId: string) => {
   const stopEvents: Vehicles[] = []
 
   // Collect all events that match the stopId, but break the loop as soon

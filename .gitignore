@@ -18,3 +18,4 @@ greylog_dev.sh
 greylog_stage.sh
 greylog_prod.sh
 .vscode/settings.json
+.run

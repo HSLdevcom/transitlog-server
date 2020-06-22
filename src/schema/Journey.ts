@@ -41,6 +41,7 @@ export const Journey = gql`
     lat: Float
     lng: Float
     loc: String
+    mode: String
     _isVirtual: Boolean
     _sort: Int
   }
@@ -88,6 +89,7 @@ export const Journey = gql`
     lat: Float
     lng: Float
     loc: String
+    mode: String
     unplannedStop: Boolean!
     _isVirtual: Boolean
     _sort: Int
@@ -132,6 +134,7 @@ export const Journey = gql`
     lat: Float
     lng: Float
     loc: String
+    mode: String
     _sort: Int
   }
   union JourneyEventType =

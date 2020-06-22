@@ -66,6 +66,7 @@ import { toLatLng } from '../geometry/LatLng'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
 import { trimRouteSegments } from './createRouteSegmentsResponse'
+import { filterByDateGroups } from '../utils/filterByDateGroups'
 
 type JourneyRoute = {
   route: Route | null
@@ -160,10 +161,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   const departures: JoreRouteDepartureData[] = get(plannedJourney, 'departures', []) || []
   const stops: JoreStopSegment[] = get(plannedJourney, 'stops', []) || []
 
-  // Group stops by stop_index and validate each stop. This way we'll get
-  // the version of the stop that was in effect at the time of the departure.
-  const stopSegmentGroups = groupBy(stops, 'stop_index')
-  const validStops = filterByDateChains<JoreStopSegment>(stopSegmentGroups, date)
+  const validStops = filterByDateGroups<JoreStopSegment>(stops, date)
   // Sorted by the order of the stops in the journey.
   let routeStops: JoreStopSegment[] = orderBy(validStops, 'stop_index', 'asc')
   // Trim stops to only contain ACTUALLY valid stops.
@@ -180,8 +178,8 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 
   const groupedDepartures = groupBy(
     departures,
-    ({ departure_id, stop_id, day_type, extra_departure }) =>
-      `${departure_id}_${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
+    ({ stop_id, day_type, extra_departure }) =>
+      `${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
   )
 
   const validDepartures = filterByDateChains<JoreRouteDepartureData>(groupedDepartures, date)
@@ -589,9 +587,17 @@ export async function createJourneyResponse(
         doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
       }
 
-      const useDEP = get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
-      const shouldCreateStopEventObject =
-        !!stop && ['ARS', useDEP ? 'DEP' : 'PDE', 'PAS'].includes(eventItem.event_type)
+      let isTimingOrOrigin =
+        get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
+
+      let onlyPDE = eventsForStop.some(
+        (evt) => evt.event_type === 'PDE' && ['ODO', 'MAN'].includes(evt.loc || '')
+      )
+
+      let departureEventType = !onlyPDE && isTimingOrOrigin ? 'DEP' : 'PDE'
+
+      let shouldCreateStopEventObject =
+        !!stop && ['ARS', departureEventType, 'PAS'].includes(eventItem.event_type)
 
       if (!shouldCreateStopEventObject) {
         // If this should not be a stop event, put it in the journeyEventObjects array.
@@ -666,6 +672,8 @@ export async function createJourneyResponse(
     }
   })
 
+  const stopEventOrder = ['ARR', 'ARS', 'PAS', 'PDE', 'DEP']
+
   // Sort observed (ie real) events by timestamp, but also with additional logic as (old) timestamps do not include milliseconds
   const sortedJourneyEvents: EventsType[] = [
     ...stopEventObjects,
@@ -692,9 +700,17 @@ export async function createJourneyResponse(
         } else if (isTlpEvent(eventA) && !isTlpEvent(eventB)) {
           // order TLP events after other events with same timestamp
           return 1
-        } else {
-          return -1
         }
+
+        let typeAIdx = stopEventOrder.indexOf(eventA.type)
+        let typeBIdx = stopEventOrder.indexOf(eventB.type)
+
+        if (typeAIdx >= 0 && typeBIdx >= 0) {
+          return typeAIdx > typeBIdx ? 1 : -1
+        }
+
+        // By default sort event A before event B.
+        return -1
       } else {
         return sort
       }
