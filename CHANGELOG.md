@@ -1,6 +1,6 @@
 # Transitlog server changelog
 
-## Version 1.9.1, deployed 2020-06-22 @ 15:00
+## Version 1.9.2, deployed 2020-06-22 @ 15:00
 
 - Update and fix stop events sort order.
 - Change de facto stop event from DEP to always be PDE with ODO.
