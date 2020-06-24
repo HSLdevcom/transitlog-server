@@ -68,6 +68,7 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
         stopIndex: get(segment, 'stop_index', 0) || 0,
         isTimingStop: !!segment.timing_stop_type, // very important
         originStopId: get(segment, 'originstop_id', ''),
+        destinationStopId: get(segment, 'destinationstop_id', ''),
         routeId: segment.route_id,
         direction: getDirection(segment.direction),
         modes: stop.modes,
@@ -91,6 +92,8 @@ export const fetchEvents: CachedFetcher<Vehicles[]> = async (getEvents, stopIds)
 
 // Combines departures and stops into Departures.
 export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
+  console.log(stops)
+
   const departuresWithStops = departures.map((departure) => {
     // Find a relevant stop segment and use it in the departure response.
     const stop = stops.find((stopSegment) => {

@@ -752,6 +752,7 @@ export type RouteSegment = Position & {
   routeId: Scalars['String']
   direction: Scalars['Direction']
   originStopId?: Maybe<Scalars['String']>
+  destinationStopId?: Maybe<Scalars['String']>
   destination: Scalars['String']
   distanceFromPrevious?: Maybe<Scalars['Int']>
   distanceFromStart?: Maybe<Scalars['Int']>

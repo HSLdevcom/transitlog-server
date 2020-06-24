@@ -756,6 +756,7 @@ export type RouteSegment = Position & {
   routeId: Scalars['String']
   direction: Scalars['Direction']
   originStopId?: Maybe<Scalars['String']>
+  destinationStopId?: Maybe<Scalars['String']>
   destination: Scalars['String']
   distanceFromPrevious?: Maybe<Scalars['Int']>
   distanceFromStart?: Maybe<Scalars['Int']>
@@ -1776,6 +1777,7 @@ export type RouteSegmentResolvers<
   routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
   originStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  destinationStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   destination?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   distanceFromPrevious?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   distanceFromStart?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>

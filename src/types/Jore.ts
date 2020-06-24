@@ -168,6 +168,8 @@ export interface JoreRouteSegment {
   pickup_dropoff_type?: Maybe<number>
   destination_fi?: Maybe<string>
   destination_se?: Maybe<string>
+  originstop_id?: Maybe<string>
+  destinationstop_id?: Maybe<string>
   via_fi?: Maybe<string>
   via_se?: Maybe<string>
   timing_stop_type: number

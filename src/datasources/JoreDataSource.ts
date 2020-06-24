@@ -424,6 +424,8 @@ route_segment.next_stop_id,
 route_segment.timing_stop_type,
 route.destination_fi,
 route.origin_fi,
+route.originstop_id,
+route.destinationstop_id,
 route.route_length,
 route.name_fi          as route_name,
 jore.route_mode(route) as mode
@@ -458,7 +460,8 @@ jore.route_mode(route) as mode
       FROM jore.stop stop
       LEFT JOIN jore.route_segment route_segment USING (stop_id)
       LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
-      WHERE stop.terminal_id = :terminalId;`,
+      WHERE stop.terminal_id = :terminalId
+        AND route.destinationstop_id != stop.stop_id;`,
       { terminalId, date }
     )
 
