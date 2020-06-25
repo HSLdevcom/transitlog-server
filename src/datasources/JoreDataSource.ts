@@ -125,6 +125,7 @@ export class JoreDataSource extends SQLDataSource {
       `SELECT route_segment.route_id,
               route_segment.direction,
               route.originstop_id,
+              route.destinationstop_id,
               route.route_length,
               route.name_fi as route_name,
               route.origin_fi,
@@ -442,7 +443,8 @@ jore.route_mode(route) as mode
       FROM jore.route_segment route_segment
       LEFT JOIN jore.stop stop USING (stop_id)
       LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
-      WHERE route_segment.stop_id = :stopId;`,
+      WHERE route_segment.stop_id = :stopId
+        AND route.destinationstop_id != :stopId;`,
       { stopId, date }
     )
 

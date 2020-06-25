@@ -92,8 +92,6 @@ export const fetchEvents: CachedFetcher<Vehicles[]> = async (getEvents, stopIds)
 
 // Combines departures and stops into Departures.
 export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
-  console.log(stops)
-
   const departuresWithStops = departures.map((departure) => {
     // Find a relevant stop segment and use it in the departure response.
     const stop = stops.find((stopSegment) => {
