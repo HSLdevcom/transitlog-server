@@ -42,6 +42,7 @@ const vehicleFields = [
   'dl',
   'drst',
   'oday',
+  'seq',
 ]
 
 const unsignedEventFields = [
@@ -58,6 +59,7 @@ const unsignedEventFields = [
   'long',
   'loc',
   'mode',
+  'seq',
 ]
 
 const routeDepartureFields = [
@@ -73,6 +75,7 @@ const routeDepartureFields = [
   'tsi',
   'oday',
   'loc',
+  'seq',
 ]
 
 const routeJourneyFields = [
@@ -92,6 +95,7 @@ const routeJourneyFields = [
   'drst',
   'hdg',
   'mode',
+  'seq',
 ]
 
 const cancellationFields = [
@@ -136,6 +140,7 @@ const tlpEventFields = [
   'tlp_point_configid',
   'tlp_frequency',
   'tlp_protocol',
+  'seq',
 ]
 
 type TstRange = {

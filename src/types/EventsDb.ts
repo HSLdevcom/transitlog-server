@@ -124,6 +124,7 @@ export interface Vehicles {
   tst: string
   unique_vehicle_id: string
   vehicle_number: number
+  seq: Maybe<number>
   _is_virtual?: boolean
 }
 

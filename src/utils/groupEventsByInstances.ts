@@ -5,7 +5,14 @@ import { Vehicles } from '../types/EventsDb'
 export const groupEventsByInstances = (
   events: Vehicles[] = []
 ): Array<[string, Vehicles[]]> => {
-  const vehicleIdGroups = groupBy(events, ({ unique_vehicle_id }) =>
+  let onlyFirstVehicleInSequence = events
+
+  // For events with seq information, select only seq==1 or seq==null events.
+  if (events.some((evt) => !!evt.seq)) {
+    onlyFirstVehicleInSequence = events.filter((evt) => !evt.seq || evt.seq === 1)
+  }
+
+  const vehicleIdGroups = groupBy(onlyFirstVehicleInSequence, ({ unique_vehicle_id }) =>
     createValidVehicleId(unique_vehicle_id)
   )
 
