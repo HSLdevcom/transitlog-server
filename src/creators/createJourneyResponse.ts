@@ -117,7 +117,7 @@ const fetchValidJourneyEvents: CachedFetcher<JourneyEvents> = async (
   // There could have been many vehicles operating this journey. Separate them by
   // vehicle ID and use the instance argument to select the set of events.
   const vehicleGroupedEvents: GroupedJourneyEvents = mapValues(events, (val) =>
-    groupEventsByInstances(val)
+    groupEventsByInstances(val, true)
   )
 
   let selectedVehicleId = uniqueVehicleId
@@ -125,12 +125,19 @@ const fetchValidJourneyEvents: CachedFetcher<JourneyEvents> = async (
   // @ts-ignore typing lodash functions is impossible
   return mapValues<JourneyEvents>(vehicleGroupedEvents, (groups: JourneyEventGroup) => {
     if (!selectedVehicleId) {
-      selectedVehicleId = get(groups, '[0][0]', '')
+      let seq1Group = groups.find(([, eventGroup]) => eventGroup.some((evt) => evt.seq === 1))
+
+      if (!seq1Group) {
+        selectedVehicleId = get(groups, '[0][0]', '')
+      } else {
+        selectedVehicleId = seq1Group[0]
+      }
     }
 
     const selectedGroup = groups.find(
-      ([groupId]) => groupId === createValidVehicleId(selectedVehicleId)
+      ([groupVehicleId]) => groupVehicleId === createValidVehicleId(selectedVehicleId)
     )
+
     const selectedGroupEvents = selectedGroup ? selectedGroup[1] : []
     return orderBy(selectedGroupEvents, 'tsi', 'asc')
   })

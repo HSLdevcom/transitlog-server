@@ -3,12 +3,14 @@ import { createValidVehicleId } from './createUniqueVehicleId'
 import { Vehicles } from '../types/EventsDb'
 
 export const groupEventsByInstances = (
-  events: Vehicles[] = []
+  events: Vehicles[] = [],
+  preserveInstances: boolean = false // true to not use seq
 ): Array<[string, Vehicles[]]> => {
   let onlyFirstVehicleInSequence = events
+  let hasSeq = events.some((evt) => !!evt.seq)
 
   // For events with seq information, select only seq==1 or seq==null events.
-  if (events.some((evt) => !!evt.seq)) {
+  if (!preserveInstances && hasSeq) {
     onlyFirstVehicleInSequence = events.filter((evt) => !evt.seq || evt.seq === 1)
   }
 
