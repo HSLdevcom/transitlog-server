@@ -233,6 +233,7 @@ export type Departure = {
   terminalTime?: Maybe<Scalars['Int']>
   recoveryTime?: Maybe<Scalars['Int']>
   departureId: Scalars['Int']
+  trainNumber?: Maybe<Scalars['String']>
   operatingUnit?: Maybe<Scalars['String']>
   departureTime: Scalars['Time']
   departureDate: Scalars['Date']
@@ -1201,6 +1202,7 @@ export type DepartureResolvers<
   terminalTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   recoveryTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   departureId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  trainNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   operatingUnit?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   departureTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
   departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>

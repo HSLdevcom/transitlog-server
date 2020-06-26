@@ -378,7 +378,8 @@ WHERE route_segment.route_id = :routeId AND route_segment.direction = :direction
        departure.date_end,
        departure.departure_id,
        departure.bid_target_id,
-       departure.date_imported
+       departure.date_imported,
+       departure.train_number
 FROM jore.departure departure
 WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
   AND departure.route_id = :routeId
@@ -511,7 +512,8 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.date_end,
     departure.departure_id,
     departure.bid_target_id,
-    departure.date_imported
+    departure.date_imported,
+    departure.train_number
   `
 
   originDepartureQueryFragment = `
