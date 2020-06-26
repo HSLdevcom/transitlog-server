@@ -43,6 +43,7 @@ const vehicleFields = [
   'drst',
   'oday',
   'seq',
+  'odo',
 ]
 
 const unsignedEventFields = [
@@ -60,6 +61,7 @@ const unsignedEventFields = [
   'loc',
   'mode',
   'seq',
+  'odo',
 ]
 
 const routeDepartureFields = [
@@ -96,6 +98,7 @@ const routeJourneyFields = [
   'hdg',
   'mode',
   'seq',
+  'odo',
 ]
 
 const cancellationFields = [
