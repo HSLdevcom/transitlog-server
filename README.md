@@ -4,7 +4,7 @@ This is the server component of [Transitlog UI](https://github.com/HSLdevcom/tra
 
 ## What it does
 
-The goal is to combine and analyze data from both the [JORE history API](https://github.com/HSLdevcom/jore-history-graphql) as well as the HFP history API. In the beginning, all data processing was done in the Transitlog UI which wasn't ideal. The amount of data is very large and it would make the UI lag as the user triggered fetches. Thus we wanted to move all general JORE and HFP queries to this server, filter the data, combine it, and deliver a unified GraphQL API that provides fully processed data that the UI can render.
+The goal is to combine and analyze data from both the [JORE history API](https://github.com/HSLdevcom/jore-history-graphql) as well as the HFP history API. In the beginning, all data processing was done in the Transitlog UI which wasn't ideal. The amount of data is very large and it would make the UI lag as the user triggered fetches. Thus we moved all general JORE and HFP queries to this server, to filter the data, combine it, and deliver a unified GraphQL API that provides fully processed data that the UI can render.
 
 Transitlog-server will also provide (and enable) new features that are not currently available in the UI, such as traffic flow visualization with history, calculated from the HFP data.
 
@@ -16,11 +16,13 @@ The server is a Typescript app that runs on a recent version of Node (10+). It u
 
 ## GraphQL API
 
-Please see QUERIES.md for a more detailed description of what queries the Transitlog-Server provides. This is a read-only API and it does not provide mutations. To mutate the data you have to be a bus with an HFP transmitter or use the JORE database interface.
+Please see QUERIES.md for a more detailed description of what queries the Transitlog-Server provides. This is mainly a read-only API and it does not provide mutations for the main data. To mutate the data you have to be a bus with an HFP transmitter or use the JORE database interface.
+
+The mutations that are available are only for the feedback feature.
 
 ## Run the server
 
-To run the app you need a recent version of Node. The app uses a Redis cache that runs on Docker, so have that installed too. It also talks directly to the JORE History database, so you need that running locally or available locally through a tunnel.
+To run the app you need a recent version of Node. The app uses a Redis cache, so you need to either run one locally with Docker or connect to a Redis server. It also talks directly to the JORE History database, so you need that running locally or available for connection.
 
 ### 1. Start the Redis cache
 
@@ -30,29 +32,15 @@ docker run -p 0.0.0.0:6379:6379 --name transitlog-redis -d --rm redis:latest
 
 If, for whatever reason, you need to reset or refresh the cache just recreate the container. All the data will be gone if you don't use a volume.
 
-### 2. Start the JORE History database
+Alternatively, use an Azure redis server.
 
-You can either run a PostGIS instance locally or create an SSH tunnel to the dev server.
+### 2. Connect to Postgres
 
-#### Local database
-
-To use a local database, follow the instructions in the [jore-history-graphql-import repository](https://github.com/HSLdevcom/jore-history-graphql-import) to start the database and create the schema. You do not need to actually run the import to successfully connect and query the database, but you will only get empty results if you don't run the import. To get started quickly, create the SSH tunnel.
-
-#### SSH tunnel
-
-Create the SSH tunnel:
-
-```bash
-ssh -L 5432:localhost:5432 213.214.167.156 -v
-```
-
-The IP address is the dev server. If it doesn't work, that means we have moved it and you should ask a member of the project team where it is. And then update this part of the README.
-
-The tunnel will stay active until you `exit` the SSH session.
+Both JORE and HFP data are served from the same Citus cluster. Ensure that your IP is whitelisted for the postgres server in Azure and enter the connection info in the .env file.
 
 ### 3. Adjust your env settings
 
-Copy (don't rename or move) the `.env.production` file into simply `.env` and adjust your environment settings as needed. You probably need to change the `PG_CONNECTION_STRING` variable depending on how you set up the JORE History database in the previous section.
+Copy the `.env.production` file into simply `.env` and adjust your environment settings as needed. You probably need to change the `PG_CONNECTION_STRING` variable depending on how you set up the JORE History database in the previous section.
 
 As of writing, this is the default production ENV settings:
 
