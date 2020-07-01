@@ -20,6 +20,24 @@ Please see QUERIES.md for a more detailed description of what queries the Transi
 
 The mutations that are available are only for the feedback feature.
 
+## Architecture
+
+Transitlog-Server is built around the requirements of the Reittiloki service and what kind of data that Transitlog-UI requires. Since it uses GraphQL, it mostly follows the pattern natural to a GraphQL API.
+
+Each query in the schema has a resolver, but Transitlog-Server does not use nested field resolvers. Instead, each query is resolved by a `Creator` function that receives planned and observed data, processes it, combines it and caches it for future requests. The job of the resolver method itself is to tie this pipeline together by providing the creator function with the data.
+
+The Creator functions, contained in `src/creators`, are central to Transitlog-Server and all queries have their own Creator function. While they can be large functions, the data is processed through them in a linear way that enables returning early if some required part of the data is unavailable. They also return cached data if found. The final return value of a Creator is an array of the fully processed data objects.
+
+A Creator functions processes the data like this:
+
+1. The Creator is called with data dependencies by the resolver. All database data dependencies are provided as functions, since it should not be fetched unless not found in the cache.
+2. A cache key based on the parameters of the query is created and the cache is queried separately for planned (JORE) and observed (HFP) data each with the key.
+3. If not found in cache, the data fetcher for the data is called. The fetcher creates the data that goes into the cache. The key is to cache as much as possible without caching results that are not applicable to future queries.
+4. The data fetcher function calls the data dependency function of the data that it should fetch and receives a result. Empty results are not cached.
+5. The data fetcher function validates the data and processes it as much as possible. Often it calls the Object factory function (`src/objects`) which creates the final data objects. The return is then cached.
+6. Once both planned and observed data is fetched, from the cache or otherwise, they are further processed and combined. If the final data objects were not created by the fetched, they are created now.
+7. The data objects are returned and the query is resolved.
+
 ## Run the server
 
 To run the app you need a recent version of Node. The app uses a Redis cache, so you need to either run one locally with Docker or connect to a Redis server. It also talks directly to the JORE History database, so you need that running locally or available for connection.
@@ -47,6 +65,7 @@ Copy the `.env.production` file into simply `.env` and adjust your environment s
 - PATH_PREFIX to '/'
 - CLIENT_SECRET and TESTING_CLIENT_SECRET
 - REDIRECT_URL to point to your locally-running Transitlog UI (presumably http://localhost:3000)
+- The domain part of ADMIN_REDIRECT_URI to point to your locally-running Transitlog Server (presumably http://localhost:4000)
 - API_CLIENT_SECRET
 
 The rest can be as they are in the .env.production file or are optional for local development. You can find values for all of these in the deployment repos.
@@ -110,4 +129,18 @@ After you've built and pushed an image for an environment, run the pipeline in t
 
 ### Merge into environment branches
 
-Once you are finished with an update, merge `master` into the `staging` and `staging` into the `production` branch as the update is tested and  
+Once you are finished with an update, merge `master` into the `staging` and `staging` into the `production` branch as the update is tested and approved. This is important, as the Github Actions workflow (outlined in the Transitlog UI docs) also builds and pushes the server app based on code from these branches. If the staging and production branches are not updated, the server will potentially be downgraded as a result of using the Github actions workflow.
+
+### Github actions
+
+The server repo does not have Github actions workflows, but the actions workflows of the UI repo will pull, build and push a new Docker image based on the code in the `staging` and `production` branches. See the Transitlog UI repo for an outline of the Github Actions workflow.
+
+## Useful commands
+
+#### `yarn start`
+
+Starts the server in development mode with change watches.
+
+#### `yarn run codegen`
+
+Updates the Typescript types from the schema. ALWAYS RUN THIS after changing the schema!
