@@ -124,11 +124,11 @@ The app is deployed to a Docker swarm running on Azure. The deployment itself is
 
 After you've built and pushed an image for an environment, run the pipeline in the corresponding deployment repo:
 
-- Dev: https://gitlab.hsl.fi/transitlog/transitlog-app-dev-deploy
+- Dev: [https://gitlab.hsl.fi/transitlog/transitlog-app-dev-deploy](https://gitlab.hsl.fi/transitlog/transitlog-app-dev-deploy)
 
-- Stage: https://gitlab.hsl.fi/transitlog/transitlog-app-stage-deploy
+- Stage: [https://gitlab.hsl.fi/transitlog/transitlog-app-stage-deploy](https://gitlab.hsl.fi/transitlog/transitlog-app-stage-deploy)
 
-- Prod: https://gitlab.hsl.fi/transitlog/transitlog-app-prod-deploy
+- Prod: [https://gitlab.hsl.fi/transitlog/transitlog-app-prod-deploy](https://gitlab.hsl.fi/transitlog/transitlog-app-prod-deploy)
 
 ### Merge into environment branches
 
