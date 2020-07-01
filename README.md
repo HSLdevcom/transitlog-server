@@ -64,11 +64,12 @@ Copy the `.env.production` file into simply `.env` and adjust your environment s
 
 - Postgres connection to point to the Citus cluster, either dev or prod
 - Redis connection to point to a redis server
-- PATH_PREFIX to '/'
+- PATH_PREFIX to /
 - CLIENT_SECRET and TESTING_CLIENT_SECRET
 - REDIRECT_URL to point to your locally-running Transitlog UI (presumably http://localhost:3000)
 - The domain part of ADMIN_REDIRECT_URI to point to your locally-running Transitlog Server (presumably http://localhost:4000)
 - API_CLIENT_SECRET
+- SECURE_COOKIE to false
 
 The rest can be as they are in the .env.production file or are optional for local development. You can find values for all of these in the deployment repos.
 
