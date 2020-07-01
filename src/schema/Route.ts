@@ -23,6 +23,7 @@ export const Route = gql`
     routeId: String!
     direction: Direction!
     originStopId: String
+    destinationStopId: String
     destination: String!
     distanceFromPrevious: Int
     distanceFromStart: Int

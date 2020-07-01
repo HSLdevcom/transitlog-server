@@ -4,7 +4,7 @@ This is the server component of [Transitlog UI](https://github.com/HSLdevcom/tra
 
 ## What it does
 
-The goal is to combine and analyze data from both the [JORE history API](https://github.com/HSLdevcom/jore-history-graphql) as well as the HFP history API. In the beginning, all data processing was done in the Transitlog UI which wasn't ideal. The amount of data is very large and it would make the UI lag as the user triggered fetches. Thus we wanted to move all general JORE and HFP queries to this server, filter the data, combine it, and deliver a unified GraphQL API that provides fully processed data that the UI can render.
+The goal is to combine and analyze data from both the [JORE history API](https://github.com/HSLdevcom/jore-history-graphql) as well as the HFP history API. In the beginning, all data processing was done in the Transitlog UI which wasn't ideal. The amount of data is very large and it would make the UI lag as the user triggered fetches. Thus we moved all general JORE and HFP queries to this server, to filter the data, combine it, and deliver a unified GraphQL API that provides fully processed data that the UI can render.
 
 Transitlog-server will also provide (and enable) new features that are not currently available in the UI, such as traffic flow visualization with history, calculated from the HFP data.
 
@@ -16,11 +16,13 @@ The server is a Typescript app that runs on a recent version of Node (10+). It u
 
 ## GraphQL API
 
-Please see QUERIES.md for a more detailed description of what queries the Transitlog-Server provides. This is a read-only API and it does not provide mutations. To mutate the data you have to be a bus with an HFP transmitter or use the JORE database interface.
+Please see QUERIES.md for a more detailed description of what queries the Transitlog-Server provides. This is mainly a read-only API and it does not provide mutations for the main data. To mutate the data you have to be a bus with an HFP transmitter or use the JORE database interface.
+
+The mutations that are available are only for the feedback feature.
 
 ## Run the server
 
-To run the app you need a recent version of Node. The app uses a Redis cache that runs on Docker, so have that installed too. It also talks directly to the JORE History database, so you need that running locally or available locally through a tunnel.
+To run the app you need a recent version of Node. The app uses a Redis cache, so you need to either run one locally with Docker or connect to a Redis server. It also talks directly to the JORE History database, so you need that running locally or available for connection.
 
 ### 1. Start the Redis cache
 
@@ -30,66 +32,31 @@ docker run -p 0.0.0.0:6379:6379 --name transitlog-redis -d --rm redis:latest
 
 If, for whatever reason, you need to reset or refresh the cache just recreate the container. All the data will be gone if you don't use a volume.
 
-### 2. Start the JORE History database
+Alternatively, use an Azure redis server.
 
-You can either run a PostGIS instance locally or create an SSH tunnel to the dev server.
+### 2. Connect to Postgres
 
-#### Local database
-
-To use a local database, follow the instructions in the [jore-history-graphql-import repository](https://github.com/HSLdevcom/jore-history-graphql-import) to start the database and create the schema. You do not need to actually run the import to successfully connect and query the database, but you will only get empty results if you don't run the import. To get started quickly, create the SSH tunnel.
-
-#### SSH tunnel
-
-Create the SSH tunnel:
-
-```bash
-ssh -L 5432:localhost:5432 213.214.167.156 -v
-```
-
-The IP address is the dev server. If it doesn't work, that means we have moved it and you should ask a member of the project team where it is. And then update this part of the README.
-
-The tunnel will stay active until you `exit` the SSH session.
+Both JORE and HFP data are served from the same Citus cluster. Ensure that your IP is whitelisted for the postgres server in Azure.
 
 ### 3. Adjust your env settings
 
-Copy (don't rename or move) the `.env.production` file into simply `.env` and adjust your environment settings as needed. You probably need to change the `PG_CONNECTION_STRING` variable depending on how you set up the JORE History database in the previous section.
+Copy the `.env.production` file into simply `.env` and adjust your environment settings as needed. You need to at least set:
 
-As of writing, this is the default production ENV settings:
+- Postgres connection to point to the Citus cluster, either dev or prod
+- Redis connection to point to a redis server
+- PATH_PREFIX to '/'
+- CLIENT_SECRET and TESTING_CLIENT_SECRET
+- REDIRECT_URL to point to your locally-running Transitlog UI (presumably http://localhost:3000)
+- API_CLIENT_SECRET
 
-```dotenv
-TZ=Europe/Helsinki
-DATE_FORMAT=YYYY-MM-DD
-TIME_FORMAT=HH:mm:ss
-MAX_JORE_YEAR=2050
-JORE_URL=https://dev-kartat.hsldev.com/jore-history/graphql
-HFP_URL=https://sandbox-1.hsldev.com/v1alpha1/graphql
-REDIS_HOST=0.0.0.0
-PG_CONNECTION_STRING=postgres://postgres:postgres@jore-history-postgis:5432/postgres
-# DEBUG=true
-```
-
-If you use a local database, set the following `PG_CONNECTION_STRING`:
-
-```dotenv
-PG_CONNECTION_STRING=postgres://postgres:mysecretpassword@localhost:5432/postgres
-```
-
-Remember to change the password if you used a different password than what is described in the database repo's README.
-
-If you used an SSH tunnel, set the following `PG_CONNECTION_STRING`:
-
-```dotenv
-PG_CONNECTION_STRING=postgres://postgres:postgres@localhost:5432/postgres
-```
-
-Uncomment `DEBUG=true` to print all Postgres queries that run into console.
+The rest can be as they are in the .env.production file or are optional for local development. You can find values for all of these in the deployment repos.
 
 ### 4. Develop
 
 1. Run `yarn` to install dependencies
-2. Run `yarn start` to start the server with Nodemon in watch mode.
+2. Run `yarn start` to start the server in watch mode.
 
-`yarn start` will also start graphql-code-generator in watch mode which creates Typescript types as you develop the schema.
+If you change the GraphQL schema, run `yarn run codegen` to update the types.
 
 ### 5. Production
 
@@ -106,7 +73,41 @@ docker build -t hsldevcom/transitlog-server .
 Then run it:
 
 ```bash
-docker run -p 0.0.0.0:4000:4000 --env REDIS_HOST=transitlog-redis --name transitlog-server hsldevcom/transitlog-server 
+docker run -p 0.0.0.0:4000:4000 --env REDIS_HOST=transitlog-redis --name transitlog-server hsldevcom/transitlog-server
 ```
 
 The `.env.production` file will be used as the `.env` config automatically.
+
+## Deployment
+
+To deploy a new version of Transitlog Server to an environment, first build a Docker image and push it to the Docker Hub. Then run the pipeline in the deployment repo.
+
+If you are following the deployment branch procedure with Github actions as outlined in the Transitlog UI documentation, read on.
+
+### Build production image
+
+Use one of these scripts to build and push an image to the environment of your choosing, or all environments. Before running the script, ensure that you are logged in to Docker hub through Docker as the script will try to push the image.
+
+#### `./deploy-env.sh`
+
+A custom build script that builds a Docker image for a specific environment. When asked, press the number for the environment you want to build for.
+
+#### `./deploy-all.sh`
+
+Builds and tags Docker images for all environments.
+
+### Deployment repos
+
+The app is deployed to a Docker swarm running on Azure. The deployment itself is managed by Gitlab pipelines, one repo for each environment. This repo also contains the service configuration for the app in the swarm, as well as the nginx configuration.
+
+After you've built and pushed an image for an environment, run the pipeline in the corresponding deployment repo:
+
+- Dev: https://gitlab.hsl.fi/transitlog/transitlog-app-dev-deploy
+
+- Stage: https://gitlab.hsl.fi/transitlog/transitlog-app-stage-deploy
+
+- Prod: https://gitlab.hsl.fi/transitlog/transitlog-app-prod-deploy
+
+### Merge into environment branches
+
+Once you are finished with an update, merge `master` into the `staging` and `staging` into the `production` branch as the update is tested and  

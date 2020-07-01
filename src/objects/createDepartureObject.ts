@@ -140,6 +140,7 @@ export function createPlannedDepartureObject(
     terminalTime: departure.terminal_time,
     recoveryTime: departure.recovery_time,
     departureId: departure.departure_id,
+    trainNumber: departure.train_number,
     departureTime: plannedDepartureTime.departureTime,
     departureDate: plannedDepartureTime.departureDate,
     extraDeparture: extraDepartureType(departure.extra_departure),

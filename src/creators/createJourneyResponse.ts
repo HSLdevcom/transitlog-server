@@ -67,6 +67,7 @@ import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
 import { trimRouteSegments } from './createRouteSegmentsResponse'
 import { filterByDateGroups } from '../utils/filterByDateGroups'
+import { getCorrectDepartureEventType } from '../utils/getCorrectDepartureEventType'
 
 type JourneyRoute = {
   route: Route | null
@@ -117,7 +118,7 @@ const fetchValidJourneyEvents: CachedFetcher<JourneyEvents> = async (
   // There could have been many vehicles operating this journey. Separate them by
   // vehicle ID and use the instance argument to select the set of events.
   const vehicleGroupedEvents: GroupedJourneyEvents = mapValues(events, (val) =>
-    groupEventsByInstances(val)
+    groupEventsByInstances(val, true)
   )
 
   let selectedVehicleId = uniqueVehicleId
@@ -125,12 +126,19 @@ const fetchValidJourneyEvents: CachedFetcher<JourneyEvents> = async (
   // @ts-ignore typing lodash functions is impossible
   return mapValues<JourneyEvents>(vehicleGroupedEvents, (groups: JourneyEventGroup) => {
     if (!selectedVehicleId) {
-      selectedVehicleId = get(groups, '[0][0]', '')
+      let seq1Group = groups.find(([, eventGroup]) => eventGroup.some((evt) => evt.seq === 1))
+
+      if (!seq1Group) {
+        selectedVehicleId = get(groups, '[0][0]', '')
+      } else {
+        selectedVehicleId = seq1Group[0]
+      }
     }
 
     const selectedGroup = groups.find(
-      ([groupId]) => groupId === createValidVehicleId(selectedVehicleId)
+      ([groupVehicleId]) => groupVehicleId === createValidVehicleId(selectedVehicleId)
     )
+
     const selectedGroupEvents = selectedGroup ? selectedGroup[1] : []
     return orderBy(selectedGroupEvents, 'tsi', 'asc')
   })
@@ -529,11 +537,15 @@ export async function createJourneyResponse(
     let departure: Departure | undefined
     let stop: Stop | null = null
 
+    if (stopId !== 'unknown') {
+      matchedStopId = stopId + ''
+      departure = authorizedDepartures.find((dep) => dep.stopId === stopId + '')
+    }
+
+    let departureEventType = getCorrectDepartureEventType(eventsForStop, departure)
+
     for (const eventItem of eventsForStop) {
-      if (stopId !== 'unknown') {
-        matchedStopId = stopId + ''
-        departure = authorizedDepartures.find((dep) => dep.stopId === stopId + '')
-      } else if (stopId === 'unknown' && eventItem.lat && eventItem.long) {
+      if (stopId === 'unknown' && eventItem.lat && eventItem.long) {
         // If the event has no stopId (= unknown), match a departure to each event in
         // the group by matching the event and departure stop locations.
 
@@ -586,15 +598,6 @@ export async function createJourneyResponse(
       if (stopId !== 'unknown') {
         doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
       }
-
-      let isTimingOrOrigin =
-        get(departure, 'isTimingStop', false) || get(departure, 'isOrigin', false)
-
-      let onlyPDE = eventsForStop.some(
-        (evt) => evt.event_type === 'PDE' && ['ODO', 'MAN'].includes(evt.loc || '')
-      )
-
-      let departureEventType = !onlyPDE && isTimingOrOrigin ? 'DEP' : 'PDE'
 
       let shouldCreateStopEventObject =
         !!stop && ['ARS', departureEventType, 'PAS'].includes(eventItem.event_type)

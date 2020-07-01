@@ -68,6 +68,7 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
         stopIndex: get(segment, 'stop_index', 0) || 0,
         isTimingStop: !!segment.timing_stop_type, // very important
         originStopId: get(segment, 'originstop_id', ''),
+        destinationStopId: get(segment, 'destinationstop_id', ''),
         routeId: segment.route_id,
         direction: getDirection(segment.direction),
         modes: stop.modes,

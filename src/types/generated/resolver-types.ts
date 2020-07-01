@@ -233,6 +233,7 @@ export type Departure = {
   terminalTime?: Maybe<Scalars['Int']>
   recoveryTime?: Maybe<Scalars['Int']>
   departureId: Scalars['Int']
+  trainNumber?: Maybe<Scalars['String']>
   operatingUnit?: Maybe<Scalars['String']>
   departureTime: Scalars['Time']
   departureDate: Scalars['Date']
@@ -297,6 +298,7 @@ export type DriverEvent = {
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
+  odo?: Maybe<Scalars['Float']>
 }
 
 export type Equipment = {
@@ -409,6 +411,7 @@ export type JourneyEvent = {
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
   mode?: Maybe<Scalars['String']>
+  odo?: Maybe<Scalars['Float']>
   _isVirtual?: Maybe<Scalars['Boolean']>
   _sort?: Maybe<Scalars['Int']>
 }
@@ -447,6 +450,7 @@ export type JourneyStopEvent = {
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
   mode?: Maybe<Scalars['String']>
+  odo?: Maybe<Scalars['Float']>
   unplannedStop: Scalars['Boolean']
   _isVirtual?: Maybe<Scalars['Boolean']>
   _sort?: Maybe<Scalars['Int']>
@@ -478,6 +482,7 @@ export type JourneyTlpEvent = {
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
   mode?: Maybe<Scalars['String']>
+  odo?: Maybe<Scalars['Float']>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -756,6 +761,7 @@ export type RouteSegment = Position & {
   routeId: Scalars['String']
   direction: Scalars['Direction']
   originStopId?: Maybe<Scalars['String']>
+  destinationStopId?: Maybe<Scalars['String']>
   destination: Scalars['String']
   distanceFromPrevious?: Maybe<Scalars['Int']>
   distanceFromStart?: Maybe<Scalars['Int']>
@@ -898,6 +904,7 @@ export type VehiclePosition = Position & {
   delay?: Maybe<Scalars['Int']>
   heading?: Maybe<Scalars['Int']>
   mode?: Maybe<Scalars['String']>
+  odo?: Maybe<Scalars['Float']>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -1200,6 +1207,7 @@ export type DepartureResolvers<
   terminalTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   recoveryTime?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   departureId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  trainNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   operatingUnit?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   departureTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
   departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
@@ -1278,6 +1286,7 @@ export type DriverEventResolvers<
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  odo?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
 }
 
 export type EquipmentResolvers<
@@ -1406,6 +1415,7 @@ export type JourneyEventResolvers<
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  odo?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
@@ -1454,6 +1464,7 @@ export type JourneyStopEventResolvers<
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  odo?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   unplannedStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   _isVirtual?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
@@ -1487,6 +1498,7 @@ export type JourneyTlpEventResolvers<
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  odo?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
@@ -1776,6 +1788,7 @@ export type RouteSegmentResolvers<
   routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
   originStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  destinationStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   destination?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   distanceFromPrevious?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   distanceFromStart?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
@@ -1911,6 +1924,7 @@ export type VehiclePositionResolvers<
   delay?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   heading?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  odo?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
