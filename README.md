@@ -38,6 +38,8 @@ A Creator functions processes the data like this:
 6. Once both planned and observed data is fetched, from the cache or otherwise, they are further processed and combined. If the final data objects were not created by the fetched, they are created now.
 7. The data objects are returned and the query is resolved.
 
+In summary, the important bits of Transitlog-Server are the resolvers, the data sources (`src/datasources`), the Creators and the Object factories.
+
 ## Run the server
 
 To run the app you need a recent version of Node. The app uses a Redis cache, so you need to either run one locally with Docker or connect to a Redis server. It also talks directly to the JORE History database, so you need that running locally or available for connection.
