@@ -36,48 +36,27 @@ Alternatively, use an Azure redis server.
 
 ### 2. Connect to Postgres
 
-Both JORE and HFP data are served from the same Citus cluster. Ensure that your IP is whitelisted for the postgres server in Azure and enter the connection info in the .env file.
+Both JORE and HFP data are served from the same Citus cluster. Ensure that your IP is whitelisted for the postgres server in Azure.
 
 ### 3. Adjust your env settings
 
-Copy the `.env.production` file into simply `.env` and adjust your environment settings as needed. You probably need to change the `PG_CONNECTION_STRING` variable depending on how you set up the JORE History database in the previous section.
+Copy the `.env.production` file into simply `.env` and adjust your environment settings as needed. You need to at least set:
 
-As of writing, this is the default production ENV settings:
+- Postgres connection to point to the Citus cluster, either dev or prod
+- Redis connection to point to a redis server
+- PATH_PREFIX to '/'
+- CLIENT_SECRET and TESTING_CLIENT_SECRET
+- REDIRECT_URL to point to your locally-running Transitlog UI (presumably http://localhost:3000)
+- API_CLIENT_SECRET
 
-```dotenv
-TZ=Europe/Helsinki
-DATE_FORMAT=YYYY-MM-DD
-TIME_FORMAT=HH:mm:ss
-MAX_JORE_YEAR=2050
-JORE_URL=https://dev-kartat.hsldev.com/jore-history/graphql
-HFP_URL=https://sandbox-1.hsldev.com/v1alpha1/graphql
-REDIS_HOST=0.0.0.0
-PG_CONNECTION_STRING=postgres://postgres:postgres@jore-history-postgis:5432/postgres
-# DEBUG=true
-```
-
-If you use a local database, set the following `PG_CONNECTION_STRING`:
-
-```dotenv
-PG_CONNECTION_STRING=postgres://postgres:mysecretpassword@localhost:5432/postgres
-```
-
-Remember to change the password if you used a different password than what is described in the database repo's README.
-
-If you used an SSH tunnel, set the following `PG_CONNECTION_STRING`:
-
-```dotenv
-PG_CONNECTION_STRING=postgres://postgres:postgres@localhost:5432/postgres
-```
-
-Uncomment `DEBUG=true` to print all Postgres queries that run into console.
+The rest can be as they are in the .env.production file or are optional for local development. You can find values for all of these in the deployment repos.
 
 ### 4. Develop
 
 1. Run `yarn` to install dependencies
-2. Run `yarn start` to start the server with Nodemon in watch mode.
+2. Run `yarn start` to start the server in watch mode.
 
-`yarn start` will also start graphql-code-generator in watch mode which creates Typescript types as you develop the schema.
+If you change the GraphQL schema, run `yarn run codegen` to update the types.
 
 ### 5. Production
 
@@ -94,7 +73,41 @@ docker build -t hsldevcom/transitlog-server .
 Then run it:
 
 ```bash
-docker run -p 0.0.0.0:4000:4000 --env REDIS_HOST=transitlog-redis --name transitlog-server hsldevcom/transitlog-server 
+docker run -p 0.0.0.0:4000:4000 --env REDIS_HOST=transitlog-redis --name transitlog-server hsldevcom/transitlog-server
 ```
 
 The `.env.production` file will be used as the `.env` config automatically.
+
+## Deployment
+
+To deploy a new version of Transitlog Server to an environment, first build a Docker image and push it to the Docker Hub. Then run the pipeline in the deployment repo.
+
+If you are following the deployment branch procedure with Github actions as outlined in the Transitlog UI documentation, read on.
+
+### Build production image
+
+Use one of these scripts to build and push an image to the environment of your choosing, or all environments. Before running the script, ensure that you are logged in to Docker hub through Docker as the script will try to push the image.
+
+#### `./deploy-env.sh`
+
+A custom build script that builds a Docker image for a specific environment. When asked, press the number for the environment you want to build for.
+
+#### `./deploy-all.sh`
+
+Builds and tags Docker images for all environments.
+
+### Deployment repos
+
+The app is deployed to a Docker swarm running on Azure. The deployment itself is managed by Gitlab pipelines, one repo for each environment. This repo also contains the service configuration for the app in the swarm, as well as the nginx configuration.
+
+After you've built and pushed an image for an environment, run the pipeline in the corresponding deployment repo:
+
+- Dev: https://gitlab.hsl.fi/transitlog/transitlog-app-dev-deploy
+
+- Stage: https://gitlab.hsl.fi/transitlog/transitlog-app-stage-deploy
+
+- Prod: https://gitlab.hsl.fi/transitlog/transitlog-app-prod-deploy
+
+### Merge into environment branches
+
+Once you are finished with an update, merge `master` into the `staging` and `staging` into the `production` branch as the update is tested and  
