@@ -42,6 +42,7 @@ export const Journey = gql`
     lng: Float
     loc: String
     mode: String
+    odo: Float
     _isVirtual: Boolean
     _sort: Int
   }
@@ -90,6 +91,7 @@ export const Journey = gql`
     lng: Float
     loc: String
     mode: String
+    odo: Float
     unplannedStop: Boolean!
     _isVirtual: Boolean
     _sort: Int
@@ -135,8 +137,28 @@ export const Journey = gql`
     lng: Float
     loc: String
     mode: String
+    odo: Float
     _sort: Int
   }
+
+  type DriverEvent {
+    id: ID!
+    journeyType: String!
+    eventType: String!
+    uniqueVehicleId: VehicleId
+    operatorId: String
+    vehicleId: String
+    mode: String
+    recordedAt: DateTime!
+    recordedAtUnix: Int!
+    recordedTime: Time!
+    receivedAt: DateTime
+    lat: Float
+    lng: Float
+    loc: String
+    odo: Float
+  }
+
   union JourneyEventType =
       JourneyEvent
     | JourneyStopEvent
@@ -164,6 +186,7 @@ export const Journey = gql`
     delay: Int
     heading: Int
     mode: String
+    odo: Float
     _sort: Int
   }
 

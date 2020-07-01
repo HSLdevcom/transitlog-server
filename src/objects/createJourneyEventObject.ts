@@ -47,6 +47,7 @@ export function createJourneyEventObject(event: Vehicles): JourneyEvent {
     lng: event.long,
     loc: event.loc,
     mode,
+    odo: event.odo,
     _isVirtual: !!event._is_virtual,
     _sort: unix,
   }
@@ -199,6 +200,7 @@ export function createJourneyStopEventObject(
     lng: event.long,
     loc: event.loc,
     mode,
+    odo: event.odo,
     _isVirtual: !!event._is_virtual,
     _sort: unix,
   }
@@ -249,6 +251,7 @@ export function createJourneyTlpEventObject(event: TlpEvents): JourneyTlpEvent {
     lng: event.long,
     loc: event.loc,
     mode,
+    odo: event.odo,
     // Sort TLA events after TLR events
     _sort: unix,
   }
@@ -286,6 +289,7 @@ export function createVehiclePositionObject(event: Vehicles, id?: string): Vehic
     delay: event.dl || 0,
     heading: event.hdg,
     mode,
+    odo: event.odo,
     _sort: unix,
   }
 }
@@ -313,6 +317,7 @@ export function createUnsignedVehiclePositionObject(event: Vehicles): VehiclePos
     delay: event.dl || 0,
     heading: event.hdg,
     mode,
+    odo: event.odo,
   }
 }
 
@@ -339,5 +344,6 @@ export function createDriverEventObject(event: Vehicles): DriverEvent {
     lng: event.long,
     loc: event.loc,
     mode,
+    odo: event.odo,
   }
 }

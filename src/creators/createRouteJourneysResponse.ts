@@ -37,6 +37,11 @@ export const createRouteJourneysResponse = async (
     )
   }
 
+  // Disable for metro
+  if (routeId.startsWith('31M')) {
+    return []
+  }
+
   const journeysTTL: number = isToday(date) ? 60 : 24 * 60 * 60
   const journeysKey = `route_journeys_${routeId}_${direction}_${date}`
 

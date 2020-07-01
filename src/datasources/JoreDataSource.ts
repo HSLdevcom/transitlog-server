@@ -125,6 +125,7 @@ export class JoreDataSource extends SQLDataSource {
       `SELECT route_segment.route_id,
               route_segment.direction,
               route.originstop_id,
+              route.destinationstop_id,
               route.route_length,
               route.name_fi as route_name,
               route.origin_fi,
@@ -377,7 +378,8 @@ WHERE route_segment.route_id = :routeId AND route_segment.direction = :direction
        departure.date_end,
        departure.departure_id,
        departure.bid_target_id,
-       departure.date_imported
+       departure.date_imported,
+       departure.train_number
 FROM jore.departure departure
 WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
   AND departure.route_id = :routeId
@@ -424,6 +426,8 @@ route_segment.next_stop_id,
 route_segment.timing_stop_type,
 route.destination_fi,
 route.origin_fi,
+route.originstop_id,
+route.destinationstop_id,
 route.route_length,
 route.name_fi          as route_name,
 jore.route_mode(route) as mode
@@ -440,7 +444,8 @@ jore.route_mode(route) as mode
       FROM jore.route_segment route_segment
       LEFT JOIN jore.stop stop USING (stop_id)
       LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
-      WHERE route_segment.stop_id = :stopId;`,
+      WHERE route_segment.stop_id = :stopId
+        AND route.destinationstop_id != :stopId;`,
       { stopId, date }
     )
 
@@ -458,7 +463,8 @@ jore.route_mode(route) as mode
       FROM jore.stop stop
       LEFT JOIN jore.route_segment route_segment USING (stop_id)
       LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
-      WHERE stop.terminal_id = :terminalId;`,
+      WHERE stop.terminal_id = :terminalId
+        AND route.destinationstop_id != stop.stop_id;`,
       { terminalId, date }
     )
 
@@ -506,7 +512,8 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.date_end,
     departure.departure_id,
     departure.bid_target_id,
-    departure.date_imported
+    departure.date_imported,
+    departure.train_number
   `
 
   originDepartureQueryFragment = `
