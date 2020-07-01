@@ -228,7 +228,7 @@ const weeklyDepartures = async (
       lastStopArrival
     )
 
-  const getStops = () => dataSources.JoreAPI.getDeparturesStops(stopId, date)
+  const getStops = () => dataSources.JoreAPI.getDeparturesStops(stopId, date, lastStopArrival)
 
   const getDepartureEvents = (fetchDate) =>
     dataSources.HFPAPI.getRouteDepartureEvents(

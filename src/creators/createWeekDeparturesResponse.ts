@@ -31,6 +31,7 @@ import { Vehicles } from '../types/EventsDb'
 import { getStopArrivalData, getStopArrivalEvent } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { extraDepartureType } from '../utils/extraDepartureType'
+import { stop } from '../utils/knexLogger'
 
 const combineDeparturesAndEvents = (
   departures,

@@ -433,20 +433,24 @@ route.name_fi          as route_name,
 jore.route_mode(route) as mode
   `
 
-  async getDeparturesStops(stopId, date): Promise<JoreStopSegment[]> {
+  async getDeparturesStops(stopId, date, queryLastStop = false): Promise<JoreStopSegment[]> {
     if (!stopId) {
       return []
     }
+
+    // If querying for the LAST stop of a route, set query last stop to true, otherwise the result is empty.
+    // The route.destinationstop_id != :stopId is only for excluding the last stop from stop timetables.
+    // In the week view, we need to actually query for the last stop.
 
     const query = this.db.raw(
       `
       SELECT ${this.departureStopFields}
       FROM jore.route_segment route_segment
-      LEFT JOIN jore.stop stop USING (stop_id)
       LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
+      LEFT JOIN jore.stop stop USING (stop_id)
       WHERE route_segment.stop_id = :stopId
-        AND route.destinationstop_id != :stopId;`,
-      { stopId, date }
+        AND route.destinationstop_id != :lastStopId;`,
+      { stopId, lastStopId: !queryLastStop ? stopId : '', date }
     )
 
     return this.getBatched(query)
