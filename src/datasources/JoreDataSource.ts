@@ -28,9 +28,6 @@ type ExceptionDaysScoped = {
   [scope: string]: string[]
 }
 
-// install postgis functions in knex.postgis;
-const st = require('knex-postgis')(knex)
-
 export class JoreDataSource extends SQLDataSource {
   constructor() {
     super({ log: false, name: 'jore' })
@@ -41,20 +38,37 @@ export class JoreDataSource extends SQLDataSource {
   async getRoutes(): Promise<JoreRoute[]> {
     const query = this.db.raw(
       `
-                SELECT route.route_id,
-                       route.direction,
-                       route.destination_fi,
-                       route.destinationstop_id,
-                       route.origin_fi,
-                       route.originstop_id,
-                       route.name_fi,
-                       route.name_fi          as route_name,
-                       route.date_begin,
-                       route.date_end,
-                       route.date_modified,
-                       route.route_length,
-                       jore.route_mode(route) as mode
-                FROM jore.route route;
+        SELECT DISTINCT ON (dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
+            dir.reitunnus route_id,
+            dir.suusuunta::varchar direction,
+            dir.suupaapaik destination_fi,
+            link.lnkloppusolmu destinationstop_id,
+            dir.suulahpaik origin_fi,
+            link.lnkalkusolmu originstop_id,
+            route.reinimi name_fi,
+            route.reinimi route_name,
+            dir.suuvoimast date_begin,
+            dir.suuvoimviimpvm date_end,
+            dir.suuviimpvm date_modified,
+            dir.suupituus route_length,
+            case when line is null then null
+                 else
+                     case line.linjoukkollaji
+                         when '02' then 'TRAM'
+                         when '06' then 'SUBWAY'
+                         when '07' then 'FERRY'
+                         when '12' then 'RAIL'
+                         when '13' then 'RAIL'
+                         else 'BUS' end
+                end as mode
+        FROM jore.jr_reitinsuunta dir
+                 LEFT JOIN jore.jr_reitti route USING (reitunnus)
+                 LEFT JOIN jore.jr_linja line USING (lintunnus)
+                 LEFT JOIN jore.jr_reitinlinkki link ON dir.reitunnus = link.reitunnus
+            AND dir.suusuunta = link.suusuunta
+            AND dir.suuvoimast = link.suuvoimast
+        WHERE link.lnkalkusolmu IS NOT NULL
+        ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm, link.reljarjnro;
       `
     )
 
