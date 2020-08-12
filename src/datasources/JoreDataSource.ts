@@ -155,31 +155,47 @@ export class JoreDataSource extends SQLDataSource {
 
   async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
     const query = this.db.raw(
-      `SELECT route_segment.route_id,
-              route_segment.direction,
-              route.originstop_id,
-              route.destinationstop_id,
-              route.route_length,
-              route.name_fi as route_name,
-              route.origin_fi,
-              route.destination_fi,
-              route_segment.date_begin,
-              route_segment.date_end,
-              route_segment.timing_stop_type,
-              route_segment.stop_index,
-              route_segment.date_modified,
-              jore.route_mode(route) as mode,
-              stop.lat,
-              stop.lon,
-              stop.stop_id,
-              stop.short_id,
-              stop.name_fi,
-              stop.stop_radius
-         FROM jore.stop stop
-            LEFT JOIN jore.route_segment route_segment USING (stop_id)
-            LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
-         WHERE stop.stop_id = :stopId
-           AND route.route_id IS NOT NULL;`,
+      `SELECT DISTINCT ON (stop.soltunnus, link.reitunnus, link.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
+           link.reitunnus route_id,
+           link.suusuunta::varchar direction,
+           dir.suupaapaik destination_fi,
+           link.lnkloppusolmu destinationstop_id,
+           dir.suulahpaik origin_fi,
+           link.lnkalkusolmu originstop_id,
+           route.reinimi route_name,
+           dir.suupituus route_length,
+           knot.solmx lat,
+           knot.solmy lon,
+           stop.soltunnus stop_id,
+           knot.sollistunnus short_id,
+           stop.pyskunta area_code,
+           stop.pysnimi name_fi,
+           stop.pyssade stop_radius,
+           dir.suuvoimast date_begin,
+           dir.suuvoimviimpvm date_end,
+           dir.suuviimpvm date_modified,
+           link.ajantaspys timing_stop_type,
+           link.reljarjnro stop_index,
+           case when line is null then null
+                else
+                    case line.linjoukkollaji
+                        when '02' then 'TRAM'
+                        when '06' then 'SUBWAY'
+                        when '07' then 'FERRY'
+                        when '12' then 'RAIL'
+                        when '13' then 'RAIL'
+                        else 'BUS' end
+               end as mode
+       FROM jore.jr_pysakki stop
+                FULL OUTER JOIN jore.jr_solmu knot USING (soltunnus)
+                FULL OUTER JOIN jore.jr_reitinlinkki link ON knot.soltunnus = link.lnkalkusolmu AND link.relpysakki = 'P'
+                FULL OUTER JOIN jore.jr_reitinsuunta dir USING (reitunnus, suusuunta)
+                FULL OUTER JOIN jore.jr_reitti route USING (reitunnus)
+                LEFT JOIN jore.jr_linja line USING (lintunnus)
+       WHERE stop.soltunnus = :stopId
+         AND :date BETWEEN dir.suuvoimast AND dir.suuvoimviimpvm
+         AND link.reitunnus IS NOT NULL
+       ORDER BY stop.soltunnus, link.reitunnus, link.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm;`,
       { stopId, date }
     )
 
