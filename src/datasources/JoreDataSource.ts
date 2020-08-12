@@ -19,10 +19,9 @@ import { endOfYear, format, getYear, isEqual, isSameYear, startOfYear } from 'da
 import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createExceptionDayObject } from '../objects/createExceptionDayObject'
-import { getKnex } from '../knex'
+import { databases, getKnex } from '../knex'
 
-const knex = getKnex()
-const ONE_DAY = 24 * 60 * 60
+const knex = getKnex(databases.JORE)
 
 type ExceptionDaysScoped = {
   normal: string[]

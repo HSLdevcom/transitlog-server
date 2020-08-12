@@ -4,14 +4,14 @@ import { getDateFromDateTime, getNormalTime } from '../utils/time'
 import { Scalars } from '../types/generated/schema-types'
 import Knex from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
-import { DBAlert, DBCancellation, JourneyEvents, Vehicles, TlpEvents } from '../types/EventsDb'
-import { getKnex } from '../knex'
+import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
+import { databases, getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
 import { createHfpVehicleId } from '../utils/createUniqueVehicleId'
 import { orderBy } from 'lodash'
 
-const knex: Knex = getKnex()
+const knex: Knex = getKnex(databases.HFP)
 
 // Data from before this date doesn't necessarily have other events than VP.
 const EVENTS_CUTOFF_DATE = '2019-09-18'

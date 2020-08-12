@@ -1,9 +1,9 @@
-import { getKnex } from '../knex'
+import { databases, getKnex } from '../knex'
 import { createDatabase } from '../admin/createDatabase'
 import { merge } from 'lodash'
 import { Transaction } from 'knex'
 
-const knex = getKnex()
+const knex = getKnex(databases.HFP)
 const schema = 'transitlog'
 const settingsTable = 'transitlog_settings'
 

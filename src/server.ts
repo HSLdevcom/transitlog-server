@@ -17,7 +17,7 @@ import { createEngine } from 'express-react-views'
 import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
 import { adminController } from './admin/adminController'
 import { cleanup } from './utils/cleanup'
-import { getKnex } from './knex'
+import { databases, getKnex } from './knex'
 // Set the default timezone for the app
 moment.tz.setDefault(TZ)
 
@@ -122,7 +122,7 @@ type RequestContext = {
 
   app.get('/check', async (req, res) => {
     const client = await getRedis()
-    const knex = getKnex()
+    const knex = getKnex(databases.HFP)
 
     if (client.status === 'ready' && expressServer.listening && !knex.client.pool.destroyed) {
       res.status(200).send('Ok')
@@ -144,10 +144,15 @@ type RequestContext = {
 })()
 
 cleanup(() => {
-  const knex = getKnex()
+  const knexJore = getKnex(databases.JORE)
+  const knexHFP = getKnex(databases.HFP)
 
-  if (knex) {
-    knex.destroy()
+  if (knexJore) {
+    knexJore.destroy()
+  }
+
+  if (knexHFP) {
+    knexHFP.destroy()
   }
 
   getRedis().then((client) => client.quit())
