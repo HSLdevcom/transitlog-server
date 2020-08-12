@@ -78,22 +78,39 @@ export class JoreDataSource extends SQLDataSource {
   async getRoute(routeId, direction): Promise<JoreRoute[]> {
     const query = this.db.raw(
       `
-                SELECT route.route_id,
-                       route.direction,
-                       route.destination_fi,
-                       route.destinationstop_id,
-                       route.origin_fi,
-                       route.originstop_id,
-                       route.name_fi,
-                       route.name_fi          as route_name,
-                       route.date_begin,
-                       route.date_end,
-                       route.date_modified,
-                       route.route_length,
-                       jore.route_mode(route) as mode
-                FROM jore.route route
-                WHERE route.route_id = :routeId
-                  AND route.direction = :direction;
+      SELECT DISTINCT ON (dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
+          dir.reitunnus route_id,
+          dir.suusuunta::varchar direction,
+          dir.suupaapaik destination_fi,
+          link.lnkloppusolmu destinationstop_id,
+          dir.suulahpaik origin_fi,
+          link.lnkalkusolmu originstop_id,
+          route.reinimi name_fi,
+          route.reinimi route_name,
+          dir.suuvoimast date_begin,
+          dir.suuvoimviimpvm date_end,
+          dir.suuviimpvm date_modified,
+          dir.suupituus route_length,
+          case when line is null then null
+               else
+                   case line.linjoukkollaji
+                       when '02' then 'TRAM'
+                       when '06' then 'SUBWAY'
+                       when '07' then 'FERRY'
+                       when '12' then 'RAIL'
+                       when '13' then 'RAIL'
+                       else 'BUS' end
+              end as mode
+      FROM jore.jr_reitinsuunta dir
+               LEFT JOIN jore.jr_reitti route USING (reitunnus)
+               LEFT JOIN jore.jr_linja line USING (lintunnus)
+               LEFT JOIN jore.jr_reitinlinkki link ON dir.reitunnus = link.reitunnus
+          AND dir.suusuunta = link.suusuunta
+          AND dir.suuvoimast = link.suuvoimast
+      WHERE dir.reitunnus = :routeId
+        AND dir.suusuunta::varchar = :direction
+        AND link.lnkalkusolmu IS NOT NULL
+      ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm, link.reljarjnro;
       `,
       { routeId, direction: direction + '' }
     )
@@ -107,26 +124,29 @@ export class JoreDataSource extends SQLDataSource {
     date: string
   ): Promise<JoreRoute[]> {
     const query = this.db.raw(
-      `SELECT route.route_id,
-                route.direction,
-                route.route_length,
-                jore.route_mode(route) as          mode,
-                ST_AsGeoJSON(geometry.geom)::JSONB geometry,
-                geometry.date_begin,
-                geometry.date_end,
-                geometry.date_imported
-         from jore.route route,
-              jore.geometry geometry
-         WHERE route.route_id = :routeId
-           AND route.direction = :direction
-           AND geometry.route_id = route.route_id
-           AND geometry.direction = route.direction
-           AND :date >= geometry.date_begin
-           AND :date <= geometry.date_end
-           AND :date >= route.date_begin
-           AND :date <= route.date_end
-           AND route.date_begin <= geometry.date_end
-           AND route.date_end >= geometry.date_begin;`,
+      `SELECT geom.route_id,
+              geom.direction,
+              geom.route_length,
+              geom.geojson geometry,
+              geom.date_begin,
+              geom.date_end,
+              case when line is null then null
+                   else
+                       case line.linjoukkollaji
+                           when '02' then 'TRAM'
+                           when '06' then 'SUBWAY'
+                           when '07' then 'FERRY'
+                           when '12' then 'RAIL'
+                           when '13' then 'RAIL'
+                           else 'BUS' end
+                  end as mode
+       FROM jore.route_geometry geom
+                LEFT JOIN jore.jr_reitti route ON geom.route_id = route.reitunnus
+                LEFT JOIN jore.jr_linja line USING (lintunnus)
+       WHERE geom.route_id = :routeId
+         AND geom.direction = :direction
+         AND :date >= geom.date_begin
+         AND :date <= geom.date_end;`,
       { routeId, direction: direction + '', date }
     )
 
