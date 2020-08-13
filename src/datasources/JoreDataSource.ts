@@ -28,6 +28,45 @@ type ExceptionDaysScoped = {
   [scope: string]: string[]
 }
 
+let routeModeQuery = () => `
+  SELECT DISTINCT ON (route.reitunnus)
+      route.reitunnus,
+      case when line is null then 'BUS'
+           else
+               case line.linjoukkollaji
+                   when '02' then 'TRAM'
+                   when '06' then 'SUBWAY'
+                   when '07' then 'FERRY'
+                   when '12' then 'RAIL'
+                   when '13' then 'RAIL'
+                   else 'BUS' end
+          end as mode
+  FROM jore.jr_reitti route
+       LEFT JOIN jore.jr_linja line USING (lintunnus)
+  ORDER BY route.reitunnus
+`
+
+let stopModeQuery = () => `
+SELECT DISTINCT ON (link.reitunnus, link.lnkalkusolmu)
+    link.reitunnus,
+    link.lnkalkusolmu,
+    case when line is null then 'BUS'
+         else
+             case line.linjoukkollaji
+                 when '02' then 'TRAM'
+                 when '06' then 'SUBWAY'
+                 when '07' then 'FERRY'
+                 when '12' then 'RAIL'
+                 when '13' then 'RAIL'
+                 else 'BUS' end
+        end as mode
+FROM jore.jr_reitinlinkki link
+         LEFT JOIN jore.jr_reitti route USING (reitunnus)
+         LEFT JOIN jore.jr_linja line USING (lintunnus)
+WHERE link.relpysakki = 'P'
+ORDER BY link.reitunnus, link.lnkalkusolmu
+`
+
 let routeQuery = (routeId?: string, direction?: string) => {
   let where =
     routeId && direction
@@ -37,6 +76,7 @@ let routeQuery = (routeId?: string, direction?: string) => {
       : ''
 
   return `
+  WITH route_mode AS (${routeModeQuery()}) 
   SELECT DISTINCT ON (dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
     dir.reitunnus route_id,
     dir.suusuunta::varchar direction,
@@ -50,19 +90,10 @@ let routeQuery = (routeId?: string, direction?: string) => {
     dir.suuvoimviimpvm date_end,
     dir.suuviimpvm date_modified,
     dir.suupituus route_length,
-    case when line is null then null
-         else
-             case line.linjoukkollaji
-                 when '02' then 'TRAM'
-                 when '06' then 'SUBWAY'
-                 when '07' then 'FERRY'
-                 when '12' then 'RAIL'
-                 when '13' then 'RAIL'
-                 else 'BUS' end
-        end as mode
+    route_mode.mode
     FROM jore.jr_reitinsuunta dir
         LEFT JOIN jore.jr_reitti route USING (reitunnus)
-        LEFT JOIN jore.jr_linja line USING (lintunnus)
+        LEFT JOIN route_mode USING (reitunnus)
         LEFT JOIN LATERAL (
           SELECT DISTINCT ON (inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast) lnkalkusolmu
           FROM jore.jr_reitinlinkki inner_link
@@ -85,7 +116,7 @@ let routeQuery = (routeId?: string, direction?: string) => {
         ) dest_link ON true
     WHERE ${where} origin_link.lnkalkusolmu IS NOT NULL
       AND dest_link.lnkalkusolmu IS NOT NULL
-    ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm;
+    ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm
   `
 }
 
@@ -97,14 +128,17 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getRoutes(): Promise<JoreRoute[]> {
-    const query = this.db.raw(routeQuery())
+    const query = this.db.raw(routeQuery() + ';')
     return this.getBatched(query)
   }
 
   async getRoute(routeId, direction): Promise<JoreRoute[]> {
     let dirStr = direction + ''
 
-    const query = this.db.raw(routeQuery(routeId, dirStr), { routeId, direction: dirStr })
+    const query = this.db.raw(routeQuery(routeId, dirStr) + ';', {
+      routeId,
+      direction: dirStr,
+    })
     return this.getBatched(query)
   }
 
@@ -114,25 +148,17 @@ export class JoreDataSource extends SQLDataSource {
     date: string
   ): Promise<JoreRoute[]> {
     const query = this.db.raw(
-      `SELECT geom.route_id,
+      `
+      WITH route_mode AS (${routeModeQuery()})
+      SELECT geom.route_id,
         geom.direction,
         geom.route_length,
         geom.geojson geometry,
         geom.date_begin,
         geom.date_end,
-        case when line is null then null
-             else
-                 case line.linjoukkollaji
-                     when '02' then 'TRAM'
-                     when '06' then 'SUBWAY'
-                     when '07' then 'FERRY'
-                     when '12' then 'RAIL'
-                     when '13' then 'RAIL'
-                     else 'BUS' end
-            end as mode
-       FROM jore.route_geometry geom
-                LEFT JOIN jore.jr_reitti route ON geom.route_id = route.reitunnus
-                LEFT JOIN jore.jr_linja line USING (lintunnus)
+        route_mode.mode  
+      FROM jore.route_geometry geom
+           LEFT JOIN route_mode ON geom.route_id = route_mode.reitunnus
        WHERE geom.route_id = :routeId
          AND geom.direction = :direction
          AND :date >= geom.date_begin
@@ -178,15 +204,18 @@ export class JoreDataSource extends SQLDataSource {
   async getSimpleStop(stopId: string): Promise<JoreStop | null> {
     const query = this.db.raw(
       `
-        SELECT stop.stop_id,
-               stop.short_id,
-               stop.lat,
-               stop.lon,
-               stop.name_fi,
-               stop.stop_radius,
-               jore.stop_modes(stop, null) as modes
-        FROM jore.stop stop
-        WHERE stop.stop_id = :stopId;
+        WITH stop_mode AS (${stopModeQuery()})
+        SELECT stop.soltunnus stop_id,
+               knot.sollistunnus short_id,
+               stop.pyskunta area,
+               knot.solmx lat,
+               knot.solmy lon,
+               stop.pysnimi name_fi,
+               stop.pyssade stop_radius,
+               (SELECT array_agg(DISTINCT mode) FROM stop_mode sm WHERE sm.lnkalkusolmu = stop.soltunnus) as modes
+        FROM jore.jr_pysakki stop
+                 LEFT JOIN jore.jr_solmu knot USING (soltunnus)
+        WHERE stop.soltunnus = :stopId;
       `,
       { stopId: (stopId || '') + '' }
     )
