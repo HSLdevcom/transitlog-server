@@ -737,26 +737,25 @@ WHERE departure.stop_id = :stopId
 
     const query = this.db.raw(
       `
-                SELECT ex_day.date_in_effect,
-                       ex_desc.description,
-                       ex_day.day_type,
-                       ex_day.exclusive,
-                       rep_day.scope,
-                       rep_day.time_begin,
-                       rep_day.time_end,
-                       CASE
-                           WHEN rep_day.replacing_day_type IS NULL
-                               THEN ARRAY [ex_day.exception_day_type, ex_day.day_type]
-                           ELSE ARRAY [ex_day.exception_day_type, rep_day.replacing_day_type]
-                           END                       effective_day_types,
-                       rep_day.replacing_day_type as scoped_day_type
-                FROM jore.exception_days_calendar ex_day
-                         LEFT OUTER JOIN jore.exception_days ex_desc
-                                         ON ex_day.exception_day_type = ex_desc.exception_day_type
-                         FULL OUTER JOIN jore.replacement_days_calendar rep_day USING (date_in_effect)
-                WHERE ex_day.date_in_effect >= :startDate
-                  AND ex_day.date_in_effect <= :endDate
-                ORDER BY ex_day.date_in_effect ASC;
+      SELECT ex_day.eritpoikpvm date_in_effect,
+             ex_desc.kooselite description,
+             ex_day.eritviikpaiva day_type,
+             ex_day.eriteimuita as exclusive,
+             rep_day.korvjoukkollaji scope,
+             rep_day.korvalkaika time_begin,
+             rep_day.korvpaataika time_end,
+             CASE
+                 WHEN rep_day.korvpaiva IS NULL
+                     THEN ARRAY [ex_day.eritpaiva, ex_day.eritviikpaiva]
+                 ELSE ARRAY [ex_day.eritpaiva, rep_day.korvpaiva]
+                 END as effective_day_types,
+             rep_day.korvpaiva as scoped_day_type
+      FROM jore.jr_eritpvkalent ex_day
+               LEFT OUTER JOIN jore.jr_koodisto ex_desc ON ex_day.eritpaiva = ex_desc.kookoodi
+               FULL OUTER JOIN jore.jr_korvpvkalent rep_day ON ex_day.eritpoikpvm = rep_day.korvpoikpvm
+      WHERE ex_day.eritpoikpvm >= :startDate
+        AND ex_day.eritpoikpvm <= :endDate
+      ORDER BY ex_day.eritpoikpvm;
       `,
       { startDate, endDate }
     )
