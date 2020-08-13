@@ -41,10 +41,10 @@ export class JoreDataSource extends SQLDataSource {
         SELECT DISTINCT ON (dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
             dir.reitunnus route_id,
             dir.suusuunta::varchar direction,
-            dir.suupaapaik destination_fi,
-            link.lnkloppusolmu destinationstop_id,
             dir.suulahpaik origin_fi,
-            link.lnkalkusolmu originstop_id,
+            origin_link.lnkalkusolmu originstop_id,
+            dir.suupaapaik destination_fi,
+            dest_link.lnkalkusolmu destinationstop_id,
             route.reinimi name_fi,
             route.reinimi route_name,
             dir.suuvoimast date_begin,
@@ -62,13 +62,31 @@ export class JoreDataSource extends SQLDataSource {
                          else 'BUS' end
                 end as mode
         FROM jore.jr_reitinsuunta dir
-                 LEFT JOIN jore.jr_reitti route USING (reitunnus)
-                 LEFT JOIN jore.jr_linja line USING (lintunnus)
-                 LEFT JOIN jore.jr_reitinlinkki link ON dir.reitunnus = link.reitunnus
-            AND dir.suusuunta = link.suusuunta
-            AND dir.suuvoimast = link.suuvoimast
-        WHERE link.lnkalkusolmu IS NOT NULL
-        ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm, link.reljarjnro;
+            LEFT JOIN jore.jr_reitti route USING (reitunnus)
+            LEFT JOIN jore.jr_linja line USING (lintunnus)
+            LEFT JOIN LATERAL (
+              SELECT DISTINCT ON (inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast) lnkalkusolmu
+              FROM jore.jr_reitinlinkki inner_link
+              WHERE inner_link.relpysakki = 'P'
+                AND dir.reitunnus = reitunnus
+                AND dir.suusuunta = suusuunta
+                AND dir.suuvoimast = suuvoimast
+              ORDER BY inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast, inner_link.reljarjnro ASC
+              LIMIT 1
+            ) origin_link ON true
+            LEFT JOIN LATERAL (
+              SELECT DISTINCT ON (inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast) lnkalkusolmu
+              FROM jore.jr_reitinlinkki inner_link
+              WHERE inner_link.relpysakki = 'P'
+                AND dir.reitunnus = reitunnus
+                AND dir.suusuunta = suusuunta
+                AND dir.suuvoimast = suuvoimast
+              ORDER BY inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast, inner_link.reljarjnro DESC
+              LIMIT 1
+            ) dest_link ON true
+        WHERE origin_link.lnkalkusolmu IS NOT NULL
+          AND dest_link.lnkalkusolmu IS NOT NULL
+        ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm;
       `
     )
 
