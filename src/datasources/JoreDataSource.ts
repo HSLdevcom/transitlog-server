@@ -28,6 +28,67 @@ type ExceptionDaysScoped = {
   [scope: string]: string[]
 }
 
+let routeQuery = (routeId?: string, direction?: string) => {
+  let where =
+    routeId && direction
+      ? `dir.reitunnus = :routeId
+  AND dir.suusuunta::varchar = :direction
+  AND `
+      : ''
+
+  return `
+  SELECT DISTINCT ON (dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
+    dir.reitunnus route_id,
+    dir.suusuunta::varchar direction,
+    dir.suulahpaik origin_fi,
+    origin_link.lnkalkusolmu originstop_id,
+    dir.suupaapaik destination_fi,
+    dest_link.lnkalkusolmu destinationstop_id,
+    route.reinimi name_fi,
+    route.reinimi route_name,
+    dir.suuvoimast date_begin,
+    dir.suuvoimviimpvm date_end,
+    dir.suuviimpvm date_modified,
+    dir.suupituus route_length,
+    case when line is null then null
+         else
+             case line.linjoukkollaji
+                 when '02' then 'TRAM'
+                 when '06' then 'SUBWAY'
+                 when '07' then 'FERRY'
+                 when '12' then 'RAIL'
+                 when '13' then 'RAIL'
+                 else 'BUS' end
+        end as mode
+    FROM jore.jr_reitinsuunta dir
+        LEFT JOIN jore.jr_reitti route USING (reitunnus)
+        LEFT JOIN jore.jr_linja line USING (lintunnus)
+        LEFT JOIN LATERAL (
+          SELECT DISTINCT ON (inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast) lnkalkusolmu
+          FROM jore.jr_reitinlinkki inner_link
+          WHERE inner_link.relpysakki = 'P'
+            AND dir.reitunnus = reitunnus
+            AND dir.suusuunta = suusuunta
+            AND dir.suuvoimast = suuvoimast
+          ORDER BY inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast, inner_link.reljarjnro ASC
+          LIMIT 1
+        ) origin_link ON true
+        LEFT JOIN LATERAL (
+          SELECT DISTINCT ON (inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast) lnkalkusolmu
+          FROM jore.jr_reitinlinkki inner_link
+          WHERE inner_link.relpysakki = 'P'
+            AND dir.reitunnus = reitunnus
+            AND dir.suusuunta = suusuunta
+            AND dir.suuvoimast = suuvoimast
+          ORDER BY inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast, inner_link.reljarjnro DESC
+          LIMIT 1
+        ) dest_link ON true
+    WHERE ${where} origin_link.lnkalkusolmu IS NOT NULL
+      AND dest_link.lnkalkusolmu IS NOT NULL
+    ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm;
+  `
+}
+
 export class JoreDataSource extends SQLDataSource {
   constructor() {
     super({ log: false, name: 'jore' })
@@ -36,103 +97,14 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getRoutes(): Promise<JoreRoute[]> {
-    const query = this.db.raw(
-      `
-        SELECT DISTINCT ON (dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
-            dir.reitunnus route_id,
-            dir.suusuunta::varchar direction,
-            dir.suulahpaik origin_fi,
-            origin_link.lnkalkusolmu originstop_id,
-            dir.suupaapaik destination_fi,
-            dest_link.lnkalkusolmu destinationstop_id,
-            route.reinimi name_fi,
-            route.reinimi route_name,
-            dir.suuvoimast date_begin,
-            dir.suuvoimviimpvm date_end,
-            dir.suuviimpvm date_modified,
-            dir.suupituus route_length,
-            case when line is null then null
-                 else
-                     case line.linjoukkollaji
-                         when '02' then 'TRAM'
-                         when '06' then 'SUBWAY'
-                         when '07' then 'FERRY'
-                         when '12' then 'RAIL'
-                         when '13' then 'RAIL'
-                         else 'BUS' end
-                end as mode
-        FROM jore.jr_reitinsuunta dir
-            LEFT JOIN jore.jr_reitti route USING (reitunnus)
-            LEFT JOIN jore.jr_linja line USING (lintunnus)
-            LEFT JOIN LATERAL (
-              SELECT DISTINCT ON (inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast) lnkalkusolmu
-              FROM jore.jr_reitinlinkki inner_link
-              WHERE inner_link.relpysakki = 'P'
-                AND dir.reitunnus = reitunnus
-                AND dir.suusuunta = suusuunta
-                AND dir.suuvoimast = suuvoimast
-              ORDER BY inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast, inner_link.reljarjnro ASC
-              LIMIT 1
-            ) origin_link ON true
-            LEFT JOIN LATERAL (
-              SELECT DISTINCT ON (inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast) lnkalkusolmu
-              FROM jore.jr_reitinlinkki inner_link
-              WHERE inner_link.relpysakki = 'P'
-                AND dir.reitunnus = reitunnus
-                AND dir.suusuunta = suusuunta
-                AND dir.suuvoimast = suuvoimast
-              ORDER BY inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast, inner_link.reljarjnro DESC
-              LIMIT 1
-            ) dest_link ON true
-        WHERE origin_link.lnkalkusolmu IS NOT NULL
-          AND dest_link.lnkalkusolmu IS NOT NULL
-        ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm;
-      `
-    )
-
+    const query = this.db.raw(routeQuery())
     return this.getBatched(query)
   }
 
   async getRoute(routeId, direction): Promise<JoreRoute[]> {
-    const query = this.db.raw(
-      `
-      SELECT DISTINCT ON (dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
-          dir.reitunnus route_id,
-          dir.suusuunta::varchar direction,
-          dir.suupaapaik destination_fi,
-          link.lnkloppusolmu destinationstop_id,
-          dir.suulahpaik origin_fi,
-          link.lnkalkusolmu originstop_id,
-          route.reinimi name_fi,
-          route.reinimi route_name,
-          dir.suuvoimast date_begin,
-          dir.suuvoimviimpvm date_end,
-          dir.suuviimpvm date_modified,
-          dir.suupituus route_length,
-          case when line is null then null
-               else
-                   case line.linjoukkollaji
-                       when '02' then 'TRAM'
-                       when '06' then 'SUBWAY'
-                       when '07' then 'FERRY'
-                       when '12' then 'RAIL'
-                       when '13' then 'RAIL'
-                       else 'BUS' end
-              end as mode
-      FROM jore.jr_reitinsuunta dir
-               LEFT JOIN jore.jr_reitti route USING (reitunnus)
-               LEFT JOIN jore.jr_linja line USING (lintunnus)
-               LEFT JOIN jore.jr_reitinlinkki link ON dir.reitunnus = link.reitunnus
-          AND dir.suusuunta = link.suusuunta
-          AND dir.suuvoimast = link.suuvoimast
-      WHERE dir.reitunnus = :routeId
-        AND dir.suusuunta::varchar = :direction
-        AND link.lnkalkusolmu IS NOT NULL
-      ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm, link.reljarjnro;
-      `,
-      { routeId, direction: direction + '' }
-    )
+    let dirStr = direction + ''
 
+    const query = this.db.raw(routeQuery(routeId, dirStr), { routeId, direction: dirStr })
     return this.getBatched(query)
   }
 
@@ -143,21 +115,21 @@ export class JoreDataSource extends SQLDataSource {
   ): Promise<JoreRoute[]> {
     const query = this.db.raw(
       `SELECT geom.route_id,
-              geom.direction,
-              geom.route_length,
-              geom.geojson geometry,
-              geom.date_begin,
-              geom.date_end,
-              case when line is null then null
-                   else
-                       case line.linjoukkollaji
-                           when '02' then 'TRAM'
-                           when '06' then 'SUBWAY'
-                           when '07' then 'FERRY'
-                           when '12' then 'RAIL'
-                           when '13' then 'RAIL'
-                           else 'BUS' end
-                  end as mode
+        geom.direction,
+        geom.route_length,
+        geom.geojson geometry,
+        geom.date_begin,
+        geom.date_end,
+        case when line is null then null
+             else
+                 case line.linjoukkollaji
+                     when '02' then 'TRAM'
+                     when '06' then 'SUBWAY'
+                     when '07' then 'FERRY'
+                     when '12' then 'RAIL'
+                     when '13' then 'RAIL'
+                     else 'BUS' end
+            end as mode
        FROM jore.route_geometry geom
                 LEFT JOIN jore.jr_reitti route ON geom.route_id = route.reitunnus
                 LEFT JOIN jore.jr_linja line USING (lintunnus)
@@ -173,47 +145,30 @@ export class JoreDataSource extends SQLDataSource {
 
   async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
     const query = this.db.raw(
-      `SELECT DISTINCT ON (stop.soltunnus, link.reitunnus, link.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
-           link.reitunnus route_id,
-           link.suusuunta::varchar direction,
-           dir.suupaapaik destination_fi,
-           link.lnkloppusolmu destinationstop_id,
-           dir.suulahpaik origin_fi,
-           link.lnkalkusolmu originstop_id,
-           route.reinimi route_name,
-           dir.suupituus route_length,
-           knot.solmx lat,
-           knot.solmy lon,
-           stop.soltunnus stop_id,
-           knot.sollistunnus short_id,
-           stop.pyskunta area_code,
-           stop.pysnimi name_fi,
-           stop.pyssade stop_radius,
-           dir.suuvoimast date_begin,
-           dir.suuvoimviimpvm date_end,
-           dir.suuviimpvm date_modified,
-           link.ajantaspys timing_stop_type,
-           link.reljarjnro stop_index,
-           case when line is null then null
-                else
-                    case line.linjoukkollaji
-                        when '02' then 'TRAM'
-                        when '06' then 'SUBWAY'
-                        when '07' then 'FERRY'
-                        when '12' then 'RAIL'
-                        when '13' then 'RAIL'
-                        else 'BUS' end
-               end as mode
-       FROM jore.jr_pysakki stop
-                FULL OUTER JOIN jore.jr_solmu knot USING (soltunnus)
-                FULL OUTER JOIN jore.jr_reitinlinkki link ON knot.soltunnus = link.lnkalkusolmu AND link.relpysakki = 'P'
-                FULL OUTER JOIN jore.jr_reitinsuunta dir USING (reitunnus, suusuunta)
-                FULL OUTER JOIN jore.jr_reitti route USING (reitunnus)
-                LEFT JOIN jore.jr_linja line USING (lintunnus)
-       WHERE stop.soltunnus = :stopId
-         AND :date BETWEEN dir.suuvoimast AND dir.suuvoimviimpvm
-         AND link.reitunnus IS NOT NULL
-       ORDER BY stop.soltunnus, link.reitunnus, link.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm;`,
+      `
+        WITH route_query AS (${routeQuery()})
+        SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end)
+            route.*,
+            knot.solmx lat,
+            knot.solmy lon,
+            stop.soltunnus stop_id,
+            knot.sollistunnus short_id,
+            stop.pyskunta area_code,
+            stop.pysnimi name_fi,
+            stop.pyssade stop_radius,
+            link.ajantaspys timing_stop_type,
+            link.reljarjnro stop_index
+        FROM jore.jr_pysakki stop
+             FULL OUTER JOIN jore.jr_solmu knot USING (soltunnus)
+             FULL OUTER JOIN jore.jr_reitinlinkki link ON knot.soltunnus = link.lnkalkusolmu AND link.relpysakki = 'P'
+             FULL OUTER JOIN route_query route ON route.route_id = link.reitunnus
+                                        AND route.direction = link.suusuunta::varchar
+                                        AND route.date_begin = link.suuvoimast
+        WHERE stop.soltunnus = :stopId
+          AND :date BETWEEN route.date_begin AND route.date_end
+          AND link.reitunnus IS NOT NULL
+        ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end;
+   `,
       { stopId, date }
     )
 
