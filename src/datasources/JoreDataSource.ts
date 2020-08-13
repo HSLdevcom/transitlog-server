@@ -75,8 +75,7 @@ let routeQuery = (routeId?: string, direction?: string) => {
   AND `
       : ''
 
-  return `
-  WITH route_mode AS (${routeModeQuery()}) 
+  return ` 
   SELECT DISTINCT ON (dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
     dir.reitunnus route_id,
     dir.suusuunta::varchar direction,
@@ -128,17 +127,26 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getRoutes(): Promise<JoreRoute[]> {
-    const query = this.db.raw(routeQuery() + ';')
+    const query = this.db.raw(`
+      WITH route_mode AS (${routeModeQuery()})
+      ${routeQuery()};
+    `)
     return this.getBatched(query)
   }
 
   async getRoute(routeId, direction): Promise<JoreRoute[]> {
     let dirStr = direction + ''
 
-    const query = this.db.raw(routeQuery(routeId, dirStr) + ';', {
-      routeId,
-      direction: dirStr,
-    })
+    const query = this.db.raw(
+      `
+      WITH route_mode AS (${routeModeQuery()})
+      ${routeQuery(routeId, dirStr)};
+    `,
+      {
+        routeId,
+        direction: dirStr,
+      }
+    )
     return this.getBatched(query)
   }
 
@@ -172,25 +180,26 @@ export class JoreDataSource extends SQLDataSource {
   async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
     const query = this.db.raw(
       `
-        WITH route_query AS (${routeQuery()})
+        WITH route_mode AS (${routeModeQuery()}),
+        route_query AS (${routeQuery()})
         SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end)
             route.*,
             knot.solmx lat,
             knot.solmy lon,
             stop.soltunnus stop_id,
-            knot.sollistunnus short_id,
-            stop.pyskunta area_code,
+            (knot.solkirjain || knot.sollistunnus) short_id,
             stop.pysnimi name_fi,
             stop.pyssade stop_radius,
             link.ajantaspys timing_stop_type,
             link.reljarjnro stop_index
         FROM jore.jr_pysakki stop
-             FULL OUTER JOIN jore.jr_solmu knot USING (soltunnus)
-             FULL OUTER JOIN jore.jr_reitinlinkki link ON knot.soltunnus = link.lnkalkusolmu AND link.relpysakki = 'P'
-             FULL OUTER JOIN route_query route ON route.route_id = link.reitunnus
+             LEFT JOIN jore.jr_solmu knot USING (soltunnus)
+             FULL OUTER JOIN jore.jr_reitinlinkki link ON knot.soltunnus = link.lnkalkusolmu
+             LEFT JOIN route_query route ON route.route_id = link.reitunnus
                                         AND route.direction = link.suusuunta::varchar
                                         AND route.date_begin = link.suuvoimast
         WHERE stop.soltunnus = :stopId
+          AND link.relpysakki = 'P'
           AND :date BETWEEN route.date_begin AND route.date_end
           AND link.reitunnus IS NOT NULL
         ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end;
@@ -206,8 +215,7 @@ export class JoreDataSource extends SQLDataSource {
       `
         WITH stop_mode AS (${stopModeQuery()})
         SELECT stop.soltunnus stop_id,
-               knot.sollistunnus short_id,
-               stop.pyskunta area,
+               (knot.solkirjain || knot.sollistunnus) short_id,
                knot.solmx lat,
                knot.solmy lon,
                stop.pysnimi name_fi,
@@ -229,52 +237,51 @@ export class JoreDataSource extends SQLDataSource {
     const query = date
       ? this.db.raw(
           `
-          SELECT DISTINCT ON (route_segment.route_id, route_segment.direction, route_segment.stop_id) stop.stop_id,
-                 stop.short_id,
-                 stop.lat,
-                 stop.lon,
-                 stop.name_fi,
-                 stop.stop_radius,
-                 route_segment.date_modified,
-                 route_segment.route_id,
-                 route_segment.direction,
-                 route_segment.timing_stop_type,
-                 route_segment.date_begin,
-                 route_segment.date_end,
-                 (select distinct jore.route_mode(route)) as modes,
-                 route.originstop_id,
-                 route.route_length,
-                 route.name_fi as route_name,
-                 route.origin_fi,
-                 route.destination_fi
-          FROM jore.stop stop
-            LEFT JOIN jore.route_segment route_segment USING (stop_id)
-            LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
-          WHERE :date BETWEEN route_segment.date_begin AND route_segment.date_end
-            AND route.route_id IS NOT NULL
-          ORDER BY route_segment.route_id,
-                   route_segment.direction,
-                   route_segment.stop_id,
-                   route_segment.date_modified DESC;`,
+        WITH route_mode AS (${routeModeQuery()}),
+        route_query AS (${routeQuery()})
+        SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end)
+            route.*,
+            knot.solmx lat,
+            knot.solmy lon,
+            stop.soltunnus stop_id,
+            (knot.solkirjain || knot.sollistunnus) short_id,
+            stop.pysnimi name_fi,
+            stop.pyssade stop_radius,
+            link.ajantaspys timing_stop_type,
+            link.reljarjnro stop_index
+        FROM jore.jr_pysakki stop
+             LEFT JOIN jore.jr_solmu knot USING (soltunnus)
+             FULL OUTER JOIN jore.jr_reitinlinkki link ON stop.soltunnus = lnkalkusolmu
+             LEFT JOIN route_query route ON route.route_id = link.reitunnus
+                AND route.direction = link.suusuunta::varchar
+                AND route.date_begin = link.suuvoimast
+        WHERE link.relpysakki = 'P'
+          AND :date BETWEEN route.date_begin AND route.date_end
+        ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end;`,
           { date }
         )
       : this.db.raw(
           `
-          SELECT stop.stop_id,
-                 stop.short_id,
-                 stop.lat,
-                 stop.lon,
-                 stop.name_fi,
-                 stop.stop_radius,
-                 jore.stop_modes(stop, null) as modes
-          FROM jore.stop stop;
+          WITH stop_mode AS (${stopModeQuery()})
+          SELECT stop.soltunnus stop_id,
+                 (knot.solkirjain || knot.sollistunnus) short_id,
+                 knot.solmx lat,
+                 knot.solmy lon,
+                 stop.pysnimi name_fi,
+                 stop.pyssade stop_radius,
+                 (SELECT array_agg(DISTINCT mode) FROM stop_mode sm WHERE sm.lnkalkusolmu = stop.soltunnus) as modes
+          FROM jore.jr_pysakki stop
+               LEFT JOIN jore.jr_solmu knot USING (soltunnus)
         `
         )
 
-    return this.getBatched(query)
+    let result = await this.getBatched(query)
+    return result.filter((res) => !!res.stop_id)
   }
 
   async getTerminal(terminalId): Promise<JoreTerminal | null> {
+    return null
+
     const query = this.db.raw(
       `SELECT terminal.terminal_id,
              terminal.lat,
@@ -295,6 +302,8 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getTerminalStops(terminalId: string): Promise<string[]> {
+    return []
+
     if (!terminalId) {
       return []
     }
@@ -316,6 +325,8 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getTerminals(): Promise<JoreTerminal[]> {
+    return []
+
     const query = this.db.raw(
       `SELECT terminal.terminal_id,
              terminal.lat,
@@ -334,6 +345,8 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
+    return []
+
     const query = this.db
       .withSchema('jore')
       .select()
@@ -346,6 +359,8 @@ export class JoreDataSource extends SQLDataSource {
     vehicleId: string | number,
     operatorId: string
   ): Promise<JoreEquipment[]> {
+    return []
+
     const joreVehicleId = vehicleId + ''
     const joreOperatorId = (operatorId + '').padStart(4, '0')
 
@@ -362,6 +377,8 @@ export class JoreDataSource extends SQLDataSource {
     routeId: string,
     direction: Scalars['Direction']
   ): Promise<JoreRouteData[]> {
+    return []
+
     const query = this.db.raw(
       `select route.route_id,
        route.direction,
@@ -404,6 +421,8 @@ WHERE route_segment.route_id = :routeId AND route_segment.direction = :direction
     direction: Scalars['Direction'],
     date: string
   ): Promise<JoreRouteDepartureData[]> {
+    return []
+
     const dayTypes = await this.getDayTypesForDateAndRoute(date, routeId)
 
     const query = this.db.raw(
@@ -447,6 +466,8 @@ ORDER BY departure.departure_id ASC,
   }
 
   async getDepartureData(routeId, direction, date): Promise<PlannedJourneyData> {
+    return { stops: [], departures: [] }
+
     const stopsPromise = this.getRouteSegments(routeId, direction)
     const departuresPromise = this.getJourneyDepartures(routeId, direction, date)
 
@@ -485,6 +506,8 @@ jore.route_mode(route) as mode
   `
 
   async getDeparturesStops(stopId, date, queryLastStop = false): Promise<JoreStopSegment[]> {
+    return []
+
     if (!stopId) {
       return []
     }
@@ -508,6 +531,8 @@ jore.route_mode(route) as mode
   }
 
   async getTerminalDeparturesStops(terminalId, date): Promise<JoreStopSegment[]> {
+    return []
+
     if (!terminalId) {
       return []
     }
@@ -527,6 +552,8 @@ jore.route_mode(route) as mode
   }
 
   async getDepartureOperators(date): Promise<string> {
+    return ''
+
     const exceptionDayTypes = await this.getDayTypesForDate(date)
     // TODO: Ensure that the same operator drives both normal and exception days, always.
     // If not, we may need to be more precise with the day types.
@@ -602,6 +629,8 @@ LEFT JOIN LATERAL (
     stopIds: string[],
     date: string
   ): Promise<JoreDepartureWithOrigin[]> {
+    return []
+
     const exceptionDayTypes = await this.getDayTypesForDate(date)
     const dayTypes = uniq(flatten(Object.values(exceptionDayTypes)))
 
@@ -657,6 +686,8 @@ LEFT JOIN LATERAL (
     direction,
     date
   ): Promise<JoreDepartureWithOrigin[]> {
+    return []
+
     const dayTypes = await this.getDayTypesForDateAndRoute(date, routeId)
 
     const query = this.db.raw(
@@ -682,6 +713,8 @@ ORDER BY departure.hours ASC,
     exceptionDayTypes: string[] = [],
     lastStopArrival = false
   ): Promise<JoreDeparture[]> {
+    return []
+
     const queryDayTypes = uniq(exceptionDayTypes.concat(dayTypes))
 
     let query
@@ -855,6 +888,8 @@ WHERE departure.stop_id = :stopId
   }
 
   async getTypeOfRoute(routeId: string, date: string): Promise<null | string> {
+    return null
+
     const query = this.db.raw(
       `
                 SELECT route.date_begin,
