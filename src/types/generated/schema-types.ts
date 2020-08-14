@@ -742,7 +742,7 @@ export type RouteGeometry = {
   __typename?: 'RouteGeometry'
   id: Scalars['ID']
   mode?: Maybe<Scalars['String']>
-  coordinates: RouteGeometryPoint[]
+  geometry: Scalars['String']
 }
 
 export type RouteGeometryPoint = Position & {

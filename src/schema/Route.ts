@@ -49,7 +49,7 @@ export const Route = gql`
   type RouteGeometry {
     id: ID!
     mode: String
-    coordinates: [RouteGeometryPoint!]!
+    geometry: String!
   }
 
   input RouteFilterInput {

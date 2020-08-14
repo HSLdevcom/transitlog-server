@@ -746,7 +746,7 @@ export type RouteGeometry = {
   __typename?: 'RouteGeometry'
   id: Scalars['ID']
   mode?: Maybe<Scalars['String']>
-  coordinates: RouteGeometryPoint[]
+  geometry: Scalars['String']
 }
 
 export type RouteGeometryPoint = Position & {
@@ -1018,7 +1018,6 @@ export type ResolversTypes = {
   CancellationEffect: CancellationEffect
   RouteFilterInput: RouteFilterInput
   RouteGeometry: ResolverTypeWrapper<RouteGeometry>
-  RouteGeometryPoint: ResolverTypeWrapper<RouteGeometryPoint>
   RouteSegment: ResolverTypeWrapper<RouteSegment>
   DepartureFilterInput: DepartureFilterInput
   Departure: ResolverTypeWrapper<Departure>
@@ -1059,6 +1058,7 @@ export type ResolversTypes = {
   Feedback: ResolverTypeWrapper<Feedback>
   Upload: ResolverTypeWrapper<Scalars['Upload']>
   TlpType: TlpType
+  RouteGeometryPoint: ResolverTypeWrapper<RouteGeometryPoint>
   BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
 
@@ -1094,7 +1094,6 @@ export type ResolversParentTypes = {
   CancellationEffect: CancellationEffect
   RouteFilterInput: RouteFilterInput
   RouteGeometry: RouteGeometry
-  RouteGeometryPoint: RouteGeometryPoint
   RouteSegment: RouteSegment
   DepartureFilterInput: DepartureFilterInput
   Departure: Departure
@@ -1135,6 +1134,7 @@ export type ResolversParentTypes = {
   Feedback: Feedback
   Upload: Scalars['Upload']
   TlpType: TlpType
+  RouteGeometryPoint: RouteGeometryPoint
   BBox: Scalars['BBox']
 }
 
@@ -1593,7 +1593,7 @@ export type PositionResolvers<
   ParentType extends ResolversParentTypes['Position'] = ResolversParentTypes['Position']
 > = {
   __resolveType: TypeResolveFn<
-    'Stop' | 'Terminal' | 'RouteGeometryPoint' | 'RouteSegment' | 'VehiclePosition',
+    'Stop' | 'Terminal' | 'RouteSegment' | 'VehiclePosition' | 'RouteGeometryPoint',
     ParentType,
     ContextType
   >
@@ -1769,7 +1769,7 @@ export type RouteGeometryResolvers<
 > = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
-  coordinates?: Resolver<Array<ResolversTypes['RouteGeometryPoint']>, ParentType, ContextType>
+  geometry?: Resolver<ResolversTypes['String'], ParentType, ContextType>
 }
 
 export type RouteGeometryPointResolvers<

@@ -140,6 +140,16 @@ export interface JoreRoute {
   mode?: Maybe<Mode>
 }
 
+export interface JoreRouteGeometry {
+  route_id: string
+  date_begin: string
+  date_end: string
+  direction: string
+  route_length: number
+  geometry: Json
+  mode?: Maybe<Mode>
+}
+
 export interface JoreNote {
   line_id: string
   note_id: number

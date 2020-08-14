@@ -6,6 +6,7 @@ import {
   JoreRoute,
   JoreRouteData,
   JoreRouteDepartureData,
+  JoreRouteGeometry,
   JoreStop,
   JoreStopSegment,
   JoreTerminal,
@@ -154,7 +155,7 @@ export class JoreDataSource extends SQLDataSource {
     routeId: string,
     direction: Scalars['Direction'],
     date: string
-  ): Promise<JoreRoute[]> {
+  ): Promise<JoreRouteGeometry[]> {
     const query = this.db.raw(
       `
       WITH route_mode AS (${routeModeQuery()})
