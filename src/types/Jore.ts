@@ -146,7 +146,9 @@ export interface JoreRouteGeometry {
   date_end: string
   direction: string
   route_length: number
-  geometry: Json
+  geometry: {
+    coordinates: number[][]
+  }
   mode?: Maybe<Mode>
 }
 

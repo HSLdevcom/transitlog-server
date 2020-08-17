@@ -1,4 +1,4 @@
-import { JoreRoute, JoreRouteGeometry } from '../types/Jore'
+import { JoreRouteGeometry } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { RouteGeometry, Scalars } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -22,7 +22,7 @@ export async function createRouteGeometryResponse(
     return {
       id: `route_geometry_${routeId}_${direction}_${selectedRoute.date_begin}_${selectedRoute.date_end}`,
       mode: selectedRoute.mode,
-      geometry: selectedRoute.geometry,
+      geometry: JSON.stringify(selectedRoute.geometry),
     }
   }
 

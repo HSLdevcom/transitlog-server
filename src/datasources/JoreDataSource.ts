@@ -159,19 +159,19 @@ export class JoreDataSource extends SQLDataSource {
     const query = this.db.raw(
       `
       WITH route_mode AS (${routeModeQuery()})
-      SELECT geom.route_id,
-        geom.direction,
-        geom.route_length,
-        geom.geojson geometry,
-        geom.date_begin,
-        geom.date_end,
+      SELECT geometry.route_id,
+        geometry.direction,
+        geometry.route_length,
+        ST_AsGeoJSON(geometry.geom)::JSONB geometry,
+        geometry.date_begin,
+        geometry.date_end,
         route_mode.mode  
-      FROM jore.route_geometry geom
-           LEFT JOIN route_mode ON geom.route_id = route_mode.reitunnus
-       WHERE geom.route_id = :routeId
-         AND geom.direction = :direction
-         AND :date >= geom.date_begin
-         AND :date <= geom.date_end;`,
+      FROM jore.route_geometry geometry
+           LEFT JOIN route_mode ON geometry.route_id = route_mode.reitunnus
+       WHERE geometry.route_id = :routeId
+         AND geometry.direction = :direction
+         AND :date >= geometry.date_begin
+         AND :date <= geometry.date_end;`,
       { routeId, direction: direction + '', date }
     )
 
