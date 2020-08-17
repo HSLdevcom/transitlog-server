@@ -161,17 +161,14 @@ export class JoreDataSource extends SQLDataSource {
       WITH route_mode AS (${routeModeQuery()})
       SELECT geometry.route_id,
         geometry.direction,
-        geometry.route_length,
-        ST_AsGeoJSON(geometry.geom)::JSONB geometry,
         geometry.date_begin,
-        geometry.date_end,
+        ST_AsGeoJSON(geometry.geom)::JSONB geometry,
         route_mode.mode  
       FROM jore.route_geometry geometry
            LEFT JOIN route_mode ON geometry.route_id = route_mode.reitunnus
        WHERE geometry.route_id = :routeId
          AND geometry.direction = :direction
-         AND :date >= geometry.date_begin
-         AND :date <= geometry.date_end;`,
+         AND geometry.date_begin <= :date;`,
       { routeId, direction: direction + '', date }
     )
 

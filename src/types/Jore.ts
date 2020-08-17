@@ -143,9 +143,7 @@ export interface JoreRoute {
 export interface JoreRouteGeometry {
   route_id: string
   date_begin: string
-  date_end: string
   direction: string
-  route_length: number
   geometry: {
     coordinates: number[][]
   }
