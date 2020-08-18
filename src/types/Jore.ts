@@ -113,7 +113,7 @@ export interface JoreTerminal {
   name_se: string
   lat: string
   lon: string
-  date_imported: string
+  date_modified: string
   stop_id?: string
   stop_terminal_id?: string
   modes?: Maybe<Mode[] | Mode>

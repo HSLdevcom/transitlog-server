@@ -209,6 +209,7 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getSimpleStop(stopId: string): Promise<JoreStop | null> {
+    // language=PostgreSQL
     const query = this.db.raw(
       `
         WITH stop_mode AS (${stopModeQuery()})
@@ -220,7 +221,7 @@ export class JoreDataSource extends SQLDataSource {
                stop.pyssade stop_radius,
                (SELECT array_agg(DISTINCT mode) FROM stop_mode sm WHERE sm.lnkalkusolmu = stop.soltunnus) as modes
         FROM jore.jr_pysakki stop
-                 LEFT JOIN jore.jr_solmu knot USING (soltunnus)
+             LEFT JOIN jore.jr_solmu knot USING (soltunnus)
         WHERE stop.soltunnus = :stopId;
       `,
       { stopId: (stopId || '') + '' }
@@ -232,6 +233,7 @@ export class JoreDataSource extends SQLDataSource {
 
   async getStops(): Promise<JoreStop[]>
   async getStops(date?: string): Promise<JoreRouteData[]> {
+    // language=PostgreSQL
     const query = date
       ? this.db.raw(
           `
@@ -278,21 +280,24 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getTerminal(terminalId): Promise<JoreTerminal | null> {
-    return null
-
+    // language=PostgreSQL
     const query = this.db.raw(
-      `SELECT terminal.terminal_id,
-             terminal.lat,
-             terminal.lon,
-             terminal.name_fi,
-             terminal.name_se,
-             terminal.date_imported,
-             stop.stop_id,
-             stop.terminal_id as stop_terminal_id,
-             jore.stop_modes(stop, null) as modes
-      FROM jore.terminal terminal
-        LEFT JOIN jore.stop stop USING (terminal_id)
-      WHERE terminal.terminal_id = :terminalId;`,
+      `
+          WITH stop_mode AS (${stopModeQuery()})        
+          SELECT terminal.termid terminal_id,
+                 terminal.solomx lat,
+                 terminal.solomy lon,
+                 terminal.nimi name_fi,
+                 terminal.nimir name_se,
+                 terminal.tallpvm date_modified,
+                 stop.soltunnus stop_id,
+                 stop.terminaali as stop_terminal_id,
+                 array_agg(DISTINCT mode) as modes
+          FROM jore.jr_lij_terminaalialue terminal
+               LEFT JOIN jore.jr_pysakki stop ON stop.terminaali = terminal.termid
+               LEFT JOIN stop_mode sm ON sm.lnkalkusolmu = stop.soltunnus
+          WHERE terminal.termid = :terminalId
+          GROUP BY (terminal.termid, stop.soltunnus);`,
       { terminalId }
     )
 
@@ -300,16 +305,14 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getTerminalStops(terminalId: string): Promise<string[]> {
-    return []
-
     if (!terminalId) {
       return []
     }
 
     const query = this.db.raw(
-      `SELECT stop.stop_id
-      FROM jore.stop stop
-      WHERE stop.terminal_id = :terminalId;`,
+      `SELECT stop.soltunnus stop_id
+      FROM jore.jr_pysakki stop
+      WHERE stop.terminaali = :terminalId;`,
       { terminalId }
     )
 
@@ -323,32 +326,95 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getTerminals(): Promise<JoreTerminal[]> {
-    return []
-
+    // language=PostgreSQL
     const query = this.db.raw(
-      `SELECT terminal.terminal_id,
-             terminal.lat,
-             terminal.lon,
-             terminal.name_fi,
-             terminal.name_se,
-             terminal.date_imported,
-             stop.stop_id,
-             stop.terminal_id as stop_terminal_id,
-             jore.stop_modes(stop, null) as modes
-      FROM jore.terminal terminal
-        LEFT JOIN jore.stop stop USING (terminal_id);`
+      `
+          WITH stop_mode AS (${stopModeQuery()})        
+          SELECT terminal.termid terminal_id,
+                 terminal.solomx lat,
+                 terminal.solomy lon,
+                 terminal.nimi name_fi,
+                 terminal.nimir name_se,
+                 terminal.tallpvm date_modified,
+                 stop.soltunnus stop_id,
+                 stop.terminaali as stop_terminal_id,
+                 array_agg(DISTINCT mode) as modes
+          FROM jore.jr_lij_terminaalialue terminal
+               LEFT JOIN jore.jr_pysakki stop ON stop.terminaali = terminal.termid
+               LEFT JOIN stop_mode sm ON sm.lnkalkusolmu = stop.soltunnus
+          GROUP BY (terminal.termid, stop.soltunnus);`
     )
 
     return this.getBatched(query)
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
-    return []
-
-    const query = this.db
-      .withSchema('jore')
-      .select()
-      .from('equipment')
+    const query = this.db.raw(`
+        WITH vehicles AS (
+            SELECT 'B'::char                                       vehicle_class,
+                   veh.reknro                                      registry_nr,
+                   veh.kylkinro                                    vehicle_id,
+                   date_part('year', AGE(now(), veh.rekpvm))       age,
+                   veh.kaltyyppi          as                       type,
+                   veh.turvateli::boolean                          multi_axle,
+                   COALESCE((
+                      SELECT ilme.kooselite
+                      FROM jore.jr_koodisto ilme
+                      WHERE veh.ulkoilme::numeric = ilme.kookoodi::numeric
+                        AND ilme.koolista = 'Ulkoilme'
+                      LIMIT 1
+                   ), 'unknown') as                                exterior_color,
+                   veh.liitunnus                                   operator_id,
+                   veh.paastoluokka                                emission_class,
+                   COALESCE((
+                      SELECT paasto.kooselite
+                      FROM jore.jr_koodisto paasto
+                      WHERE veh.paastoluokka::numeric = paasto.kookoodi::numeric
+                        AND paasto.koolista = 'Päästöluokka'
+                   ), 'Tyhjä')                                     emission_desc
+            FROM jore.jr_ajoneuvo veh
+        ),
+             rail AS (
+                 SELECT rai.tyyppi                                 vehicle_class,
+                        rai.reknro                                 registry_nr,
+                        rai.kylkinro                               vehicle_id,
+                        date_part('year', AGE(now(), rai.alkupvm)) age,
+                        rai.kaltyyppi as                           type,
+                        FALSE                                      multi_axle,
+                        NULL                                       exterior_color,
+                        rai.liitunnus                              operator_id,
+                        11                                         emission_class,
+                        NULL                                       emission_desc
+                 FROM jore.jr_raidekalusto rai
+             )
+            (
+                SELECT vehicle_class,
+                       registry_nr,
+                       vehicle_id,
+                       operator_id,
+                       type,
+                       age,
+                       exterior_color,
+                       multi_axle,
+                       emission_class,
+                       emission_desc
+                FROM vehicles
+            )
+        UNION ALL
+        (
+            SELECT vehicle_class,
+                   registry_nr,
+                   vehicle_id,
+                   operator_id,
+                   type,
+                   age,
+                   exterior_color,
+                   multi_axle,
+                   emission_class,
+                   emission_desc
+            FROM rail
+        );
+    `)
 
     return this.getBatched(query)
   }
