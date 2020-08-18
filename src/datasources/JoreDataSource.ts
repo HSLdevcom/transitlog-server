@@ -30,42 +30,42 @@ type ExceptionDaysScoped = {
 }
 
 let routeModeQuery = () => `
-  SELECT DISTINCT ON (route.reitunnus)
-      route.reitunnus,
-      case when line is null then 'BUS'
-           else
-               case line.linjoukkollaji
-                   when '02' then 'TRAM'
-                   when '06' then 'SUBWAY'
-                   when '07' then 'FERRY'
-                   when '12' then 'RAIL'
-                   when '13' then 'RAIL'
-                   else 'BUS' end
-          end as mode
-  FROM jore.jr_reitti route
-       LEFT JOIN jore.jr_linja line USING (lintunnus)
-  ORDER BY route.reitunnus
+    SELECT DISTINCT ON (route.reitunnus) route.reitunnus,
+                                         case
+                                             when line is null then 'BUS'
+                                             else
+                                                 case line.linjoukkollaji
+                                                     when '02' then 'TRAM'
+                                                     when '06' then 'SUBWAY'
+                                                     when '07' then 'FERRY'
+                                                     when '12' then 'RAIL'
+                                                     when '13' then 'RAIL'
+                                                     else 'BUS' end
+                                             end as mode
+    FROM jore.jr_reitti route
+             LEFT JOIN jore.jr_linja line USING (lintunnus)
+    ORDER BY route.reitunnus
 `
 
 let stopModeQuery = () => `
-SELECT DISTINCT ON (link.reitunnus, link.lnkalkusolmu)
-    link.reitunnus,
-    link.lnkalkusolmu,
-    case when line is null then 'BUS'
-         else
-             case line.linjoukkollaji
-                 when '02' then 'TRAM'
-                 when '06' then 'SUBWAY'
-                 when '07' then 'FERRY'
-                 when '12' then 'RAIL'
-                 when '13' then 'RAIL'
-                 else 'BUS' end
-        end as mode
-FROM jore.jr_reitinlinkki link
-         LEFT JOIN jore.jr_reitti route USING (reitunnus)
-         LEFT JOIN jore.jr_linja line USING (lintunnus)
-WHERE link.relpysakki = 'P'
-ORDER BY link.reitunnus, link.lnkalkusolmu
+    SELECT DISTINCT ON (link.reitunnus, link.lnkalkusolmu) link.reitunnus,
+                                                           link.lnkalkusolmu,
+                                                           case
+                                                               when line is null then 'BUS'
+                                                               else
+                                                                   case line.linjoukkollaji
+                                                                       when '02' then 'TRAM'
+                                                                       when '06' then 'SUBWAY'
+                                                                       when '07' then 'FERRY'
+                                                                       when '12' then 'RAIL'
+                                                                       when '13' then 'RAIL'
+                                                                       else 'BUS' end
+                                                               end as mode
+    FROM jore.jr_reitinlinkki link
+             LEFT JOIN jore.jr_reitti route USING (reitunnus)
+             LEFT JOIN jore.jr_linja line USING (lintunnus)
+    WHERE link.relpysakki = 'P'
+    ORDER BY link.reitunnus, link.lnkalkusolmu
 `
 
 let routeQuery = (routeId?: string, direction?: string) => {
@@ -120,6 +120,83 @@ let routeQuery = (routeId?: string, direction?: string) => {
   `
 }
 
+const equipmentQuery = (vehicleId?: string, operatorId?: string) => {
+  let where =
+    vehicleId && operatorId
+      ? `WHERE vehicle_id = '${vehicleId}' AND operator_id = '${operatorId}'`
+      : ''
+
+  return `
+      WITH vehicles AS (
+          SELECT 'B'::char                                 vehicle_class,
+                 veh.reknro                                registry_nr,
+                 veh.kylkinro                              vehicle_id,
+                 date_part('year', AGE(now(), veh.rekpvm)) age,
+                 veh.kaltyyppi          as                 type,
+                 veh.turvateli::boolean                    multi_axle,
+                 COALESCE((
+                              SELECT ilme.kooselite
+                              FROM jore.jr_koodisto ilme
+                              WHERE veh.ulkoilme::numeric = ilme.kookoodi::numeric
+                                AND ilme.koolista = 'Ulkoilme'
+                              LIMIT 1
+                          ), 'unknown') as                 exterior_color,
+                 veh.liitunnus                             operator_id,
+                 veh.paastoluokka                          emission_class,
+                 COALESCE((
+                              SELECT paasto.kooselite
+                              FROM jore.jr_koodisto paasto
+                              WHERE veh.paastoluokka::numeric = paasto.kookoodi::numeric
+                                AND paasto.koolista = 'Päästöluokka'
+                          ), 'Tyhjä')                      emission_desc
+          FROM jore.jr_ajoneuvo veh
+      ),
+           rail AS (
+               SELECT rai.tyyppi                                 vehicle_class,
+                      rai.reknro                                 registry_nr,
+                      rai.kylkinro                               vehicle_id,
+                      date_part('year', AGE(now(), rai.alkupvm)) age,
+                      rai.kaltyyppi as                           type,
+                      FALSE                                      multi_axle,
+                      NULL                                       exterior_color,
+                      rai.liitunnus                              operator_id,
+                      11                                         emission_class,
+                      NULL                                       emission_desc
+               FROM jore.jr_raidekalusto rai
+           )
+      SELECT *
+      FROM (
+             (
+                 SELECT vehicle_class,
+                        registry_nr,
+                        vehicle_id,
+                        operator_id,
+                        type,
+                        age,
+                        exterior_color,
+                        multi_axle,
+                        emission_class,
+                        emission_desc
+                 FROM vehicles
+             )
+             UNION ALL
+             (
+                 SELECT vehicle_class,
+                        registry_nr,
+                        vehicle_id,
+                        operator_id,
+                        type,
+                        age,
+                        exterior_color,
+                        multi_axle,
+                        emission_class,
+                        emission_desc
+                 FROM rail
+             )
+      ) veh ${where};
+  `
+}
+
 export class JoreDataSource extends SQLDataSource {
   constructor() {
     super({ log: false, name: 'jore' })
@@ -156,6 +233,7 @@ export class JoreDataSource extends SQLDataSource {
     direction: Scalars['Direction'],
     date: string
   ): Promise<JoreRouteGeometry[]> {
+    // language=PostgreSQL
     const query = this.db.raw(
       `
       WITH route_mode AS (${routeModeQuery()})
@@ -176,6 +254,7 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getStopSegments(stopId: string, date: string): Promise<JoreRouteData[]> {
+    // language=PostgreSQL
     const query = this.db.raw(
       `
         WITH route_mode AS (${routeModeQuery()}),
@@ -311,8 +390,8 @@ export class JoreDataSource extends SQLDataSource {
 
     const query = this.db.raw(
       `SELECT stop.soltunnus stop_id
-      FROM jore.jr_pysakki stop
-      WHERE stop.terminaali = :terminalId;`,
+         FROM jore.jr_pysakki stop
+         WHERE stop.terminaali = :terminalId;`,
       { terminalId }
     )
 
@@ -349,73 +428,7 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
-    const query = this.db.raw(`
-        WITH vehicles AS (
-            SELECT 'B'::char                                       vehicle_class,
-                   veh.reknro                                      registry_nr,
-                   veh.kylkinro                                    vehicle_id,
-                   date_part('year', AGE(now(), veh.rekpvm))       age,
-                   veh.kaltyyppi          as                       type,
-                   veh.turvateli::boolean                          multi_axle,
-                   COALESCE((
-                      SELECT ilme.kooselite
-                      FROM jore.jr_koodisto ilme
-                      WHERE veh.ulkoilme::numeric = ilme.kookoodi::numeric
-                        AND ilme.koolista = 'Ulkoilme'
-                      LIMIT 1
-                   ), 'unknown') as                                exterior_color,
-                   veh.liitunnus                                   operator_id,
-                   veh.paastoluokka                                emission_class,
-                   COALESCE((
-                      SELECT paasto.kooselite
-                      FROM jore.jr_koodisto paasto
-                      WHERE veh.paastoluokka::numeric = paasto.kookoodi::numeric
-                        AND paasto.koolista = 'Päästöluokka'
-                   ), 'Tyhjä')                                     emission_desc
-            FROM jore.jr_ajoneuvo veh
-        ),
-             rail AS (
-                 SELECT rai.tyyppi                                 vehicle_class,
-                        rai.reknro                                 registry_nr,
-                        rai.kylkinro                               vehicle_id,
-                        date_part('year', AGE(now(), rai.alkupvm)) age,
-                        rai.kaltyyppi as                           type,
-                        FALSE                                      multi_axle,
-                        NULL                                       exterior_color,
-                        rai.liitunnus                              operator_id,
-                        11                                         emission_class,
-                        NULL                                       emission_desc
-                 FROM jore.jr_raidekalusto rai
-             )
-            (
-                SELECT vehicle_class,
-                       registry_nr,
-                       vehicle_id,
-                       operator_id,
-                       type,
-                       age,
-                       exterior_color,
-                       multi_axle,
-                       emission_class,
-                       emission_desc
-                FROM vehicles
-            )
-        UNION ALL
-        (
-            SELECT vehicle_class,
-                   registry_nr,
-                   vehicle_id,
-                   operator_id,
-                   type,
-                   age,
-                   exterior_color,
-                   multi_axle,
-                   emission_class,
-                   emission_desc
-            FROM rail
-        );
-    `)
-
+    const query = this.db.raw(equipmentQuery())
     return this.getBatched(query)
   }
 
@@ -423,17 +436,10 @@ export class JoreDataSource extends SQLDataSource {
     vehicleId: string | number,
     operatorId: string
   ): Promise<JoreEquipment[]> {
-    return []
-
     const joreVehicleId = vehicleId + ''
     const joreOperatorId = (operatorId + '').padStart(4, '0')
 
-    const query = this.db
-      .withSchema('jore')
-      .select()
-      .from('equipment')
-      .where({ vehicle_id: joreVehicleId, operator_id: joreOperatorId })
-
+    const query = this.db.raw(equipmentQuery(joreVehicleId, joreOperatorId))
     return this.getBatched(query)
   }
 
@@ -445,35 +451,36 @@ export class JoreDataSource extends SQLDataSource {
 
     const query = this.db.raw(
       `select route.route_id,
-       route.direction,
-       route.name_fi,
-       route.name_fi as route_name,
-       route.route_length,
-       route.destination_fi,
-       route.origin_fi,
-       route.destinationstop_id,
-       route.originstop_id,
-       jore.route_mode(route) as mode,
-       route_segment.next_stop_id,
-       route_segment.date_begin,
-       route_segment.date_end,
-       route_segment.date_modified,
-       route_segment.duration,
-       route_segment.stop_index,
-       route_segment.distance_from_previous,
-       route_segment.distance_from_start,
-       route_segment.destination_fi,
-       route_segment.timing_stop_type,
-       stop.stop_id,
-       stop.lat,
-       stop.lon,
-       stop.short_id,
-       stop.name_fi,
-       stop.stop_radius
-FROM jore.route_segment route_segment
-        LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
-        LEFT JOIN jore.stop stop USING (stop_id)
-WHERE route_segment.route_id = :routeId AND route_segment.direction = :direction;`,
+                route.direction,
+                route.name_fi,
+                route.name_fi          as route_name,
+                route.route_length,
+                route.destination_fi,
+                route.origin_fi,
+                route.destinationstop_id,
+                route.originstop_id,
+                jore.route_mode(route) as mode,
+                route_segment.next_stop_id,
+                route_segment.date_begin,
+                route_segment.date_end,
+                route_segment.date_modified,
+                route_segment.duration,
+                route_segment.stop_index,
+                route_segment.distance_from_previous,
+                route_segment.distance_from_start,
+                route_segment.destination_fi,
+                route_segment.timing_stop_type,
+                stop.stop_id,
+                stop.lat,
+                stop.lon,
+                stop.short_id,
+                stop.name_fi,
+                stop.stop_radius
+         FROM jore.route_segment route_segment
+                  LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end)
+                  LEFT JOIN jore.stop stop USING (stop_id)
+         WHERE route_segment.route_id = :routeId
+           AND route_segment.direction = :direction;`,
       { routeId, direction: direction + '' }
     )
 
@@ -836,25 +843,25 @@ WHERE departure.stop_id = :stopId
 
     const query = this.db.raw(
       `
-      SELECT ex_day.eritpoikpvm date_in_effect,
-             ex_desc.kooselite description,
-             ex_day.eritviikpaiva day_type,
-             ex_day.eriteimuita as exclusive,
-             rep_day.korvjoukkollaji scope,
-             rep_day.korvalkaika time_begin,
-             rep_day.korvpaataika time_end,
-             CASE
-                 WHEN rep_day.korvpaiva IS NULL
-                     THEN ARRAY [ex_day.eritpaiva, ex_day.eritviikpaiva]
-                 ELSE ARRAY [ex_day.eritpaiva, rep_day.korvpaiva]
-                 END as effective_day_types,
-             rep_day.korvpaiva as scoped_day_type
-      FROM jore.jr_eritpvkalent ex_day
-               LEFT OUTER JOIN jore.jr_koodisto ex_desc ON ex_day.eritpaiva = ex_desc.kookoodi
-               FULL OUTER JOIN jore.jr_korvpvkalent rep_day ON ex_day.eritpoikpvm = rep_day.korvpoikpvm
-      WHERE ex_day.eritpoikpvm >= :startDate
-        AND ex_day.eritpoikpvm <= :endDate
-      ORDER BY ex_day.eritpoikpvm;
+                SELECT ex_day.eritpoikpvm      date_in_effect,
+                       ex_desc.kooselite       description,
+                       ex_day.eritviikpaiva    day_type,
+                       ex_day.eriteimuita as   exclusive,
+                       rep_day.korvjoukkollaji scope,
+                       rep_day.korvalkaika     time_begin,
+                       rep_day.korvpaataika    time_end,
+                       CASE
+                           WHEN rep_day.korvpaiva IS NULL
+                               THEN ARRAY [ex_day.eritpaiva, ex_day.eritviikpaiva]
+                           ELSE ARRAY [ex_day.eritpaiva, rep_day.korvpaiva]
+                           END            as   effective_day_types,
+                       rep_day.korvpaiva  as   scoped_day_type
+                FROM jore.jr_eritpvkalent ex_day
+                         LEFT OUTER JOIN jore.jr_koodisto ex_desc ON ex_day.eritpaiva = ex_desc.kookoodi
+                         FULL OUTER JOIN jore.jr_korvpvkalent rep_day ON ex_day.eritpoikpvm = rep_day.korvpoikpvm
+                WHERE ex_day.eritpoikpvm >= :startDate
+                  AND ex_day.eritpoikpvm <= :endDate
+                ORDER BY ex_day.eritpoikpvm;
       `,
       { startDate, endDate }
     )
