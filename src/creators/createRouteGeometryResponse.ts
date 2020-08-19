@@ -2,7 +2,6 @@ import { JoreRouteGeometry } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { RouteGeometry, Scalars } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
-import { filterByDateGroups } from '../utils/filterByDateGroups'
 import { orderBy } from 'lodash'
 
 export async function createRouteGeometryResponse(

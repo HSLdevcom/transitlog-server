@@ -240,7 +240,7 @@ export class JoreDataSource extends SQLDataSource {
       SELECT geometry.route_id,
         geometry.direction,
         geometry.date_begin,
-        ST_AsGeoJSON(ST_Transform(geometry.geom, 4326))::JSONB geometry,
+        ST_AsGeoJSON(st_flipcoordinates(ST_Transform(geometry.geom, 4326)))::JSONB geometry,
         route_mode.mode  
       FROM jore.route_geometry geometry
            LEFT JOIN route_mode ON geometry.route_id = route_mode.reitunnus
