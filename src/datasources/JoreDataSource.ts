@@ -83,7 +83,7 @@ let routeQuery = (routeId?: string, direction?: string) => {
     dir.suulahpaik origin_fi,
     origin_link.lnkalkusolmu originstop_id,
     dir.suupaapaik destination_fi,
-    dest_link.lnkalkusolmu destinationstop_id,
+    dest_link.lnkloppusolmu destinationstop_id,
     route.reinimi name_fi,
     route.reinimi route_name,
     dir.suuvoimast date_begin,
@@ -105,7 +105,7 @@ let routeQuery = (routeId?: string, direction?: string) => {
           LIMIT 1
         ) origin_link ON true
         LEFT JOIN LATERAL (
-          SELECT DISTINCT ON (inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast) lnkalkusolmu
+          SELECT DISTINCT ON (inner_link.reitunnus, inner_link.suusuunta, inner_link.suuvoimast) lnkloppusolmu
           FROM jore.jr_reitinlinkki inner_link
           WHERE inner_link.relpysakki = 'P'
             AND dir.reitunnus = reitunnus
@@ -115,7 +115,7 @@ let routeQuery = (routeId?: string, direction?: string) => {
           LIMIT 1
         ) dest_link ON true
     WHERE ${where} origin_link.lnkalkusolmu IS NOT NULL
-      AND dest_link.lnkalkusolmu IS NOT NULL
+      AND dest_link.lnkloppusolmu IS NOT NULL
     ORDER BY dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm
   `
 }
@@ -452,37 +452,56 @@ export class JoreDataSource extends SQLDataSource {
     const query = this.db.raw(
       `
         WITH route_mode AS (${routeModeQuery()}),
-        route_query AS (${routeQuery()})
-        SELECT DISTINCT ON (route.route_id, route.direction, route.date_begin, route.date_end, stop.soltunnus)
-            route.*,
-            seg.pystunnus2 next_stop_id,
-            knot.solstmx lat,
-            knot.solstmy lon,
-            stop.soltunnus stop_id,
-            (knot.solkirjain || knot.sollistunnus) short_id,
-            stop.pysnimi name_fi,
-            stop.pyssade stop_radius,
-            CASE WHEN link.ajantaspys = '0' THEN false ELSE true END timing_stop_type,
-            row_number() OVER (
-                PARTITION BY route.route_id, route.direction, route.date_begin, route.date_end
-                ORDER BY link.reljarjnro
-            ) stop_index,
-            CASE WHEN originstop_id = knot.soltunnus THEN 0 ELSE seg.pituus END distance_from_previous,
-            CASE WHEN originstop_id = knot.soltunnus THEN 0 ELSE SUM(seg.pituus) OVER (
-                PARTITION BY route.route_id, route.direction, route.date_begin, route.date_end
-                ORDER BY link.reljarjnro
-            ) END distance_from_start
-        FROM route_query route
-                 LEFT JOIN jore.jr_reitinlinkki link ON route.route_id = link.reitunnus
-            AND route.direction = link.suusuunta::varchar
-            AND route.date_begin = link.suuvoimast
-                 LEFT JOIN jore.jr_solmu knot ON link.lnkalkusolmu = knot.soltunnus
-                 LEFT JOIN jore.jr_pysakki stop USING (soltunnus)
-                 LEFT JOIN jore.jr_pysakkivali seg ON link.lnkalkusolmu = seg.pystunnus1
-        WHERE route.route_id = '1018'
-          AND route.direction = '1'
-          AND link.relpysakki = 'P'
-        ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, stop.soltunnus;`,
+        route_query AS (${routeQuery()}),
+        stop_link AS (
+          SELECT DISTINCT ON (route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu)
+              route.route_id,
+              route.direction,
+              route.date_begin,
+              route.date_end,
+              (row_number() OVER (
+                  PARTITION BY link.reitunnus, link.suusuunta, link.suuvoimast
+                  ORDER BY link.reljarjnro
+              ))::integer stop_index,
+              CASE WHEN link.ajantaspys IS NULL THEN false
+                  ELSE CASE WHEN link.ajantaspys = 0 THEN false
+                  ELSE true END
+              END timing_stop_type,
+              CASE WHEN link.lnkloppusolmu = route.destinationstop_id THEN link.lnkloppusolmu ELSE link.lnkalkusolmu END stop_id
+          FROM route_query route
+            LEFT JOIN (
+                SELECT *
+                FROM jore.jr_reitinlinkki
+                WHERE relpysakki = 'P'
+            ) link ON route.route_id = link.reitunnus
+                AND route.direction = link.suusuunta::varchar
+                AND route.date_begin = link.suuvoimast
+          ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu, link.reljarjnro, link.suuvoimast DESC
+      )
+      SELECT DISTINCT ON (route.route_id, route.direction, route.date_begin, route.date_end, stop.soltunnus)
+          route.*,
+          seg.pystunnus2 next_stop_id,
+          knot.solstmx lat,
+          knot.solstmy lon,
+          stop.soltunnus stop_id,
+          (knot.solkirjain || knot.sollistunnus) short_id,
+          stop.pysnimi name_fi,
+          stop.pyssade stop_radius,
+          link.timing_stop_type,
+          link.stop_index::integer stop_index,
+          CASE WHEN originstop_id = knot.soltunnus THEN 0 ELSE seg.pituus END distance_from_previous,
+          SUM(CASE WHEN link.stop_index::integer <> 1 THEN seg.pituus END) OVER (
+              PARTITION BY route.route_id, route.direction, route.date_begin, route.date_end
+              ORDER BY link.stop_index::integer
+          ) distance_from_start
+      FROM route_query route
+           LEFT JOIN stop_link link USING (route_id, direction, date_begin, date_end)
+           LEFT JOIN jore.jr_solmu knot ON link.stop_id = knot.soltunnus OR route.destinationstop_id = knot.soltunnus
+           LEFT JOIN jore.jr_pysakki stop USING (soltunnus)
+           LEFT JOIN jore.jr_pysakkivali seg ON knot.soltunnus = seg.pystunnus1
+      WHERE route.route_id = '1018'
+        AND route.direction = '1'
+      ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, stop.soltunnus;`,
       { routeId, direction: direction + '' }
     )
 
