@@ -769,7 +769,7 @@ export type RouteSegment = Position & {
   stopIndex: Scalars['Int']
   isTimingStop: Scalars['Boolean']
   stopId: Scalars['String']
-  shortId: Scalars['String']
+  shortId?: Maybe<Scalars['String']>
   lat: Scalars['Float']
   lng: Scalars['Float']
   name?: Maybe<Scalars['String']>
@@ -783,7 +783,7 @@ export type Stop = Position & {
   __typename?: 'Stop'
   id: Scalars['ID']
   stopId: Scalars['String']
-  shortId: Scalars['String']
+  shortId?: Maybe<Scalars['String']>
   lat: Scalars['Float']
   lng: Scalars['Float']
   name?: Maybe<Scalars['String']>
@@ -1796,7 +1796,7 @@ export type RouteSegmentResolvers<
   stopIndex?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   stopId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  shortId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  shortId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
@@ -1812,7 +1812,7 @@ export type StopResolvers<
 > = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   stopId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  shortId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  shortId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>

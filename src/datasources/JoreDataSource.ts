@@ -298,7 +298,6 @@ export class JoreDataSource extends SQLDataSource {
           WHERE stop.soltunnus = :stopId
             AND :date BETWEEN route.date_begin AND route.date_end
             AND link.reitunnus IS NOT NULL
-            AND knot.sollistunnus IS NULL
         ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end, link.reljarjnro;
    `,
       { stopId, date }
@@ -375,8 +374,6 @@ SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_
         INNER JOIN stop_link route ON stop.soltunnus = route.stop_id
         INNER JOIN jore.jr_solmu knot on route.stop_id = knot.soltunnus
     WHERE :date BETWEEN route.date_begin AND route.date_end
-      -- fix this at some point
-      AND knot.sollistunnus IS NOT NULL
     ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end;`,
           { date }
         )
@@ -538,7 +535,6 @@ SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_
                  INNER JOIN jore.jr_pysakkivali seg ON knot.soltunnus = seg.pystunnus1
             WHERE route.route_id = :routeId
               AND route.direction = :direction
-              AND knot.sollistunnus IS NOT NULL
             ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, link.stop_id;`,
       { routeId, direction }
     )

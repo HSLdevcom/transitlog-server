@@ -16,7 +16,7 @@ export const Stop = gql`
   type Stop implements Position {
     id: ID!
     stopId: String!
-    shortId: String!
+    shortId: String
     lat: Float!
     lng: Float!
     name: String

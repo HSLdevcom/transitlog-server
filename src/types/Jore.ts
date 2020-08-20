@@ -84,7 +84,7 @@ export interface JoreStop {
   address_fi?: Maybe<string>
   address_se?: Maybe<string>
   platform?: Maybe<string>
-  short_id: string
+  short_id?: string
   heading?: Maybe<string>
   stop_radius?: Maybe<number>
   terminal_id?: Maybe<string>

@@ -765,7 +765,7 @@ export type RouteSegment = Position & {
   stopIndex: Scalars['Int']
   isTimingStop: Scalars['Boolean']
   stopId: Scalars['String']
-  shortId: Scalars['String']
+  shortId?: Maybe<Scalars['String']>
   lat: Scalars['Float']
   lng: Scalars['Float']
   name?: Maybe<Scalars['String']>
@@ -779,7 +779,7 @@ export type Stop = Position & {
   __typename?: 'Stop'
   id: Scalars['ID']
   stopId: Scalars['String']
-  shortId: Scalars['String']
+  shortId?: Maybe<Scalars['String']>
   lat: Scalars['Float']
   lng: Scalars['Float']
   name?: Maybe<Scalars['String']>

@@ -31,7 +31,7 @@ export const Route = gql`
     stopIndex: Int!
     isTimingStop: Boolean!
     stopId: String!
-    shortId: String!
+    shortId: String
     lat: Float!
     lng: Float!
     name: String
