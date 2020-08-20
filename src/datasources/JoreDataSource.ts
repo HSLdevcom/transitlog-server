@@ -293,11 +293,10 @@ export class JoreDataSource extends SQLDataSource {
           stop.pysnimi name_fi,
           stop.pyssade stop_radius
           FROM jore.jr_pysakki stop
-              INNER JOIN stop_link route ON stop.soltunnus = route.stop_id
-              INNER JOIN jore.jr_solmu knot on route.stop_id = knot.soltunnus
+              INNER JOIN stop_link route ON route.stop_id = stop.soltunnus 
+              INNER JOIN jore.jr_solmu knot on stop.soltunnus = knot.soltunnus
           WHERE stop.soltunnus = :stopId
             AND :date BETWEEN route.date_begin AND route.date_end
-            AND link.reitunnus IS NOT NULL
         ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end, link.reljarjnro;
    `,
       { stopId, date }
