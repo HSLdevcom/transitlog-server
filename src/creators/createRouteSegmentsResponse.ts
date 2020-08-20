@@ -1,5 +1,4 @@
-import { groupBy, sortBy } from 'lodash'
-import { filterByDateChains } from '../utils/filterByDateChains'
+import { sortBy } from 'lodash'
 import { JoreRouteData } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { RouteSegment, Scalars } from '../types/generated/schema-types'
@@ -55,10 +54,6 @@ export async function createRouteSegmentsResponse(
 
     // Sorted by the order of the stops in the journey.
     let routeSegments: JoreRouteData[] = sortBy(validRoutes, 'stop_index')
-
-    console.log(routeSegments)
-
-    // routeSegments = trimRouteSegments(routeSegments)
 
     const cancellations = await getCancellations(
       date,
