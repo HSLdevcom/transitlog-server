@@ -25,7 +25,7 @@ export interface JoreDepartureOperator {
   minutes: number
   operator_id: string
   route_id: string
-  direction: string
+  direction: number
 }
 
 export interface JoreOriginDeparture {
@@ -37,7 +37,7 @@ export interface JoreOriginDeparture {
   extra_departure: string
   day_type: string
   route_id: string
-  direction: string
+  direction: number
   date_begin: string
   date_end: string
 }
@@ -45,7 +45,7 @@ export interface JoreOriginDeparture {
 export interface JoreDeparture {
   stop_id: string
   route_id: string
-  direction: string
+  direction: number
   day_type: string
   departure_id: number
   is_next_day: boolean
@@ -101,7 +101,7 @@ export interface JoreStop {
   mode: Maybe<Mode>
   timing_stop_type?: number
   route_id?: string
-  direction?: string
+  direction?: number
   date_begin?: string
   date_end?: string
   routes?: StopRoute[]
@@ -123,7 +123,7 @@ export interface JoreRoute {
   route_id: string
   date_begin: string
   date_end: string
-  direction: string
+  direction: number
   name_fi: string
   name_se?: Maybe<string>
   route_name: string
@@ -143,7 +143,7 @@ export interface JoreRoute {
 export interface JoreRouteGeometry {
   route_id: string
   date_begin: string
-  direction: string
+  direction: number
   geometry: {
     coordinates: number[][]
   }
@@ -169,7 +169,7 @@ export interface JoreRouteSegment {
   stop_id: string
   next_stop_id?: Maybe<string>
   route_id: string
-  direction: string
+  direction: number
   date_begin: string
   date_end: string
   duration: number
@@ -224,7 +224,7 @@ export interface JoreEquipment {
 
 export interface JoreGeometry {
   route_id: string
-  direction: string
+  direction: number
   date_begin: string
   date_end: string
   geom: string
@@ -232,7 +232,7 @@ export interface JoreGeometry {
 
 export interface JorePointGeometry {
   route_id: string
-  direction: string
+  direction: number
   date_begin: string
   date_end: string
   stop_id: string

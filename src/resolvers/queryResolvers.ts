@@ -24,6 +24,7 @@ import {
   createTerminalResponse,
   createTerminalsResponse,
 } from '../creators/createTerminalsResponse'
+import { getDirection } from '../utils/getDirection'
 
 const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -89,7 +90,8 @@ const routeSegments = (
   { routeId, direction, date },
   { dataSources, user, skipCache }
 ) => {
-  const getRouteSegments = () => dataSources.JoreAPI.getRouteSegments(routeId, direction)
+  const getRouteSegments = () =>
+    dataSources.JoreAPI.getRouteSegments(routeId, getDirection(direction))
 
   const fetchCancellations = getCancellations.bind(
     null,
@@ -107,7 +109,7 @@ const routeSegments = (
     fetchAlerts,
     date,
     routeId,
-    direction,
+    getDirection(direction),
     skipCache
   )
 }
