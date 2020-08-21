@@ -806,26 +806,71 @@ LEFT JOIN LATERAL (
   }
 
   async getDeparturesForRoute(
-    stopId,
-    routeId,
-    direction,
-    date
+    routeId: string,
+    direction: number,
+    date: string
   ): Promise<JoreDepartureWithOrigin[]> {
-    return []
-
     const dayTypes = await this.getDayTypesForDateAndRoute(date, routeId)
 
     const query = this.db.raw(
       `
-SELECT ${this.departureFields}
-FROM jore.departure departure
-WHERE departure.stop_id = :stopId
-  AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-  AND departure.route_id = :routeId
-  AND departure.direction = :direction
-ORDER BY departure.hours ASC,
-         departure.minutes ASC;`,
-      { stopId, routeId, direction: direction + '' }
+WITH route_link AS (
+    SELECT DISTINCT ON (route.reitunnus, route.suusuunta, route.suuvoimast, route.suuvoimviimpvm)
+        route.reitunnus route_id,
+        route.suusuunta direction,
+        route.suuvoimast date_begin,
+        route.suuvoimviimpvm date_end,
+        origin_link.lnkalkusolmu stop_id
+        FROM jore.jr_reitinsuunta route
+                 LEFT JOIN LATERAL (
+            SELECT lnkalkusolmu
+                FROM jore.jr_reitinlinkki inner_link
+                WHERE inner_link.relpysakki != 'E'
+                  AND route.reitunnus = reitunnus
+                  AND route.suusuunta = suusuunta
+                  AND route.suuvoimast = suuvoimast
+                ORDER BY inner_link.reljarjnro ASC
+                LIMIT 1
+            ) origin_link ON true
+        ORDER BY route.reitunnus, route.suusuunta, route.suuvoimast, route.suuvoimviimpvm
+)
+SELECT DISTINCT ON (route.route_id, route.direction, dep.lhpaivat, dep.lhjarjnro, timetable.lavoimast, timetable.laviimvoi)
+      route.route_id,
+      route.direction::integer,
+      route.stop_id,
+      dep.lhpaivat day_type,
+         row_number() OVER (
+        PARTITION BY route.route_id, route.direction, dep.lhpaivat, timetable.lavoimast, timetable.laviimvoi
+        ORDER BY (SPLIT_PART(dep.lhlahaik, '.', 1))::integer, (SPLIT_PART(dep.lhlahaik, '.', 2))::integer
+       ) departure_id,
+      (SPLIT_PART(dep.lhlahaik, '.', 1))::integer hours,
+      (SPLIT_PART(dep.lhlahaik, '.', 2))::integer minutes,
+      COALESCE(NULLIF(TRIM(dep.lhajotyyppi), ''), 'N') extra_departure,
+      CASE WHEN dep.lhvrkvht = '1' THEN true ELSE FALSE END is_next_day,
+      dep.termaika::integer terminal_time,
+      dep.elpymisaika::integer recovery_time,
+      dep.lhkaltyyppi equipment_type,
+      COALESCE(dep.pakollkaltyyppi, '0')::integer equipment_required,
+      dep.kohtunnus bid_target_id,
+      dep.junanumero train_number,
+      dep.lhviimpvm date_modified,
+      timetable.lavoimast date_begin,
+      timetable.laviimvoi date_end,
+      LPAD(proc.liitunnus::varchar, 4, '0') operator_id,
+      CASE WHEN COALESCE(req.kookoodi, 0) = 2 THEN true ELSE false END trunk_color_required
+FROM route_link route
+         INNER JOIN jore.jr_aikataulu timetable ON route.route_id = timetable.reitunnus
+         INNER JOIN jore.jr_lahto dep ON timetable.lavoimast = dep.lavoimast
+    AND timetable.reitunnus = dep.reitunnus
+    AND route.direction = dep.lhsuunta
+         LEFT JOIN jore.jr_kilpailukohd proc USING (kohtunnus)
+         LEFT JOIN jore.jr_linja_vaatimus req ON req.lintunnus = route.route_id
+WHERE route.route_id = :routeId
+  AND route.direction = :direction
+  AND dep.lhpaivat IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+  AND :depDate BETWEEN timetable.lavoimast AND timetable.laviimvoi
+ORDER BY route.route_id, route.direction, dep.lhpaivat, dep.lhjarjnro, timetable.lavoimast, timetable.laviimvoi;`,
+      { routeId, direction, depDate: date }
     )
 
     return this.getBatched(query)

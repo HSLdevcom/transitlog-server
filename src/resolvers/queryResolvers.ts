@@ -173,7 +173,7 @@ const routeDepartures = async (
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   const getDepartures = () =>
-    dataSources.JoreAPI.getDeparturesForRoute(stopId, routeId, direction, date)
+    dataSources.JoreAPI.getDeparturesForRoute(routeId, direction, date)
 
   const getStops = () => dataSources.JoreAPI.getDeparturesStops(stopId, date)
 
