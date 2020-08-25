@@ -1,5 +1,6 @@
 import {
   JoreDeparture,
+  JoreDepartureStop,
   JoreDepartureWithOrigin,
   JoreEquipment,
   JoreExceptionDay,
@@ -78,6 +79,7 @@ let routeQuery = (routeId?: string, direction?: number) => {
   AND `
       : ''
 
+  // language=PostgreSQL
   return ` 
     SELECT DISTINCT ON (dir.reitunnus, dir.suusuunta, dir.suuvoimast, dir.suuvoimviimpvm)
         dir.reitunnus route_id,
@@ -297,7 +299,7 @@ export class JoreDataSource extends SQLDataSource {
               INNER JOIN jore.jr_solmu knot on stop.soltunnus = knot.soltunnus
           WHERE stop.soltunnus = :stopId
             AND :date BETWEEN route.date_begin AND route.date_end
-        ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end, link.reljarjnro;
+        ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end;
    `,
       { stopId, date }
     )
@@ -481,6 +483,7 @@ SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_
   }
 
   async getRouteSegments(routeId: string, direction: number): Promise<JoreRouteData[]> {
+    // language=PostgreSQL
     const query = this.db.raw(
       `
         WITH route_mode AS (${routeModeQuery()}),
@@ -607,7 +610,6 @@ stop.lon,
 stop.short_id,
 stop.name_fi,
 stop.stop_radius,
-stop.stop_type,
 stop.terminal_id,
 route_segment.date_begin,
 route_segment.date_end,
@@ -630,9 +632,7 @@ route.name_fi          as route_name,
 jore.route_mode(route) as mode
   `
 
-  async getDeparturesStops(stopId, date, queryLastStop = false): Promise<JoreStopSegment[]> {
-    return []
-
+  async getDeparturesStops(stopId, date, queryLastStop = false): Promise<JoreDepartureStop[]> {
     if (!stopId) {
       return []
     }
@@ -641,14 +641,55 @@ jore.route_mode(route) as mode
     // The route.destinationstop_id != :stopId is only for excluding the last stop from stop timetables.
     // In the week view, we need to actually query for the last stop.
 
+    // language=PostgreSQL
     const query = this.db.raw(
       `
-      SELECT ${this.departureStopFields}
-      FROM jore.route_segment route_segment
-      LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
-      LEFT JOIN jore.stop stop USING (stop_id)
-      WHERE route_segment.stop_id = :stopId
-        AND route.destinationstop_id != :lastStopId;`,
+      WITH route_mode AS (${routeModeQuery()}),
+           route_query AS (${routeQuery()}),
+           stop_link AS (
+               SELECT DISTINCT ON (route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu)
+                   route.route_id,
+                   route.direction,
+                   route.date_begin,
+                   route.date_end,
+                   route.date_modified,
+                   route.mode,
+                   route.originstop_id,
+                   route.destinationstop_id,
+                   CASE WHEN link.ajantaspys IS NULL THEN FALSE
+                        ELSE CASE WHEN link.ajantaspys = 0 THEN FALSE
+                                  ELSE TRUE END
+                       END timing_stop_type,
+                   CASE WHEN link.lnkloppusolmu = route.destinationstop_id THEN link.lnkloppusolmu
+                        ELSE link.lnkalkusolmu
+                       END stop_id
+                   FROM route_query route
+                            LEFT JOIN LATERAL (
+                       SELECT *
+                           FROM jore.jr_reitinlinkki inner_link
+                           WHERE inner_link.relpysakki != 'E'
+                             AND route.route_id = inner_link.reitunnus
+                             AND route.direction = inner_link.suusuunta
+                             AND route.date_begin = inner_link.suuvoimast
+                       ) link ON TRUE
+                   ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu, link.reljarjnro, link.suuvoimast DESC
+           )
+      SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end)
+          route.route_id,
+          route.direction,
+          route.date_begin,
+          route.date_end,
+          route.date_modified,
+          stop.soltunnus stop_id,
+          route.timing_stop_type,
+          ((knot.solkirjain || knot.sollistunnus)) short_id,
+          route.mode
+          FROM jore.jr_pysakki stop
+                   INNER JOIN stop_link route ON route.stop_id = stop.soltunnus
+                   INNER JOIN jore.jr_solmu knot on stop.soltunnus = knot.soltunnus
+          WHERE stop.soltunnus = :stopId
+            AND route.destinationstop_id != :lastStopId
+          ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end;`,
       { stopId, lastStopId: !queryLastStop ? stopId : '', date }
     )
 
@@ -701,6 +742,9 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.route_id,
     departure.direction,
     departure.stop_id,
+    departure.origin_stop_id,
+    departure.origin_hours,
+    departure.origin_minutes,
     departure.hours,
     departure.minutes,
     departure.day_type,
@@ -718,8 +762,7 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.date_begin,
     departure.date_end,
     departure.departure_id,
-    departure.bid_target_id,
-    departure.date_imported,
+    departure.procurement_unit_id,
     departure.train_number
   `
 
@@ -767,7 +810,6 @@ LEFT JOIN LATERAL (
             origin_departure.hours as origin_hours,
             origin_departure.minutes as origin_minutes,
             origin_departure.is_next_day as origin_is_next_day,
-            origin_departure.is_next_day as origin_is_next_day,
             origin_departure.extra_departure as origin_extra_departure,
             origin_departure.departure_id as origin_departure_id,
             origin_departure.date_begin as origin_date_begin,
@@ -812,68 +854,25 @@ LEFT JOIN LATERAL (
   ): Promise<JoreDepartureWithOrigin[]> {
     const dayTypes = await this.getDayTypesForDateAndRoute(date, routeId)
 
+    // language=PostgreSQL
     const query = this.db.raw(
       `
-WITH route_link AS (
-    SELECT DISTINCT ON (route.reitunnus, route.suusuunta, route.suuvoimast, route.suuvoimviimpvm)
-        route.reitunnus route_id,
-        route.suusuunta direction,
-        route.suuvoimast date_begin,
-        route.suuvoimviimpvm date_end,
-        origin_link.lnkalkusolmu stop_id
-        FROM jore.jr_reitinsuunta route
-                 LEFT JOIN LATERAL (
-            SELECT lnkalkusolmu
-                FROM jore.jr_reitinlinkki inner_link
-                WHERE inner_link.relpysakki != 'E'
-                  AND route.reitunnus = reitunnus
-                  AND route.suusuunta = suusuunta
-                  AND route.suuvoimast = suuvoimast
-                ORDER BY inner_link.reljarjnro ASC
-                LIMIT 1
-            ) origin_link ON true
-        ORDER BY route.reitunnus, route.suusuunta, route.suuvoimast, route.suuvoimviimpvm
-)
-SELECT DISTINCT ON (route.route_id, route.direction, dep.lhpaivat, dep.lhjarjnro, timetable.lavoimast, timetable.laviimvoi)
-      route.route_id,
-      route.direction::integer,
-      route.stop_id,
-      dep.lhpaivat day_type,
-         row_number() OVER (
-        PARTITION BY route.route_id, route.direction, dep.lhpaivat, timetable.lavoimast, timetable.laviimvoi
-        ORDER BY (SPLIT_PART(dep.lhlahaik, '.', 1))::integer, (SPLIT_PART(dep.lhlahaik, '.', 2))::integer
-       ) departure_id,
-      (SPLIT_PART(dep.lhlahaik, '.', 1))::integer hours,
-      (SPLIT_PART(dep.lhlahaik, '.', 2))::integer minutes,
-      COALESCE(NULLIF(TRIM(dep.lhajotyyppi), ''), 'N') extra_departure,
-      CASE WHEN dep.lhvrkvht = '1' THEN true ELSE FALSE END is_next_day,
-      dep.termaika::integer terminal_time,
-      dep.elpymisaika::integer recovery_time,
-      dep.lhkaltyyppi equipment_type,
-      COALESCE(dep.pakollkaltyyppi, '0')::integer equipment_required,
-      dep.kohtunnus bid_target_id,
-      dep.junanumero train_number,
-      dep.lhviimpvm date_modified,
-      timetable.lavoimast date_begin,
-      timetable.laviimvoi date_end,
-      LPAD(proc.liitunnus::varchar, 4, '0') operator_id,
-      CASE WHEN COALESCE(req.kookoodi, 0) = 2 THEN true ELSE false END trunk_color_required
-FROM route_link route
-         INNER JOIN jore.jr_aikataulu timetable ON route.route_id = timetable.reitunnus
-         INNER JOIN jore.jr_lahto dep ON timetable.lavoimast = dep.lavoimast
-    AND timetable.reitunnus = dep.reitunnus
-    AND route.direction = dep.lhsuunta
-         LEFT JOIN jore.jr_kilpailukohd proc USING (kohtunnus)
-         LEFT JOIN jore.jr_linja_vaatimus req ON req.lintunnus = route.route_id
-WHERE route.route_id = :routeId
-  AND route.direction = :direction
-  AND dep.lhpaivat IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-  AND :depDate BETWEEN timetable.lavoimast AND timetable.laviimvoi
-ORDER BY route.route_id, route.direction, dep.lhpaivat, dep.lhjarjnro, timetable.lavoimast, timetable.laviimvoi;`,
-      { routeId, direction, depDate: date }
+SELECT ${this.departureFields}
+FROM jore.departure departure
+WHERE departure.stop_id = departure.origin_stop_id
+  AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+  AND departure.route_id = :routeId
+  AND departure.direction = :direction
+ORDER BY departure.hours ASC,
+         departure.minutes ASC;`,
+      { routeId, direction }
     )
 
-    return this.getBatched(query)
+    let result = await this.getBatched(query)
+
+    console.log(result)
+
+    return result
   }
 
   async getWeeklyDepartures(

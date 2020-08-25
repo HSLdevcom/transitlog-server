@@ -1,5 +1,5 @@
 import { compact, groupBy, orderBy } from 'lodash'
-import { JoreDepartureWithOrigin, JoreStopSegment } from '../types/Jore'
+import { JoreDepartureStop, JoreDepartureWithOrigin, JoreStopSegment } from '../types/Jore'
 import {
   Departure,
   ExceptionDay,
@@ -22,6 +22,7 @@ import { filterByExceptions } from '../utils/filterByExceptions'
 import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { Vehicles } from '../types/EventsDb'
 import { extraDepartureType } from '../utils/extraDepartureType'
+import { DepartureStop } from '../types/Journey'
 
 // Combines departures and stops into PlannedDepartures.
 export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
@@ -66,7 +67,7 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
 export async function createRouteDeparturesResponse(
   user,
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
-  getStops: () => Promise<JoreStopSegment[] | null>,
+  getStops: () => Promise<JoreDepartureStop[] | null>,
   getEvents: () => Promise<Vehicles[]>,
   getCancellations,
   getAlerts,
@@ -83,7 +84,7 @@ export async function createRouteDeparturesResponse(
     const stopsCacheKey = `departure_stops_${stopId}_${date}`
 
     // Do NOT await these yet as we can fetch them in parallel.
-    const stopsPromise = cacheFetch<RouteSegment[]>(
+    const stopsPromise = cacheFetch<DepartureStop[]>(
       stopsCacheKey,
       () => fetchStops(getStops, date),
       24 * 60 * 60,

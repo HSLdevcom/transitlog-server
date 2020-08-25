@@ -44,17 +44,20 @@ export interface JoreOriginDeparture {
 
 export interface JoreDeparture {
   stop_id: string
+  origin_stop_id: string
   route_id: string
   direction: number
   day_type: string
   departure_id: number
   is_next_day: boolean
+  origin_hours: number
+  origin_minutes: number
   hours: number
   minutes: number
   is_accessible: boolean
   date_begin: string
   date_end: string
-  date_imported: Date
+  date_modified: Date
   stop_role: number
   vehicle?: Maybe<string>
   note?: Maybe<string>
@@ -66,7 +69,7 @@ export interface JoreDeparture {
   recovery_time?: Maybe<number>
   equipment_type?: Maybe<string>
   equipment_required?: Maybe<number>
-  bid_target_id?: Maybe<string>
+  procurement_unit_id?: Maybe<string>
   operator_id?: Maybe<string>
   available_operators?: Maybe<string>
   trunk_color_required?: Maybe<number>
@@ -195,6 +198,18 @@ export type JoreRouteDepartureData = JoreRoute &
   JoreDeparture & { departure_date_begin?: string; departure_date_end?: string }
 
 export type JoreStopSegment = JoreRouteSegment & JoreStop & JoreRoute & { mode: Maybe<string> }
+
+export interface JoreDepartureStop {
+  route_id: string
+  direction: number
+  stop_id: string
+  date_begin: string
+  date_end: string
+  date_modified: Date
+  timing_stop_type: boolean
+  short_id: string
+  mode: Mode
+}
 
 interface JoreOriginDepartureProps {
   origin_stop_id?: string

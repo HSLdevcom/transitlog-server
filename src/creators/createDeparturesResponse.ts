@@ -1,7 +1,12 @@
 import { CachedFetcher } from '../types/CachedFetcher'
 import { compact, flatten, get, groupBy, orderBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { JoreDepartureWithOrigin, JoreStopSegment, Mode } from '../types/Jore'
+import {
+  JoreDepartureStop,
+  JoreDepartureWithOrigin,
+  JoreStopSegment,
+  Mode,
+} from '../types/Jore'
 import {
   Departure,
   DepartureFilterInput,
@@ -28,6 +33,7 @@ import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
 import { getDayTypeFromDate } from '../utils/dayTypes'
+import { DepartureStop } from '../types/Journey'
 
 /*
   Common functions for route departures and stop departures.
@@ -35,7 +41,7 @@ import { getDayTypeFromDate } from '../utils/dayTypes'
 
 // Fetch the stop which the departures are requested for.
 // Combines the stop data with route segments to end up with stop objects with route data.
-export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) => {
+export const fetchStops: CachedFetcher<DepartureStop[]> = async (getStops, date) => {
   const stops = await getStops()
 
   // Return false to skip caching an empty value
@@ -51,29 +57,23 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
   )
 
   // Validate by date chains and return only segments valid during the requested date.
-  const validSegments = filterByDateChains<JoreStopSegment>(groupedRouteSegments, date)
+  const validSegments = filterByDateChains<JoreDepartureStop>(groupedRouteSegments, date)
 
   // Create a combo of the stop data and the route segment. The segment acts as glue between
   // the stop and the route, carrying such data as timing stop status.
   return validSegments.map(
-    (segment): RouteSegment => {
-      const stop = createStopObject(segment)
-
+    (segment): DepartureStop => {
       return {
-        ...stop,
-        destination: segment.destination_fi || '',
-        distanceFromPrevious: segment.distance_from_previous,
-        distanceFromStart: segment.distance_from_start,
-        duration: segment.duration,
-        stopIndex: get(segment, 'stop_index', 0) || 0,
-        isTimingStop: !!segment.timing_stop_type, // very important
-        originStopId: get(segment, 'originstop_id', ''),
-        destinationStopId: get(segment, 'destinationstop_id', ''),
         routeId: segment.route_id,
-        direction: getDirection(segment.direction),
-        modes: stop.modes,
-        cancellations: [],
-      } as RouteSegment
+        direction: segment.direction,
+        mode: segment.mode,
+        dateBegin: segment.date_begin,
+        dateEnd: segment.date_end,
+        isTimingStop: segment.timing_stop_type, // very important
+        dateModified: segment.date_modified,
+        stopId: segment.stop_id,
+        shortId: segment.short_id,
+      }
     }
   )
 }
@@ -239,7 +239,7 @@ export async function createDeparturesResponse(
     const stopsCacheKey = `departure_stops_${fetchTarget}_${fetchId}_${date}`
 
     // Do NOT await these yet as we can fetch them in parallel.
-    const stopsPromise = cacheFetch<RouteSegment[]>(
+    const stopsPromise = cacheFetch<DepartureStop[]>(
       stopsCacheKey,
       () => fetchStops(getStops, date), // Fetches AND validates
       24 * 60 * 60,
@@ -298,12 +298,7 @@ export async function createDeparturesResponse(
       uniqueDepartureGroups
     ).map((departureGroup: JoreDepartureWithOrigin[]) => {
       // Get the most recently updated departure by sorting by the date info we have.
-      const orderedGroup = orderBy(
-        departureGroup,
-        [(dep) => dep.date_imported.getTime(), 'date_begin'],
-        ['desc', 'desc']
-      )
-
+      const orderedGroup = orderBy(departureGroup, 'date_begin', 'desc')
       return orderedGroup[0]
     })
 

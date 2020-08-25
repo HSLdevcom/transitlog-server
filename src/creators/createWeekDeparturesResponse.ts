@@ -4,7 +4,6 @@ import {
   ExceptionDay,
   ObservedArrival,
   ObservedDeparture,
-  RouteSegment,
   Scalars,
 } from '../types/generated/schema-types'
 import { cacheFetch } from '../cache'
@@ -31,7 +30,7 @@ import { Vehicles } from '../types/EventsDb'
 import { getStopArrivalData, getStopArrivalEvent } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { extraDepartureType } from '../utils/extraDepartureType'
-import { stop } from '../utils/knexLogger'
+import { DepartureStop } from '../types/Journey'
 
 const combineDeparturesAndEvents = (
   departures,
@@ -220,7 +219,7 @@ export const createWeekDeparturesResponse = async (
     const stopsCacheKey = `departure_stops_${stopId}_${date}`
 
     // Do NOT await these yet as we can fetch them in parallel.
-    const stopsPromise = cacheFetch<RouteSegment[]>(
+    const stopsPromise = cacheFetch<DepartureStop[]>(
       stopsCacheKey,
       () => fetchStops(getStops, date),
       30 * 24 * 60 * 60,

@@ -1,5 +1,7 @@
 import { JourneyStopEvent, JourneyTlpEvent, Scalars } from './generated/schema-types'
 import { Vehicles } from './EventsDb'
+import { getDirection } from '../utils/getDirection'
+import { Mode } from './Jore'
 
 export interface HFPJourneyObject {
   oday?: string
@@ -23,3 +25,15 @@ export type Journey =
   | Vehicles
   | JourneyStopEvent
   | JourneyTlpEvent
+
+export type DepartureStop = {
+  routeId: string
+  direction: number
+  stopId: string
+  dateBegin: string
+  dateEnd: string
+  dateModified: Date
+  isTimingStop: boolean
+  shortId: string
+  mode: Mode
+}
