@@ -703,6 +703,7 @@ jore.route_mode(route) as mode
       return []
     }
 
+    // language=PostgreSQL
     const query = this.db.raw(
       `
       SELECT ${this.departureStopFields}
@@ -725,6 +726,7 @@ jore.route_mode(route) as mode
     // If not, we may need to be more precise with the day types.
     const dayTypes = uniq(flatten(Object.values(exceptionDayTypes)))
 
+    // language=PostgreSQL
     const query = this.db.raw(
       `
 SELECT DISTINCT ON (operator_id, route_id, direction, hours, minutes) operator_id, route_id, direction, hours, minutes
@@ -766,33 +768,6 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.train_number
   `
 
-  originDepartureQueryFragment = `
-LEFT JOIN LATERAL (
-  SELECT originstop_id,
-         route.type
-  FROM jore.route route
-  WHERE route.route_id = departure.route_id
-    AND route.direction = departure.direction
-    AND route.date_begin <= departure.date_end
-    AND route.date_end >= departure.date_begin
-  ORDER BY route.date_modified DESC
-  LIMIT 1
-) route ON true
-LEFT JOIN LATERAL (
-  SELECT *
-  FROM jore.departure inner_departure
-  WHERE inner_departure.stop_id = route.originstop_id
-    AND inner_departure.route_id = departure.route_id
-    AND inner_departure.direction = departure.direction
-    AND inner_departure.date_begin = departure.date_begin
-    AND inner_departure.date_end = departure.date_end
-    AND inner_departure.departure_id = departure.departure_id
-    AND inner_departure.day_type = departure.day_type
-  ORDER BY inner_departure.hours ASC, inner_departure.minutes ASC
-  LIMIT 1
-) origin_departure ON true
-  `
-
   async getDeparturesForStops(
     stopIds: string[],
     date: string
@@ -802,20 +777,12 @@ LEFT JOIN LATERAL (
     const exceptionDayTypes = await this.getDayTypesForDate(date)
     const dayTypes = uniq(flatten(Object.values(exceptionDayTypes)))
 
+    // language=PostgreSQL
     const query = this.db.raw(
       `
       SELECT ${this.departureFields},
-            route.type,
-            origin_departure.stop_id as origin_stop_id,
-            origin_departure.hours as origin_hours,
-            origin_departure.minutes as origin_minutes,
-            origin_departure.is_next_day as origin_is_next_day,
-            origin_departure.extra_departure as origin_extra_departure,
-            origin_departure.departure_id as origin_departure_id,
-            origin_departure.date_begin as origin_date_begin,
-            origin_departure.date_end as origin_date_end
+            route.type
       FROM jore.departure departure
-           ${this.originDepartureQueryFragment}
       WHERE departure.stop_id IN (${stopIds.map((stopId) => `'${stopId}'`).join(',')})
         AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
         AND departure.date_begin <= :date
@@ -868,65 +835,32 @@ ORDER BY departure.hours ASC,
       { routeId, direction }
     )
 
-    let result = await this.getBatched(query)
-
-    console.log(result)
-
-    return result
+    return this.getBatched(query)
   }
 
   async getWeeklyDepartures(
     stopId,
     routeId,
     direction,
-    exceptionDayTypes: string[] = [],
-    lastStopArrival = false
+    exceptionDayTypes: string[] = []
   ): Promise<JoreDeparture[]> {
-    return []
-
     const queryDayTypes = uniq(exceptionDayTypes.concat(dayTypes))
 
-    let query
-
-    if (!lastStopArrival) {
-      query = this.db.raw(
-        `
+    // language=PostgreSQL
+    let query = this.db.raw(
+      `
 SELECT ${this.departureFields}
 FROM jore.departure departure
 WHERE departure.stop_id = :stopId
   AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
   AND departure.route_id = :routeId
   AND departure.direction = :direction;`,
-        {
-          stopId,
-          routeId,
-          direction: direction + '',
-        }
-      )
-    } else {
-      query = this.db.raw(
-        `
-SELECT ${this.departureFields},
-      origin_departure.stop_id as origin_stop_id,
-      origin_departure.hours as origin_hours,
-      origin_departure.minutes as origin_minutes,
-      origin_departure.is_next_day as origin_is_next_day,
-      origin_departure.is_next_day as origin_is_next_day,
-      origin_departure.extra_departure as origin_extra_departure,
-      origin_departure.departure_id as origin_departure_id
-FROM jore.departure departure
-     ${this.originDepartureQueryFragment}
-WHERE departure.stop_id = :stopId
-  AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
-  AND departure.route_id = :routeId
-  AND departure.direction = :direction;`,
-        {
-          stopId,
-          routeId,
-          direction: direction + '',
-        }
-      )
-    }
+      {
+        stopId,
+        routeId,
+        direction: direction + '',
+      }
+    )
 
     return this.getBatched(query)
   }
@@ -939,6 +873,7 @@ WHERE departure.stop_id = :stopId
     const startDate = format(startOfYear(year), 'YYYY-MM-DD')
     const endDate = format(endOfYear(year), 'YYYY-MM-DD')
 
+    // language=PostgreSQL
     const query = this.db.raw(
       `
                 SELECT ex_day.eritpoikpvm      date_in_effect,

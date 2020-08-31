@@ -1,11 +1,6 @@
 import { compact, groupBy, orderBy } from 'lodash'
-import { JoreDepartureStop, JoreDepartureWithOrigin, JoreStopSegment } from '../types/Jore'
-import {
-  Departure,
-  ExceptionDay,
-  RouteSegment,
-  Scalars,
-} from '../types/generated/schema-types'
+import { JoreDepartureStop, JoreDepartureWithOrigin } from '../types/Jore'
+import { Departure, ExceptionDay, Scalars } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { Dictionary } from '../types/Dictionary'
