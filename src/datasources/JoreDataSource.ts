@@ -30,7 +30,9 @@ type ExceptionDaysScoped = {
   [scope: string]: string[]
 }
 
-let routeModeQuery = () => `
+let routeModeQuery =
+  // language=PostgreSQL
+  () => `
     SELECT DISTINCT ON (route.reitunnus)
        route.reitunnus,
        case
@@ -49,26 +51,27 @@ let routeModeQuery = () => `
     ORDER BY route.reitunnus
 `
 
-let stopModeQuery = () => `
+let stopModeQuery =
+  // language=PostgreSQL
+  () => `
     SELECT DISTINCT ON (link.reitunnus, link.lnkalkusolmu)
-      link.reitunnus,
-      link.lnkalkusolmu,
-      case
-        when line is null then 'BUS'
-        else
-           case line.linjoukkollaji
-               when '02' then 'TRAM'
-               when '06' then 'SUBWAY'
-               when '07' then 'FERRY'
-               when '12' then 'RAIL'
-               when '13' then 'RAIL'
-               else 'BUS' end
-        end as mode
-    FROM jore.jr_reitinlinkki link
-             LEFT JOIN jore.jr_reitti route USING (reitunnus)
-             LEFT JOIN jore.jr_linja line USING (lintunnus)
-    WHERE link.relpysakki = 'P'
-    ORDER BY link.reitunnus, link.lnkalkusolmu
+        link.reitunnus,
+        link.lnkalkusolmu,
+        case
+            when line is null then 'BUS'
+            else
+                case line.linjoukkollaji
+                    when '02' then 'TRAM'
+                    when '06' then 'SUBWAY'
+                    when '07' then 'FERRY'
+                    when '12' then 'RAIL'
+                    when '13' then 'RAIL'
+                    else 'BUS' end
+            end as mode
+        FROM jore.jr_reitinlinkki link
+                 LEFT JOIN jore.jr_linja line ON line.lintunnus = LEFT(link.reitunnus, 4)
+        WHERE link.relpysakki != 'E'
+        ORDER BY link.reitunnus, link.lnkalkusolmu
 `
 
 let routeQuery = (routeId?: string, direction?: number) => {
@@ -130,6 +133,7 @@ const equipmentQuery = (vehicleId?: string, operatorId?: string) => {
       ? `WHERE vehicle_id = '${vehicleId}' AND operator_id = '${operatorId}'`
       : ''
 
+  // language=PostgreSQL
   return `
       WITH vehicles AS (
           SELECT 'B'::char                                 vehicle_class,
@@ -262,30 +266,30 @@ export class JoreDataSource extends SQLDataSource {
         WITH route_mode AS (${routeModeQuery()}),
         route_query AS (${routeQuery()}),
         stop_link AS (
-     SELECT DISTINCT ON (route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu)
-        route.*,
-        (row_number() OVER (
-           PARTITION BY link.reitunnus, link.suusuunta, link.suuvoimast
-           ORDER BY link.reljarjnro
-        ))::integer stop_index,
-        CASE WHEN link.ajantaspys IS NULL THEN FALSE
-           ELSE CASE WHEN link.ajantaspys = 0 THEN FALSE
-           ELSE TRUE END
-        END timing_stop_type,
-        CASE WHEN link.lnkloppusolmu = route.destinationstop_id THEN link.lnkloppusolmu
-           ELSE link.lnkalkusolmu
-        END stop_id
-     FROM route_query route
-          LEFT JOIN LATERAL (
-             SELECT *
-                 FROM jore.jr_reitinlinkki inner_link
-                 WHERE inner_link.relpysakki != 'E'
-                   AND route.route_id = inner_link.reitunnus
-                   AND route.direction = inner_link.suusuunta
-                   AND route.date_begin = inner_link.suuvoimast
-         ) link ON TRUE
-     ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu, link.reljarjnro, link.suuvoimast DESC
- )
+           SELECT DISTINCT ON (route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu)
+              route.*,
+              (row_number() OVER (
+                 PARTITION BY link.reitunnus, link.suusuunta, link.suuvoimast
+                 ORDER BY link.reljarjnro
+              ))::integer stop_index,
+              CASE WHEN link.ajantaspys IS NULL THEN FALSE
+                 ELSE CASE WHEN link.ajantaspys = 0 THEN FALSE
+                 ELSE TRUE END
+              END timing_stop_type,
+              CASE WHEN link.lnkloppusolmu = route.destinationstop_id THEN link.lnkloppusolmu
+                 ELSE link.lnkalkusolmu
+              END stop_id
+           FROM route_query route
+                LEFT JOIN LATERAL (
+                   SELECT *
+                       FROM jore.jr_reitinlinkki inner_link
+                       WHERE inner_link.relpysakki != 'E'
+                         AND route.route_id = inner_link.reitunnus
+                         AND route.direction = inner_link.suusuunta
+                         AND route.date_begin = inner_link.suuvoimast
+               ) link ON TRUE
+           ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu, link.reljarjnro, link.suuvoimast DESC
+       )
         SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end)
           route.*,
           knot.solstmx lat,
@@ -318,9 +322,15 @@ export class JoreDataSource extends SQLDataSource {
                knot.solstmy lon,
                stop.pysnimi name_fi,
                stop.pyssade stop_radius,
-               (SELECT array_agg(DISTINCT mode) FROM stop_mode sm WHERE sm.lnkalkusolmu = stop.soltunnus) as modes
+               mode_query.modes
         FROM jore.jr_pysakki stop
              LEFT JOIN jore.jr_solmu knot USING (soltunnus)
+             LEFT JOIN (
+                 SELECT array_agg(DISTINCT mode) as modes,
+                        sm.lnkalkusolmu
+                 FROM stop_mode sm
+                 GROUP BY sm.lnkalkusolmu
+             ) mode_query ON mode_query.lnkalkusolmu = stop.soltunnus
         WHERE stop.soltunnus = :stopId;
       `,
       { stopId: (stopId || '') + '' }
@@ -387,9 +397,16 @@ SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_
                  knot.solstmy lon,
                  stop.pysnimi name_fi,
                  stop.pyssade stop_radius,
-                 (SELECT array_agg(DISTINCT mode) FROM stop_mode sm WHERE sm.lnkalkusolmu = stop.soltunnus) as modes
-          FROM jore.jr_pysakki stop
-               LEFT JOIN jore.jr_solmu knot USING (soltunnus)
+                 mode_query.modes
+              FROM jore.jr_pysakki stop
+                   LEFT JOIN jore.jr_solmu knot USING (soltunnus)
+                   LEFT JOIN (
+                       SELECT array_agg(DISTINCT mode) as modes,
+                              sm.lnkalkusolmu
+                       FROM stop_mode sm
+                       GROUP BY sm.lnkalkusolmu
+                   ) mode_query ON mode_query.lnkalkusolmu = stop.soltunnus
+          WHERE knot.soltunnus IS NOT NULL;
         `
         )
 
@@ -410,10 +427,15 @@ SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_
                  terminal.tallpvm date_modified,
                  stop.soltunnus stop_id,
                  stop.terminaali as stop_terminal_id,
-                 array_agg(DISTINCT mode) as modes
+                 mode_query.modes
           FROM jore.jr_lij_terminaalialue terminal
                LEFT JOIN jore.jr_pysakki stop ON stop.terminaali = terminal.termid
-               LEFT JOIN stop_mode sm ON sm.lnkalkusolmu = stop.soltunnus
+               LEFT JOIN (
+                   SELECT array_agg(DISTINCT mode) as modes,
+                          sm.lnkalkusolmu
+                   FROM stop_mode sm
+                   GROUP BY sm.lnkalkusolmu
+               ) mode_query ON mode_query.lnkalkusolmu = stop.soltunnus
           WHERE terminal.termid = :terminalId
           GROUP BY (terminal.termid, stop.soltunnus);`,
       { terminalId }
@@ -427,6 +449,7 @@ SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_
       return []
     }
 
+    // language=PostgreSQL
     const query = this.db.raw(
       `SELECT stop.soltunnus stop_id
          FROM jore.jr_pysakki stop

@@ -82,9 +82,11 @@ export async function createStopsResponse(
       return false
     }
 
+    let validStops = fetchedStops.filter((stop) => !!stop?.short_id)
+
     // The stops and route segments are joined in the query, so now we need to
     // combine distinct stops with all routes that go through them.
-    const stopGroups = groupBy(fetchedStops, 'stop_id')
+    const stopGroups = groupBy(validStops, 'stop_id')
 
     const stopData = Object.values(stopGroups).map((stops) => {
       const currentStop = stops[0]

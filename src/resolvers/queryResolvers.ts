@@ -33,7 +33,7 @@ const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => 
 }
 
 const stops = (root, { filter, date }, { dataSources, skipCache }) => {
-  const getStops = () => dataSources.JoreAPI.getStops(date)
+  const getStops = () => dataSources.JoreAPI.getStops()
   return createStopsResponse(getStops, date, skipCache)
 }
 
