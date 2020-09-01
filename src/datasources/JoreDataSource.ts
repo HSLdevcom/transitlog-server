@@ -636,12 +636,13 @@ ORDER BY departure.hours ASC,
     let query
 
     if (!lastStopArrival) {
+      // language=PostgreSQL
       query = this.db.raw(
         `
 SELECT ${this.departureFields}
 FROM jore.departure departure
-WHERE departure.stop_id = :stopId
-  AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
+WHERE departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
+  AND departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction;`,
         {
@@ -651,8 +652,31 @@ WHERE departure.stop_id = :stopId
         }
       )
     } else {
+      // language=PostgreSQL
       query = this.db.raw(
         `
+WITH origin AS (
+    WITH origin_stop AS (
+        SELECT DISTINCT ON (originstop_id, route_id, direction, date_begin, date_end)
+            originstop_id,
+            route_id,
+            direction,
+            date_begin,
+            date_end,
+            type
+        FROM jore.route route
+        ORDER BY originstop_id, route_id, direction, date_begin, date_end, date_modified DESC
+    )
+    SELECT DISTINCT ON (dep.stop_id, dep.route_id, dep.direction, dep.date_begin, dep.date_end)
+        dep.*
+        FROM origin_stop stop
+             LEFT JOIN jore.departure dep ON dep.stop_id = stop.originstop_id
+                  AND dep.route_id = stop.route_id
+                  AND dep.direction = stop.direction
+                  AND dep.date_begin = stop.date_begin
+                  AND dep.date_end = stop.date_end
+        ORDER BY dep.stop_id, dep.route_id, dep.direction, dep.date_begin, dep.date_end, dep.hours ASC, dep.minutes ASC
+)
 SELECT ${this.departureFields},
       origin_departure.stop_id as origin_stop_id,
       origin_departure.hours as origin_hours,
@@ -662,9 +686,13 @@ SELECT ${this.departureFields},
       origin_departure.extra_departure as origin_extra_departure,
       origin_departure.departure_id as origin_departure_id
 FROM jore.departure departure
-     ${this.originDepartureQueryFragment}
-WHERE departure.stop_id = :stopId
-  AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
+     LEFT JOIN origin origin_departure ON origin_departure.route_id = departure.route_id
+            AND origin_departure.direction = departure.direction
+            AND origin_departure.stop_id = departure.stop_id
+            AND origin_departure.departure_id = departure.departure_id
+            AND origin_departure.day_type = departure.day_type
+WHERE departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
+  AND departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction;`,
         {
