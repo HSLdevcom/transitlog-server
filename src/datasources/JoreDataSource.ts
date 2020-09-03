@@ -772,7 +772,8 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.date_end,
     departure.departure_id,
     departure.procurement_unit_id,
-    departure.train_number
+    departure.train_number,
+    departure.date_modified
   `
 
   async getDeparturesForStops(
@@ -831,14 +832,14 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     // language=PostgreSQL
     const query = this.db.raw(
       `
-SELECT ${this.departureFields}
+SELECT DISTINCT ON (stop_id, route_id, direction, day_type, origin_hours, origin_minutes, extra_departure, is_next_day)
+       ${this.departureFields}
 FROM jore.departure departure
 WHERE departure.stop_id = departure.origin_stop_id
   AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
   AND departure.route_id = :routeId
   AND departure.direction = :direction
-ORDER BY departure.hours ASC,
-         departure.minutes ASC;`,
+ORDER BY stop_id, route_id, direction, day_type, origin_hours, origin_minutes, extra_departure, is_next_day;`,
       { routeId, direction }
     )
 

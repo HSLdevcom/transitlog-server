@@ -6,9 +6,9 @@ db
 data
 secrets
 dist
-.env
 .env-old
+.env-new
 .env-citus
 .env-oldtables
-.env-new
+.env
 .run

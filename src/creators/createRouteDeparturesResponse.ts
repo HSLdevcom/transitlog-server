@@ -107,6 +107,8 @@ export async function createRouteDeparturesResponse(
       date
     )
 
+    console.log(stops)
+
     const routeDepartures = combineDeparturesAndStops(validDepartures, stops, date)
     return filterByExceptions(routeDepartures, exceptions)
   }
