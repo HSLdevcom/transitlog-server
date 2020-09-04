@@ -79,9 +79,5 @@ export const setAlertsOnDeparture = (departure: Departure, alerts: Alert[]) => {
     departure.journey.alerts = departureAlerts
   }
 
-  if (departure.stop) {
-    departure.stop.alerts = stopAlerts
-  }
-
   return { departureAlerts, stopAlerts }
 }

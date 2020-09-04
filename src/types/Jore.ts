@@ -67,6 +67,7 @@ export interface JoreDeparture {
   extra_departure: string
   terminal_time?: Maybe<number>
   recovery_time?: Maybe<number>
+  is_timing_stop: boolean
   equipment_type?: Maybe<string>
   equipment_required?: Maybe<number>
   procurement_unit_id?: Maybe<string>
@@ -192,6 +193,7 @@ export interface JoreRouteSegment {
 }
 
 export type JoreRouteData = JoreRoute & JoreRouteSegment & JoreStop
+
 export type JoreRouteDepartureData = JoreRoute &
   JoreRouteSegment &
   JoreStop &

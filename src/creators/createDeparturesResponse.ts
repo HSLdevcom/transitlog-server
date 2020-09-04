@@ -1,5 +1,5 @@
 import { CachedFetcher } from '../types/CachedFetcher'
-import { compact, flatten, get, groupBy, orderBy } from 'lodash'
+import { flatten, get, groupBy, orderBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import {
   JoreDepartureStop,
@@ -7,18 +7,12 @@ import {
   JoreStopSegment,
   Mode,
 } from '../types/Jore'
-import {
-  Departure,
-  DepartureFilterInput,
-  ExceptionDay,
-  RouteSegment,
-} from '../types/generated/schema-types'
+import { Departure, DepartureFilterInput, ExceptionDay } from '../types/generated/schema-types'
 import { cacheFetch } from '../cache'
 import {
   createDepartureJourneyObject,
   createPlannedDepartureObject,
 } from '../objects/createDepartureObject'
-import { createStopObject } from '../objects/createStopObject'
 import { getDirection } from '../utils/getDirection'
 import { getJourneyStartTime } from '../utils/time'
 import { getStopDepartureData, getStopDepartureEvent } from '../utils/getStopDepartureData'
@@ -91,25 +85,11 @@ export const fetchEvents: CachedFetcher<Vehicles[]> = async (getEvents, stopIds)
 }
 
 // Combines departures and stops into Departures.
-export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
-  const departuresWithStops = departures.map((departure) => {
-    // Find a relevant stop segment and use it in the departure response.
-    const stop = stops.find((stopSegment) => {
-      return (
-        stopSegment.routeId === departure.route_id &&
-        stopSegment.direction === getDirection(departure.direction)
-      )
-    })
-
-    if (!stop) {
-      return null
-    }
-
+export const createDeparture = (departures, date): Departure[] => {
+  return departures.map((departure) => {
     departure.origin_departure = createOriginDeparture(departure)
-    return createPlannedDepartureObject(departure, stop, date, 'stop')
+    return createPlannedDepartureObject(departure, date, 'stop')
   })
-
-  return compact(departuresWithStops)
 }
 
 // Link observed events to departures. Events are ultimately grouped by vehicle ID
@@ -218,7 +198,6 @@ export const combineDeparturesAndEvents = (
 
 export async function createDeparturesResponse(
   getDepartures: (fetchStops: string[]) => Promise<JoreDepartureWithOrigin[]>,
-  getStops: () => Promise<JoreStopSegment[] | null>,
   getTerminals: () => Promise<string[]>,
   getEvents: (stopIds: string[]) => Promise<Vehicles[]>,
   getCancellations,
@@ -236,22 +215,10 @@ export async function createDeparturesResponse(
 
   // Fetches the departures and stop data for the stop and validates them.
   const fetchDepartures: CachedFetcher<Departure[]> = async (stopIds) => {
-    const stopsCacheKey = `departure_stops_${fetchTarget}_${fetchId}_${date}`
-
-    // Do NOT await these yet as we can fetch them in parallel.
-    const stopsPromise = cacheFetch<DepartureStop[]>(
-      stopsCacheKey,
-      () => fetchStops(getStops, date), // Fetches AND validates
-      24 * 60 * 60,
-      skipCache
-    )
-
-    const departuresPromise = getDepartures(stopIds)
-
-    const [stops, departures] = await Promise.all([stopsPromise, departuresPromise])
+    const departures = await getDepartures(stopIds)
 
     // If either of these fail, we've got nothing of value.
-    if (!stops || stops.length === 0 || !departures || departures.length === 0) {
+    if (!departures || departures.length === 0) {
       return false
     }
 
@@ -302,10 +269,7 @@ export async function createDeparturesResponse(
       return orderedGroup[0]
     })
 
-    return filterByExceptions(
-      combineDeparturesAndStops(uniqueDepartures, stops, date),
-      exceptions
-    )
+    return filterByExceptions(createDeparture(uniqueDepartures, date), exceptions)
   }
 
   let stops: string[] = []

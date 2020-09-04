@@ -236,9 +236,6 @@ export type Departure = {
   extraDeparture: Scalars['String']
   isNextDay: Scalars['Boolean']
   isTimingStop: Scalars['Boolean']
-  index?: Maybe<Scalars['Int']>
-  mode: Scalars['String']
-  stop: Stop
   journey?: Maybe<DepartureJourney>
   alerts: Alert[]
   cancellations: Cancellation[]

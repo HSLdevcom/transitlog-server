@@ -240,9 +240,6 @@ export type Departure = {
   extraDeparture: Scalars['String']
   isNextDay: Scalars['Boolean']
   isTimingStop: Scalars['Boolean']
-  index?: Maybe<Scalars['Int']>
-  mode: Scalars['String']
-  stop: Stop
   journey?: Maybe<DepartureJourney>
   alerts: Alert[]
   cancellations: Cancellation[]
@@ -1214,9 +1211,6 @@ export type DepartureResolvers<
   extraDeparture?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   isNextDay?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
-  index?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
-  mode?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  stop?: Resolver<ResolversTypes['Stop'], ParentType, ContextType>
   journey?: Resolver<Maybe<ResolversTypes['DepartureJourney']>, ParentType, ContextType>
   alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
   cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>

@@ -213,6 +213,7 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getRoutes(): Promise<JoreRoute[]> {
+    // language=PostgreSQL
     const query = this.db.raw(`
       WITH route_mode AS (${routeModeQuery()})
       ${routeQuery()};
@@ -221,6 +222,7 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getRoute(routeId: string, direction: number): Promise<JoreRoute[]> {
+    // language=PostgreSQL
     const query = this.db.raw(
       `
       WITH route_mode AS (${routeModeQuery()})
@@ -490,6 +492,7 @@ SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_
   }
 
   async getRouteSegments(routeId: string, direction: number): Promise<JoreRouteData[]> {
+    // TODO: Query for segment duration
     // language=PostgreSQL
     const query = this.db.raw(
       `
@@ -551,202 +554,6 @@ SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_
     return this.getBatched(query)
   }
 
-  async getJourneyDepartures(
-    routeId: string,
-    direction: Scalars['Direction'],
-    date: string
-  ): Promise<JoreRouteDepartureData[]> {
-    return []
-
-    const dayTypes = await this.getDayTypesForDateAndRoute(date, routeId)
-
-    const query = this.db.raw(
-      `
-    SELECT departure.stop_id,
-       departure.route_id,
-       departure.direction,
-       departure.hours,
-       departure.minutes,
-       departure.day_type,
-       departure.extra_departure,
-       departure.is_next_day,
-       departure.arrival_is_next_day,
-       departure.arrival_hours,
-       departure.arrival_minutes,
-       departure.terminal_time,
-       departure.recovery_time,
-       departure.equipment_type,
-       departure.equipment_required,
-       departure.operator_id,
-       departure.trunk_color_required,
-       departure.date_begin,
-       departure.date_end,
-       departure.departure_id,
-       departure.bid_target_id,
-       departure.date_imported,
-       departure.train_number
-FROM jore.departure departure
-WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-  AND departure.route_id = :routeId
-  AND departure.direction = :direction
-  AND departure.date_begin <= :date
-  AND departure.date_end >= :date
-ORDER BY departure.departure_id ASC,
-         departure.hours ASC,
-         departure.minutes ASC;`,
-      { routeId, direction: direction + '', date }
-    )
-
-    return this.getBatched(query)
-  }
-
-  async getDepartureData(routeId, direction, date): Promise<PlannedJourneyData> {
-    return { stops: [], departures: [] }
-
-    const stopsPromise = this.getRouteSegments(routeId, direction)
-    const departuresPromise = this.getJourneyDepartures(routeId, direction, date)
-
-    const [stops = [], departures = []] = await Promise.all([stopsPromise, departuresPromise])
-    return { stops, departures } as PlannedJourneyData
-  }
-
-  departureStopFields = `
-stop.stop_id,
-stop.lat,
-stop.lon,
-stop.short_id,
-stop.name_fi,
-stop.stop_radius,
-stop.terminal_id,
-route_segment.date_begin,
-route_segment.date_end,
-route_segment.date_modified,
-route_segment.destination_fi,
-route_segment.distance_from_previous,
-route_segment.distance_from_start,
-route_segment.duration,
-route_segment.route_id,
-route_segment.direction,
-route_segment.stop_index,
-route_segment.next_stop_id,
-route_segment.timing_stop_type,
-route.destination_fi,
-route.origin_fi,
-route.originstop_id,
-route.destinationstop_id,
-route.route_length,
-route.name_fi          as route_name,
-jore.route_mode(route) as mode
-  `
-
-  async getDeparturesStops(stopId, date, queryLastStop = false): Promise<JoreDepartureStop[]> {
-    if (!stopId) {
-      return []
-    }
-
-    // If querying for the LAST stop of a route, set query last stop to true, otherwise the result is empty.
-    // The route.destinationstop_id != :stopId is only for excluding the last stop from stop timetables.
-    // In the week view, we need to actually query for the last stop.
-
-    // language=PostgreSQL
-    const query = this.db.raw(
-      `
-      WITH route_mode AS (${routeModeQuery()}),
-           route_query AS (${routeQuery()}),
-           stop_link AS (
-               SELECT DISTINCT ON (route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu)
-                   route.route_id,
-                   route.direction,
-                   route.date_begin,
-                   route.date_end,
-                   route.date_modified,
-                   route.mode,
-                   route.originstop_id,
-                   route.destinationstop_id,
-                   CASE WHEN link.ajantaspys IS NULL THEN FALSE
-                        ELSE CASE WHEN link.ajantaspys = 0 THEN FALSE
-                                  ELSE TRUE END
-                       END timing_stop_type,
-                   CASE WHEN link.lnkloppusolmu = route.destinationstop_id THEN link.lnkloppusolmu
-                        ELSE link.lnkalkusolmu
-                       END stop_id
-                   FROM route_query route
-                            LEFT JOIN LATERAL (
-                       SELECT *
-                           FROM jore.jr_reitinlinkki inner_link
-                           WHERE inner_link.relpysakki != 'E'
-                             AND route.route_id = inner_link.reitunnus
-                             AND route.direction = inner_link.suusuunta
-                             AND route.date_begin = inner_link.suuvoimast
-                       ) link ON TRUE
-                   ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu, link.reljarjnro, link.suuvoimast DESC
-           )
-      SELECT DISTINCT ON (stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end)
-          route.route_id,
-          route.direction,
-          route.date_begin,
-          route.date_end,
-          route.date_modified,
-          stop.soltunnus stop_id,
-          route.timing_stop_type,
-          ((knot.solkirjain || knot.sollistunnus)) short_id,
-          route.mode
-          FROM jore.jr_pysakki stop
-                   INNER JOIN stop_link route ON route.stop_id = stop.soltunnus
-                   INNER JOIN jore.jr_solmu knot on stop.soltunnus = knot.soltunnus
-          WHERE stop.soltunnus = :stopId
-            AND route.destinationstop_id != :lastStopId
-          ORDER BY stop.soltunnus, route.route_id, route.direction, route.date_begin, route.date_end;`,
-      { stopId, lastStopId: !queryLastStop ? stopId : '', date }
-    )
-
-    return this.getBatched(query)
-  }
-
-  async getTerminalDeparturesStops(terminalId, date): Promise<JoreStopSegment[]> {
-    return []
-
-    if (!terminalId) {
-      return []
-    }
-
-    // language=PostgreSQL
-    const query = this.db.raw(
-      `
-      SELECT ${this.departureStopFields}
-      FROM jore.stop stop
-      LEFT JOIN jore.route_segment route_segment USING (stop_id)
-      LEFT JOIN jore.route route USING (route_id, direction, date_begin, date_end, date_modified)
-      WHERE stop.terminal_id = :terminalId
-        AND route.destinationstop_id != stop.stop_id;`,
-      { terminalId, date }
-    )
-
-    return this.getBatched(query)
-  }
-
-  async getDepartureOperators(date): Promise<string> {
-    return ''
-
-    const exceptionDayTypes = await this.getDayTypesForDate(date)
-    // TODO: Ensure that the same operator drives both normal and exception days, always.
-    // If not, we may need to be more precise with the day types.
-    const dayTypes = uniq(flatten(Object.values(exceptionDayTypes)))
-
-    // language=PostgreSQL
-    const query = this.db.raw(
-      `
-SELECT DISTINCT ON (operator_id, route_id, direction, hours, minutes) operator_id, route_id, direction, hours, minutes
-FROM jore.departure
-    WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-      AND date_begin <= :date
-ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
-      { date }
-    )
-
-    return this.getCachedAndBatched(query, 24 * 60 * 60)
-  }
-
   departureFields = `
     departure.route_id,
     departure.direction,
@@ -764,6 +571,7 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.arrival_minutes,
     departure.terminal_time,
     departure.recovery_time,
+    departure.is_timing_stop,
     departure.equipment_type,
     departure.equipment_required,
     departure.operator_id,
@@ -776,30 +584,78 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.date_modified
   `
 
+  async getJourneyDepartures(
+    routeId: string,
+    direction: Scalars['Direction'],
+    date: string
+  ): Promise<JoreDeparture[]> {
+    const dayTypes = await this.getDayTypesForDateAndRoute(date, routeId)
+
+    // language=PostgreSQL
+    const query = this.db.raw(
+      `
+    SELECT DISTINCT ON (stop_id, route_id, direction, day_type, hours, minutes, extra_departure, is_next_day, date_begin, date_end)
+           ${this.departureFields}
+FROM jore.departure departure
+WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+  AND departure.route_id = :routeId
+  AND departure.direction = :direction
+ORDER BY stop_id, route_id, direction, day_type, hours, minutes, extra_departure, is_next_day, date_begin DESC, date_end DESC, date_modified DESC;`,
+      { routeId, direction: direction + '', date }
+    )
+
+    return this.getBatched(query)
+  }
+
+  async getDepartureData(routeId, direction, date): Promise<PlannedJourneyData> {
+    const routePromise = this.getRouteSegments(routeId, direction)
+    const departuresPromise = this.getJourneyDepartures(routeId, direction, date)
+
+    const [routes = [], departures = []] = await Promise.all([routePromise, departuresPromise])
+    return { routes, departures } as PlannedJourneyData
+  }
+
+  async getDepartureOperators(date): Promise<string> {
+    const exceptionDayTypes = await this.getDayTypesForDate(date)
+    // If not, we may need to be more precise with the day types.
+    const dayTypes = uniq(flatten(Object.values(exceptionDayTypes)))
+
+    // language=PostgreSQL
+    const query = this.db.raw(
+      `
+SELECT DISTINCT ON (operator_id, route_id, direction, hours, minutes)
+      operator_id,
+      route_id,
+      direction,
+      hours,
+      minutes
+FROM jore.departure
+    WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+      AND date_begin <= :date
+ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
+      { date }
+    )
+
+    return this.getCachedAndBatched(query, 24 * 60 * 60)
+  }
+
   async getDeparturesForStops(
     stopIds: string[],
     date: string
   ): Promise<JoreDepartureWithOrigin[]> {
-    return []
-
     const exceptionDayTypes = await this.getDayTypesForDate(date)
     const dayTypes = uniq(flatten(Object.values(exceptionDayTypes)))
 
     // language=PostgreSQL
     const query = this.db.raw(
       `
-      SELECT ${this.departureFields},
+      SELECT DISTINCT ON (stop_id, route_id, direction, day_type, hours, minutes, extra_departure, is_next_day, date_begin, date_end)
+            ${this.departureFields},
             route.type
       FROM jore.departure departure
       WHERE departure.stop_id IN (${stopIds.map((stopId) => `'${stopId}'`).join(',')})
         AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
-        AND departure.date_begin <= :date
-        AND departure.date_end >= :date
-      ORDER BY departure.hours ASC,
-               departure.minutes ASC,
-               departure.route_id ASC,
-               departure.direction ASC,
-               departure.date_imported DESC;`,
+      ORDER BY stop_id, route_id, direction, day_type, hours, minutes, extra_departure, is_next_day, date_begin DESC, date_end DESC, date_modified DESC;`,
       { date }
     )
 
@@ -832,14 +688,14 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     // language=PostgreSQL
     const query = this.db.raw(
       `
-SELECT DISTINCT ON (stop_id, route_id, direction, day_type, origin_hours, origin_minutes, extra_departure, is_next_day)
+SELECT DISTINCT ON (stop_id, route_id, direction, day_type, origin_hours, origin_minutes, extra_departure, is_next_day, date_begin, date_end)
        ${this.departureFields}
 FROM jore.departure departure
 WHERE departure.stop_id = departure.origin_stop_id
   AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
   AND departure.route_id = :routeId
   AND departure.direction = :direction
-ORDER BY stop_id, route_id, direction, day_type, origin_hours, origin_minutes, extra_departure, is_next_day;`,
+ORDER BY stop_id, route_id, direction, day_type, origin_hours, origin_minutes, extra_departure, is_next_day, date_begin DESC, date_end DESC, date_modified DESC;`,
       { routeId, direction }
     )
 
@@ -857,12 +713,14 @@ ORDER BY stop_id, route_id, direction, day_type, origin_hours, origin_minutes, e
     // language=PostgreSQL
     let query = this.db.raw(
       `
-SELECT ${this.departureFields}
+SELECT DISTINCT ON (stop_id, route_id, direction, day_type, origin_hours, origin_minutes, extra_departure, is_next_day, date_begin, date_end)
+       ${this.departureFields}
 FROM jore.departure departure
 WHERE departure.stop_id = :stopId
   AND departure.day_type IN (${queryDayTypes.map((dayType) => `'${dayType}'`).join(',')})
   AND departure.route_id = :routeId
-  AND departure.direction = :direction;`,
+  AND departure.direction = :direction
+ORDER BY stop_id, route_id, direction, day_type, origin_hours, origin_minutes, extra_departure, is_next_day, date_begin DESC, date_end DESC, date_modified DESC;`,
       {
         stopId,
         routeId,
@@ -884,25 +742,25 @@ WHERE departure.stop_id = :stopId
     // language=PostgreSQL
     const query = this.db.raw(
       `
-                SELECT ex_day.eritpoikpvm      date_in_effect,
-                       ex_desc.kooselite       description,
-                       ex_day.eritviikpaiva    day_type,
-                       ex_day.eriteimuita as   exclusive,
-                       rep_day.korvjoukkollaji scope,
-                       rep_day.korvalkaika     time_begin,
-                       rep_day.korvpaataika    time_end,
-                       CASE
-                           WHEN rep_day.korvpaiva IS NULL
-                               THEN ARRAY [ex_day.eritpaiva, ex_day.eritviikpaiva]
-                           ELSE ARRAY [ex_day.eritpaiva, rep_day.korvpaiva]
-                           END            as   effective_day_types,
-                       rep_day.korvpaiva  as   scoped_day_type
-                FROM jore.jr_eritpvkalent ex_day
-                         LEFT OUTER JOIN jore.jr_koodisto ex_desc ON ex_day.eritpaiva = ex_desc.kookoodi
-                         FULL OUTER JOIN jore.jr_korvpvkalent rep_day ON ex_day.eritpoikpvm = rep_day.korvpoikpvm
-                WHERE ex_day.eritpoikpvm >= :startDate
-                  AND ex_day.eritpoikpvm <= :endDate
-                ORDER BY ex_day.eritpoikpvm;
+      SELECT ex_day.eritpoikpvm      date_in_effect,
+             ex_desc.kooselite       description,
+             ex_day.eritviikpaiva    day_type,
+             ex_day.eriteimuita as   exclusive,
+             rep_day.korvjoukkollaji scope,
+             rep_day.korvalkaika     time_begin,
+             rep_day.korvpaataika    time_end,
+             CASE
+                 WHEN rep_day.korvpaiva IS NULL
+                     THEN ARRAY [ex_day.eritpaiva, ex_day.eritviikpaiva]
+                 ELSE ARRAY [ex_day.eritpaiva, rep_day.korvpaiva]
+                 END            as   effective_day_types,
+             rep_day.korvpaiva  as   scoped_day_type
+      FROM jore.jr_eritpvkalent ex_day
+               LEFT OUTER JOIN jore.jr_koodisto ex_desc ON ex_day.eritpaiva = ex_desc.kookoodi
+               FULL OUTER JOIN jore.jr_korvpvkalent rep_day ON ex_day.eritpoikpvm = rep_day.korvpoikpvm
+      WHERE ex_day.eritpoikpvm >= :startDate
+        AND ex_day.eritpoikpvm <= :endDate
+      ORDER BY ex_day.eritpoikpvm;
       `,
       { startDate, endDate }
     )

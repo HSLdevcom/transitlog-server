@@ -74,9 +74,6 @@ export const Departure = gql`
     extraDeparture: String!
     isNextDay: Boolean!
     isTimingStop: Boolean!
-    index: Int
-    mode: String!
-    stop: Stop!
     journey: DepartureJourney
     alerts: [Alert!]!
     cancellations: [Cancellation!]!

@@ -1,4 +1,5 @@
 import {
+  Alert,
   AlertDistribution,
   Cancellation,
   Departure,
@@ -7,18 +8,17 @@ import {
   JourneyEvent,
   JourneyStopEvent,
   JourneyTlpEvent,
-  TlpPriorityLevel,
   PlannedArrival,
   PlannedDeparture,
   PlannedStopEvent,
   Stop,
+  TlpPriorityLevel,
   VehiclePosition,
-  TlpType,
 } from '../types/generated/schema-types'
 import { TIME_FORMAT, TZ } from '../constants'
 import moment from 'moment-timezone'
 import { getDateFromDateTime, getJourneyEventTime } from '../utils/time'
-import { Vehicles, TlpEvents, EventType, TlpPriorityLevelDb } from '../types/EventsDb'
+import { TlpEvents, TlpPriorityLevelDb, Vehicles } from '../types/EventsDb'
 import { createJourneyId } from '../utils/createJourneyId'
 import { get } from 'lodash'
 import { createDepartureId } from './createDepartureObject'
@@ -79,8 +79,13 @@ export function createJourneyCancellationEventObject(
   }
 }
 
-export function createPlannedStopEventObject(departure: Departure, alerts): PlannedStopEvent {
+export function createPlannedStopEventObject(
+  departure: Departure,
+  stop?: Stop,
+  alerts: Alert[] = []
+): PlannedStopEvent {
   const id = createDepartureId(departure)
+
   const {
     departureDate,
     departureTime,
@@ -88,7 +93,7 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
     isNextDay,
   } = departure.plannedDepartureTime
 
-  departure.stop.alerts = alerts.filter((alert) => {
+  departure.alerts = alerts.filter((alert) => {
     if (!isWithinRange(departureDateTime, alert.startDateTime, alert.endDateTime)) {
       return false
     }
@@ -100,7 +105,7 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
   })
 
   const unix = moment.tz(departureDateTime, TZ).unix()
-  const stopIndex = departure?.index || -1
+  const stopIndex = stop?.stopIndex || -1
 
   return {
     id: `journey_planned_stop_event_${id}`,
@@ -115,7 +120,7 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
     isTimingStop: departure.isTimingStop,
     isOrigin: departure.isOrigin || false,
     index: stopIndex,
-    stop: departure.stop,
+    stop,
     _sort: unix,
   }
 }
@@ -123,15 +128,15 @@ export function createPlannedStopEventObject(departure: Departure, alerts): Plan
 export function createJourneyStopEventObject(
   event: Vehicles,
   departure: Departure | null,
-  stop: Stop | null,
-  doorsOpened: boolean
+  stop?: Stop,
+  doorsOpened?: boolean
 ): JourneyStopEvent {
   const id = createJourneyId(event)
   const ts = moment.tz(event.tst, TZ)
   const unix = ts.unix()
   const receivedTs = moment.tz(event.received_at, TZ).toISOString(true)
 
-  const stopData = stop ? stop : departure ? departure?.stop : null
+  const stopData = stop || null
 
   const isArrival = ['ARR', 'ARS'].includes(event.event_type)
 
@@ -165,7 +170,7 @@ export function createJourneyStopEventObject(
       ? departurePlannedMoment.unix()
       : eventPlannedMoment.unix()
 
-  const stopIndex = departure?.index || -1
+  const stopIndex = stop?.stopIndex || -1
 
   const formattedMode = (event?.mode || 'BUS').toUpperCase()
   const mode = formattedMode === 'METRO' ? 'SUBWAY' : formattedMode

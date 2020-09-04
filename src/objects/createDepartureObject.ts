@@ -47,7 +47,7 @@ export function createPlannedArrivalTimeObject(
   departure: JoreDeparture,
   date
 ): PlannedArrival {
-  const arrivalTime = getDepartureTime(departure, true)
+  const arrivalTime = getDepartureTime(departure, 'arrival')
   const departureId = createDepartureId(departure)
 
   return {
@@ -113,7 +113,6 @@ export function createDepartureJourneyObject(
 
 export function createPlannedDepartureObject(
   departure: JoreRouteDepartureData | JoreDepartureWithOrigin,
-  stop: Stop,
   departureDate: string,
   prefix = '',
   alerts: Alert[] = [],
@@ -129,7 +128,7 @@ export function createPlannedDepartureObject(
 
   return {
     id: prefix + '/' + departureId,
-    stopId: get(departure, 'stop_id', get(stop, 'stopId', '')) + '',
+    stopId: get(departure, 'stop_id', '') + '',
     dayType: departure.day_type,
     equipmentType: departure.equipment_type,
     equipmentIsRequired: !!departure.equipment_required,
@@ -145,10 +144,7 @@ export function createPlannedDepartureObject(
     departureDate: plannedDepartureTime.departureDate,
     extraDeparture: extraDepartureType(departure.extra_departure),
     isNextDay: departure.is_next_day,
-    isTimingStop: !!get(stop, 'isTimingStop', false) || false,
-    index: get(stop, 'stopIndex', 0),
-    mode: get(stop, 'modes[0]', Mode.Bus),
-    stop,
+    isTimingStop: !!get(departure, 'isTimingStop', false) || false,
     journey: null,
     alerts,
     operatingUnit: departure?.procurement_unit_id || '',

@@ -1,11 +1,13 @@
 import {
+  JoreDeparture,
   JoreEquipment,
+  JoreRouteData,
   JoreRouteDepartureData,
-  JoreStop,
   JoreStopSegment,
 } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import {
+  Alert,
   AlertDistribution,
   Departure,
   ExceptionDay,
@@ -40,7 +42,6 @@ import { createRouteObject } from '../objects/createRouteObject'
 import { groupEventsByInstances } from '../utils/groupEventsByInstances'
 import { createValidVehicleId } from '../utils/createUniqueVehicleId'
 import { journeyInProgress } from '../utils/journeyInProgress'
-import { getDirection } from '../utils/getDirection'
 import { filterByExceptions } from '../utils/filterByExceptions'
 import {
   setAlertsOnDeparture,
@@ -68,10 +69,13 @@ import { extraDepartureType } from '../utils/extraDepartureType'
 import { trimRouteSegments } from './createRouteSegmentsResponse'
 import { filterByDateGroups } from '../utils/filterByDateGroups'
 import { getCorrectDepartureEventType } from '../utils/getCorrectDepartureEventType'
+import { Moment } from 'moment'
+import { AlertSearchProps } from '../getAlerts'
 
 type JourneyRoute = {
   route: Route | null
   departures: Departure[]
+  stops: Stop[]
 }
 
 type EventsType =
@@ -82,8 +86,8 @@ type EventsType =
   | JourneyTlpEvent
 
 export type PlannedJourneyData = {
-  departures: JoreRouteDepartureData[]
-  stops: JoreStopSegment[]
+  departures: JoreDeparture[]
+  routes: JoreRouteData[]
 }
 
 const isPlannedEvent = (event: any): event is PlannedStopEvent => event.type === 'PLANNED'
@@ -161,87 +165,80 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   exceptions
 ) => {
   const plannedJourney: PlannedJourneyData = await fetcher()
+  const departures: JoreDeparture[] = get(plannedJourney, 'departures', []) || []
+  const routes: JoreRouteData[] = get(plannedJourney, 'routes', []) || []
 
-  if (plannedJourney.departures.length === 0 || plannedJourney.stops.length === 0) {
+  if (departures.length === 0 || routes.length === 0) {
     return false
   }
 
-  const departures: JoreRouteDepartureData[] = get(plannedJourney, 'departures', []) || []
-  const stops: JoreStopSegment[] = get(plannedJourney, 'stops', []) || []
-
-  const validStops = filterByDateGroups<JoreStopSegment>(stops, date)
+  let validRoutes = filterByDateGroups<JoreStopSegment>(routes, date)
   // Sorted by the order of the stops in the journey.
-  let routeStops: JoreStopSegment[] = orderBy(validStops, 'stop_index', 'asc')
+  let routeStops: JoreRouteData[] = orderBy(validRoutes, 'stop_index', 'asc')
   // Trim stops to only contain ACTUALLY valid stops.
   routeStops = trimRouteSegments(routeStops)
 
-  const firstStop = routeStops.find((stop) => stop.stop_index === 1)
+  let firstStop = routeStops.find(
+    (routeSegment) => routeSegment.stop_id === routeSegment.originstop_id
+  )
 
   // A stop segment contains all necessary info for the route
-  let journeyRoute = createRouteObject(!firstStop ? stops[0] : firstStop)
+  let journeyRoute = createRouteObject(!firstStop ? routeStops[0] : firstStop)
 
-  if (routeStops.length === 0) {
-    return { route: journeyRoute, departures: [] }
+  if (!journeyRoute) {
+    return false
   }
 
-  const groupedDepartures = groupBy(
+  let groupedDepartures = groupBy(
     departures,
     ({ stop_id, day_type, extra_departure }) =>
       `${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
   )
 
-  const validDepartures = filterByDateChains<JoreRouteDepartureData>(groupedDepartures, date)
+  let validDepartures = filterByDateChains<JoreDeparture>(groupedDepartures, date)
 
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,
   // so we also need to get a 24+ time for the departure using `getDepartureTime`.
-  const originDeparture = validDepartures.find(
+  let originDeparture = validDepartures.find(
     (departure) =>
-      getDepartureTime(departure) === time && departure.stop_id === journeyRoute.originStopId
+      getDepartureTime(departure) === time && departure.stop_id === departure.origin_stop_id
   )
 
   if (!originDeparture) {
-    return { route: journeyRoute, departures: [] }
+    return { route: journeyRoute, departures: [], stops: [] }
   }
-
-  const plannedDuration = get(last(routeStops), 'duration', 0)
-  journeyRoute = createRouteObject(routeStops[0], [], plannedDuration)
 
   const journeyDepartures = validDepartures.filter(
     (departure) =>
-      originDeparture.day_type === departure.day_type &&
-      originDeparture.departure_id === departure.departure_id
+      getDepartureTime(departure, 'origin') === time &&
+      // Without the ! Typescript complains that originDeparture is undefined.
+      // IN WHAT WORLD CAN IT BE UNDEFINED HERE
+      originDeparture!.day_type === departure.day_type
   )
 
-  const stopDepartures: Array<Departure | null> = journeyDepartures.map((departure) => {
-    const stopSegment = routeStops.find(
-      (stopSegment) =>
-        stopSegment.stop_id === departure.stop_id &&
-        stopSegment.route_id === departure.route_id &&
-        getDirection(stopSegment.direction) === getDirection(departure.direction)
-    )
+  // TODO: query for duration
+  const plannedDuration = get(last(routeStops), 'duration', 0)
+  journeyRoute = createRouteObject(routeStops[0], [], plannedDuration)
 
-    if (!stopSegment) {
-      return null
-    }
-
-    const stop = createStopObject(stopSegment)
-
+  const departureObjects: Array<Departure | null> = journeyDepartures.map((departure) => {
     return createPlannedDepartureObject(
       departure,
-      stop,
       date,
       'journey',
       [],
-      originDeparture.stop_id === departure.stop_id
+      departure.origin_stop_id === departure.stop_id
     )
   })
+
+  let stopObjects = compact(routeStops.map((rs) => createStopObject(rs)))
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
   return {
     route: journeyRoute,
-    departures: filterByExceptions(orderBy(compact(stopDepartures), 'index'), exceptions),
+    stops: stopObjects,
+    departures: filterByExceptions(orderBy(compact(departureObjects), 'index'), exceptions),
   }
 }
 
@@ -273,10 +270,9 @@ export async function createJourneyResponse(
     vehicleId: string | number,
     operatorId: string | number
   ) => Promise<JoreEquipment[]>,
-  getStop: (stopId: string) => Promise<JoreStop | null>,
   getUnsignedEvents: (vehicleId: string) => Promise<Vehicles[]>,
   getCancellations,
-  getAlerts,
+  getAlerts: (dateTime: Moment | string, alertSearchProps: AlertSearchProps) => Alert[],
   exceptions: ExceptionDay[],
   routeId: string,
   direction: Scalars['Direction'],
@@ -395,9 +391,10 @@ export async function createJourneyResponse(
     }
   }
 
-  const { route = null, departures = [] }: JourneyRoute = routeAndDepartures || {
+  const { route = null, departures = [], stops = [] }: JourneyRoute = routeAndDepartures || {
     route: null,
     departures: [],
+    stops: [],
   }
 
   const authorizedDepartures = removeUnauthorizedData<Departure>(departures, user, [
@@ -438,9 +435,10 @@ export async function createJourneyResponse(
     (cancellation) => createJourneyCancellationEventObject(cancellation)
   )
 
-  const plannedStopEvents: PlannedStopEvent[] = authorizedDepartures.map((departure) =>
-    createPlannedStopEventObject(departure, journeyAlerts)
-  )
+  const plannedStopEvents: PlannedStopEvent[] = authorizedDepartures.map((departure) => {
+    let stop = stops.find((stop) => departure.stopId === stop.stopId)
+    return createPlannedStopEventObject(departure, stop, journeyAlerts)
+  })
 
   const stopAndCancellationEvents = orderBy<EventsType>(
     compact([...cancellationEvents, ...plannedStopEvents]),
@@ -535,11 +533,12 @@ export async function createJourneyResponse(
     // Use matchedStopId to search for a stop if none is attached to the departure.
     let matchedStopId: string = ''
     let departure: Departure | undefined
-    let stop: Stop | null = null
+    let stop: Stop | undefined
 
     if (stopId !== 'unknown') {
       matchedStopId = stopId + ''
       departure = authorizedDepartures.find((dep) => dep.stopId === stopId + '')
+      stop = stops.find((stop) => stop.stopId === stopId)
     }
 
     let departureEventType = getCorrectDepartureEventType(eventsForStop, departure)
@@ -553,14 +552,14 @@ export async function createJourneyResponse(
         matchedStopId = ''
         // Match events without stopIds to stops by location.
         departure = authorizedDepartures.find((dep) => {
-          // If the departure has no stop (very unlikely)
-          // we can't match with the stop location
-          if (!dep.stop) {
+          let stop = stops.find((stop) => stop.stopId === dep.stopId)
+
+          if (!stop) {
             return false
           }
 
           // Match the departure to the event by stop and event location
-          const { lat, lng } = dep.stop
+          const { lat, lng } = stop
           const stopArea = toLatLng(lat, lng).toBounds(200) // Search around 100m in each direction
 
           return stopArea.contains([eventItem.lat, eventItem.long])
@@ -571,22 +570,9 @@ export async function createJourneyResponse(
         }
       }
 
-      // Try to get the stop from the departure
-      stop = departure?.stop || null
-
       // If that didn't work, fetch the stop from JORE with the stopId we have.
       if (!stop && matchedStopId) {
-        const joreStop = await getStop(matchedStopId)
-
-        if (joreStop) {
-          const stopAlerts = journeyAlerts.filter(
-            (alert) =>
-              alert.distribution === AlertDistribution.AllStops ||
-              alert.affectedId === joreStop.stop_id
-          )
-
-          stop = createStopObject(joreStop, [], stopAlerts)
-        }
+        stop = stops.find((stop) => stop.stopId === matchedStopId)
       }
 
       if (departure) {
@@ -594,10 +580,7 @@ export async function createJourneyResponse(
       }
 
       let doorsOpened = !!eventItem.drst
-
-      if (stopId !== 'unknown') {
-        doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
-      }
+      doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
 
       let shouldCreateStopEventObject =
         !!stop && ['ARS', departureEventType, 'PAS'].includes(eventItem.event_type)
