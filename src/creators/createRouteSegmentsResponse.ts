@@ -1,5 +1,5 @@
 import { sortBy } from 'lodash'
-import { JoreRouteData } from '../types/Jore'
+import { JoreRouteSegment } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { RouteSegment, Scalars } from '../types/generated/schema-types'
 import { createRouteSegmentObject } from '../objects/createRouteSegmentObject'
@@ -10,10 +10,10 @@ import { filterByDateGroups } from '../utils/filterByDateGroups'
 // invalid even though the stop itself is still valid. This is because
 // our JORE database never removes records, and sometimes invalid items
 // persist. Anything before the origin stop or after the destination stop is removed.
-export function trimRouteSegments(routeSegments: JoreRouteData[]) {
+export function trimRouteSegments(routeSegments: JoreRouteSegment[]) {
   // Remove all stops before the originstop_id.
   // Remove all stops after the first encountered stop with a null next_stop_id. This means that the route has ended.
-  let filteredSegments = routeSegments.reduce((routeChain: JoreRouteData[], routeStop) => {
+  let filteredSegments = routeSegments.reduce((routeChain: JoreRouteSegment[], routeStop) => {
     if (
       // Only add the first stop if it matches the originstop_id.
       (routeChain.length === 0 && routeStop.originstop_id === routeStop.stop_id) ||
@@ -36,7 +36,7 @@ export function trimRouteSegments(routeSegments: JoreRouteData[]) {
 
 export async function createRouteSegmentsResponse(
   user,
-  getRouteSegments: () => Promise<JoreRouteData[]>,
+  getRouteSegments: () => Promise<JoreRouteSegment[]>,
   getCancellations,
   getAlerts,
   date: string,
@@ -46,14 +46,14 @@ export async function createRouteSegmentsResponse(
 ): Promise<RouteSegment[]> {
   const fetchAndValidate = async () => {
     let routes = await getRouteSegments()
-    let validRoutes = filterByDateGroups<JoreRouteData>(routes, date)
+    let validRoutes = filterByDateGroups<JoreRouteSegment>(routes, date)
 
     if (!validRoutes || validRoutes.length === 0) {
       return false
     }
 
     // Sorted by the order of the stops in the journey.
-    let routeSegments: JoreRouteData[] = sortBy(validRoutes, 'stop_index')
+    let routeSegments: JoreRouteSegment[] = sortBy(validRoutes, 'stop_index')
 
     const cancellations = await getCancellations(
       date,
@@ -73,7 +73,7 @@ export async function createRouteSegmentsResponse(
       (routeSegment): RouteSegment => {
         // Merge the route segment and the stop data, picking what we need from the segment and
         // the stop. What we really need from the segment is the timing stop type and the stop index.
-        return createRouteSegmentObject(routeSegment, null, [], cancellations)
+        return createRouteSegmentObject(routeSegment, [], cancellations)
       }
     )
   }

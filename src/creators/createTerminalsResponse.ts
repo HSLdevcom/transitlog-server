@@ -1,5 +1,5 @@
 import { Stop, Terminal } from '../types/generated/schema-types'
-import { JoreRouteData, JoreTerminal } from '../types/Jore'
+import { JoreRouteSegment, JoreTerminal } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { createTerminalObject, TerminalStop } from '../objects/createTerminalObject'
@@ -10,7 +10,7 @@ import pMap from 'p-map'
 
 export async function createTerminalResponse(
   getTerminal: () => Promise<JoreTerminal[]>,
-  getStops: (stopId: string) => Promise<JoreRouteData[]>,
+  getStops: (stopId: string) => Promise<JoreRouteSegment[]>,
   terminalId: string,
   date: string,
   skipCache = false

@@ -1,4 +1,4 @@
-import { Alert, Scalars, StopRoute } from './generated/schema-types'
+import { StopRoute } from './generated/schema-types'
 
 export type Maybe<T> = T | null
 
@@ -81,31 +81,14 @@ export interface JoreDeparture {
 
 export interface JoreStop {
   stop_id: string
-  lat: BigFloat
-  lon: BigFloat
+  short_id: string
+  lat: number
+  lon: number
   name_fi: string
-  name_se?: Maybe<string>
-  address_fi?: Maybe<string>
-  address_se?: Maybe<string>
-  short_id?: string
-  stop_radius?: Maybe<number>
-  terminal_id?: Maybe<string>
-  stop_area_id?: Maybe<string>
-  poster_count?: Maybe<number>
-  driveby_timetable?: Maybe<number>
-  stop_type?: Maybe<string>
-  distribution_area?: Maybe<string>
-  distribution_order?: Maybe<number>
-  stop_zone?: Maybe<string>
-  stop_tariff?: Maybe<string>
-  point?: Maybe<string>
-  modes: Maybe<Mode[] | Mode>
-  mode: Maybe<Mode>
+  stop_radius: number
+  modes: string[]
+  stop_index?: number
   timing_stop_type?: number
-  route_id?: string
-  direction?: number
-  date_begin?: string
-  date_end?: string
   routes?: StopRoute[]
 }
 
@@ -159,50 +142,53 @@ export interface JoreGeometry {
 }
 
 export interface JoreRouteSegment {
-  stop_id: string
-  next_stop_id?: Maybe<string>
   route_id: string
   direction: number
+  origin_fi: string
+  originstop_id: string
+  destination_fi: string
+  destinationstop_id: string
+  route_name: string
+  date_modified: string
+  route_length: number
+  route_type: string
   date_begin: string
   date_end: string
-  duration: number
+  timing_stop_type: number
+  mode: string
+  stop_id: string
+  next_stop_id: string
+  lat: number
+  lon: number
+  short_id: string
+  name_fi: string
+  stop_radius: number
   stop_index: number
   distance_from_previous: number
   distance_from_start: number
-  pickup_dropoff_type?: Maybe<number>
-  destination_fi?: Maybe<string>
-  destination_se?: Maybe<string>
-  originstop_id?: Maybe<string>
-  destinationstop_id?: Maybe<string>
-  via_fi?: Maybe<string>
-  via_se?: Maybe<string>
-  timing_stop_type: number
-  has_regular_day_departures?: Maybe<boolean>
-  date_modified?: Maybe<string>
+  duration?: number
 }
-
-export type JoreRouteData = JoreRoute & JoreRouteSegment & JoreStop
-
-export type JoreRouteDepartureData = JoreRouteData &
-  JoreDeparture & { departure_date_begin?: string; departure_date_end?: string }
 
 export interface JoreRouteStop {
   stop_id: string
   short_id: string
   lat: number
-  lng: number
-  name: string
-  radius: number
-  modes: string[]
-  route_id: string
-  direction: number
-  timing_stop_type: number
-  distance_from_previous: number
-  distance_from_start: number
-  stop_index: number
+  lon: number
+  name_fi: string
+  stop_radius: number
+  modes?: string[]
+  date_begin?: string
+  date_end?: string
+  route_id?: string
+  direction?: number
+  timing_stop_type?: number
+  distance_from_previous?: number
+  distance_from_start?: number
+  stop_index?: number
   originstop_id?: string
-  destination?: string
-  origin?: string
+  destination_fi?: string
+  origin_fi?: string
+  route_name?: string
   mode?: string
 }
 

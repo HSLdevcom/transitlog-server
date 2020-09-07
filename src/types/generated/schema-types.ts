@@ -599,7 +599,7 @@ export type QueryStopArgs = {
 }
 
 export type QueryStopsArgs = {
-  date?: Maybe<Scalars['Date']>
+  date: Scalars['Date']
   filter?: Maybe<StopFilterInput>
 }
 

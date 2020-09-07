@@ -1,15 +1,22 @@
-import { Alert, Cancellation, Route } from '../types/generated/schema-types'
-import { JoreRoute, Mode } from '../types/Jore'
+import { Cancellation, Route } from '../types/generated/schema-types'
+import { JoreRoute, JoreRouteSegment } from '../types/Jore'
 import { get } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { validModes } from '../utils/validModes'
 
-function createRouteId(route: JoreRoute): string {
+interface RouteLike {
+  route_id: string
+  direction: string | number
+  date_begin: string
+  date_end: string
+}
+
+function createRouteId(route: RouteLike): string {
   return `${route.route_id}_${route.direction}_${route.date_begin}_${route.date_end}`
 }
 
 export function createRouteObject(
-  route: JoreRoute,
+  route: JoreRoute | JoreRouteSegment,
   cancellations?: Cancellation[],
   duration = 0
 ): Route {

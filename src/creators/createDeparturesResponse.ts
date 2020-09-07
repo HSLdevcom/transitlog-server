@@ -79,8 +79,8 @@ export const fetchEvents: CachedFetcher<Vehicles[]> = async (getEvents, stopIds)
   return events
 }
 
-// Combines departures and stops into Departures.
-export const createDeparture = (departures, date): Departure[] => {
+// Creates Departures from JoreDepartures
+export const createDepartures = (departures: JoreDepartureWithOrigin[], date): Departure[] => {
   return departures.map((departure) => {
     departure.origin_departure = createOriginDeparture(departure)
     return createPlannedDepartureObject(departure, date, 'stop')
@@ -264,7 +264,7 @@ export async function createDeparturesResponse(
       return orderedGroup[0]
     })
 
-    return filterByExceptions(createDeparture(uniqueDepartures, date), exceptions)
+    return filterByExceptions(createDepartures(uniqueDepartures, date), exceptions)
   }
 
   let stops: string[] = []

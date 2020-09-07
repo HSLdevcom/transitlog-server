@@ -2,7 +2,6 @@ import {
   JoreDeparture,
   JoreDepartureWithOrigin,
   JoreOriginDeparture,
-  JoreRouteDepartureData,
   Mode,
 } from '../types/Jore'
 import {
@@ -11,7 +10,6 @@ import {
   DepartureJourney,
   PlannedArrival,
   PlannedDeparture,
-  Stop,
 } from '../types/generated/schema-types'
 import { getDateFromDateTime, getDepartureTime, getJourneyStartTime } from '../utils/time'
 import { createJourneyId } from '../utils/createJourneyId'
@@ -112,7 +110,7 @@ export function createDepartureJourneyObject(
 }
 
 export function createPlannedDepartureObject(
-  departure: JoreRouteDepartureData | JoreDepartureWithOrigin,
+  departure: JoreDepartureWithOrigin | JoreDeparture,
   departureDate: string,
   prefix = '',
   alerts: Alert[] = [],

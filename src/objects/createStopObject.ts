@@ -1,14 +1,14 @@
-import { JoreRouteData, JoreRouteDepartureData, JoreStop } from '../types/Jore'
+import { JoreRouteSegment, JoreRouteStop, JoreStop } from '../types/Jore'
 import { Alert, Stop, StopRoute } from '../types/generated/schema-types'
 import { get } from 'lodash'
 import { validModes } from '../utils/validModes'
 
 export function createStopObject(
-  stop: JoreStop | JoreRouteDepartureData | JoreRouteData,
+  stop: JoreStop | JoreRouteSegment | JoreRouteStop,
   stopRoutes: StopRoute[] = [],
   alerts: Alert[] = []
 ): Stop {
-  const stopModes = validModes(stop.modes, stop.mode, ...stopRoutes)
+  const stopModes = validModes(get(stop, 'modes', get(stop, 'mode', '')), ...stopRoutes)
 
   return {
     id: stop.stop_id,

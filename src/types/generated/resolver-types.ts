@@ -603,7 +603,7 @@ export type QueryStopArgs = {
 }
 
 export type QueryStopsArgs = {
-  date?: Maybe<Scalars['Date']>
+  date: Scalars['Date']
   filter?: Maybe<StopFilterInput>
 }
 
@@ -1632,7 +1632,7 @@ export type QueryResolvers<
     Array<Maybe<ResolversTypes['Stop']>>,
     ParentType,
     ContextType,
-    QueryStopsArgs
+    RequireFields<QueryStopsArgs, 'date'>
   >
   routeStops?: Resolver<
     Array<Maybe<ResolversTypes['Stop']>>,

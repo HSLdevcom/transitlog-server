@@ -1,4 +1,4 @@
-import { JoreDeparture, JoreEquipment, JoreRouteData } from '../types/Jore'
+import { JoreDeparture, JoreEquipment, JoreRouteSegment } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import {
   Alert,
@@ -80,7 +80,7 @@ type EventsType =
 
 export type PlannedJourneyData = {
   departures: JoreDeparture[]
-  routes: JoreRouteData[]
+  routes: JoreRouteSegment[]
 }
 
 const isPlannedEvent = (event: any): event is PlannedStopEvent => event.type === 'PLANNED'
@@ -159,15 +159,15 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 ) => {
   const plannedJourney: PlannedJourneyData = await fetcher()
   const departures: JoreDeparture[] = get(plannedJourney, 'departures', []) || []
-  const routes: JoreRouteData[] = get(plannedJourney, 'routes', []) || []
+  const routes: JoreRouteSegment[] = get(plannedJourney, 'routes', []) || []
 
   if (departures.length === 0 || routes.length === 0) {
     return false
   }
 
-  let validRoutes = filterByDateGroups<JoreRouteData>(routes, date)
+  let validRoutes = filterByDateGroups<JoreRouteSegment>(routes, date)
   // Sorted by the order of the stops in the journey.
-  let routeStops: JoreRouteData[] = orderBy(validRoutes, 'stop_index', 'asc')
+  let routeStops: JoreRouteSegment[] = orderBy(validRoutes, 'stop_index', 'asc')
   // Trim stops to only contain ACTUALLY valid stops.
   routeStops = trimRouteSegments(routeStops)
 
@@ -212,7 +212,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 
   // TODO: query for duration
   const plannedDuration = get(last(routeStops), 'duration', 0)
-  journeyRoute = createRouteObject(routeStops[0], [], plannedDuration)
+  journeyRoute = createRouteObject(routeStops[0], [], plannedDuration || 0)
 
   const departureObjects: Array<Departure | null> = journeyDepartures.map((departure) => {
     return createPlannedDepartureObject(

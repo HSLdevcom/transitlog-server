@@ -1,9 +1,8 @@
 import { getDirection } from '../utils/getDirection'
 import { createStopObject } from './createStopObject'
-import { get, compact, uniq } from 'lodash'
+import { get } from 'lodash'
 import { Alert, Cancellation, RouteSegment } from '../types/generated/schema-types'
-import { JoreRoute, JoreRouteData, Mode } from '../types/Jore'
-import { arrVal } from '../utils/arrVal'
+import { JoreRouteSegment } from '../types/Jore'
 import { validModes } from '../utils/validModes'
 
 export function createSegmentId(routeSegment) {
@@ -11,20 +10,19 @@ export function createSegmentId(routeSegment) {
 }
 
 export const createRouteSegmentObject = (
-  routeSegment: JoreRouteData,
-  route?: JoreRoute | null,
+  routeSegment: JoreRouteSegment,
   alerts: Alert[] = [],
   cancellations: Cancellation[] = []
 ): RouteSegment => {
-  const modes = validModes(routeSegment?.modes, routeSegment?.mode, route?.mode)
+  const modes = validModes(routeSegment?.mode)
 
   return {
     ...createStopObject({ ...routeSegment, modes }),
-    id: createSegmentId({ ...route, ...routeSegment }),
+    id: createSegmentId(routeSegment),
     routeId: routeSegment.route_id,
     direction: getDirection(routeSegment.direction),
-    originStopId: get(routeSegment, 'originstop_id', get(route, 'originstop_id', '')),
-    destination: get(routeSegment, 'destination_fi', get(route, 'destination_fi', '')) || '',
+    originStopId: get(routeSegment, 'originstop_id', '') || '',
+    destination: get(routeSegment, 'destination_fi', '') || '',
     distanceFromPrevious: routeSegment.distance_from_previous,
     distanceFromStart: routeSegment.distance_from_start,
     duration: routeSegment.duration,
