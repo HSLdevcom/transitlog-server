@@ -1,4 +1,4 @@
-import { StopRoute } from './generated/schema-types'
+import { Alert, Scalars, StopRoute } from './generated/schema-types'
 
 export type Maybe<T> = T | null
 
@@ -87,9 +87,7 @@ export interface JoreStop {
   name_se?: Maybe<string>
   address_fi?: Maybe<string>
   address_se?: Maybe<string>
-  platform?: Maybe<string>
   short_id?: string
-  heading?: Maybe<string>
   stop_radius?: Maybe<number>
   terminal_id?: Maybe<string>
   stop_area_id?: Maybe<string>
@@ -154,15 +152,6 @@ export interface JoreRouteGeometry {
   mode?: Maybe<Mode>
 }
 
-export interface JoreNote {
-  line_id: string
-  note_id: number
-  noteType: string
-  noteText: string
-  date_begin: string
-  date_end: string
-}
-
 export interface JoreGeometry {
   geometry?: Maybe<Json>
   date_begin: string
@@ -194,12 +183,28 @@ export interface JoreRouteSegment {
 
 export type JoreRouteData = JoreRoute & JoreRouteSegment & JoreStop
 
-export type JoreRouteDepartureData = JoreRoute &
-  JoreRouteSegment &
-  JoreStop &
+export type JoreRouteDepartureData = JoreRouteData &
   JoreDeparture & { departure_date_begin?: string; departure_date_end?: string }
 
-export type JoreStopSegment = JoreRouteSegment & JoreStop & JoreRoute & { mode: Maybe<string> }
+export interface JoreRouteStop {
+  stop_id: string
+  short_id: string
+  lat: number
+  lng: number
+  name: string
+  radius: number
+  modes: string[]
+  route_id: string
+  direction: number
+  timing_stop_type: number
+  distance_from_previous: number
+  distance_from_start: number
+  stop_index: number
+  originstop_id?: string
+  destination?: string
+  origin?: string
+  mode?: string
+}
 
 export interface JoreDepartureStop {
   route_id: string

@@ -6,7 +6,11 @@ export const Stop = gql`
     originStopId: String
     routeId: String!
     direction: Direction!
-    isTimingStop: Boolean!
+    isTimingStop: Boolean
+    distanceFromPrevious: Int
+    distanceFromStart: Int
+    duration: Int
+    stopIndex: Int
     destination: String
     origin: String
     name: String

@@ -196,7 +196,7 @@ export function createJourneyStopEventObject(
       event.oday !== eventPlannedMoment.format('YYYY-MM-DD')
     ),
     departureId: get(departure, 'departureId', null),
-    isTimingStop: get(departure, 'isTimingStop', get(stop, 'isTimingStop', false)),
+    isTimingStop: get(departure, 'isTimingStop', get(stop, 'isTimingStop', false)) || false,
     isOrigin: get(departure, 'isOrigin', false),
     index: stopIndex,
     stop: stopData,

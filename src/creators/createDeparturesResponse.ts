@@ -1,12 +1,7 @@
 import { CachedFetcher } from '../types/CachedFetcher'
 import { flatten, get, groupBy, orderBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import {
-  JoreDepartureStop,
-  JoreDepartureWithOrigin,
-  JoreStopSegment,
-  Mode,
-} from '../types/Jore'
+import { JoreDepartureStop, JoreDepartureWithOrigin, Mode } from '../types/Jore'
 import { Departure, DepartureFilterInput, ExceptionDay } from '../types/generated/schema-types'
 import { cacheFetch } from '../cache'
 import {

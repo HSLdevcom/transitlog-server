@@ -566,6 +566,7 @@ export type Query = {
   equipment: Array<Maybe<Equipment>>
   stop?: Maybe<Stop>
   stops: Array<Maybe<Stop>>
+  routeStops: Array<Maybe<Stop>>
   terminals: Array<Maybe<Terminal>>
   terminal?: Maybe<Terminal>
   route?: Maybe<Route>
@@ -600,6 +601,12 @@ export type QueryStopArgs = {
 export type QueryStopsArgs = {
   date?: Maybe<Scalars['Date']>
   filter?: Maybe<StopFilterInput>
+}
+
+export type QueryRouteStopsArgs = {
+  routeId: Scalars['String']
+  direction: Scalars['Direction']
+  date: Scalars['Date']
 }
 
 export type QueryTerminalsArgs = {
@@ -783,7 +790,7 @@ export type Stop = Position & {
   radius?: Maybe<Scalars['Float']>
   routes: StopRoute[]
   modes: Array<Maybe<Scalars['String']>>
-  isTimingStop: Scalars['Boolean']
+  isTimingStop?: Maybe<Scalars['Boolean']>
   stopIndex?: Maybe<Scalars['Int']>
   _matchScore?: Maybe<Scalars['Float']>
   alerts: Alert[]
@@ -799,7 +806,11 @@ export type StopRoute = {
   originStopId?: Maybe<Scalars['String']>
   routeId: Scalars['String']
   direction: Scalars['Direction']
-  isTimingStop: Scalars['Boolean']
+  isTimingStop?: Maybe<Scalars['Boolean']>
+  distanceFromPrevious?: Maybe<Scalars['Int']>
+  distanceFromStart?: Maybe<Scalars['Int']>
+  duration?: Maybe<Scalars['Int']>
+  stopIndex?: Maybe<Scalars['Int']>
   destination?: Maybe<Scalars['String']>
   origin?: Maybe<Scalars['String']>
   name?: Maybe<Scalars['String']>

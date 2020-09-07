@@ -1,6 +1,10 @@
 import { QueryResolvers } from '../types/generated/resolver-types'
 import { createRouteResponse, createRoutesResponse } from '../creators/createRoutesResponse'
-import { createStopResponse, createStopsResponse } from '../creators/createStopsResponse'
+import {
+  createRouteStopsResponse,
+  createStopResponse,
+  createStopsResponse,
+} from '../creators/createStopsResponse'
 import { createRouteGeometryResponse } from '../creators/createRouteGeometryResponse'
 import { createEquipmentResponse } from '../creators/createEquipmentResponse'
 import { createJourneyResponse } from '../creators/createJourneyResponse'
@@ -37,16 +41,21 @@ const stops = (root, { filter, date }, { dataSources, skipCache }) => {
   return createStopsResponse(getStops, date, skipCache)
 }
 
+const routeStops = (root, { routeId, direction, date }, { dataSources, skipCache }) => {
+  const getStops = () => dataSources.JoreAPI.getRouteStops(routeId, direction, date)
+  return createRouteStopsResponse(getStops, routeId, direction, date, skipCache)
+}
+
 const stop = (root, { stopId, date }, { dataSources, skipCache }) => {
-  const getStopSegments = () => dataSources.JoreAPI.getStopSegments(stopId, date)
-  return createStopResponse(getStopSegments, date, stopId, skipCache)
+  const getRouteStop = () => dataSources.JoreAPI.getRouteStop(stopId, date)
+  return createStopResponse(getRouteStop, date, stopId, skipCache)
 }
 
 const terminal = (root, { terminalId, date }, { dataSources, skipCache }) => {
-  const getStopSegments = (stopId) => dataSources.JoreAPI.getStopSegments(stopId, date)
+  const getRouteStop = (stopId) => dataSources.JoreAPI.getRouteStop(stopId, date)
   const getTerminals = () => dataSources.JoreAPI.getTerminal(terminalId)
 
-  return createTerminalResponse(getTerminals, getStopSegments, terminalId, date, skipCache)
+  return createTerminalResponse(getTerminals, getRouteStop, terminalId, date, skipCache)
 }
 
 const terminals = (root, { date }, { dataSources, skipCache }) => {
@@ -410,6 +419,7 @@ export const queryResolvers: QueryResolvers = {
   equipment,
   stop,
   stops,
+  routeStops,
   terminal,
   terminals,
   route,

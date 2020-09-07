@@ -33,6 +33,7 @@ export const Schema = gql`
     equipment(filter: EquipmentFilterInput, date: Date): [Equipment]!
     stop(stopId: String!, date: Date!): Stop
     stops(date: Date, filter: StopFilterInput): [Stop]!
+    routeStops(routeId: String!, direction: Direction!, date: Date!): [Stop]!
     terminals(date: Date): [Terminal]!
     terminal(terminalId: String, date: Date): Terminal
     route(routeId: String!, direction: Direction!, date: Date!): Route

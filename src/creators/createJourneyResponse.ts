@@ -1,14 +1,7 @@
-import {
-  JoreDeparture,
-  JoreEquipment,
-  JoreRouteData,
-  JoreRouteDepartureData,
-  JoreStopSegment,
-} from '../types/Jore'
+import { JoreDeparture, JoreEquipment, JoreRouteData } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import {
   Alert,
-  AlertDistribution,
   Departure,
   ExceptionDay,
   Journey,
@@ -172,7 +165,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     return false
   }
 
-  let validRoutes = filterByDateGroups<JoreStopSegment>(routes, date)
+  let validRoutes = filterByDateGroups<JoreRouteData>(routes, date)
   // Sorted by the order of the stops in the journey.
   let routeStops: JoreRouteData[] = orderBy(validRoutes, 'stop_index', 'asc')
   // Trim stops to only contain ACTUALLY valid stops.
@@ -248,7 +241,6 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  * @param fetchRouteData Async function that fetches the route and departures from Jore
  * @param fetchJourneyEvents Async function that fetches the HFP events
  * @param fetchJourneyEquipment Async function that fetches the equipment that operated this journey.
- * @param getStop
  * @param getUnsignedEvents
  * @param getCancellations Async function that returns cancellations
  * @param getAlerts Async function that returns alerts
