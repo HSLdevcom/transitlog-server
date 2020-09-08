@@ -336,7 +336,12 @@ WITH route_mode AS (${routeModeQuery()}),
         CASE WHEN link.lnkloppusolmu = route.destinationstop_id
               THEN link.lnkloppusolmu
           ELSE link.lnkalkusolmu
-        END stop_id
+        END stop_id,
+        LAG(link.lnkalkusolmu, 1) OVER w prev_stop_id,
+        CASE WHEN link.lnkloppusolmu = route.destinationstop_id THEN null
+            ELSE CASE WHEN (LEAD(link.lnkloppusolmu, 1) OVER w) = route.destinationstop_id THEN (LEAD(link.lnkloppusolmu, 1) OVER w)
+            ELSE (LEAD(link.lnkalkusolmu, 1) OVER w) END
+        END next_stop_id
     FROM route_query route
           LEFT JOIN jore.jr_reitinlinkki link ON route.route_id = link.reitunnus
              AND route.direction = link.suusuunta
@@ -348,10 +353,15 @@ WITH route_mode AS (${routeModeQuery()}),
                       ELSE link.lnkalkusolmu
                 END
           )
+    WINDOW w AS (
+        PARTITION BY route.route_id, route.direction, route.date_begin, route.date_end
+        ORDER BY link.reljarjnro
+    )
     ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu, link.reljarjnro, link.suuvoimast DESC
   )
 SELECT DISTINCT ON (route.stop_id, route.route_id, route.direction, route.date_begin, route.date_end)
     route.stop_id,
+    route.next_stop_id,
     ((knot.solkirjain || knot.sollistunnus)) short_id,
     knot.solstmx lat,
     knot.solstmy lon,
@@ -368,15 +378,16 @@ SELECT DISTINCT ON (route.stop_id, route.route_id, route.direction, route.date_b
     route.origin_fi,
     route.route_name,
     route.mode,
-    CASE WHEN route.stop_index::integer <> 1 THEN seg.pituus ELSE 0 END distance_from_previous,
-    (SUM(CASE WHEN route.stop_index::integer <> 1 THEN seg.pituus END) OVER (
+    COALESCE(seg.pituus, 0) distance_from_previous,
+    SUM(CASE WHEN route.stop_index::integer <> 1 THEN seg.pituus ELSE 0 END) OVER (
         PARTITION BY route.route_id, route.direction, route.date_begin, route.date_end
         ORDER BY route.stop_index::integer
-    ))::integer distance_from_start
+    ) distance_from_start
 FROM stop_link route
      INNER JOIN jore.jr_pysakki stop ON stop.soltunnus = route.stop_id
      INNER JOIN jore.jr_solmu knot on route.stop_id = knot.soltunnus
-     LEFT JOIN jore.jr_pysakkivali seg ON knot.soltunnus = seg.pystunnus1
+     LEFT JOIN jore.jr_pysakkivali seg ON route.stop_id = seg.pystunnus2
+                                      AND route.prev_stop_id = seg.pystunnus1
 WHERE :date BETWEEN route.date_begin AND route.date_end
   AND :routeId = route.route_id
   AND :direction = route.direction

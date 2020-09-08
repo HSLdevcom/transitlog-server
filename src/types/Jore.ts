@@ -171,6 +171,7 @@ export interface JoreRouteSegment {
 
 export interface JoreRouteStop {
   stop_id: string
+  next_stop_id: Maybe<string>
   short_id: string
   lat: number
   lon: number
