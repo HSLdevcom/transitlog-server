@@ -106,6 +106,7 @@ export async function createStopsResponse(
     }
 
     let validStops = fetchedStops.filter((stop) => !!stop?.short_id)
+
     return validStops.map((stop) => createStopObject(stop, [], []))
   }
 

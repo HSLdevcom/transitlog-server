@@ -53,11 +53,10 @@ let routeModeQuery =
 let stopModeQuery =
   // language=PostgreSQL
   () => `
-    SELECT DISTINCT ON (link.reitunnus, link.lnkalkusolmu)
-        link.reitunnus,
+    SELECT DISTINCT ON (link.lnkalkusolmu)
         link.lnkalkusolmu,
         case
-            when line is null then 'BUS'
+            when line.linjoukkollaji is null then 'BUS'
             else
                 case line.linjoukkollaji
                     when '02' then 'TRAM'
@@ -70,7 +69,7 @@ let stopModeQuery =
         FROM jore.jr_reitinlinkki link
                  LEFT JOIN jore.jr_linja line ON line.lintunnus = LEFT(link.reitunnus, 4)
         WHERE link.relpysakki != 'E'
-        ORDER BY link.reitunnus, link.lnkalkusolmu
+        ORDER BY link.lnkalkusolmu
 `
 
 let routeQuery = (routeId?: string, direction?: number) => {
@@ -399,35 +398,23 @@ SELECT DISTINCT ON (route.stop_id, route.route_id, route.direction, route.date_b
       `
       WITH stop_mode AS (${stopModeQuery()})
       SELECT DISTINCT ON (stop.soltunnus)
-         stop.soltunnus stop_id,
-         (knot.solkirjain || knot.sollistunnus) short_id,
-         knot.solstmx lat,
-         knot.solstmy lon,
-         stop.pysnimi name_fi,
-         stop.pyssade stop_radius,
-         mode_query modes
+          stop.soltunnus stop_id,
+          (knot.solkirjain || knot.sollistunnus) short_id,
+          knot.solstmx lat,
+          knot.solstmy lon,
+          stop.pysnimi name_fi,
+          stop.pyssade stop_radius,
+          mode_query.modes
       FROM jore.jr_pysakki stop
-        LEFT JOIN jore.jr_solmu knot USING (soltunnus)
-        LEFT JOIN (
-           SELECT array_agg(DISTINCT mode) as modes,
-                  sm.lnkalkusolmu
-           FROM stop_mode sm
-           GROUP BY sm.lnkalkusolmu
-        ) mode_query ON mode_query.lnkalkusolmu = stop.soltunnus
-        INNER JOIN (
-             SELECT CASE WHEN lnk.lnkloppusolmu = dest_link.lnkloppusolmu
-                            THEN lnk.lnkloppusolmu
-                         ELSE lnk.lnkalkusolmu
-             END stop_id
-             FROM jore.jr_reitinlinkki lnk
-                  LEFT JOIN (
-                    SELECT DISTINCT ON (last_link.reitunnus, last_link.suusuunta, last_link.suuvoimast) *
-                    FROM jore.jr_reitinlinkki last_link
-                    WHERE last_link.relpysakki != 'E'
-                    ORDER BY last_link.reitunnus, last_link.suusuunta, last_link.suuvoimast, last_link.reljarjnro DESC
-                  ) dest_link USING (reitunnus, suusuunta, suuvoimast)
-             WHERE lnk.relpysakki != 'E'
-        ) link ON stop.soltunnus = link.stop_id
+          LEFT JOIN jore.jr_solmu knot USING (soltunnus)
+          LEFT JOIN (
+              SELECT array_agg(mode) as modes,
+                     sm.lnkalkusolmu
+              FROM stop_mode sm
+              GROUP BY sm.lnkalkusolmu
+          ) mode_query ON mode_query.lnkalkusolmu = stop.soltunnus
+      WHERE knot.sollistunnus IS NOT NULL
+        AND knot.solkirjain NOT LIKE 'X%'
       ORDER BY stop.soltunnus, knot.solviimpvm DESC;
         `
     )
