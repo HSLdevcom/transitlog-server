@@ -576,7 +576,6 @@ export type Query = {
   route?: Maybe<Route>
   routes: Array<Maybe<Route>>
   routeGeometry?: Maybe<RouteGeometry>
-  routeSegments: Array<Maybe<RouteSegment>>
   departures: Array<Maybe<Departure>>
   routeDepartures: Array<Maybe<Departure>>
   weeklyDepartures: Array<Maybe<Departure>>
@@ -634,12 +633,6 @@ export type QueryRoutesArgs = {
 }
 
 export type QueryRouteGeometryArgs = {
-  routeId: Scalars['String']
-  direction: Scalars['Direction']
-  date: Scalars['Date']
-}
-
-export type QueryRouteSegmentsArgs = {
   routeId: Scalars['String']
   direction: Scalars['Direction']
   date: Scalars['Date']
@@ -1026,7 +1019,6 @@ export type ResolversTypes = {
   CancellationEffect: CancellationEffect
   RouteFilterInput: RouteFilterInput
   RouteGeometry: ResolverTypeWrapper<RouteGeometry>
-  RouteSegment: ResolverTypeWrapper<RouteSegment>
   DepartureFilterInput: DepartureFilterInput
   Departure: ResolverTypeWrapper<Departure>
   DepartureJourney: ResolverTypeWrapper<DepartureJourney>
@@ -1066,6 +1058,7 @@ export type ResolversTypes = {
   Feedback: ResolverTypeWrapper<Feedback>
   Upload: ResolverTypeWrapper<Scalars['Upload']>
   TlpType: TlpType
+  RouteSegment: ResolverTypeWrapper<RouteSegment>
   RouteGeometryPoint: ResolverTypeWrapper<RouteGeometryPoint>
   BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
@@ -1102,7 +1095,6 @@ export type ResolversParentTypes = {
   CancellationEffect: CancellationEffect
   RouteFilterInput: RouteFilterInput
   RouteGeometry: RouteGeometry
-  RouteSegment: RouteSegment
   DepartureFilterInput: DepartureFilterInput
   Departure: Departure
   DepartureJourney: DepartureJourney
@@ -1142,6 +1134,7 @@ export type ResolversParentTypes = {
   Feedback: Feedback
   Upload: Scalars['Upload']
   TlpType: TlpType
+  RouteSegment: RouteSegment
   RouteGeometryPoint: RouteGeometryPoint
   BBox: Scalars['BBox']
 }
@@ -1598,7 +1591,7 @@ export type PositionResolvers<
   ParentType extends ResolversParentTypes['Position'] = ResolversParentTypes['Position']
 > = {
   __resolveType: TypeResolveFn<
-    'Stop' | 'Terminal' | 'RouteSegment' | 'VehiclePosition' | 'RouteGeometryPoint',
+    'Stop' | 'Terminal' | 'VehiclePosition' | 'RouteSegment' | 'RouteGeometryPoint',
     ParentType,
     ContextType
   >
@@ -1669,12 +1662,6 @@ export type QueryResolvers<
     ParentType,
     ContextType,
     RequireFields<QueryRouteGeometryArgs, 'routeId' | 'direction' | 'date'>
-  >
-  routeSegments?: Resolver<
-    Array<Maybe<ResolversTypes['RouteSegment']>>,
-    ParentType,
-    ContextType,
-    RequireFields<QueryRouteSegmentsArgs, 'routeId' | 'direction' | 'date'>
   >
   departures?: Resolver<
     Array<Maybe<ResolversTypes['Departure']>>,

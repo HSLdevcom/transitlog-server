@@ -3,7 +3,7 @@ import { JoreRouteSegment, JoreRouteStop, JoreStop } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { createStopObject } from '../objects/createStopObject'
 import { filterByDateChains } from '../utils/filterByDateChains'
-import { groupBy } from 'lodash'
+import { groupBy, orderBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { Dictionary } from '../types/Dictionary'
@@ -57,6 +57,10 @@ let fetchRouteStops: CachedFetcher<Stop[]> = async (
           name: stop.route_name,
           origin: stop.origin_fi,
           destination: stop.destination_fi,
+          distanceFromPrevious: stop.distance_from_previous || 0,
+          distanceFromStart: stop.distance_from_start || 0,
+          duration: 0,
+          stopIndex: stop.stop_index || 0,
           mode: stop.mode,
         }
 
@@ -146,5 +150,5 @@ export async function createRouteStopsResponse(
     return []
   }
 
-  return stops
+  return orderBy(stops, (stop) => stop.routes[0]?.stopIndex)
 }

@@ -9,7 +9,6 @@ import { createRouteGeometryResponse } from '../creators/createRouteGeometryResp
 import { createEquipmentResponse } from '../creators/createEquipmentResponse'
 import { createJourneyResponse } from '../creators/createJourneyResponse'
 import { createDeparturesResponse } from '../creators/createDeparturesResponse'
-import { createRouteSegmentsResponse } from '../creators/createRouteSegmentsResponse'
 import { createVehicleJourneysResponse } from '../creators/createVehicleJourneysResponse'
 import { createAreaJourneysResponse } from '../creators/createAreaJourneysResponse'
 import { createRouteJourneysResponse } from '../creators/createRouteJourneysResponse'
@@ -28,7 +27,6 @@ import {
   createTerminalResponse,
   createTerminalsResponse,
 } from '../creators/createTerminalsResponse'
-import { getDirection } from '../utils/getDirection'
 
 const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => {
   const getEquipment = () => dataSources.JoreAPI.getEquipment()
@@ -92,35 +90,6 @@ const routes = async (root, { filter, date }, { dataSources, user, skipCache }) 
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
   const getRouteGeometry = () => dataSources.JoreAPI.getRouteGeometry(routeId, direction, date)
   return createRouteGeometryResponse(getRouteGeometry, date, routeId, direction)
-}
-
-const routeSegments = (
-  root,
-  { routeId, direction, date },
-  { dataSources, user, skipCache }
-) => {
-  const getRouteSegments = () =>
-    dataSources.JoreAPI.getRouteSegments(routeId, getDirection(direction))
-
-  const fetchCancellations = getCancellations.bind(
-    null,
-    user,
-    dataSources.HFPAPI.getCancellations,
-    () => dataSources.JoreAPI.getDepartureOperators(date)
-  )
-
-  const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
-
-  return createRouteSegmentsResponse(
-    user,
-    getRouteSegments,
-    fetchCancellations,
-    fetchAlerts,
-    date,
-    routeId,
-    getDirection(direction),
-    skipCache
-  )
 }
 
 const departures = async (
@@ -425,7 +394,6 @@ export const queryResolvers: QueryResolvers = {
   route,
   routes,
   routeGeometry,
-  routeSegments,
   departures,
   routeDepartures,
   weeklyDepartures,

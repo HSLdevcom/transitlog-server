@@ -572,7 +572,6 @@ export type Query = {
   route?: Maybe<Route>
   routes: Array<Maybe<Route>>
   routeGeometry?: Maybe<RouteGeometry>
-  routeSegments: Array<Maybe<RouteSegment>>
   departures: Array<Maybe<Departure>>
   routeDepartures: Array<Maybe<Departure>>
   weeklyDepartures: Array<Maybe<Departure>>
@@ -630,12 +629,6 @@ export type QueryRoutesArgs = {
 }
 
 export type QueryRouteGeometryArgs = {
-  routeId: Scalars['String']
-  direction: Scalars['Direction']
-  date: Scalars['Date']
-}
-
-export type QueryRouteSegmentsArgs = {
   routeId: Scalars['String']
   direction: Scalars['Direction']
   date: Scalars['Date']
