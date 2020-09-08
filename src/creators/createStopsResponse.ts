@@ -9,6 +9,7 @@ import { CachedFetcher } from '../types/CachedFetcher'
 import { Dictionary } from '../types/Dictionary'
 
 let fetchRouteStops: CachedFetcher<Stop[]> = async (
+  type = 'single',
   getStops: () => Promise<JoreRouteStop[]>,
   date: string
 ) => {
@@ -67,7 +68,9 @@ let fetchRouteStops: CachedFetcher<Stop[]> = async (
     }
   )
 
-  return stopData.map(([stop, routes]) => createStopObject(stop, routes, []))
+  return stopData.map(([stop, routes]) =>
+    createStopObject(stop, routes, [], `${type}_stop_${date}`)
+  )
 }
 
 export async function createStopResponse(
@@ -76,10 +79,10 @@ export async function createStopResponse(
   stopId: string,
   skipCache = false
 ): Promise<Stop | null> {
-  const cacheKey = `stop_${date}_${stopId}`
+  const cacheKey = `single_stop_${date}_${stopId}`
   const stops = await cacheFetch<Stop[]>(
     cacheKey,
-    () => fetchRouteStops(getStops, date),
+    () => fetchRouteStops('single', getStops, date),
     30 * 24 * 60 * 60,
     skipCache
   )
@@ -106,11 +109,10 @@ export async function createStopsResponse(
     }
 
     let validStops = fetchedStops.filter((stop) => !!stop?.short_id)
-
-    return validStops.map((stop) => createStopObject(stop, [], []))
+    return validStops.map((stop) => createStopObject(stop, [], [], 'simple_stop'))
   }
 
-  const cacheKey = `stops_${date}`
+  const cacheKey = `all_stops_${date}`
   const stops = await cacheFetch<Stop[]>(
     cacheKey,
     () => fetchStops(getStops),
@@ -135,7 +137,7 @@ export async function createRouteStopsResponse(
   const cacheKey = `route_stops_${date}_${routeId}_${direction}`
   const stops = await cacheFetch<Stop[]>(
     cacheKey,
-    () => fetchRouteStops(getStops, date),
+    () => fetchRouteStops('route', getStops, date),
     30 * 24 * 60 * 60,
     skipCache
   )

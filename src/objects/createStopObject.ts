@@ -6,12 +6,13 @@ import { validModes } from '../utils/validModes'
 export function createStopObject(
   stop: JoreStop | JoreRouteSegment | JoreRouteStop,
   stopRoutes: StopRoute[] = [],
-  alerts: Alert[] = []
+  alerts: Alert[] = [],
+  prefix = 'stop'
 ): Stop {
   const stopModes = validModes(get(stop, 'modes', get(stop, 'mode', '')), ...stopRoutes)
 
   return {
-    id: stop.stop_id,
+    id: `${prefix}_${stop.stop_id}`,
     stopId: stop.stop_id + '',
     shortId: stop.short_id,
     lat: stop.lat,
