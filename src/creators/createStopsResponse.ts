@@ -49,7 +49,7 @@ let fetchRouteStops: CachedFetcher<Stop[]> = async (
         }
 
         const stopRoute: StopRoute = {
-          id: `stop_route_${stop.route_id}_${stop.direction}_${stop.date_begin}_${stop.date_end}`,
+          id: `stop_route_${stop.stop_id}_${stop.route_id}_${stop.direction}_${stop.date_begin}_${stop.date_end}`,
           direction: getDirection(stop.direction),
           routeId: stop.route_id,
           isTimingStop: !!stop.timing_stop_type,
