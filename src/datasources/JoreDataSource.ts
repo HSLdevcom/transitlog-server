@@ -296,14 +296,13 @@ SELECT DISTINCT ON (link.reitunnus, link.suusuunta, link.suuvoimast)
          ELSE CASE WHEN link.ajantaspys = 0 THEN FALSE
                    ELSE TRUE END
         END timing_stop_type
-    FROM route_query route
-         LEFT JOIN jore.jr_reitinlinkki link ON route.route_id = link.reitunnus
+    FROM jore.jr_pysakki stop
+         INNER JOIN jore.jr_reitinlinkki link ON (stop.soltunnus = link.lnkalkusolmu OR stop.soltunnus = link.lnkloppusolmu)
+         LEFT JOIN route_query route ON route.route_id = link.reitunnus
                                     AND route.direction = link.suusuunta
                                     AND route.date_begin = link.suuvoimast
-         LEFT JOIN jore.jr_pysakki stop ON stop.soltunnus = link.lnkalkusolmu
          LEFT JOIN jore.jr_solmu knot ON stop.soltunnus = knot.soltunnus
-    WHERE link.relpysakki != 'E'
-      AND stop.soltunnus = :stopId
+    WHERE stop.soltunnus = :stopId
       AND :date BETWEEN route.date_begin AND route.date_end
     ORDER BY link.reitunnus, link.suusuunta, link.suuvoimast;
    `,

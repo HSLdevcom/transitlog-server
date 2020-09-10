@@ -141,33 +141,6 @@ export interface JoreGeometry {
   date_end: string
 }
 
-export interface JoreRouteSegment {
-  stop_id: string
-  next_stop_id: string
-  short_id: string
-  lat: number
-  lon: number
-  name_fi: string
-  stop_radius: number
-  date_begin: string
-  date_end: string
-  route_id: string
-  direction: number
-  timing_stop_type: number
-  distance_from_previous: number
-  distance_from_start: number
-  stop_index: number
-  originstop_id: string
-  destination_fi: string
-  destinationstop_id: string
-  origin_fi: string
-  route_name: string
-  mode: string
-  date_modified: string
-  route_length: number
-  route_type: string
-}
-
 export interface JoreRouteStop {
   stop_id: string
   is_last?: boolean

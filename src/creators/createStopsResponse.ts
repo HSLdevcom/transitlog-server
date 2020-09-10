@@ -1,5 +1,5 @@
 import { Stop, StopRoute } from '../types/generated/schema-types'
-import { JoreRouteSegment, JoreRouteStop, JoreStop } from '../types/Jore'
+import { JoreRouteStop, JoreStop } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { createStopObject } from '../objects/createStopObject'
 import { filterByDateChains } from '../utils/filterByDateChains'
@@ -78,7 +78,7 @@ let fetchRouteStops: CachedFetcher<Stop[]> = async (
 }
 
 export async function createStopResponse(
-  getStops: () => Promise<JoreRouteSegment[]>,
+  getStops: () => Promise<JoreRouteStop[]>,
   date: string,
   stopId: string,
   skipCache = false
@@ -99,7 +99,7 @@ export async function createStopResponse(
 }
 
 export async function createStopsResponse(
-  getStops: () => Promise<JoreRouteSegment[]>,
+  getStops: () => Promise<JoreRouteStop[]>,
   date: string,
   skipCache = false
 ): Promise<Stop[]> {
@@ -132,7 +132,7 @@ export async function createStopsResponse(
 }
 
 export async function createRouteStopsResponse(
-  getStops: () => Promise<JoreRouteSegment[]>,
+  getStops: () => Promise<JoreRouteStop[]>,
   routeId: string,
   direction: number,
   date: string,
