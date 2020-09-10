@@ -53,23 +53,28 @@ let routeModeQuery =
 let stopModeQuery =
   // language=PostgreSQL
   () => `
-    SELECT DISTINCT ON (link.lnkalkusolmu)
-        link.lnkalkusolmu,
-        case
-            when line.linjoukkollaji is null then 'BUS'
-            else
-                case line.linjoukkollaji
-                    when '02' then 'TRAM'
-                    when '06' then 'SUBWAY'
-                    when '07' then 'FERRY'
-                    when '12' then 'RAIL'
-                    when '13' then 'RAIL'
-                    else 'BUS' end
-            end as mode
-        FROM jore.jr_reitinlinkki link
-                 LEFT JOIN jore.jr_linja line ON line.lintunnus = LEFT(link.reitunnus, 4)
-        WHERE link.relpysakki != 'E'
-        ORDER BY link.lnkalkusolmu
+      WITH distinct_stops AS (
+          SELECT DISTINCT ON (lnkalkusolmu, reitunnus)
+              lnkalkusolmu,
+              reitunnus
+              FROM jore.jr_reitinlinkki
+              WHERE relpysakki != 'E'
+      )
+      SELECT DISTINCT ON (link.lnkalkusolmu, line.linjoukkollaji)
+          link.lnkalkusolmu,
+          case
+              when line.linjoukkollaji is null then 'BUS'
+              else
+                  case line.linjoukkollaji
+                      when '02' then 'TRAM'
+                      when '06' then 'SUBWAY'
+                      when '07' then 'FERRY'
+                      when '12' then 'RAIL'
+                      when '13' then 'RAIL'
+                      else 'BUS' end
+              end as mode
+          FROM distinct_stops link
+               LEFT JOIN jore.jr_linja line ON line.lintunnus = LEFT(link.reitunnus, 4)
 `
 
 let routeQuery = (routeId?: string, direction?: number) => {
@@ -207,7 +212,7 @@ const equipmentQuery = (vehicleId?: string, operatorId?: string) => {
 
 export class JoreDataSource extends SQLDataSource {
   constructor() {
-    super({ log: false, name: 'jore' })
+    super({ log: true, name: 'jore' })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }
@@ -414,7 +419,7 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
       FROM jore.jr_pysakki stop
           LEFT JOIN jore.jr_solmu knot USING (soltunnus)
           LEFT JOIN (
-              SELECT array_agg(mode) as modes,
+              SELECT array_agg(DISTINCT mode) as modes,
                      sm.lnkalkusolmu
               FROM stop_mode sm
               GROUP BY sm.lnkalkusolmu
