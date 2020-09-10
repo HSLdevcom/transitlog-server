@@ -1,15 +1,33 @@
 import { JoreRouteStop, JoreStop } from '../types/Jore'
-import { Alert, Stop, StopRoute } from '../types/generated/schema-types'
+import { Alert, RouteStop, Stop, StopRoute } from '../types/generated/schema-types'
 import { get } from 'lodash'
 import { validModes } from '../utils/validModes'
 
-export function createStopObject(
+export function createRouteStopObject(
   stop: JoreStop | JoreRouteStop,
   stopRoutes: StopRoute[] = [],
   alerts: Alert[] = [],
+  prefix = 'route_stop'
+): RouteStop {
+  return {
+    id: `${prefix}_${stop.stop_id}`,
+    stopId: stop.stop_id + '',
+    shortId: stop.short_id,
+    lat: stop.lat,
+    lng: stop.lon,
+    name: stop.name_fi,
+    radius: stop.stop_radius,
+    routes: stopRoutes,
+    alerts,
+  }
+}
+
+export function createStopObject(
+  stop: JoreStop | JoreRouteStop,
+  alerts: Alert[] = [],
   prefix = 'stop'
 ): Stop {
-  const stopModes = validModes(get(stop, 'modes', get(stop, 'mode', '')), ...stopRoutes)
+  const stopModes = validModes(get(stop, 'modes', get(stop, 'mode', '')))
 
   return {
     id: `${prefix}_${stop.stop_id}`,
@@ -20,10 +38,7 @@ export function createStopObject(
     name: stop.name_fi,
     radius: stop.stop_radius,
     modes: stopModes,
-    routes: stopRoutes,
     alerts,
-    stopIndex: get(stop, 'stop_index', 0),
-    isTimingStop: !!stop.timing_stop_type,
     _matchScore: get(stop, '_matchScore', 0),
   }
 }

@@ -11,6 +11,7 @@ import {
   PlannedArrival,
   PlannedDeparture,
   PlannedStopEvent,
+  RouteSegment,
   Stop,
   TlpPriorityLevel,
   VehiclePosition,
@@ -81,7 +82,7 @@ export function createJourneyCancellationEventObject(
 
 export function createPlannedStopEventObject(
   departure: Departure,
-  stop?: Stop,
+  stop?: RouteSegment,
   alerts: Alert[] = []
 ): PlannedStopEvent {
   const id = createDepartureId(departure)
@@ -128,7 +129,7 @@ export function createPlannedStopEventObject(
 export function createJourneyStopEventObject(
   event: Vehicles,
   departure: Departure | null,
-  stop?: Stop,
+  stop?: RouteSegment,
   doorsOpened?: boolean
 ): JourneyStopEvent {
   const id = createJourneyId(event)

@@ -101,7 +101,7 @@ export interface JoreTerminal {
   date_modified: string
   stop_id?: string
   stop_terminal_id?: string
-  modes?: Maybe<Mode[] | Mode>
+  modes?: Maybe<Mode[]>
 }
 
 export interface JoreRoute {

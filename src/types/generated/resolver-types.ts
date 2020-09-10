@@ -442,7 +442,7 @@ export type JourneyStopEvent = {
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
   index: Scalars['Int']
-  stop?: Maybe<Stop>
+  stop?: Maybe<RouteSegment>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
@@ -554,7 +554,7 @@ export type PlannedStopEvent = {
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
   index: Scalars['Int']
-  stop?: Maybe<Stop>
+  stop?: Maybe<RouteSegment>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -568,9 +568,9 @@ export type Query = {
   __typename?: 'Query'
   uploads?: Maybe<Array<Maybe<File>>>
   equipment: Array<Maybe<Equipment>>
-  stop?: Maybe<Stop>
+  stop?: Maybe<RouteStop>
   stops: Array<Maybe<Stop>>
-  routeStops: Array<Maybe<Stop>>
+  routeStops: RouteStop[]
   terminals: Array<Maybe<Terminal>>
   terminal?: Maybe<Terminal>
   route?: Maybe<Route>
@@ -776,6 +776,19 @@ export type RouteSegment = Position & {
   cancellations: Cancellation[]
 }
 
+export type RouteStop = Position & {
+  __typename?: 'RouteStop'
+  id: Scalars['ID']
+  stopId: Scalars['String']
+  shortId?: Maybe<Scalars['String']>
+  lat: Scalars['Float']
+  lng: Scalars['Float']
+  name?: Maybe<Scalars['String']>
+  radius?: Maybe<Scalars['Float']>
+  routes: StopRoute[]
+  alerts: Alert[]
+}
+
 export type Stop = Position & {
   __typename?: 'Stop'
   id: Scalars['ID']
@@ -785,10 +798,7 @@ export type Stop = Position & {
   lng: Scalars['Float']
   name?: Maybe<Scalars['String']>
   radius?: Maybe<Scalars['Float']>
-  routes: StopRoute[]
   modes: Array<Maybe<Scalars['String']>>
-  isTimingStop?: Maybe<Scalars['Boolean']>
-  stopIndex?: Maybe<Scalars['Int']>
   _matchScore?: Maybe<Scalars['Float']>
   alerts: Alert[]
 }
@@ -801,6 +811,7 @@ export type StopRoute = {
   __typename?: 'StopRoute'
   id: Scalars['ID']
   originStopId?: Maybe<Scalars['String']>
+  destinationStopId?: Maybe<Scalars['String']>
   routeId: Scalars['String']
   direction: Scalars['Direction']
   isTimingStop?: Maybe<Scalars['Boolean']>
@@ -821,7 +832,7 @@ export type Terminal = Position & {
   lat: Scalars['Float']
   lng: Scalars['Float']
   stopIds?: Maybe<Array<Scalars['String']>>
-  stops?: Maybe<Stop[]>
+  stops: RouteStop[]
   modes?: Maybe<Array<Scalars['String']>>
 }
 
@@ -999,7 +1010,7 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']>
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>
   Float: ResolverTypeWrapper<Scalars['Float']>
-  Stop: ResolverTypeWrapper<Stop>
+  RouteStop: ResolverTypeWrapper<RouteStop>
   Position: ResolverTypeWrapper<Position>
   StopRoute: ResolverTypeWrapper<StopRoute>
   Direction: ResolverTypeWrapper<Scalars['Direction']>
@@ -1010,6 +1021,7 @@ export type ResolversTypes = {
   AlertImpact: AlertImpact
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>
   StopFilterInput: StopFilterInput
+  Stop: ResolverTypeWrapper<Stop>
   Terminal: ResolverTypeWrapper<Terminal>
   Route: ResolverTypeWrapper<Route>
   Cancellation: ResolverTypeWrapper<Cancellation>
@@ -1024,6 +1036,7 @@ export type ResolversTypes = {
   DepartureJourney: ResolverTypeWrapper<DepartureJourney>
   VehicleId: ResolverTypeWrapper<Scalars['VehicleId']>
   JourneyStopEvent: ResolverTypeWrapper<JourneyStopEvent>
+  RouteSegment: ResolverTypeWrapper<RouteSegment>
   PlannedDeparture: ResolverTypeWrapper<PlannedDeparture>
   PlannedArrival: ResolverTypeWrapper<PlannedArrival>
   ObservedArrival: ResolverTypeWrapper<ObservedArrival>
@@ -1058,7 +1071,6 @@ export type ResolversTypes = {
   Feedback: ResolverTypeWrapper<Feedback>
   Upload: ResolverTypeWrapper<Scalars['Upload']>
   TlpType: TlpType
-  RouteSegment: ResolverTypeWrapper<RouteSegment>
   RouteGeometryPoint: ResolverTypeWrapper<RouteGeometryPoint>
   BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
@@ -1075,7 +1087,7 @@ export type ResolversParentTypes = {
   Int: Scalars['Int']
   Boolean: Scalars['Boolean']
   Float: Scalars['Float']
-  Stop: Stop
+  RouteStop: RouteStop
   Position: Position
   StopRoute: StopRoute
   Direction: Scalars['Direction']
@@ -1086,6 +1098,7 @@ export type ResolversParentTypes = {
   AlertImpact: AlertImpact
   DateTime: Scalars['DateTime']
   StopFilterInput: StopFilterInput
+  Stop: Stop
   Terminal: Terminal
   Route: Route
   Cancellation: Cancellation
@@ -1100,6 +1113,7 @@ export type ResolversParentTypes = {
   DepartureJourney: DepartureJourney
   VehicleId: Scalars['VehicleId']
   JourneyStopEvent: JourneyStopEvent
+  RouteSegment: RouteSegment
   PlannedDeparture: PlannedDeparture
   PlannedArrival: PlannedArrival
   ObservedArrival: ObservedArrival
@@ -1134,7 +1148,6 @@ export type ResolversParentTypes = {
   Feedback: Feedback
   Upload: Scalars['Upload']
   TlpType: TlpType
-  RouteSegment: RouteSegment
   RouteGeometryPoint: RouteGeometryPoint
   BBox: Scalars['BBox']
 }
@@ -1457,7 +1470,7 @@ export type JourneyStopEventResolvers<
   isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   isOrigin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
   index?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  stop?: Resolver<Maybe<ResolversTypes['Stop']>, ParentType, ContextType>
+  stop?: Resolver<Maybe<ResolversTypes['RouteSegment']>, ParentType, ContextType>
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
@@ -1582,7 +1595,7 @@ export type PlannedStopEventResolvers<
   isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   isOrigin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
   index?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  stop?: Resolver<Maybe<ResolversTypes['Stop']>, ParentType, ContextType>
+  stop?: Resolver<Maybe<ResolversTypes['RouteSegment']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
@@ -1591,7 +1604,12 @@ export type PositionResolvers<
   ParentType extends ResolversParentTypes['Position'] = ResolversParentTypes['Position']
 > = {
   __resolveType: TypeResolveFn<
-    'Stop' | 'Terminal' | 'VehiclePosition' | 'RouteSegment' | 'RouteGeometryPoint',
+    | 'RouteStop'
+    | 'Stop'
+    | 'Terminal'
+    | 'RouteSegment'
+    | 'VehiclePosition'
+    | 'RouteGeometryPoint',
     ParentType,
     ContextType
   >
@@ -1616,7 +1634,7 @@ export type QueryResolvers<
     QueryEquipmentArgs
   >
   stop?: Resolver<
-    Maybe<ResolversTypes['Stop']>,
+    Maybe<ResolversTypes['RouteStop']>,
     ParentType,
     ContextType,
     RequireFields<QueryStopArgs, 'stopId' | 'date'>
@@ -1628,7 +1646,7 @@ export type QueryResolvers<
     RequireFields<QueryStopsArgs, 'date'>
   >
   routeStops?: Resolver<
-    Array<Maybe<ResolversTypes['Stop']>>,
+    Array<ResolversTypes['RouteStop']>,
     ParentType,
     ContextType,
     RequireFields<QueryRouteStopsArgs, 'routeId' | 'direction' | 'date'>
@@ -1804,6 +1822,21 @@ export type RouteSegmentResolvers<
   cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
 }
 
+export type RouteStopResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['RouteStop'] = ResolversParentTypes['RouteStop']
+> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  stopId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  shortId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  radius?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  routes?: Resolver<Array<ResolversTypes['StopRoute']>, ParentType, ContextType>
+  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
+}
+
 export type StopResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Stop'] = ResolversParentTypes['Stop']
@@ -1815,10 +1848,7 @@ export type StopResolvers<
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   radius?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
-  routes?: Resolver<Array<ResolversTypes['StopRoute']>, ParentType, ContextType>
   modes?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType>
-  isTimingStop?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
-  stopIndex?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   _matchScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
 }
@@ -1829,6 +1859,7 @@ export type StopRouteResolvers<
 > = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   originStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  destinationStopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
   isTimingStop?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
@@ -1851,7 +1882,7 @@ export type TerminalResolvers<
   lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   stopIds?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
-  stops?: Resolver<Maybe<Array<ResolversTypes['Stop']>>, ParentType, ContextType>
+  stops?: Resolver<Array<ResolversTypes['RouteStop']>, ParentType, ContextType>
   modes?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
 }
 
@@ -1963,6 +1994,7 @@ export type Resolvers<ContextType = any> = {
   RouteGeometry?: RouteGeometryResolvers<ContextType>
   RouteGeometryPoint?: RouteGeometryPointResolvers<ContextType>
   RouteSegment?: RouteSegmentResolvers<ContextType>
+  RouteStop?: RouteStopResolvers<ContextType>
   Stop?: StopResolvers<ContextType>
   StopRoute?: StopRouteResolvers<ContextType>
   Terminal?: TerminalResolvers<ContextType>

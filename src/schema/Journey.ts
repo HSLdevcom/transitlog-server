@@ -86,7 +86,7 @@ export const Journey = gql`
     isTimingStop: Boolean!
     isOrigin: Boolean
     index: Int!
-    stop: Stop
+    stop: RouteSegment
     lat: Float
     lng: Float
     loc: String
@@ -109,7 +109,7 @@ export const Journey = gql`
     isTimingStop: Boolean!
     isOrigin: Boolean
     index: Int!
-    stop: Stop
+    stop: RouteSegment
     _sort: Int
   }
   type JourneyTlpEvent {

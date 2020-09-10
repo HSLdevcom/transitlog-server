@@ -9,14 +9,14 @@ type ModeValType = string | Mode | undefined | null | Maybe<Mode>
 
 type ObjWithMode = {
   mode?: ModeValType
-  modes?: ModeValType | ModeValType[]
+  modes?: ModeValType[]
 }
 
 type ModeArgType = ModeValType | ObjWithMode
 type ModeArg = ModeArgType | ModeArgType[]
 
 function isObjWithMode(item): item is ObjWithMode {
-  return typeof item?.modes !== 'undefined' || typeof item?.modes !== 'undefined'
+  return typeof item?.modes !== 'undefined' || typeof item?.mode !== 'undefined'
 }
 
 export const validModes = (...modeArgs: ModeArg[]): Mode[] => {

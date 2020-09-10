@@ -4,6 +4,7 @@ export const Stop = gql`
   type StopRoute {
     id: ID!
     originStopId: String
+    destinationStopId: String
     routeId: String!
     direction: Direction!
     isTimingStop: Boolean
@@ -17,7 +18,7 @@ export const Stop = gql`
     mode: String
   }
 
-  type Stop implements Position {
+  type RouteStop implements Position {
     id: ID!
     stopId: String!
     shortId: String
@@ -26,9 +27,18 @@ export const Stop = gql`
     name: String
     radius: Float
     routes: [StopRoute!]!
+    alerts: [Alert!]!
+  }
+
+  type Stop implements Position {
+    id: ID!
+    stopId: String!
+    shortId: String
+    lat: Float!
+    lng: Float!
+    name: String
+    radius: Float
     modes: [String]!
-    isTimingStop: Boolean
-    stopIndex: Int
     _matchScore: Float
     alerts: [Alert!]!
   }
@@ -39,7 +49,7 @@ export const Stop = gql`
     lat: Float!
     lng: Float!
     stopIds: [String!]
-    stops: [Stop!]
+    stops: [RouteStop!]!
     modes: [String!]
   }
 

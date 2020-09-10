@@ -11,6 +11,8 @@ import {
   JourneyTlpEvent,
   PlannedStopEvent,
   Route,
+  RouteSegment,
+  RouteStop,
   Scalars,
   Stop,
 } from '../types/generated/schema-types'
@@ -48,7 +50,7 @@ import {
   createJourneyTlpEventObject,
   createPlannedStopEventObject,
 } from '../objects/createJourneyEventObject'
-import { createStopObject } from '../objects/createStopObject'
+import { createRouteStopObject, createStopObject } from '../objects/createStopObject'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { isToday } from 'date-fns'
@@ -63,11 +65,12 @@ import { filterByDateGroups } from '../utils/filterByDateGroups'
 import { getCorrectDepartureEventType } from '../utils/getCorrectDepartureEventType'
 import { Moment } from 'moment'
 import { AlertSearchProps } from '../getAlerts'
+import { createRouteSegmentObject } from '../objects/createRouteSegmentObject'
 
 type JourneyRoute = {
   route: Route | null
   departures: Departure[]
-  stops: Stop[]
+  stops: RouteSegment[]
 }
 
 type EventsType =
@@ -221,7 +224,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
     )
   })
 
-  let stopObjects = compact(routeStops.map((rs) => createStopObject(rs)))
+  let stopObjects = compact(routeStops.map((rs) => createRouteSegmentObject(rs)))
 
   // Return both the route and the departures that we put so much work into parsing.
   // Note that the route is also returned as a domain object.
@@ -522,7 +525,7 @@ export async function createJourneyResponse(
     // Use matchedStopId to search for a stop if none is attached to the departure.
     let matchedStopId: string = ''
     let departure: Departure | undefined
-    let stop: Stop | undefined
+    let stop: RouteSegment | undefined
 
     if (stopId !== 'unknown') {
       matchedStopId = stopId + ''

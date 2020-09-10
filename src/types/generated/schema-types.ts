@@ -438,7 +438,7 @@ export type JourneyStopEvent = {
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
   index: Scalars['Int']
-  stop?: Maybe<Stop>
+  stop?: Maybe<RouteSegment>
   lat?: Maybe<Scalars['Float']>
   lng?: Maybe<Scalars['Float']>
   loc?: Maybe<Scalars['String']>
@@ -550,7 +550,7 @@ export type PlannedStopEvent = {
   isTimingStop: Scalars['Boolean']
   isOrigin?: Maybe<Scalars['Boolean']>
   index: Scalars['Int']
-  stop?: Maybe<Stop>
+  stop?: Maybe<RouteSegment>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -564,9 +564,9 @@ export type Query = {
   __typename?: 'Query'
   uploads?: Maybe<Array<Maybe<File>>>
   equipment: Array<Maybe<Equipment>>
-  stop?: Maybe<Stop>
+  stop?: Maybe<RouteStop>
   stops: Array<Maybe<Stop>>
-  routeStops: Array<Maybe<Stop>>
+  routeStops: RouteStop[]
   terminals: Array<Maybe<Terminal>>
   terminal?: Maybe<Terminal>
   route?: Maybe<Route>
@@ -772,6 +772,19 @@ export type RouteSegment = Position & {
   cancellations: Cancellation[]
 }
 
+export type RouteStop = Position & {
+  __typename?: 'RouteStop'
+  id: Scalars['ID']
+  stopId: Scalars['String']
+  shortId?: Maybe<Scalars['String']>
+  lat: Scalars['Float']
+  lng: Scalars['Float']
+  name?: Maybe<Scalars['String']>
+  radius?: Maybe<Scalars['Float']>
+  routes: StopRoute[]
+  alerts: Alert[]
+}
+
 export type Stop = Position & {
   __typename?: 'Stop'
   id: Scalars['ID']
@@ -781,10 +794,7 @@ export type Stop = Position & {
   lng: Scalars['Float']
   name?: Maybe<Scalars['String']>
   radius?: Maybe<Scalars['Float']>
-  routes: StopRoute[]
   modes: Array<Maybe<Scalars['String']>>
-  isTimingStop?: Maybe<Scalars['Boolean']>
-  stopIndex?: Maybe<Scalars['Int']>
   _matchScore?: Maybe<Scalars['Float']>
   alerts: Alert[]
 }
@@ -797,6 +807,7 @@ export type StopRoute = {
   __typename?: 'StopRoute'
   id: Scalars['ID']
   originStopId?: Maybe<Scalars['String']>
+  destinationStopId?: Maybe<Scalars['String']>
   routeId: Scalars['String']
   direction: Scalars['Direction']
   isTimingStop?: Maybe<Scalars['Boolean']>
@@ -817,7 +828,7 @@ export type Terminal = Position & {
   lat: Scalars['Float']
   lng: Scalars['Float']
   stopIds?: Maybe<Array<Scalars['String']>>
-  stops?: Maybe<Stop[]>
+  stops: RouteStop[]
   modes?: Maybe<Array<Scalars['String']>>
 }
 

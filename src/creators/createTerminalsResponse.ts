@@ -1,4 +1,4 @@
-import { Stop, Terminal } from '../types/generated/schema-types'
+import { RouteStop, Terminal } from '../types/generated/schema-types'
 import { JoreRouteStop, JoreTerminal } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -22,7 +22,7 @@ export async function createTerminalResponse(
       return false
     }
 
-    const terminalStops: Array<Stop | null> = await pMap(
+    const terminalStops: Array<RouteStop | null> = await pMap(
       fetchedTerminalStops,
       async (terminalStop) => {
         const stopId = terminalStop.stop_id || ''
@@ -88,7 +88,7 @@ export async function createTerminalsResponse(
       const terminalStops: TerminalStop[] = terminalItems.map(
         (terminalStop): TerminalStop => ({
           stopId: terminalStop.stop_id || '',
-          modes: validModes(terminalStop),
+          modes: validModes(terminalStop.modes),
         })
       )
 

@@ -1,14 +1,14 @@
-import { Stop, StopRoute } from '../types/generated/schema-types'
+import { RouteStop, Stop, StopRoute } from '../types/generated/schema-types'
 import { JoreRouteStop, JoreStop } from '../types/Jore'
 import { cacheFetch } from '../cache'
-import { createStopObject } from '../objects/createStopObject'
+import { createRouteStopObject, createStopObject } from '../objects/createStopObject'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { groupBy, orderBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { Dictionary } from '../types/Dictionary'
 
-let fetchRouteStops: CachedFetcher<Stop[]> = async (
+let fetchRouteStops: CachedFetcher<RouteStop[]> = async (
   type = 'single',
   getStops: () => Promise<JoreRouteStop[]>,
   date: string
@@ -54,6 +54,7 @@ let fetchRouteStops: CachedFetcher<Stop[]> = async (
           routeId: stop.route_id,
           isTimingStop: !!stop.timing_stop_type,
           originStopId: stop.originstop_id,
+          destinationStopId: stop.destinationstop_id,
           name: stop.route_name,
           origin: stop.origin_fi,
           destination: stop.destination_fi,
@@ -73,7 +74,7 @@ let fetchRouteStops: CachedFetcher<Stop[]> = async (
   )
 
   return stopData.map(([stop, routes]) =>
-    createStopObject(stop, routes, [], `${type}_stop_${date}`)
+    createRouteStopObject(stop, routes, [], `${type}_stop_${date}`)
   )
 }
 
@@ -82,9 +83,9 @@ export async function createStopResponse(
   date: string,
   stopId: string,
   skipCache = false
-): Promise<Stop | null> {
+): Promise<RouteStop | null> {
   const cacheKey = `single_stop_${date}_${stopId}`
-  const stops = await cacheFetch<Stop[]>(
+  const stops = await cacheFetch<RouteStop[]>(
     cacheKey,
     () => fetchRouteStops('single', getStops, date),
     30 * 24 * 60 * 60,
@@ -113,7 +114,7 @@ export async function createStopsResponse(
     }
 
     let validStops = fetchedStops.filter((stop) => !!stop?.short_id)
-    return validStops.map((stop) => createStopObject(stop, [], [], 'simple_stop'))
+    return validStops.map((stop) => createStopObject(stop, [], 'simple_stop'))
   }
 
   const cacheKey = `all_stops_${date}`
@@ -137,11 +138,11 @@ export async function createRouteStopsResponse(
   direction: number,
   date: string,
   skipCache = false
-): Promise<Stop[]> {
+): Promise<RouteStop[]> {
   const cacheKey = `route_stops_${date}_${routeId}_${direction}`
-  const stops = await cacheFetch<Stop[]>(
+  const stops = await cacheFetch<RouteStop[]>(
     cacheKey,
-    () => fetchRouteStops('route', getStops, date),
+    () => fetchRouteStops('routes', getStops, date),
     30 * 24 * 60 * 60,
     skipCache
   )

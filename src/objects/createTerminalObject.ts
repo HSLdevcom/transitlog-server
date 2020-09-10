@@ -1,23 +1,25 @@
 import { JoreTerminal } from '../types/Jore'
-import { Stop, Terminal } from '../types/generated/schema-types'
+import { RouteStop, Terminal } from '../types/generated/schema-types'
 import { validModes } from '../utils/validModes'
 
-export type TerminalStop =
-  | {
-      stopId: string
-      modes: string[]
-    }
-  | Stop
+type StopIdAndModes = {
+  stopId: string
+  modes: string[]
+}
 
-function isStop(item: any): item is Stop {
-  return typeof item?.shortId !== 'undefined'
+export type TerminalStop = StopIdAndModes | RouteStop
+
+function isStop(item: any): item is RouteStop {
+  return !!item && typeof item?.shortId !== 'undefined'
 }
 
 export function createTerminalObject(
   terminal: JoreTerminal,
-  stops: TerminalStop[]
+  stops: TerminalStop[] = []
 ): Terminal | null {
-  const stopModes = validModes(...stops)
+  const stopModes = validModes(
+    ...stops.map((stop) => (isStop(stop) ? stop.routes.map((r) => r.mode) : stop?.modes))
+  )
 
   const lat = parseFloat(terminal.lat)
   const lon = parseFloat(terminal.lon)
@@ -37,7 +39,7 @@ export function createTerminalObject(
     lat,
     lng: trueLng,
     stopIds: !stops || stops.length === 0 ? null : stopIds,
-    stops: !stops || stops.length === 0 ? null : stops.filter(isStop),
+    stops: !stops || stops.length === 0 ? [] : stops.filter(isStop),
     modes: stopModes,
   }
 }
