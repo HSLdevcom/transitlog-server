@@ -1,4 +1,4 @@
-import { JoreDeparture, JoreEquipment, JoreRouteSegment, JoreRouteStop } from '../types/Jore'
+import { JoreDeparture, JoreEquipment, JoreRouteStop } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import {
   Alert,
@@ -92,34 +92,6 @@ const isTlpEvent = (event: any): event is JourneyTlpEvent =>
 
 const tlpEventRequestId = (event: any): event is JourneyTlpEvent => event.requestId
 
-// Filter out any additional stops from the start and end of the route that may be
-// invalid even though the stop itself is still valid. This is because
-// our JORE database never removes records, and sometimes invalid items
-// persist. Anything before the origin stop or after the destination stop is removed.
-export function trimRouteSegments(routeSegments: JoreRouteStop[]) {
-  // Remove all stops before the originstop_id.
-  // Remove all stops after the first encountered stop with a null next_stop_id. This means that the route has ended.
-  let filteredSegments = routeSegments.reduce((routeChain: JoreRouteStop[], routeStop) => {
-    if (
-      // Only add the first stop if it matches the originstop_id.
-      (routeChain.length === 0 && routeStop.originstop_id === routeStop.stop_id) ||
-      // Otherwise add stops until the last stop in the chain has a null next_stop_id.
-      !!routeChain[routeChain.length - 1].next_stop_id
-    ) {
-      routeChain.push(routeStop)
-    }
-
-    return routeChain
-  }, [])
-
-  if (filteredSegments.length !== 0) {
-    return filteredSegments
-  }
-
-  // If the filter left the segments array empty, just return the original segments.
-  return routeSegments
-}
-
 /**
  * Fetch the journey events and filter out the invalid ones.
  * @param fetcher async function that fetches the journey events
@@ -195,8 +167,6 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
   let validRoutes = filterByDateGroups<JoreRouteStop>(routes, date)
   // Sorted by the order of the stops in the journey.
   let routeStops: JoreRouteStop[] = orderBy(validRoutes, 'stop_index', 'asc')
-  // Trim stops to only contain ACTUALLY valid stops.
-  routeStops = trimRouteSegments(routeStops)
 
   let firstStop = routeStops.find(
     (routeSegment) => routeSegment.stop_id === routeSegment.originstop_id
@@ -237,7 +207,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
       originDeparture!.day_type === departure.day_type
   )
 
-  // TODO: query for duration
+  // TODO: calculate duration
   const plannedDuration = get(last(routeStops), 'duration', 0)
   journeyRoute = createRouteObject(routeStops[0], [], plannedDuration || 0)
 
