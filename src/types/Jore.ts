@@ -142,31 +142,30 @@ export interface JoreGeometry {
 }
 
 export interface JoreRouteSegment {
+  stop_id: string
+  next_stop_id: string
+  short_id: string
+  lat: number
+  lon: number
+  name_fi: string
+  stop_radius: number
+  date_begin: string
+  date_end: string
   route_id: string
   direction: number
-  origin_fi: string
+  timing_stop_type: number
+  distance_from_previous: number
+  distance_from_start: number
+  stop_index: number
   originstop_id: string
   destination_fi: string
   destinationstop_id: string
+  origin_fi: string
   route_name: string
+  mode: string
   date_modified: string
   route_length: number
   route_type: string
-  date_begin: string
-  date_end: string
-  timing_stop_type: number
-  mode: string
-  stop_id: string
-  next_stop_id: string
-  lat: number
-  lon: number
-  short_id: string
-  name_fi: string
-  stop_radius: number
-  stop_index: number
-  distance_from_previous: number
-  distance_from_start: number
-  duration?: number
 }
 
 export interface JoreRouteStop {
@@ -178,19 +177,23 @@ export interface JoreRouteStop {
   name_fi: string
   stop_radius: number
   modes?: string[]
-  date_begin?: string
-  date_end?: string
-  route_id?: string
-  direction?: number
-  timing_stop_type?: number
-  distance_from_previous?: number
-  distance_from_start?: number
-  stop_index?: number
-  originstop_id?: string
-  destination_fi?: string
-  origin_fi?: string
-  route_name?: string
+  date_begin: string
+  date_end: string
+  route_id: string
+  direction: number
+  timing_stop_type: number
+  distance_from_previous: number
+  distance_from_start: number
+  stop_index: number
+  originstop_id: string
+  destinationstop_id: string
+  destination_fi: string
+  origin_fi: string
+  route_name: string
   mode?: string
+  date_modified: string
+  route_length: number
+  route_type: string
 }
 
 export interface JoreDepartureStop {

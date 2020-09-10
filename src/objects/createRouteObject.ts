@@ -1,5 +1,5 @@
 import { Cancellation, Route } from '../types/generated/schema-types'
-import { JoreRoute, JoreRouteSegment } from '../types/Jore'
+import { JoreRoute, JoreRouteStop } from '../types/Jore'
 import { get } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { validModes } from '../utils/validModes'
@@ -16,7 +16,7 @@ function createRouteId(route: RouteLike): string {
 }
 
 export function createRouteObject(
-  route: JoreRoute | JoreRouteSegment,
+  route: JoreRoute | JoreRouteStop,
   cancellations?: Cancellation[],
   duration = 0
 ): Route {
@@ -33,7 +33,7 @@ export function createRouteObject(
     originStopId: route.originstop_id,
     mode: mode[0],
     routeLength: route.route_length || 0,
-    routeDurationMinutes: duration || route.duration || 0,
+    routeDurationMinutes: duration || 0,
     alerts: [],
     cancellations: cancellations && cancellations.length !== 0 ? cancellations : [],
     // @ts-ignore

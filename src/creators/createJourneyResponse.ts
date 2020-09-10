@@ -1,4 +1,4 @@
-import { JoreDeparture, JoreEquipment, JoreRouteSegment } from '../types/Jore'
+import { JoreDeparture, JoreEquipment, JoreRouteSegment, JoreRouteStop } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import {
   Alert,
@@ -59,7 +59,6 @@ import { intval } from '../utils/isWithinRange'
 import { toLatLng } from '../geometry/LatLng'
 import { removeUnauthorizedData } from '../auth/removeUnauthorizedData'
 import { extraDepartureType } from '../utils/extraDepartureType'
-import { trimRouteSegments } from './createRouteSegmentsResponse'
 import { filterByDateGroups } from '../utils/filterByDateGroups'
 import { getCorrectDepartureEventType } from '../utils/getCorrectDepartureEventType'
 import { Moment } from 'moment'
@@ -80,7 +79,7 @@ type EventsType =
 
 export type PlannedJourneyData = {
   departures: JoreDeparture[]
-  routes: JoreRouteSegment[]
+  routes: JoreRouteStop[]
 }
 
 const isPlannedEvent = (event: any): event is PlannedStopEvent => event.type === 'PLANNED'
@@ -92,6 +91,34 @@ const isTlpEvent = (event: any): event is JourneyTlpEvent =>
   typeof event.requestId !== 'undefined'
 
 const tlpEventRequestId = (event: any): event is JourneyTlpEvent => event.requestId
+
+// Filter out any additional stops from the start and end of the route that may be
+// invalid even though the stop itself is still valid. This is because
+// our JORE database never removes records, and sometimes invalid items
+// persist. Anything before the origin stop or after the destination stop is removed.
+export function trimRouteSegments(routeSegments: JoreRouteStop[]) {
+  // Remove all stops before the originstop_id.
+  // Remove all stops after the first encountered stop with a null next_stop_id. This means that the route has ended.
+  let filteredSegments = routeSegments.reduce((routeChain: JoreRouteStop[], routeStop) => {
+    if (
+      // Only add the first stop if it matches the originstop_id.
+      (routeChain.length === 0 && routeStop.originstop_id === routeStop.stop_id) ||
+      // Otherwise add stops until the last stop in the chain has a null next_stop_id.
+      !!routeChain[routeChain.length - 1].next_stop_id
+    ) {
+      routeChain.push(routeStop)
+    }
+
+    return routeChain
+  }, [])
+
+  if (filteredSegments.length !== 0) {
+    return filteredSegments
+  }
+
+  // If the filter left the segments array empty, just return the original segments.
+  return routeSegments
+}
 
 /**
  * Fetch the journey events and filter out the invalid ones.
@@ -159,15 +186,15 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
 ) => {
   const plannedJourney: PlannedJourneyData = await fetcher()
   const departures: JoreDeparture[] = get(plannedJourney, 'departures', []) || []
-  const routes: JoreRouteSegment[] = get(plannedJourney, 'routes', []) || []
+  const routes: JoreRouteStop[] = get(plannedJourney, 'routes', []) || []
 
   if (departures.length === 0 || routes.length === 0) {
     return false
   }
 
-  let validRoutes = filterByDateGroups<JoreRouteSegment>(routes, date)
+  let validRoutes = filterByDateGroups<JoreRouteStop>(routes, date)
   // Sorted by the order of the stops in the journey.
-  let routeStops: JoreRouteSegment[] = orderBy(validRoutes, 'stop_index', 'asc')
+  let routeStops: JoreRouteStop[] = orderBy(validRoutes, 'stop_index', 'asc')
   // Trim stops to only contain ACTUALLY valid stops.
   routeStops = trimRouteSegments(routeStops)
 

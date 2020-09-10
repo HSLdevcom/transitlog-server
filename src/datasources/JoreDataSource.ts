@@ -212,7 +212,7 @@ const equipmentQuery = (vehicleId?: string, operatorId?: string) => {
 
 export class JoreDataSource extends SQLDataSource {
   constructor() {
-    super({ log: true, name: 'jore' })
+    super({ log: false, name: 'jore' })
     // Add your instance of Knex to the DataSource
     this.knex = knex
   }
@@ -287,10 +287,15 @@ SELECT DISTINCT ON (link.reitunnus, link.suusuunta, link.suuvoimast)
     route.route_id,
     route.direction,
     route.originstop_id,
+    route.destinationstop_id,
     route.destination_fi,
     route.origin_fi,
     route.mode,
     route.route_name,
+    route.date_modified,
+    route.route_type,
+    route.route_length,
+    0 stop_index, -- Not available in single stop query
     CASE WHEN link.ajantaspys IS NULL THEN FALSE
          ELSE CASE WHEN link.ajantaspys = 0 THEN FALSE
                    ELSE TRUE END
@@ -379,10 +384,14 @@ SELECT DISTINCT ON (route.stop_id, route.route_id, route.direction, route.date_b
     route.timing_stop_type,
     route.stop_index,
     route.originstop_id,
+    route.destinationstop_id,
     route.destination_fi,
     route.origin_fi,
     route.route_name,
     route.mode,
+    route.date_modified,
+    route.route_type,
+    route.route_length,
     COALESCE(seg.pituus, 0) distance_from_previous,
     SUM(CASE WHEN route.stop_index::integer <> 1 THEN seg.pituus ELSE 0 END) OVER (
         PARTITION BY route.route_id, route.direction, route.date_begin, route.date_end
@@ -525,69 +534,6 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
     return this.getBatched(query)
   }
 
-  async getRouteSegments(routeId: string, direction: number): Promise<JoreRouteSegment[]> {
-    // TODO: Query for segment duration
-    // language=PostgreSQL
-    const query = this.db.raw(
-      `
-        WITH route_mode AS (${routeModeQuery()}),
-        route_query AS (${routeQuery(routeId, direction)}),
-        stop_link AS (
-        SELECT DISTINCT ON (route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu)
-            route.route_id,
-            route.direction,
-            route.date_begin,
-            route.date_end,
-            (row_number() OVER (
-                PARTITION BY link.reitunnus, link.suusuunta, link.suuvoimast
-                ORDER BY link.reljarjnro
-                ))::integer stop_index,
-            CASE WHEN link.ajantaspys IS NULL THEN false
-                 ELSE CASE WHEN link.ajantaspys = 0 THEN false
-                           ELSE true END
-                END timing_stop_type,
-            CASE WHEN link.lnkloppusolmu = route.destinationstop_id THEN link.lnkloppusolmu ELSE link.lnkalkusolmu END stop_id
-            FROM route_query route
-                LEFT JOIN LATERAL (
-                SELECT *
-                    FROM jore.jr_reitinlinkki inner_link
-                    WHERE inner_link.relpysakki != 'E'
-                      AND route.route_id = inner_link.reitunnus
-                      AND route.direction = inner_link.suusuunta
-                      AND route.date_begin = inner_link.suuvoimast
-                ) link ON true
-        ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, link.lnkalkusolmu, link.reljarjnro, link.suuvoimast DESC
-        )
-        SELECT DISTINCT ON (route.route_id, route.direction, route.date_begin, route.date_end, link.stop_id)
-            route.*,
-            seg.pystunnus2 next_stop_id,
-            knot.solstmx lat,
-            knot.solstmy lon,
-            stop.soltunnus stop_id,
-            (knot.solkirjain || knot.sollistunnus) short_id,
-            stop.pysnimi name_fi,
-            stop.pyssade stop_radius,
-            link.timing_stop_type,
-            link.stop_index::integer stop_index,
-            CASE WHEN link.stop_index::integer <> 1 THEN seg.pituus ELSE 0 END distance_from_previous,
-            (SUM(CASE WHEN link.stop_index::integer <> 1 THEN seg.pituus END) OVER (
-                PARTITION BY route.route_id, route.direction, route.date_begin, route.date_end
-                ORDER BY link.stop_index::integer
-            ))::integer distance_from_start
-            FROM route_query route
-                 LEFT JOIN stop_link link USING (route_id, direction, date_begin, date_end)
-                 LEFT JOIN jore.jr_solmu knot ON link.stop_id = knot.soltunnus
-                 LEFT JOIN jore.jr_pysakki stop USING (soltunnus)
-                 LEFT JOIN jore.jr_pysakkivali seg ON knot.soltunnus = seg.pystunnus1
-            WHERE route.route_id = :routeId
-              AND route.direction = :direction
-            ORDER BY route.route_id, route.direction, route.date_begin, route.date_end, link.stop_id;`,
-      { routeId, direction }
-    )
-
-    return this.getBatched(query)
-  }
-
   departureFields = `
     departure.route_id,
     departure.direction,
@@ -642,7 +588,7 @@ ORDER BY stop_id, route_id, direction, day_type, hours, minutes, extra_departure
   }
 
   async getDepartureData(routeId, direction, date): Promise<PlannedJourneyData> {
-    const routePromise = this.getRouteSegments(routeId, direction)
+    const routePromise = this.getRouteStops(routeId, direction, date)
     const departuresPromise = this.getJourneyDepartures(routeId, direction, date)
 
     const [routes = [], departures = []] = await Promise.all([routePromise, departuresPromise])
