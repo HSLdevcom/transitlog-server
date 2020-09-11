@@ -9,7 +9,7 @@ import {
 import { cacheFetch } from '../cache'
 import { JoreDeparture, JoreDepartureWithOrigin, Mode } from '../types/Jore'
 import { Dictionary } from '../types/Dictionary'
-import { filterByDateChains } from '../utils/filterByDateChains'
+import { filterGroupsByDate } from '../utils/filterGroupsByDate'
 import { getISOWeek, isAfter, isToday, startOfTomorrow } from 'date-fns'
 import {
   createDepartureJourneyObject,
@@ -223,7 +223,7 @@ export const createWeekDeparturesResponse = async (
         `${day_type}_${extraDepartureType(extra_departure)}`
     ) as Dictionary<JoreDeparture[]>
 
-    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
+    const validDepartures = filterGroupsByDate<JoreDepartureWithOrigin>(
       groupedDepartures,
       date
     )

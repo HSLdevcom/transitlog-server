@@ -12,12 +12,10 @@ import {
   PlannedStopEvent,
   Route,
   RouteSegment,
-  RouteStop,
   Scalars,
-  Stop,
 } from '../types/generated/schema-types'
 import { createJourneyId } from '../utils/createJourneyId'
-import { filterByDateChains } from '../utils/filterByDateChains'
+import { filterGroupsByDate } from '../utils/filterGroupsByDate'
 import {
   compact,
   findLastIndex,
@@ -50,7 +48,6 @@ import {
   createJourneyTlpEventObject,
   createPlannedStopEventObject,
 } from '../objects/createJourneyEventObject'
-import { createRouteStopObject, createStopObject } from '../objects/createStopObject'
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { isToday } from 'date-fns'
@@ -188,7 +185,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
       `${stop_id}_${day_type}_${extraDepartureType(extra_departure)}`
   )
 
-  let validDepartures = filterByDateChains<JoreDeparture>(groupedDepartures, date)
+  let validDepartures = filterGroupsByDate<JoreDeparture>(groupedDepartures, date)
 
   // The first departure of the journey is found by matching the departure time of the
   // requested journey. This is the time argument. Note that it will be given as a 24h+ time.,

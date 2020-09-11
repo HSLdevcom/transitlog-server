@@ -1,5 +1,4 @@
 import { doubleDigit } from './doubleDigit'
-import format from 'date-fns/format'
 import moment from 'moment-timezone'
 import { get } from 'lodash'
 import {
@@ -11,7 +10,8 @@ import {
 import { Journey as JourneyType } from '../types/Journey'
 import { TZ } from '../constants'
 import { Moment } from 'moment'
-import { EventsType, Vehicles } from '../types/EventsDb'
+import { Vehicles } from '../types/EventsDb'
+import { JoreDeparture } from '../types/Jore'
 
 const num = (val) => parseInt(val, 10)
 
@@ -163,34 +163,29 @@ export function getJourneyEventTime(event: Vehicles) {
   return getTimeString(hours, minutes, seconds)
 }
 
-interface JoreDepartureTime {
-  is_next_day: boolean
-  hours: number
-  minutes: number
-  arrival_hours?: number
-  arrival_minutes?: number
-  origin_hours?: number
-  origin_minutes?: number
-}
-
 // Custom type guard
-function isJoreDeparture(departure): departure is JoreDepartureTime {
-  return (departure as JoreDepartureTime).hours !== undefined
+function isJoreDeparture(departure): departure is JoreDeparture {
+  return (departure as JoreDeparture).hours !== undefined
 }
 
 // Return the departure time as a 24h+ time string
 
-export function getDepartureTime<DepartureArg extends JoreDepartureTime>(
-  departure: DepartureArg,
+export function getDepartureTime(
+  departure: JoreDeparture,
   which: 'departure' | 'arrival' | 'origin' = 'departure'
 ): string {
   let { is_next_day, hours, minutes } = departure
 
   if (which === 'arrival') {
-    let { arrival_hours = hours, arrival_minutes = minutes } = departure
+    let {
+      arrival_hours = hours,
+      arrival_minutes = minutes,
+      arrival_is_next_day = false,
+    } = departure
 
     hours = arrival_hours
     minutes = arrival_minutes
+    is_next_day = arrival_is_next_day
   }
 
   if (which === 'origin') {
@@ -200,13 +195,14 @@ export function getDepartureTime<DepartureArg extends JoreDepartureTime>(
     minutes = origin_minutes
   }
 
-  const hour = is_next_day && hours < 24 ? hours + 24 : hours
+  // Some midnight departures may not have is_next_day=true, so also check if the hours are too early.
+  const hour = (is_next_day || hours <= 3) && hours < 24 ? hours + 24 : hours
   return getTimeString(hour, minutes)
 }
 
 // Return the real time of the departure as a Date
 export function getRealDepartureDate(
-  departure: JoreDepartureTime | Departure,
+  departure: JoreDeparture | Departure,
   date,
   useArrival
 ): Moment {

@@ -653,6 +653,7 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
            LEFT JOIN jore.jr_linja route ON route.lintunnus = LEFT(departure.route_id, 4) 
       WHERE departure.stop_id IN (${stopIds.map((stopId) => `'${stopId}'`).join(',')})
         AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+        AND :date BETWEEN departure.date_begin AND departure.date_end
       ORDER BY stop_id, route_id, direction, day_type, hours, minutes, extra_departure, is_next_day, date_begin DESC, date_end DESC, date_modified DESC;`,
       { date }
     )

@@ -1,12 +1,12 @@
-import { flatten, reduce } from 'lodash'
+import { flatten } from 'lodash'
 import { ValidityRange } from '../types/ValidityRange'
 import { Dictionary } from '../types/Dictionary'
 import { filterByDateGroups } from './filterByDateGroups'
 
 // JORE objects have date_begin and date_end props that express a validity range.
-export function filterByDateChains<ItemType extends ValidityRange>(
+export function filterGroupsByDate<ItemType extends ValidityRange>(
   groups: Dictionary<ItemType[]> | ItemType[][],
-  date?: string
+  date: string
 ): ItemType[] {
   const validGroups: ItemType[][] = []
 
@@ -15,7 +15,7 @@ export function filterByDateChains<ItemType extends ValidityRange>(
       continue
     }
 
-    let validItems = !date ? items : filterByDateGroups(items, date)
+    let validItems = filterByDateGroups(items, date)
     validGroups.push(validItems)
   }
 

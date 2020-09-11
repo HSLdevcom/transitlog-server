@@ -2,7 +2,7 @@ import { RouteStop, Stop, StopRoute } from '../types/generated/schema-types'
 import { JoreRouteStop, JoreStop } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { createRouteStopObject, createStopObject } from '../objects/createStopObject'
-import { filterByDateChains } from '../utils/filterByDateChains'
+import { filterGroupsByDate } from '../utils/filterGroupsByDate'
 import { groupBy, orderBy } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { CachedFetcher } from '../types/CachedFetcher'
@@ -24,7 +24,7 @@ let fetchRouteStops: CachedFetcher<RouteStop[]> = async (
     (stop) => `${stop.stop_id}_${stop.route_id}_${stop.direction}`
   )
 
-  let validStops = filterByDateChains<JoreRouteStop>(stopRouteGroups, date)
+  let validStops = filterGroupsByDate<JoreRouteStop>(stopRouteGroups, date)
 
   if (!validStops || validStops.length === 0) {
     return false

@@ -31,7 +31,7 @@ export function filterByDateGroups<T extends ValidityRange>(items: T[], date: st
         return moment(items[0].date_modified).unix()
       }
 
-      return moment(items[0].date_imported).unix()
+      return 0
     },
     'desc'
   )

@@ -1,9 +1,4 @@
-import {
-  JoreDeparture,
-  JoreDepartureWithOrigin,
-  JoreOriginDeparture,
-  Mode,
-} from '../types/Jore'
+import { JoreDeparture, JoreDepartureWithOrigin, Mode } from '../types/Jore'
 import {
   Alert,
   Departure,
@@ -58,7 +53,7 @@ export function createPlannedArrivalTimeObject(
 }
 
 export function createPlannedDepartureTimeObject(
-  departure: JoreDeparture | JoreOriginDeparture,
+  departure: JoreDeparture,
   date: string
 ): PlannedDeparture {
   const departureTime = getDepartureTime(departure)
@@ -150,7 +145,10 @@ export function createPlannedDepartureObject(
     isCancelled: false,
     isOrigin: isOrigin || get(departure, 'origin_departure.stop_id', '') === departure.stop_id,
     originDepartureTime: departure.origin_departure
-      ? createPlannedDepartureTimeObject(departure.origin_departure, departureDate)
+      ? createPlannedDepartureTimeObject(
+          departure.origin_departure as JoreDeparture,
+          departureDate
+        )
       : null,
     plannedArrivalTime,
     plannedDepartureTime,

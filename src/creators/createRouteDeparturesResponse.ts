@@ -4,7 +4,7 @@ import { Departure, ExceptionDay, Scalars } from '../types/generated/schema-type
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { Dictionary } from '../types/Dictionary'
-import { filterByDateChains } from '../utils/filterByDateChains'
+import { filterGroupsByDate } from '../utils/filterGroupsByDate'
 import { isToday } from 'date-fns'
 import { combineDeparturesAndEvents, fetchEvents } from './createDeparturesResponse'
 import { createPlannedDepartureObject } from '../objects/createDepartureObject'
@@ -67,7 +67,7 @@ export async function createRouteDeparturesResponse(
       ({ day_type, extra_departure }) => `${day_type}_${extraDepartureType(extra_departure)}`
     ) as Dictionary<JoreDepartureWithOrigin[]>
 
-    const validDepartures = filterByDateChains<JoreDepartureWithOrigin>(
+    const validDepartures = filterGroupsByDate<JoreDepartureWithOrigin>(
       groupedDepartures,
       date
     )

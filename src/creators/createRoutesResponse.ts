@@ -1,5 +1,5 @@
 import { groupBy } from 'lodash'
-import { filterByDateChains } from '../utils/filterByDateChains'
+import { filterGroupsByDate } from '../utils/filterGroupsByDate'
 import { createRouteObject } from '../objects/createRouteObject'
 import { JoreRoute } from '../types/Jore'
 import { Route, RouteFilterInput, Scalars } from '../types/generated/schema-types'
@@ -74,7 +74,7 @@ export async function createRoutesResponse(
       routes,
       ({ route_id, direction }) => `${route_id}.${direction}`
     )
-    const filteredRoutes = filterByDateChains<JoreRoute>(groupedRoutes, date)
+    const filteredRoutes = filterGroupsByDate<JoreRoute>(groupedRoutes, date)
 
     return filteredRoutes.map((route) => {
       const routeCancellations = cancellations.filter(
