@@ -474,15 +474,10 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
                  terminal.tallpvm date_modified,
                  stop.soltunnus stop_id,
                  stop.terminaali as stop_terminal_id,
-                 mode_query.modes
+                 array_agg(sm.mode) as modes
           FROM jore.jr_lij_terminaalialue terminal
                LEFT JOIN jore.jr_pysakki stop ON stop.terminaali = terminal.termid
-               LEFT JOIN (
-                   SELECT array_agg(DISTINCT mode) as modes,
-                          sm.lnkalkusolmu
-                   FROM stop_mode sm
-                   GROUP BY sm.lnkalkusolmu
-               ) mode_query ON mode_query.lnkalkusolmu = stop.soltunnus
+               LEFT JOIN stop_mode sm ON sm.lnkalkusolmu = stop.soltunnus
           WHERE terminal.termid = :terminalId
           GROUP BY (terminal.termid, stop.soltunnus);`,
       { terminalId, date }
@@ -526,7 +521,7 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
                  terminal.tallpvm date_modified,
                  stop.soltunnus stop_id,
                  stop.terminaali as stop_terminal_id,
-                 array_agg(DISTINCT mode) as modes
+                 array_agg(mode) as modes
           FROM jore.jr_lij_terminaalialue terminal
                LEFT JOIN jore.jr_pysakki stop ON stop.terminaali = terminal.termid
                LEFT JOIN stop_mode sm ON sm.lnkalkusolmu = stop.soltunnus
