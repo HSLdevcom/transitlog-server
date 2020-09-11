@@ -51,29 +51,33 @@ let routeModeQuery =
 
 let stopModeQuery =
   // language=PostgreSQL
-  () => `
-      WITH distinct_stops AS (
-          SELECT DISTINCT ON (lnkalkusolmu, reitunnus)
-              lnkalkusolmu,
-              reitunnus
-              FROM jore.jr_reitinlinkki
-              WHERE relpysakki != 'E'
-      )
-      SELECT DISTINCT ON (link.lnkalkusolmu, line.linjoukkollaji)
-          link.lnkalkusolmu,
-          case
-              when line.linjoukkollaji is null then 'BUS'
-              else
-                  case line.linjoukkollaji
-                      when '02' then 'TRAM'
-                      when '06' then 'SUBWAY'
-                      when '07' then 'FERRY'
-                      when '12' then 'RAIL'
-                      when '13' then 'RAIL'
-                      else 'BUS' end
-              end as mode
-          FROM distinct_stops link
-               LEFT JOIN jore.jr_linja line ON line.lintunnus = LEFT(link.reitunnus, 4)
+  (date?: string) => `
+WITH distinct_stops AS (
+  SELECT DISTINCT ON (lnkalkusolmu, reitunnus, suuvoimast)
+         lnkalkusolmu,
+         reitunnus,
+         suuvoimast
+  FROM jore.jr_reitinlinkki
+  WHERE relpysakki != 'E'
+)
+SELECT DISTINCT ON (link.lnkalkusolmu, link.reitunnus)
+       link.lnkalkusolmu,
+       CASE
+           WHEN line.linjoukkollaji IS NULL THEN 'BUS'
+           ELSE
+               CASE line.linjoukkollaji
+                   WHEN '02' THEN 'TRAM'
+                   WHEN '06' THEN 'SUBWAY'
+                   WHEN '07' THEN 'FERRY'
+                   WHEN '12' THEN 'RAIL'
+                   WHEN '13' THEN 'RAIL'
+                   ELSE 'BUS' END
+           END AS mode
+FROM distinct_stops link
+     LEFT JOIN jore.jr_reitinsuunta dir ON dir.reitunnus = link.reitunnus
+                                       AND dir.suuvoimast = link.suuvoimast
+     LEFT JOIN jore.jr_linja line ON line.lintunnus = LEFT(dir.reitunnus, 4)
+      ${date ? `WHERE :date BETWEEN dir.suuvoimast AND dir.suuvoimviimpvm` : ''}
 `
 
 let routeQuery = (routeId?: string, direction?: number) => {
@@ -425,7 +429,7 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
     return this.getBatched(query)
   }
 
-  async getStops(): Promise<JoreStop[]> {
+  async getStops(date: string): Promise<JoreStop[]> {
     // language=PostgreSQL
     const query = this.db.raw(
       `
@@ -441,7 +445,7 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
       FROM jore.jr_pysakki stop
           LEFT JOIN jore.jr_solmu knot USING (soltunnus)
           LEFT JOIN (
-              SELECT array_agg(DISTINCT mode) as modes,
+              SELECT array_agg(mode) as modes,
                      sm.lnkalkusolmu
               FROM stop_mode sm
               GROUP BY sm.lnkalkusolmu
@@ -449,18 +453,19 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
       WHERE knot.sollistunnus IS NOT NULL
         AND knot.solkirjain NOT LIKE 'X%'
       ORDER BY stop.soltunnus, knot.solviimpvm DESC;
-        `
+        `,
+      { date }
     )
 
     let result = await this.getBatched(query)
     return result.filter((res) => !!res.stop_id && !!res.short_id)
   }
 
-  async getTerminal(terminalId): Promise<JoreTerminal | null> {
+  async getTerminal(terminalId: string, date: string): Promise<JoreTerminal | null> {
     // language=PostgreSQL
     const query = this.db.raw(
       `
-          WITH stop_mode AS (${stopModeQuery()})        
+          WITH stop_mode AS (${stopModeQuery(date)})        
           SELECT terminal.termid terminal_id,
                  terminal.solomx lat,
                  terminal.solomy lon,
@@ -480,7 +485,7 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
                ) mode_query ON mode_query.lnkalkusolmu = stop.soltunnus
           WHERE terminal.termid = :terminalId
           GROUP BY (terminal.termid, stop.soltunnus);`,
-      { terminalId }
+      { terminalId, date }
     )
 
     return this.getBatched(query)
@@ -508,11 +513,11 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
     return stopIds.map(({ stop_id }) => stop_id)
   }
 
-  async getTerminals(): Promise<JoreTerminal[]> {
+  async getTerminals(date: string): Promise<JoreTerminal[]> {
     // language=PostgreSQL
     const query = this.db.raw(
       `
-          WITH stop_mode AS (${stopModeQuery()})        
+          WITH stop_mode AS (${stopModeQuery(date)})        
           SELECT terminal.termid terminal_id,
                  terminal.solomx lat,
                  terminal.solomy lon,
@@ -525,7 +530,8 @@ ORDER BY route.stop_id, route.route_id, route.direction, route.date_begin, route
           FROM jore.jr_lij_terminaalialue terminal
                LEFT JOIN jore.jr_pysakki stop ON stop.terminaali = terminal.termid
                LEFT JOIN stop_mode sm ON sm.lnkalkusolmu = stop.soltunnus
-          GROUP BY (terminal.termid, stop.soltunnus);`
+          GROUP BY (terminal.termid, stop.soltunnus);`,
+      { date }
     )
 
     return this.getBatched(query)

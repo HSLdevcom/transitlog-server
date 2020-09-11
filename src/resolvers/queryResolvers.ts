@@ -35,7 +35,7 @@ const equipment = (root, { filter, date }, { dataSources, user, skipCache }) => 
 }
 
 const stops = (root, { filter, date }, { dataSources, skipCache }) => {
-  const getStops = () => dataSources.JoreAPI.getStops()
+  const getStops = () => dataSources.JoreAPI.getStops(date)
   return createStopsResponse(getStops, date, skipCache)
 }
 
@@ -51,13 +51,13 @@ const stop = (root, { stopId, date }, { dataSources, skipCache }) => {
 
 const terminal = (root, { terminalId, date }, { dataSources, skipCache }) => {
   const getRouteStop = (stopId) => dataSources.JoreAPI.getRouteStop(stopId, date)
-  const getTerminals = () => dataSources.JoreAPI.getTerminal(terminalId)
+  const getTerminals = () => dataSources.JoreAPI.getTerminal(terminalId, date)
 
   return createTerminalResponse(getTerminals, getRouteStop, terminalId, date, skipCache)
 }
 
 const terminals = (root, { date }, { dataSources, skipCache }) => {
-  const getTerminals = () => dataSources.JoreAPI.getTerminals()
+  const getTerminals = () => dataSources.JoreAPI.getTerminals(date)
   return createTerminalsResponse(getTerminals, date, skipCache)
 }
 

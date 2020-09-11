@@ -51,7 +51,7 @@ export const validModes = (...modeArgs: ModeArg[]): Mode[] => {
     return arrVal<Mode>(val, (modeItem) => typeof modeItem === 'string')
   })
 
-  allModes = uniq(compact(flatten(allModes)))
+  allModes = compact(flatten(allModes))
 
   // Convert mode to uppercase and METRO mode to SUBWAY
   const validModes: Mode[] = allModes.map((mode) => {

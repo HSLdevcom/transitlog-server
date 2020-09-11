@@ -24,12 +24,7 @@ let fetchRouteStops: CachedFetcher<RouteStop[]> = async (
     (stop) => `${stop.stop_id}_${stop.route_id}_${stop.direction}`
   )
 
-  type JoreRouteStopValidity = JoreRouteStop & { date_begin: string; date_end: string }
-
-  let validStops = filterByDateChains<JoreRouteStopValidity>(
-    stopRouteGroups as Dictionary<JoreRouteStopValidity[]>,
-    date
-  )
+  let validStops = filterByDateChains<JoreRouteStop>(stopRouteGroups, date)
 
   if (!validStops || validStops.length === 0) {
     return false
