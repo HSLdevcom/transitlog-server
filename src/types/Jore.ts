@@ -76,6 +76,7 @@ export interface JoreDeparture {
   trunk_color_required?: Maybe<number>
   is_regular_day_departure?: Maybe<boolean>
   train_number: string
+  stop_index: number
   origin_departure?: Maybe<JoreOriginDeparture>
 }
 

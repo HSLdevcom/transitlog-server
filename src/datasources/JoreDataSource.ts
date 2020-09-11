@@ -646,13 +646,20 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     // language=PostgreSQL
     const query = this.db.raw(
       `
+      WITH route_mode AS (${routeModeQuery()}),      
+      route_query AS (${routeQuery()})
       SELECT DISTINCT ON (stop_id, route_id, direction, day_type, hours, minutes, extra_departure, is_next_day, date_begin, date_end)
         ${this.departureFields},
-        route.linjoukkollaji AS type
+        line.linjoukkollaji AS type
       FROM jore.departure departure
-           LEFT JOIN jore.jr_linja route ON route.lintunnus = LEFT(departure.route_id, 4) 
+            LEFT JOIN route_query route ON departure.route_id = route.route_id
+                                        AND departure.direction = route.direction
+                                        AND departure.date_begin >= route.date_begin
+                                        AND departure.date_end <= route.date_end
+           LEFT JOIN jore.jr_linja line ON line.lintunnus = LEFT(departure.route_id, 4) 
       WHERE departure.stop_id IN (${stopIds.map((stopId) => `'${stopId}'`).join(',')})
         AND departure.day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
+        AND (route.destinationstop_id IS NULL OR departure.stop_id != route.destinationstop_id)
         AND :date BETWEEN departure.date_begin AND departure.date_end
       ORDER BY stop_id, route_id, direction, day_type, hours, minutes, extra_departure, is_next_day, date_begin DESC, date_end DESC, date_modified DESC;`,
       { date }

@@ -55,7 +55,6 @@ export const combineDeparturesAndEvents = (
   // through all events on each iteration of the departures loop.
   const groupedEvents = events.reduce((eventsMap, event) => {
     const eventDayType = getDayTypeFromDate(event.oday, exceptions)
-    const eventStopId = event.stop
     const journeyStartTime = getJourneyStartTime(event)
 
     const routeId = event.route_id
@@ -64,7 +63,7 @@ export const combineDeparturesAndEvents = (
       return eventsMap
     }
 
-    const eventKey = `${eventDayType}/${eventStopId}/${routeId}/${event.direction_id}/${journeyStartTime}`
+    const eventKey = `${eventDayType}/${routeId}/${event.direction_id}/${journeyStartTime}`
     const eventsGroup = eventsMap[eventKey] || []
 
     eventsGroup.push(event)
@@ -92,11 +91,10 @@ export const combineDeparturesAndEvents = (
     }
 
     const dayType = departure?._normalDayType || departure?.dayType || ''
-    const stopId = departure?.stopId || ''
     const routeId = departure?.routeId || ''
     const direction = getDirection(departure?.direction || '')
 
-    let eventKey = `${dayType}/${stopId}/${routeId}/${direction}/${departureTime}`
+    let eventKey = `${dayType}/${routeId}/${direction}/${departureTime}`
 
     // Match events to departures
     const eventsForDeparture = groupedEvents[eventKey] || []
@@ -166,7 +164,7 @@ export async function createDeparturesResponse(
 
   // Fetches the departures and stop data for the stop and validates them.
   const fetchDepartures: CachedFetcher<Departure[]> = async (stopIds) => {
-    const departures = await getDepartures(stopIds)
+    let departures = await getDepartures(stopIds)
 
     // If either of these fail, we've got nothing of value.
     if (!departures || departures.length === 0) {
@@ -189,19 +187,10 @@ export async function createDeparturesResponse(
 
     // Additional filtering for doubles since they can exist in terminal departure queries.
     // Each departure is identified by the departure time from the first stop.
-
     const uniqueDepartureGroups = groupBy(
       validDepartures,
-      ({
-        origin_stop_id,
-        day_type,
-        extra_departure,
-        route_id,
-        direction,
-        origin_hours,
-        origin_minutes,
-      }) =>
-        `${route_id}_${direction}_${origin_stop_id}_${day_type}_${origin_hours}_${origin_minutes}_${extraDepartureType(
+      ({ stop_id, day_type, extra_departure, route_id, direction, hours, minutes }) =>
+        `${route_id}_${direction}_${stop_id}_${day_type}_${hours}_${minutes}_${extraDepartureType(
           extra_departure
         )}`
     )
