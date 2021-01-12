@@ -67,6 +67,7 @@ export const API_CLIENT_SECRET = secretsEnv.API_CLIENT_SECRET
 
 // HSL ID config
 export const HSL_GROUP_NAME = 'HSL'
+export const ADMIN_GROUP_NAME = 'HSL-admin'
 
 export const ALLOW_DEV_LOGIN = secretsEnv.ALLOW_DEV_LOGIN || 'false'
 export const DEBUG = secretsEnv.DEBUG || 'false'
