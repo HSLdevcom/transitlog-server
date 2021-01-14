@@ -2,7 +2,7 @@ import moment from 'moment-timezone'
 import express from 'express'
 import cors from 'cors'
 import { json } from 'body-parser'
-import { COOKIE_SECRET, HSL_GROUP_NAME, SECURE_COOKIE, TZ } from './constants'
+import { ADMIN_GROUP_NAME, COOKIE_SECRET, SECURE_COOKIE, TZ } from './constants'
 import { types } from 'pg'
 import schema from './schema'
 import { ApolloServer, makeExecutableSchema } from 'apollo-server-express'
@@ -133,7 +133,7 @@ type RequestContext = {
 
   const adminPath = '/admin'
   const adminRouter = await adminController(adminPath)
-  app.use(adminPath, requireUserMiddleware(HSL_GROUP_NAME), adminRouter)
+  app.use(adminPath, requireUserMiddleware(ADMIN_GROUP_NAME), adminRouter)
 
   const expressServer = app.listen({ port: 4000 }, () =>
     console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
