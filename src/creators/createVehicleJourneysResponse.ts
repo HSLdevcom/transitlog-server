@@ -6,8 +6,9 @@ import { isToday, isWithinRange } from 'date-fns'
 import { Vehicles } from '../types/EventsDb'
 import { AuthenticatedUser } from '../types/Authentication'
 import { requireVehicleAuthorization } from '../auth/requireUser'
-import { compact, map, groupBy, orderBy, get } from 'lodash'
+import { compact, groupBy, map, orderBy } from 'lodash'
 import { findJourneyStartEvent } from '../utils/findJourneyStartEvent'
+import { getStopDepartureEvent } from '../utils/getStopDepartureData'
 
 export const createVehicleJourneysResponse = async (
   user: AuthenticatedUser,
@@ -35,23 +36,27 @@ export const createVehicleJourneysResponse = async (
       )
     }
 
-    const alerts = await getAlerts(date, { allRoutes: true, route: true })
-
-    const deduplicatedDepartureEvents = Object.values(
+    let originDepartureEvent = Object.values(
       groupBy(departureEvents, (evt: Vehicles) =>
         // @ts-ignore the object is NOT possibly null.
         evt !== null ? evt.journey_start_time + evt.route_id : ''
       )
     ).map((departureGroup) => {
       const firstStopId = departureGroup[0].stop
-      return orderBy(
-        departureGroup.filter((evt) => evt.stop === firstStopId),
-        'tsi',
-        'desc'
-      )[0]
+      let firstStopEvents = departureGroup.filter((evt) => evt.stop === firstStopId)
+
+      let firstStopDeparture = getStopDepartureEvent(firstStopEvents, true)
+
+      if (!firstStopDeparture) {
+        return orderBy(firstStopEvents, 'tsi', 'desc')[0]
+      }
+
+      return firstStopDeparture
     })
 
-    return orderBy(deduplicatedDepartureEvents, 'tsi', 'asc').map((event) => {
+    const alerts = await getAlerts(date, { allRoutes: true, route: true })
+
+    return orderBy(originDepartureEvent, 'tsi', 'asc').map((event) => {
       const journeyAlerts = alerts.filter((alert) => {
         if (!isWithinRange(event.tst, alert.startDateTime, alert.endDateTime)) {
           return false

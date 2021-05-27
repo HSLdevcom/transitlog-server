@@ -312,7 +312,7 @@ ORDER BY tst DESC;
 FROM stopevent
 WHERE tst >= :minTime
   AND tst <= :maxTime
-  AND event_type = 'DEP'
+  AND event_type IN ('DEP', 'PDE')
   AND oday = :date
   AND unique_vehicle_id = :vehicleId
 ORDER BY tst ASC;
