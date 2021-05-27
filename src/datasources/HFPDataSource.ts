@@ -2,9 +2,9 @@ import moment from 'moment-timezone'
 import { TZ } from '../constants'
 import { getDateFromDateTime, getNormalTime } from '../utils/time'
 import { Scalars } from '../types/generated/schema-types'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
-import { DBAlert, DBCancellation, JourneyEvents, Vehicles, TlpEvents } from '../types/EventsDb'
+import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
 import { getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
@@ -156,19 +156,11 @@ type TstRange = {
 const TST_FORMAT = 'YYYY-MM-DD HH:mm:ss.SSSSSS ZZ'
 
 function createTstRange(date: string): TstRange {
-  const minTimeMoment = moment(date)
-    .tz(TZ)
-    .startOf('day')
-    .add(4, 'hours')
-    .utc()
+  const minTimeMoment = moment(date).tz(TZ).startOf('day').add(4, 'hours').utc()
 
   const minTime = minTimeMoment.format(TST_FORMAT)
 
-  const maxTimeMoment = moment(date)
-    .tz(TZ)
-    .endOf('day')
-    .add(5, 'hours')
-    .utc()
+  const maxTimeMoment = moment(date).tz(TZ).endOf('day').add(5, 'hours').utc()
 
   const maxTime = maxTimeMoment.format(TST_FORMAT)
 
@@ -406,22 +398,11 @@ ORDER BY tst ASC;
     // Ensure the query time range fits the journey by moditying the start or end if needed.
 
     if (journeyStartMoment.isBefore(minTimeMoment)) {
-      useMinTime = journeyStartMoment
-        .clone()
-        .subtract(1, 'hour')
-        .format(TST_FORMAT)
+      useMinTime = journeyStartMoment.clone().subtract(1, 'hour').format(TST_FORMAT)
     }
 
-    if (
-      journeyStartMoment
-        .clone()
-        .add(2, 'hours')
-        .isAfter(maxTimeMoment)
-    ) {
-      useMaxTime = journeyStartMoment
-        .clone()
-        .add(3, 'hours')
-        .format(TST_FORMAT)
+    if (journeyStartMoment.clone().add(2, 'hours').isAfter(maxTimeMoment)) {
+      useMaxTime = journeyStartMoment.clone().add(3, 'hours').format(TST_FORMAT)
     }
 
     const queryVehicleId = `${operatorId}/${vehicleId}`
@@ -450,40 +431,37 @@ ORDER BY tst ASC;
       createQuery('lightpriorityevent', [...vehicleFields, ...tlpEventFields]),
     ]
 
-    return Promise.all(queries).then(
-      (results: Vehicles[][]): JourneyEvents => {
-        let vehicleResults: Vehicles[][] = results
+    return Promise.all(queries).then((results: Vehicles[][]): JourneyEvents => {
+      let vehicleResults: Vehicles[][] = results
 
-        // If no uniqueVehicleId was provided, get the vehicle ID from the first
-        // event result and filter all events according to it.
-        if (!uniqueVehicleId && vehicleResults[0].length !== 0) {
-          const firstVehicleId = vehicleResults[0][0].unique_vehicle_id
+      // If no uniqueVehicleId was provided, get the vehicle ID from the first
+      // event result and filter all events according to it.
+      if (!uniqueVehicleId && vehicleResults[0].length !== 0) {
+        const firstVehicleId = vehicleResults[0][0].unique_vehicle_id
 
-          vehicleResults = vehicleResults.reduce(
-            (filteredResults: Vehicles[][], eventsArr: Vehicles[]) => {
-              const filteredEvents = eventsArr.filter(
-                (event) => event.unique_vehicle_id === firstVehicleId
-              )
-              filteredResults.push(filteredEvents)
-              return filteredResults
-            },
-            []
-          )
-        }
-
-        const [vehiclePositions, stopEvents, otherEvents, lightPriorityEvents] = vehicleResults
-
-        const ensureArray = (val) =>
-          !!val && Array.isArray(val) && val.length !== 0 ? val : []
-
-        return {
-          vehiclePositions: ensureArray(vehiclePositions),
-          stopEvents: ensureArray(stopEvents),
-          tlpEvents: ensureArray(lightPriorityEvents),
-          otherEvents: ensureArray(otherEvents),
-        }
+        vehicleResults = vehicleResults.reduce(
+          (filteredResults: Vehicles[][], eventsArr: Vehicles[]) => {
+            const filteredEvents = eventsArr.filter(
+              (event) => event.unique_vehicle_id === firstVehicleId
+            )
+            filteredResults.push(filteredEvents)
+            return filteredResults
+          },
+          []
+        )
       }
-    )
+
+      const [vehiclePositions, stopEvents, otherEvents, lightPriorityEvents] = vehicleResults
+
+      const ensureArray = (val) => (!!val && Array.isArray(val) && val.length !== 0 ? val : [])
+
+      return {
+        vehiclePositions: ensureArray(vehiclePositions),
+        stopEvents: ensureArray(stopEvents),
+        tlpEvents: ensureArray(lightPriorityEvents),
+        otherEvents: ensureArray(otherEvents),
+      }
+    })
   }
 
   /*
@@ -628,17 +606,9 @@ ORDER BY tst DESC;
   }
 
   getAlerts = async (date: string): Promise<DBAlert[]> => {
-    const fromDate = moment(date)
-      .tz(TZ)
-      .endOf('day')
-      .utc()
-      .format(TST_FORMAT)
+    const fromDate = moment(date).tz(TZ).endOf('day').utc().format(TST_FORMAT)
 
-    const toDate = moment(date)
-      .tz(TZ)
-      .startOf('day')
-      .utc()
-      .format(TST_FORMAT)
+    const toDate = moment(date).tz(TZ).startOf('day').utc().format(TST_FORMAT)
 
     const query = this.db('alert')
       .select(alertFields)

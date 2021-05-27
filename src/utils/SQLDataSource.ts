@@ -1,6 +1,6 @@
 import { DataSource } from 'apollo-datasource'
 import SQLCache from './SQLCache'
-import Knex from 'knex'
+import { Knex } from 'knex'
 import { DEBUG } from '../constants'
 import knexLogger from './knexLogger'
 
