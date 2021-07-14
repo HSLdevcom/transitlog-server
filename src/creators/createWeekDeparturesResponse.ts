@@ -31,7 +31,6 @@ import { Vehicles } from '../types/EventsDb'
 import { getStopArrivalData, getStopArrivalEvent } from '../utils/getStopArrivalData'
 import { createOriginDeparture } from '../utils/createOriginDeparture'
 import { extraDepartureType } from '../utils/extraDepartureType'
-import { stop } from '../utils/knexLogger'
 
 const combineDeparturesAndEvents = (
   departures,
@@ -80,9 +79,9 @@ const combineDeparturesAndEvents = (
       return departure
     }
 
-    const eventsPerVehicleJourney = groupEventsByInstances(
-      eventsForDeparture
-    ).map(([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc'))
+    const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
+      ([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc')
+    )
 
     const firstStopId = get(departure, 'stop.originStopId', '')
     const firstInstanceEvents = eventsPerVehicleJourney[0]
@@ -277,7 +276,7 @@ export const createWeekDeparturesResponse = async (
   }
 
   const minDateMoment = moment.tz(date, TZ).startOf('isoWeek')
-  const requests: Array<Promise<Vehicles[] | null>> = []
+  const requests: Promise<Vehicles[] | null>[] = []
   const cancellations = {}
 
   let i = 0

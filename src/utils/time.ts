@@ -1,5 +1,4 @@
 import { doubleDigit } from './doubleDigit'
-import format from 'date-fns/format'
 import moment from 'moment-timezone'
 import { get } from 'lodash'
 import {
@@ -11,7 +10,7 @@ import {
 import { Journey as JourneyType } from '../types/Journey'
 import { TZ } from '../constants'
 import { Moment } from 'moment'
-import { EventsType, Vehicles } from '../types/EventsDb'
+import { Vehicles } from '../types/EventsDb'
 
 const num = (val) => parseInt(val, 10)
 

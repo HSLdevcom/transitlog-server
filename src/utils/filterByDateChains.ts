@@ -1,4 +1,4 @@
-import { flatten, reduce } from 'lodash'
+import { flatten } from 'lodash'
 import { ValidityRange } from '../types/ValidityRange'
 import { Dictionary } from '../types/Dictionary'
 import { filterByDateGroups } from './filterByDateGroups'

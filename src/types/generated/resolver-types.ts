@@ -1,4 +1,5 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql'
+
 export type Maybe<T> = T | null
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } &
@@ -327,7 +328,7 @@ export type ExceptionDay = {
   __typename?: 'ExceptionDay'
   id: Scalars['ID']
   exceptionDate: Scalars['Date']
-  effectiveDayTypes: Array<Scalars['String']>
+  effectiveDayTypes: Scalars['String'][]
   scopedDayType: Scalars['String']
   dayType: Scalars['String']
   modeScope: Scalars['String']
@@ -569,26 +570,26 @@ export type Position = {
 
 export type Query = {
   __typename?: 'Query'
-  uploads?: Maybe<Array<Maybe<File>>>
-  equipment: Array<Maybe<Equipment>>
+  uploads?: Maybe<Maybe<File>[]>
+  equipment: Maybe<Equipment>[]
   stop?: Maybe<Stop>
-  stops: Array<Maybe<Stop>>
-  terminals: Array<Maybe<Terminal>>
+  stops: Maybe<Stop>[]
+  terminals: Maybe<Terminal>[]
   terminal?: Maybe<Terminal>
   route?: Maybe<Route>
-  routes: Array<Maybe<Route>>
+  routes: Maybe<Route>[]
   routeGeometry?: Maybe<RouteGeometry>
-  routeSegments: Array<Maybe<RouteSegment>>
-  departures: Array<Maybe<Departure>>
-  routeDepartures: Array<Maybe<Departure>>
-  weeklyDepartures: Array<Maybe<Departure>>
-  exceptionDays: Array<Maybe<ExceptionDay>>
+  routeSegments: Maybe<RouteSegment>[]
+  departures: Maybe<Departure>[]
+  routeDepartures: Maybe<Departure>[]
+  weeklyDepartures: Maybe<Departure>[]
+  exceptionDays: Maybe<ExceptionDay>[]
   journey?: Maybe<Journey>
-  journeys: Array<Maybe<Journey>>
-  vehicleJourneys: Array<Maybe<VehicleJourney>>
-  driverEvents: Array<Maybe<DriverEvent>>
-  journeysByBbox: Array<Maybe<Journey>>
-  unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
+  journeys: Maybe<Journey>[]
+  vehicleJourneys: Maybe<VehicleJourney>[]
+  driverEvents: Maybe<DriverEvent>[]
+  journeysByBbox: Maybe<Journey>[]
+  unsignedVehicleEvents: Maybe<VehiclePosition>[]
   alerts: Alert[]
   cancellations: Cancellation[]
   uiMessage: UiMessage
@@ -774,7 +775,7 @@ export type RouteSegment = Position & {
   lng: Scalars['Float']
   name?: Maybe<Scalars['String']>
   radius?: Maybe<Scalars['Float']>
-  modes?: Maybe<Array<Scalars['String']>>
+  modes?: Maybe<Scalars['String'][]>
   alerts: Alert[]
   cancellations: Cancellation[]
 }
@@ -789,7 +790,7 @@ export type Stop = Position & {
   name?: Maybe<Scalars['String']>
   radius?: Maybe<Scalars['Float']>
   routes: StopRoute[]
-  modes: Array<Maybe<Scalars['String']>>
+  modes: Maybe<Scalars['String']>[]
   isTimingStop: Scalars['Boolean']
   stopIndex?: Maybe<Scalars['Int']>
   _matchScore?: Maybe<Scalars['Float']>
@@ -819,9 +820,9 @@ export type Terminal = Position & {
   name: Scalars['String']
   lat: Scalars['Float']
   lng: Scalars['Float']
-  stopIds?: Maybe<Array<Scalars['String']>>
+  stopIds?: Maybe<Scalars['String'][]>
   stops?: Maybe<Stop[]>
-  modes?: Maybe<Array<Scalars['String']>>
+  modes?: Maybe<Scalars['String'][]>
 }
 
 export enum TlpDecision {
@@ -1031,7 +1032,7 @@ export type ResolversTypes = {
   ObservedDeparture: ResolverTypeWrapper<ObservedDeparture>
   ExceptionDay: ResolverTypeWrapper<ExceptionDay>
   Journey: ResolverTypeWrapper<
-    Omit<Journey, 'events'> & { events: Array<ResolversTypes['JourneyEventType']> }
+    Omit<Journey, 'events'> & { events: ResolversTypes['JourneyEventType'][] }
   >
   VehiclePosition: ResolverTypeWrapper<VehiclePosition>
   JourneyEventType:
@@ -1107,7 +1108,7 @@ export type ResolversParentTypes = {
   ObservedDeparture: ObservedDeparture
   ExceptionDay: ExceptionDay
   Journey: Omit<Journey, 'events'> & {
-    events: Array<ResolversParentTypes['JourneyEventType']>
+    events: ResolversParentTypes['JourneyEventType'][]
   }
   VehiclePosition: VehiclePosition
   JourneyEventType:
@@ -1218,8 +1219,8 @@ export type DepartureResolvers<
   mode?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   stop?: Resolver<ResolversTypes['Stop'], ParentType, ContextType>
   journey?: Resolver<Maybe<ResolversTypes['DepartureJourney']>, ParentType, ContextType>
-  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
-  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
+  cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
   isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   isOrigin?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
   departureEvent?: Resolver<Maybe<ResolversTypes['JourneyStopEvent']>, ParentType, ContextType>
@@ -1257,8 +1258,8 @@ export type DepartureJourneyResolvers<
   departureTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
   uniqueVehicleId?: Resolver<Maybe<ResolversTypes['VehicleId']>, ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
-  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
-  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
+  cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
   isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   _numInstance?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
@@ -1313,7 +1314,7 @@ export type ExceptionDayResolvers<
 > = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   exceptionDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
-  effectiveDayTypes?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>
+  effectiveDayTypes?: Resolver<ResolversTypes['String'][], ParentType, ContextType>
   scopedDayType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   dayType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   modeScope?: Resolver<ResolversTypes['String'], ParentType, ContextType>
@@ -1362,20 +1363,12 @@ export type JourneyResolvers<
   journeyLength?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   journeyDurationMinutes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   equipment?: Resolver<Maybe<ResolversTypes['Equipment']>, ParentType, ContextType>
-  vehiclePositions?: Resolver<
-    Array<ResolversTypes['VehiclePosition']>,
-    ParentType,
-    ContextType
-  >
-  events?: Resolver<Array<ResolversTypes['JourneyEventType']>, ParentType, ContextType>
+  vehiclePositions?: Resolver<ResolversTypes['VehiclePosition'][], ParentType, ContextType>
+  events?: Resolver<ResolversTypes['JourneyEventType'][], ParentType, ContextType>
   departure?: Resolver<Maybe<ResolversTypes['Departure']>, ParentType, ContextType>
-  routeDepartures?: Resolver<
-    Maybe<Array<ResolversTypes['Departure']>>,
-    ParentType,
-    ContextType
-  >
-  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
-  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  routeDepartures?: Resolver<Maybe<ResolversTypes['Departure'][]>, ParentType, ContextType>
+  alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
+  cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
   isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
 }
 
@@ -1610,9 +1603,9 @@ export type QueryResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']
 > = {
-  uploads?: Resolver<Maybe<Array<Maybe<ResolversTypes['File']>>>, ParentType, ContextType>
+  uploads?: Resolver<Maybe<Maybe<ResolversTypes['File']>[]>, ParentType, ContextType>
   equipment?: Resolver<
-    Array<Maybe<ResolversTypes['Equipment']>>,
+    Maybe<ResolversTypes['Equipment']>[],
     ParentType,
     ContextType,
     QueryEquipmentArgs
@@ -1623,14 +1616,9 @@ export type QueryResolvers<
     ContextType,
     RequireFields<QueryStopArgs, 'stopId' | 'date'>
   >
-  stops?: Resolver<
-    Array<Maybe<ResolversTypes['Stop']>>,
-    ParentType,
-    ContextType,
-    QueryStopsArgs
-  >
+  stops?: Resolver<Maybe<ResolversTypes['Stop']>[], ParentType, ContextType, QueryStopsArgs>
   terminals?: Resolver<
-    Array<Maybe<ResolversTypes['Terminal']>>,
+    Maybe<ResolversTypes['Terminal']>[],
     ParentType,
     ContextType,
     QueryTerminalsArgs
@@ -1647,12 +1635,7 @@ export type QueryResolvers<
     ContextType,
     RequireFields<QueryRouteArgs, 'routeId' | 'direction' | 'date'>
   >
-  routes?: Resolver<
-    Array<Maybe<ResolversTypes['Route']>>,
-    ParentType,
-    ContextType,
-    QueryRoutesArgs
-  >
+  routes?: Resolver<Maybe<ResolversTypes['Route']>[], ParentType, ContextType, QueryRoutesArgs>
   routeGeometry?: Resolver<
     Maybe<ResolversTypes['RouteGeometry']>,
     ParentType,
@@ -1660,31 +1643,31 @@ export type QueryResolvers<
     RequireFields<QueryRouteGeometryArgs, 'routeId' | 'direction' | 'date'>
   >
   routeSegments?: Resolver<
-    Array<Maybe<ResolversTypes['RouteSegment']>>,
+    Maybe<ResolversTypes['RouteSegment']>[],
     ParentType,
     ContextType,
     RequireFields<QueryRouteSegmentsArgs, 'routeId' | 'direction' | 'date'>
   >
   departures?: Resolver<
-    Array<Maybe<ResolversTypes['Departure']>>,
+    Maybe<ResolversTypes['Departure']>[],
     ParentType,
     ContextType,
     RequireFields<QueryDeparturesArgs, 'date'>
   >
   routeDepartures?: Resolver<
-    Array<Maybe<ResolversTypes['Departure']>>,
+    Maybe<ResolversTypes['Departure']>[],
     ParentType,
     ContextType,
     RequireFields<QueryRouteDeparturesArgs, 'stopId' | 'routeId' | 'direction' | 'date'>
   >
   weeklyDepartures?: Resolver<
-    Array<Maybe<ResolversTypes['Departure']>>,
+    Maybe<ResolversTypes['Departure']>[],
     ParentType,
     ContextType,
     RequireFields<QueryWeeklyDeparturesArgs, 'stopId' | 'routeId' | 'direction' | 'date'>
   >
   exceptionDays?: Resolver<
-    Array<Maybe<ResolversTypes['ExceptionDay']>>,
+    Maybe<ResolversTypes['ExceptionDay']>[],
     ParentType,
     ContextType,
     RequireFields<QueryExceptionDaysArgs, 'year'>
@@ -1699,43 +1682,43 @@ export type QueryResolvers<
     >
   >
   journeys?: Resolver<
-    Array<Maybe<ResolversTypes['Journey']>>,
+    Maybe<ResolversTypes['Journey']>[],
     ParentType,
     ContextType,
     RequireFields<QueryJourneysArgs, 'routeId' | 'direction' | 'departureDate'>
   >
   vehicleJourneys?: Resolver<
-    Array<Maybe<ResolversTypes['VehicleJourney']>>,
+    Maybe<ResolversTypes['VehicleJourney']>[],
     ParentType,
     ContextType,
     RequireFields<QueryVehicleJourneysArgs, 'uniqueVehicleId' | 'date'>
   >
   driverEvents?: Resolver<
-    Array<Maybe<ResolversTypes['DriverEvent']>>,
+    Maybe<ResolversTypes['DriverEvent']>[],
     ParentType,
     ContextType,
     RequireFields<QueryDriverEventsArgs, 'uniqueVehicleId' | 'date'>
   >
   journeysByBbox?: Resolver<
-    Array<Maybe<ResolversTypes['Journey']>>,
+    Maybe<ResolversTypes['Journey']>[],
     ParentType,
     ContextType,
     RequireFields<QueryJourneysByBboxArgs, 'minTime' | 'maxTime' | 'bbox' | 'date'>
   >
   unsignedVehicleEvents?: Resolver<
-    Array<Maybe<ResolversTypes['VehiclePosition']>>,
+    Maybe<ResolversTypes['VehiclePosition']>[],
     ParentType,
     ContextType,
     RequireFields<QueryUnsignedVehicleEventsArgs, 'uniqueVehicleId' | 'date'>
   >
   alerts?: Resolver<
-    Array<ResolversTypes['Alert']>,
+    ResolversTypes['Alert'][],
     ParentType,
     ContextType,
     RequireFields<QueryAlertsArgs, 'language'>
   >
   cancellations?: Resolver<
-    Array<ResolversTypes['Cancellation']>,
+    ResolversTypes['Cancellation'][],
     ParentType,
     ContextType,
     QueryCancellationsArgs
@@ -1758,8 +1741,8 @@ export type RouteResolvers<
   routeLength?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   routeDurationMinutes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
-  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
-  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
+  cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
   _matchScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
 }
 
@@ -1769,7 +1752,7 @@ export type RouteGeometryResolvers<
 > = {
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
-  coordinates?: Resolver<Array<ResolversTypes['RouteGeometryPoint']>, ParentType, ContextType>
+  coordinates?: Resolver<ResolversTypes['RouteGeometryPoint'][], ParentType, ContextType>
 }
 
 export type RouteGeometryPointResolvers<
@@ -1801,9 +1784,9 @@ export type RouteSegmentResolvers<
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   radius?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
-  modes?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
-  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
-  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  modes?: Resolver<Maybe<ResolversTypes['String'][]>, ParentType, ContextType>
+  alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
+  cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
 }
 
 export type StopResolvers<
@@ -1817,12 +1800,12 @@ export type StopResolvers<
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   radius?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
-  routes?: Resolver<Array<ResolversTypes['StopRoute']>, ParentType, ContextType>
-  modes?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType>
+  routes?: Resolver<ResolversTypes['StopRoute'][], ParentType, ContextType>
+  modes?: Resolver<Maybe<ResolversTypes['String']>[], ParentType, ContextType>
   isTimingStop?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   stopIndex?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   _matchScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
-  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
+  alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
 }
 
 export type StopRouteResolvers<
@@ -1848,9 +1831,9 @@ export type TerminalResolvers<
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
-  stopIds?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
-  stops?: Resolver<Maybe<Array<ResolversTypes['Stop']>>, ParentType, ContextType>
-  modes?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>
+  stopIds?: Resolver<Maybe<ResolversTypes['String'][]>, ParentType, ContextType>
+  stops?: Resolver<Maybe<ResolversTypes['Stop'][]>, ParentType, ContextType>
+  modes?: Resolver<Maybe<ResolversTypes['String'][]>, ParentType, ContextType>
 }
 
 export interface TimeScalarConfig
@@ -1896,8 +1879,8 @@ export type VehicleJourneyResolvers<
   recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
   timeDifference?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   loc?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
-  alerts?: Resolver<Array<ResolversTypes['Alert']>, ParentType, ContextType>
-  cancellations?: Resolver<Array<ResolversTypes['Cancellation']>, ParentType, ContextType>
+  alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
+  cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
   isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
 }
 

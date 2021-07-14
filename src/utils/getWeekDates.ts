@@ -1,4 +1,4 @@
-import { addDays, format, startOfISOWeek } from 'date-fns'
+import { addDays, startOfISOWeek } from 'date-fns'
 
 export const getWeekDates = (date) => {
   const weekStart = startOfISOWeek(date)

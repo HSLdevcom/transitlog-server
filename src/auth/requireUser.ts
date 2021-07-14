@@ -1,13 +1,11 @@
-import { intersection } from 'lodash'
 import { Request, Response } from 'express'
 import {
-  ALLOW_DEV_LOGIN,
-  DEBUG,
-  PATH_PREFIX,
   ADMIN_REDIRECT_URI,
+  ALLOW_DEV_LOGIN,
   AUTH_SCOPE,
   AUTH_URI,
   CLIENT_ID,
+  PATH_PREFIX,
 } from '../constants'
 import join from 'proper-url-join'
 import { AuthenticatedUser } from '../types/Authentication'
@@ -76,20 +74,17 @@ export const requireVehicleAuthorization = (user: AuthenticatedUser, vehicleId: 
   return requireUser(user, operatorGroup)
 }
 
-export const requireUserMiddleware = (group?: string | string[]) => (
-  req: Request,
-  res: Response,
-  next
-) => {
-  const user = getUserFromReq(req)
+export const requireUserMiddleware =
+  (group?: string | string[]) => (req: Request, res: Response, next) => {
+    const user = getUserFromReq(req)
 
-  if (requireUser(user, group)) {
-    next()
-  } else if (ALLOW_DEV_LOGIN === 'true' && process.env.ADMIN_AUTO_LOGIN_DEV === 'true') {
-    // Perform dev login
-    res.redirect(join(PATH_PREFIX, 'hslid-redirect', '?code=dev'))
-  } else {
-    const authUrl = `${AUTH_URI}?ns=hsl-transitlog&client_id=${CLIENT_ID}&redirect_uri=${ADMIN_REDIRECT_URI}&response_type=code&scope=${AUTH_SCOPE}&ui_locales=en`
-    res.redirect(authUrl)
+    if (requireUser(user, group)) {
+      next()
+    } else if (ALLOW_DEV_LOGIN === 'true' && process.env.ADMIN_AUTO_LOGIN_DEV === 'true') {
+      // Perform dev login
+      res.redirect(join(PATH_PREFIX, 'hslid-redirect', '?code=dev'))
+    } else {
+      const authUrl = `${AUTH_URI}?ns=hsl-transitlog&client_id=${CLIENT_ID}&redirect_uri=${ADMIN_REDIRECT_URI}&response_type=code&scope=${AUTH_SCOPE}&ui_locales=en`
+      res.redirect(authUrl)
+    }
   }
-}

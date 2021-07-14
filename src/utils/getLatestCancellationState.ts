@@ -13,9 +13,9 @@ export const getLatestCancellationState = (
           c.departureDate === cancellation.departureDate &&
           c.journeyStartTime === cancellation.journeyStartTime &&
           c.isCancelled !== cancellation.isCancelled &&
-          (c.lastModifiedDateTime &&
-            moment.isMoment(c.lastModifiedDateTime) &&
-            c.lastModifiedDateTime.isAfter(cancellation.lastModifiedDateTime))
+          c.lastModifiedDateTime &&
+          moment.isMoment(c.lastModifiedDateTime) &&
+          c.lastModifiedDateTime.isAfter(cancellation.lastModifiedDateTime)
       )
 
       if (!previousCancellation) {

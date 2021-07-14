@@ -1,6 +1,6 @@
 import { JourneyEvent } from '../types/generated/schema-types'
 import { differenceInSeconds } from 'date-fns'
-import { last, get } from 'lodash'
+import { get, last } from 'lodash'
 import { Vehicles } from '../types/EventsDb'
 
 function isHfp(event: Vehicles | JourneyEvent): event is Vehicles {

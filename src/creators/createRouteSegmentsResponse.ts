@@ -1,5 +1,4 @@
-import { groupBy, sortBy } from 'lodash'
-import { filterByDateChains } from '../utils/filterByDateChains'
+import { sortBy } from 'lodash'
 import { JoreRouteData } from '../types/Jore'
 import { cacheFetch } from '../cache'
 import { RouteSegment, Scalars } from '../types/generated/schema-types'
@@ -71,13 +70,11 @@ export async function createRouteSegmentsResponse(
     // segment. Crucially, the segment carries the information about which stop is a
     // timing stop. The segment can be seen as the "glue" between the journey and
     // the stops, since stops are otherwise oblivious to route-specific things.
-    return routeSegments.map(
-      (routeSegment): RouteSegment => {
-        // Merge the route segment and the stop data, picking what we need from the segment and
-        // the stop. What we really need from the segment is the timing stop type and the stop index.
-        return createRouteSegmentObject(routeSegment, null, [], cancellations)
-      }
-    )
+    return routeSegments.map((routeSegment): RouteSegment => {
+      // Merge the route segment and the stop data, picking what we need from the segment and
+      // the stop. What we really need from the segment is the timing stop type and the stop index.
+      return createRouteSegmentObject(routeSegment, null, [], cancellations)
+    })
   }
 
   const cacheKey = `routeSegments_${routeId}_${direction}_${date}_${

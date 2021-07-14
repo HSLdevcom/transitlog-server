@@ -1,5 +1,5 @@
 import { JoreDepartureWithOrigin } from '../types/Jore'
-import { orderBy, groupBy } from 'lodash'
+import { groupBy, orderBy } from 'lodash'
 
 /**
  * This function ensures that all departures for a route are consecutive

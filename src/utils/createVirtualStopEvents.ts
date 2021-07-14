@@ -41,10 +41,11 @@ export const createVirtualStopEvents = (
 
     const arrivalEvent = stopArrivalEvent ? createVirtualEvent(stopArrivalEvent, 'ARS') : null
 
-    let departureEventType = (['ODO', 'MAN'].includes(stopDepartureEvent?.loc || '') ||
-    !isTimingStopOrOrigin
-      ? 'PDE'
-      : 'DEP') as EventType
+    let departureEventType = (
+      ['ODO', 'MAN'].includes(stopDepartureEvent?.loc || '') || !isTimingStopOrOrigin
+        ? 'PDE'
+        : 'DEP'
+    ) as EventType
 
     const departureEvent = stopDepartureEvent
       ? createVirtualEvent(stopDepartureEvent, departureEventType)
