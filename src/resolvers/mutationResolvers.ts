@@ -7,6 +7,7 @@ import {
   SLACK_TOKEN_FEEDBACK,
 } from './../constants'
 import { ApolloError } from 'apollo-server'
+import { ReadStream } from 'fs'
 
 const slack = new WebClient(SLACK_TOKEN_FEEDBACK)
 
@@ -24,6 +25,7 @@ export const mutationResolvers = {
     const { text, email, url } = args
     const fromStr = email !== '' ? email.trim() : 'anonymous user'
     const feedbackRes: any = await slack.chat.postMessage({
+      // TODO: Move this to env
       channel: 'C010S7YF98E',
       text: '*' + fromStr + '*\n\n' + text.trim(),
     })
@@ -41,12 +43,16 @@ export const mutationResolvers = {
     if (isImageFile(mimetype)) {
       // upload image to azure blob
       const blobName = uuidv4() + '.' + filename.split('.').pop()
+
       const blobServiceClient = await BlobServiceClient.fromConnectionString(
         AZURE_FEEDBACK_BLOB_CONN
       )
+
       const container = blobServiceClient.getContainerClient('feedback-images')
       const blockBlob = container.getBlockBlobClient(blobName)
-      blockBlob.uploadStream(createReadStream())
+      const imageStream: ReadStream = createReadStream()
+
+      await blockBlob.uploadStream(imageStream, imageStream.readableHighWaterMark)
 
       const downloadUrl =
         'https://feedbackfiles.blob.core.windows.net/feedback-images/' +
