@@ -20,6 +20,9 @@ export function filterByDateGroups<T extends ValidityRange>(items: T[], date: st
     return []
   }
 
+  // validGroupEntries[0][0] = the group key
+  // validGroupEntries[0][1] = the items
+
   if (validGroupEntries.length === 1) {
     return validGroupEntries[0][1]
   }

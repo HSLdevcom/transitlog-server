@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 import { BlobServiceClient } from '@azure/storage-blob'
-import { WebClient, MessageAttachment } from '@slack/web-api'
+import { MessageAttachment, WebClient } from '@slack/web-api'
 import {
-  SLACK_TOKEN_FEEDBACK,
   AZURE_FEEDBACK_BLOB_CONN,
   AZURE_FEEDBACK_BLOB_SAS,
+  SLACK_TOKEN_FEEDBACK,
 } from './../constants'
 import { ApolloError } from 'apollo-server'
 

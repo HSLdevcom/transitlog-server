@@ -4,7 +4,7 @@ import moment from 'moment-timezone'
 import { DATE_FORMAT, TIME_FORMAT, TZ } from '../../constants'
 import { StringOrNull } from '../../types/NullOr'
 
-function getValue(value: moment | string | number): StringOrNull {
+function getValue(value: moment.Moment | string | number): StringOrNull {
   if (moment.isMoment(value)) {
     return value.format(DATE_FORMAT)
   }
@@ -22,7 +22,7 @@ export const DateScalar = new GraphQLScalarType({
   parseValue(value: unknown): StringOrNull {
     return validateDateString(value)
   },
-  serialize(value: unknown): StringOrNull {
+  serialize(value: string | moment.Moment): StringOrNull {
     return getValue(value)
   },
   parseLiteral(ast): StringOrNull {

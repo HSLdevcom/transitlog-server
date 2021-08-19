@@ -7,8 +7,5 @@ export const getLineNumberFromRoute = (lineId: string) => {
 
   // Remove 1st number, which represents the city
   // Remove all zeros from the beginning
-  return lineStr
-    .substring(1)
-    .replace(/^0+/, '')
-    .replace(/\s/g, '')
+  return lineStr.substring(1).replace(/^0+/, '').replace(/\s/g, '')
 }

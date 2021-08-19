@@ -1,7 +1,6 @@
 import { getKnex } from '../knex'
 import { createDatabase } from '../admin/createDatabase'
 import { merge } from 'lodash'
-import { Transaction } from 'knex'
 
 const knex = getKnex()
 const schema = 'transitlog'
@@ -36,11 +35,7 @@ export const upsert = async (key, data, trx?) => {
   const transact = (query) => (trx ? query.transacting(trx) : query)
 
   const hasRecord = await transact(
-    knex
-      .withSchema(schema)
-      .first('key')
-      .from(settingsTable)
-      .where({ key })
+    knex.withSchema(schema).first('key').from(settingsTable).where({ key })
   )
 
   if (hasRecord) {
@@ -61,11 +56,8 @@ export const upsert = async (key, data, trx?) => {
   )
 }
 
-export async function getSettings(trx?: Transaction): Promise<TransitlogSettings> {
-  let query = knex
-    .withSchema(schema)
-    .select('*')
-    .from(settingsTable)
+export async function getSettings(trx?: any): Promise<TransitlogSettings> {
+  let query = knex.withSchema(schema).select('*').from(settingsTable)
 
   if (trx) {
     query = query.transacting(trx)
@@ -101,7 +93,7 @@ export async function initSettings(reset = false) {
       ? defaultSettings
       : merge(defaultSettings, settingsMap)
 
-    const ops: Array<Promise<any>> = []
+    const ops: Promise<any>[] = []
 
     for (const [key, value] of Object.entries(initialSettings)) {
       const op = upsert(key, value, trx)

@@ -283,10 +283,7 @@ export class JoreDataSource extends SQLDataSource {
   }
 
   async getEquipment(): Promise<JoreEquipment[]> {
-    const query = this.db
-      .withSchema('jore')
-      .select()
-      .from('equipment')
+    const query = this.db.withSchema('jore').select().from('equipment')
 
     return this.getBatched(query)
   }
@@ -820,7 +817,7 @@ WHERE departure.stop_id = :stopId
       { routeId, date }
     )
 
-    const result: Array<{ type: string }> = await this.getBatched(query)
+    const result: { type: string }[] = await this.getBatched(query)
 
     if (!result || result.length === 0) {
       return null

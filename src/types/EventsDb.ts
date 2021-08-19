@@ -8,12 +8,11 @@ import {
   JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
-  PlannedStopEvent,
   JourneyTlpEvent,
+  PlannedStopEvent,
   TlpDecision,
-  TlpPriorityLevel,
-  TlpRequestType,
   TlpReason,
+  TlpRequestType,
 } from './generated/schema-types'
 
 export enum DBCancellationStatus {

@@ -55,27 +55,25 @@ export const fetchStops: CachedFetcher<RouteSegment[]> = async (getStops, date) 
 
   // Create a combo of the stop data and the route segment. The segment acts as glue between
   // the stop and the route, carrying such data as timing stop status.
-  return validSegments.map(
-    (segment): RouteSegment => {
-      const stop = createStopObject(segment)
+  return validSegments.map((segment): RouteSegment => {
+    const stop = createStopObject(segment)
 
-      return {
-        ...stop,
-        destination: segment.destination_fi || '',
-        distanceFromPrevious: segment.distance_from_previous,
-        distanceFromStart: segment.distance_from_start,
-        duration: segment.duration,
-        stopIndex: get(segment, 'stop_index', 0) || 0,
-        isTimingStop: !!segment.timing_stop_type, // very important
-        originStopId: get(segment, 'originstop_id', ''),
-        destinationStopId: get(segment, 'destinationstop_id', ''),
-        routeId: segment.route_id,
-        direction: getDirection(segment.direction),
-        modes: stop.modes,
-        cancellations: [],
-      } as RouteSegment
-    }
-  )
+    return {
+      ...stop,
+      destination: segment.destination_fi || '',
+      distanceFromPrevious: segment.distance_from_previous,
+      distanceFromStart: segment.distance_from_start,
+      duration: segment.duration,
+      stopIndex: get(segment, 'stop_index', 0) || 0,
+      isTimingStop: !!segment.timing_stop_type, // very important
+      originStopId: get(segment, 'originstop_id', ''),
+      destinationStopId: get(segment, 'destinationstop_id', ''),
+      routeId: segment.route_id,
+      direction: getDirection(segment.direction),
+      modes: stop.modes,
+      cancellations: [],
+    } as RouteSegment
+  })
 }
 
 // Fetches the events for the departures. The fetch function will
@@ -174,9 +172,9 @@ export const combineDeparturesAndEvents = (
       return [departure]
     }
 
-    const eventsPerVehicleJourney = groupEventsByInstances(
-      eventsForDeparture
-    ).map(([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc'))
+    const eventsPerVehicleJourney = groupEventsByInstances(eventsForDeparture).map(
+      ([_, instanceEvents]) => orderBy(instanceEvents, 'tsi', 'desc')
+    )
 
     const firstStopId = get(departure, 'stop.originStopId', '')
 

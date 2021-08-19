@@ -1,12 +1,12 @@
 import {
+  IUserInfo,
   requestGroups,
   requestInfoByUserId,
-  setGroup,
   requestUserInfo,
-  IUserInfo,
+  setGroup,
 } from './authService'
 import { getSettings } from '../datasources/transitlogServer'
-import { groupBy, flatten, uniq, difference, compact, get, map } from 'lodash'
+import { compact, difference, flatten, get, groupBy, map, uniq } from 'lodash'
 
 export async function assignUserToGroups(userInfo: IUserInfo): Promise<IUserInfo> {
   if (!userInfo.email) {
@@ -48,7 +48,11 @@ export async function assignUserToGroups(userInfo: IUserInfo): Promise<IUserInfo
     // Get IDs for each group and remove undefineds.
     const groupIds = compact(
       assignToGroups.map((groupName) => {
-        return get(resources.find((element) => element.name === groupName), 'id', '')
+        return get(
+          resources.find((element) => element.name === groupName),
+          'id',
+          ''
+        )
       })
     )
 

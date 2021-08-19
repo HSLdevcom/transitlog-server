@@ -1,9 +1,8 @@
 import { getDirection } from '../utils/getDirection'
 import { createStopObject } from './createStopObject'
-import { get, compact, uniq } from 'lodash'
+import { get } from 'lodash'
 import { Alert, Cancellation, RouteSegment } from '../types/generated/schema-types'
-import { JoreRoute, JoreRouteData, Mode } from '../types/Jore'
-import { arrVal } from '../utils/arrVal'
+import { JoreRoute, JoreRouteData } from '../types/Jore'
 import { validModes } from '../utils/validModes'
 
 export function createSegmentId(routeSegment) {

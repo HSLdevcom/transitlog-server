@@ -1,13 +1,15 @@
-import Knex from 'knex'
+import { knex, Knex } from 'knex'
+
 import { PG_CONNECTION } from './constants'
+
 let knexInstance: Knex | null = null
 
 export function getKnex(): Knex {
-  if (knexInstance instanceof Knex) {
+  if (knexInstance) {
     return knexInstance
   }
 
-  knexInstance = Knex({
+  knexInstance = knex({
     dialect: 'postgres',
     client: 'pg',
     connection: PG_CONNECTION,

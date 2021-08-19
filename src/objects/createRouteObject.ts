@@ -1,5 +1,5 @@
-import { Alert, Cancellation, Route } from '../types/generated/schema-types'
-import { JoreRoute, Mode } from '../types/Jore'
+import { Cancellation, Route } from '../types/generated/schema-types'
+import { JoreRoute } from '../types/Jore'
 import { get } from 'lodash'
 import { getDirection } from '../utils/getDirection'
 import { validModes } from '../utils/validModes'

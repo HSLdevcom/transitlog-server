@@ -22,10 +22,10 @@ export function extend(dest) {
 // Compatibility polyfill for [Object.create](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object/create)
 export var create =
   Object.create ||
-  (function() {
+  (function () {
     function F() {}
 
-    return function(proto) {
+    return function (proto) {
       F.prototype = proto
       return new F()
     }
@@ -43,7 +43,7 @@ export function bind(fn, obj) {
 
   var args = slice.call(arguments, 2)
 
-  return function() {
+  return function () {
     return fn.apply(obj, args.length ? args.concat(slice.call(arguments)) : arguments)
   }
 }
@@ -80,7 +80,7 @@ var templateRe = /\{ *([\w_-]+) *\}/g
 // `('Hello foo, bar')`. You can also specify functions instead of strings for
 // data values — they will be evaluated passing `data` as an argument.
 export function template(str, data) {
-  return str.replace(templateRe, function(str, key) {
+  return str.replace(templateRe, function (str, key) {
     var value = data[key]
 
     if (value === undefined) {
@@ -96,6 +96,6 @@ export function template(str, data) {
 // Compatibility polyfill for [Array.isArray](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray)
 export var isArray =
   Array.isArray ||
-  function(obj) {
+  function (obj) {
     return Object.prototype.toString.call(obj) === '[object Array]'
   }

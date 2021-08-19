@@ -8,8 +8,8 @@ import {
   JourneyCancellationEvent,
   JourneyEvent,
   JourneyStopEvent,
-  PlannedStopEvent,
   JourneyTlpEvent,
+  PlannedStopEvent,
   Route,
 } from '../types/generated/schema-types'
 import { createVehiclePositionObject } from './createJourneyEventObject'
@@ -21,7 +21,6 @@ import { getDirection } from '../utils/getDirection'
 import { getLatestCancellationState } from '../utils/getLatestCancellationState'
 import { Vehicles } from '../types/EventsDb'
 import { validModes } from '../utils/validModes'
-import { strict } from 'assert'
 
 function isStopEvent(event): event is JourneyStopEvent {
   return event?.type !== 'PLANNED' && typeof event?.plannedTime !== 'undefined'
@@ -29,13 +28,13 @@ function isStopEvent(event): event is JourneyStopEvent {
 
 export function createJourneyObject(
   vehiclePositions: Vehicles[],
-  events: Array<
+  events: (
     | JourneyEvent
     | JourneyStopEvent
     | PlannedStopEvent
     | JourneyCancellationEvent
     | JourneyTlpEvent
-  >,
+  )[],
   journeyRoute?: Route | null,
   originDeparture: Departure | null = null,
   departures: Departure[] | null = null,

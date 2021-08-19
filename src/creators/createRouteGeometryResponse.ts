@@ -1,8 +1,7 @@
 import { get } from 'lodash'
-import { filterByDateChains } from '../utils/filterByDateChains'
 import { JoreRoute } from '../types/Jore'
 import { cacheFetch } from '../cache'
-import { Scalars, RouteGeometry } from '../types/generated/schema-types'
+import { RouteGeometry, Scalars } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { filterByDateGroups } from '../utils/filterByDateGroups'
 

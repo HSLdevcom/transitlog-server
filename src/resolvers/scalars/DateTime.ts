@@ -15,7 +15,7 @@ function getStringValue(value) {
   return null
 }
 
-function getMoment(value): moment | null {
+function getMoment(value): moment.Moment | null {
   const momentValue = moment.tz(value, TZ)
   return momentValue.isValid() ? momentValue : null
 }
@@ -25,13 +25,13 @@ function getMoment(value): moment | null {
 export const DateTimeScalar = new GraphQLScalarType({
   name: 'DateTime',
   description: `A DateTime string in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ). Timezone will be converted to ${TZ}.`,
-  parseValue(value): moment | null {
+  parseValue(value): moment.Moment | null {
     return getMoment(value)
   },
   serialize(value): StringOrNull {
     return getStringValue(value)
   },
-  parseLiteral(ast): moment | null {
+  parseLiteral(ast): moment.Moment | null {
     if (ast.kind === Kind.INT || ast.kind === Kind.STRING) {
       return getMoment(ast.value)
     }

@@ -1,4 +1,4 @@
-import { Scalars, Journey } from '../types/generated/schema-types'
+import { Journey, Scalars } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { isToday } from 'date-fns'

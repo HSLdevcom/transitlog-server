@@ -7,18 +7,17 @@ import {
   JourneyEvent,
   JourneyStopEvent,
   JourneyTlpEvent,
-  TlpPriorityLevel,
   PlannedArrival,
   PlannedDeparture,
   PlannedStopEvent,
   Stop,
+  TlpPriorityLevel,
   VehiclePosition,
-  TlpType,
 } from '../types/generated/schema-types'
 import { TIME_FORMAT, TZ } from '../constants'
 import moment from 'moment-timezone'
 import { getDateFromDateTime, getJourneyEventTime } from '../utils/time'
-import { Vehicles, TlpEvents, EventType, TlpPriorityLevelDb } from '../types/EventsDb'
+import { TlpEvents, TlpPriorityLevelDb, Vehicles } from '../types/EventsDb'
 import { createJourneyId } from '../utils/createJourneyId'
 import { get } from 'lodash'
 import { createDepartureId } from './createDepartureObject'
@@ -81,12 +80,8 @@ export function createJourneyCancellationEventObject(
 
 export function createPlannedStopEventObject(departure: Departure, alerts): PlannedStopEvent {
   const id = createDepartureId(departure)
-  const {
-    departureDate,
-    departureTime,
-    departureDateTime,
-    isNextDay,
-  } = departure.plannedDepartureTime
+  const { departureDate, departureTime, departureDateTime, isNextDay } =
+    departure.plannedDepartureTime
 
   departure.stop.alerts = alerts.filter((alert) => {
     if (!isWithinRange(departureDateTime, alert.startDateTime, alert.endDateTime)) {
