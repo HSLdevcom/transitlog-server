@@ -14,7 +14,6 @@ export function createRouteObject(
   duration = 0
 ): Route {
   const mode = validModes(route?.mode)
-
   return {
     id: createRouteId(route),
     routeId: route.route_id,
@@ -29,6 +28,7 @@ export function createRouteObject(
     routeDurationMinutes: duration || route.duration || 0,
     alerts: [],
     cancellations: cancellations && cancellations.length !== 0 ? cancellations : [],
+    trunkRoute: route.trunk_route === '1' ? true : false,
     // @ts-ignore
     _matchScore: route._matchScore,
   }
