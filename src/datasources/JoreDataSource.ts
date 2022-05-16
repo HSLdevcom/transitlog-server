@@ -54,8 +54,10 @@ export class JoreDataSource extends SQLDataSource {
                        route.date_end,
                        route.date_modified,
                        route.route_length,
+                       trunk_route,
                        jore.route_mode(route) as mode
-                FROM jore.route route;
+                FROM jore.route route
+                LEFT JOIN (select line_id, trunk_route from jore.line) as lines on route.route_id = lines.line_id;
       `
     )
 
@@ -77,8 +79,10 @@ export class JoreDataSource extends SQLDataSource {
                        route.date_end,
                        route.date_modified,
                        route.route_length,
+                       trunk_route,
                        jore.route_mode(route) as mode
                 FROM jore.route route
+                LEFT JOIN (select line_id, trunk_route from jore.line) as lines on route.route_id = lines.line_id
                 WHERE route.route_id = :routeId
                   AND route.direction = :direction;
       `,

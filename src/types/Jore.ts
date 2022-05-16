@@ -138,6 +138,7 @@ export interface JoreRoute {
   duration?: Maybe<number>
   has_regular_day_departures?: Maybe<boolean>
   mode?: Maybe<Mode>
+  trunk_route?: Maybe<string>
 }
 
 export interface JoreNote {
@@ -235,7 +236,7 @@ export interface JorePointGeometry {
 
 export interface JoreExceptionDay {
   date_in_effect: string
-  effective_day_types: Array<string | null>
+  effective_day_types: (string | null)[]
   description: Maybe<string>
   day_type: string
   scoped_day_type: Maybe<string>
