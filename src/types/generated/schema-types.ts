@@ -323,7 +323,7 @@ export type ExceptionDay = {
   __typename?: 'ExceptionDay'
   id: Scalars['ID']
   exceptionDate: Scalars['Date']
-  effectiveDayTypes: Array<Scalars['String']>
+  effectiveDayTypes: Scalars['String'][]
   scopedDayType: Scalars['String']
   dayType: Scalars['String']
   modeScope: Scalars['String']
@@ -565,26 +565,26 @@ export type Position = {
 
 export type Query = {
   __typename?: 'Query'
-  uploads?: Maybe<Array<Maybe<File>>>
-  equipment: Array<Maybe<Equipment>>
+  uploads?: Maybe<Maybe<File>[]>
+  equipment: Maybe<Equipment>[]
   stop?: Maybe<Stop>
-  stops: Array<Maybe<Stop>>
-  terminals: Array<Maybe<Terminal>>
+  stops: Maybe<Stop>[]
+  terminals: Maybe<Terminal>[]
   terminal?: Maybe<Terminal>
   route?: Maybe<Route>
-  routes: Array<Maybe<Route>>
+  routes: Maybe<Route>[]
   routeGeometry?: Maybe<RouteGeometry>
-  routeSegments: Array<Maybe<RouteSegment>>
-  departures: Array<Maybe<Departure>>
-  routeDepartures: Array<Maybe<Departure>>
-  weeklyDepartures: Array<Maybe<Departure>>
-  exceptionDays: Array<Maybe<ExceptionDay>>
+  routeSegments: Maybe<RouteSegment>[]
+  departures: Maybe<Departure>[]
+  routeDepartures: Maybe<Departure>[]
+  weeklyDepartures: Maybe<Departure>[]
+  exceptionDays: Maybe<ExceptionDay>[]
   journey?: Maybe<Journey>
-  journeys: Array<Maybe<Journey>>
-  vehicleJourneys: Array<Maybe<VehicleJourney>>
-  driverEvents: Array<Maybe<DriverEvent>>
-  journeysByBbox: Array<Maybe<Journey>>
-  unsignedVehicleEvents: Array<Maybe<VehiclePosition>>
+  journeys: Maybe<Journey>[]
+  vehicleJourneys: Maybe<VehicleJourney>[]
+  driverEvents: Maybe<DriverEvent>[]
+  journeysByBbox: Maybe<Journey>[]
+  unsignedVehicleEvents: Maybe<VehiclePosition>[]
   alerts: Alert[]
   cancellations: Cancellation[]
   uiMessage: UiMessage
@@ -730,6 +730,7 @@ export type Route = {
   alerts: Alert[]
   cancellations: Cancellation[]
   _matchScore?: Maybe<Scalars['Float']>
+  trunkRoute?: Maybe<Scalars['Boolean']>
 }
 
 export type RouteFilterInput = {
@@ -770,7 +771,7 @@ export type RouteSegment = Position & {
   lng: Scalars['Float']
   name?: Maybe<Scalars['String']>
   radius?: Maybe<Scalars['Float']>
-  modes?: Maybe<Array<Scalars['String']>>
+  modes?: Maybe<Scalars['String'][]>
   alerts: Alert[]
   cancellations: Cancellation[]
 }
@@ -785,7 +786,7 @@ export type Stop = Position & {
   name?: Maybe<Scalars['String']>
   radius?: Maybe<Scalars['Float']>
   routes: StopRoute[]
-  modes: Array<Maybe<Scalars['String']>>
+  modes: Maybe<Scalars['String']>[]
   isTimingStop: Scalars['Boolean']
   stopIndex?: Maybe<Scalars['Int']>
   _matchScore?: Maybe<Scalars['Float']>
@@ -815,9 +816,9 @@ export type Terminal = Position & {
   name: Scalars['String']
   lat: Scalars['Float']
   lng: Scalars['Float']
-  stopIds?: Maybe<Array<Scalars['String']>>
+  stopIds?: Maybe<Scalars['String'][]>
   stops?: Maybe<Stop[]>
-  modes?: Maybe<Array<Scalars['String']>>
+  modes?: Maybe<Scalars['String'][]>
 }
 
 export enum TlpDecision {
