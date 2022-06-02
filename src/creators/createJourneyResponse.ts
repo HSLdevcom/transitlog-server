@@ -14,6 +14,7 @@ import {
   JourneyEvent,
   JourneyStopEvent,
   JourneyTlpEvent,
+  JourneyPassengerCountEvent,
   PlannedStopEvent,
   Route,
   Scalars,
@@ -46,13 +47,14 @@ import {
   setAlertsOnDeparture,
   setCancellationsOnDeparture,
 } from '../utils/setCancellationsAndAlerts'
-import { JourneyEvents, Vehicles } from '../types/EventsDb'
+import { JourneyEvents, Vehicles, PassengerCount } from '../types/EventsDb'
 import {
   createJourneyCancellationEventObject,
   createJourneyEventObject,
   createJourneyStopEventObject,
   createJourneyTlpEventObject,
   createPlannedStopEventObject,
+  createPassengerCountEventObject,
 } from '../objects/createJourneyEventObject'
 import { createStopObject } from '../objects/createStopObject'
 import moment from 'moment-timezone'
@@ -80,6 +82,7 @@ type EventsType =
   | PlannedStopEvent
   | JourneyCancellationEvent
   | JourneyTlpEvent
+  | JourneyPassengerCountEvent
 
 export type PlannedJourneyData = {
   departures: JoreRouteDepartureData[]
@@ -106,7 +109,7 @@ const fetchValidJourneyEvents: CachedFetcher<JourneyEvents> = async (
   fetcher,
   uniqueVehicleId
 ): Promise<JourneyEvents | false> => {
-  type JourneyEventGroup = Array<[string, Vehicles[]]>
+  type JourneyEventGroup = [string, Vehicles[]][]
   type GroupedJourneyEvents = { [key: string]: JourneyEventGroup }
 
   const events: JourneyEvents = await fetcher()
@@ -213,7 +216,7 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
       originDeparture.departure_id === departure.departure_id
   )
 
-  const stopDepartures: Array<Departure | null> = journeyDepartures.map((departure) => {
+  const stopDepartures: (Departure | null)[] = journeyDepartures.map((departure) => {
     const stopSegment = routeStops.find(
       (stopSegment) =>
         stopSegment.stop_id === departure.stop_id &&
@@ -267,6 +270,12 @@ const fetchJourneyDepartures: CachedFetcher<JourneyRoute> = async (
  */
 export async function createJourneyResponse(
   user: AuthenticatedUser | null,
+  getPassengerCountData: (
+    routeId: string,
+    direction: string,
+    departureDate: string,
+    departureTime: string
+  ) => Promise<PassengerCount[]>,
   fetchRouteData: () => Promise<PlannedJourneyData>,
   fetchJourneyEvents: () => Promise<JourneyEvents>,
   fetchJourneyEquipment: (
@@ -448,6 +457,24 @@ export async function createJourneyResponse(
     'asc'
   )
 
+  let passengerCounts: PassengerCount[] = []
+
+  if (user) {
+    const passengerCountKey = `passengercount_${routeId}_${direction}_${departureDate}_${departureTime}`
+    const passengerCountResults = await cacheFetch(
+      passengerCountKey,
+      () => getPassengerCountData(routeId, direction, departureDate, departureTime),
+      24 * 60 * 60,
+      skipCache
+    )
+    if (passengerCountResults && passengerCountResults.length !== 0) {
+      passengerCounts = passengerCountResults
+    }
+  }
+  // Create APC event objects
+  const passengerCountEvents: JourneyPassengerCountEvent[] = passengerCounts.map((event) =>
+    createPassengerCountEventObject(event)
+  )
   // At this point we have everything we need to return just the planned
   // part of this journey in case we got no events.
   if (!journeyEvents) {
@@ -522,7 +549,7 @@ export async function createJourneyResponse(
   )
 
   // Create event objects from other events and include cancellation events.
-  const journeyEventObjects: Array<JourneyEvent | JourneyCancellationEvent> = [
+  const journeyEventObjects: (JourneyEvent | JourneyCancellationEvent)[] = [
     ...events.map((event) => createJourneyEventObject(event)),
     ...cancellationEvents,
   ]
@@ -683,6 +710,7 @@ export async function createJourneyResponse(
     ...journeyEventObjects,
     ...tlrEvents,
     ...tlaEvents,
+    ...passengerCountEvents,
   ].sort((eventA, eventB) => {
     if (eventA._sort && eventB._sort) {
       const sort = eventA._sort - eventB._sort

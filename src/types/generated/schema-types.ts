@@ -250,6 +250,7 @@ export type Departure = {
   observedArrivalTime?: Maybe<ObservedArrival>
   plannedDepartureTime: PlannedDeparture
   observedDepartureTime?: Maybe<ObservedDeparture>
+  apc?: Maybe<Scalars['Boolean']>
   _normalDayType?: Maybe<Scalars['String']>
 }
 
@@ -373,6 +374,7 @@ export type Journey = {
   alerts: Alert[]
   cancellations: Cancellation[]
   isCancelled: Scalars['Boolean']
+  apc?: Maybe<Scalars['Boolean']>
 }
 
 export type JourneyCancellationEvent = {
@@ -418,6 +420,34 @@ export type JourneyEventType =
   | JourneyCancellationEvent
   | PlannedStopEvent
   | JourneyTlpEvent
+  | JourneyPassengerCountEvent
+
+export type JourneyPassengerCountEvent = {
+  __typename?: 'JourneyPassengerCountEvent'
+  id: Scalars['ID']
+  type: Scalars['String']
+  dir?: Maybe<Scalars['Int']>
+  oper?: Maybe<Scalars['Int']>
+  veh?: Maybe<Scalars['Int']>
+  uniqueVehicleId?: Maybe<Scalars['String']>
+  route_id?: Maybe<Scalars['String']>
+  receivedAt: Scalars['DateTime']
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  route?: Maybe<Scalars['String']>
+  stopId?: Maybe<Scalars['String']>
+  start?: Maybe<Scalars['String']>
+  stop?: Maybe<Scalars['String']>
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  passengerCountQuality?: Maybe<Scalars['String']>
+  vehicleLoad?: Maybe<Scalars['Int']>
+  vehicleLoadRatio?: Maybe<Scalars['Float']>
+  totalPassengersIn?: Maybe<Scalars['Int']>
+  totalPassengersOut?: Maybe<Scalars['Int']>
+  _sort?: Maybe<Scalars['Int']>
+}
 
 export type JourneyStopEvent = {
   __typename?: 'JourneyStopEvent'
