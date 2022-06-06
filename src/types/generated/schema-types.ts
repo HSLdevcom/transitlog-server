@@ -760,7 +760,7 @@ export type Route = {
   alerts: Alert[]
   cancellations: Cancellation[]
   _matchScore?: Maybe<Scalars['Float']>
-  trunkRoute?: Maybe<Scalars['Boolean']>
+  trunkRoute: Scalars['Boolean']
 }
 
 export type RouteFilterInput = {

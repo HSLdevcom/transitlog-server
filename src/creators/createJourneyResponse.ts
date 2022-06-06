@@ -459,7 +459,7 @@ export async function createJourneyResponse(
 
   let passengerCounts: PassengerCount[] = []
 
-  if (user) {
+  if (requireVehicleAuthorization(user, vehicleId)) {
     const passengerCountKey = `passengercount_${routeId}_${direction}_${departureDate}_${departureTime}`
     const passengerCountResults = await cacheFetch(
       passengerCountKey,

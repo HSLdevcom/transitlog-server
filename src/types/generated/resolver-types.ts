@@ -764,7 +764,7 @@ export type Route = {
   alerts: Alert[]
   cancellations: Cancellation[]
   _matchScore?: Maybe<Scalars['Float']>
-  trunkRoute?: Maybe<Scalars['Boolean']>
+  trunkRoute: Scalars['Boolean']
 }
 
 export type RouteFilterInput = {
@@ -1808,7 +1808,7 @@ export type RouteResolvers<
   alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
   cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
   _matchScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
-  trunkRoute?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  trunkRoute?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
 }
 
 export type RouteGeometryResolvers<
