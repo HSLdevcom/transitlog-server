@@ -72,9 +72,13 @@ export async function createRoutesResponse(
 
     const groupedRoutes = groupBy(
       routes,
-      ({ route_id, direction }) => `${route_id}.${direction}`
+      ({ route_id, direction, name_fi }) => `${route_id}.${direction}.${name_fi}`
     )
-    const filteredRoutes = filterByDateChains<JoreRoute>(groupedRoutes, date)
+    const filteredGroupedRows = {}
+    Object.keys(groupedRoutes).forEach((key) => {
+      filteredGroupedRows[key] = [groupedRoutes[key][0]]
+    })
+    const filteredRoutes = filterByDateChains<JoreRoute>(filteredGroupedRows, date)
 
     return filteredRoutes.map((route) => {
       const routeCancellations = cancellations.filter(
