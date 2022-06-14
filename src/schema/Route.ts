@@ -16,7 +16,7 @@ export const Route = gql`
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     _matchScore: Float
-    trunkRoute: Boolean!
+    trunkRoute: Boolean
   }
 
   type RouteSegment implements Position {
