@@ -10,6 +10,10 @@ import { getDirection } from '../utils/getDirection'
 import { requireUser } from '../auth/requireUser'
 import { filterByDateGroups } from '../utils/filterByDateGroups'
 
+interface FilteredRouteSet {
+  [details: string]: JoreRoute
+}
+
 export async function createRouteResponse(
   getRoute: () => Promise<JoreRoute[]>,
   getCancellations,
@@ -70,15 +74,20 @@ export async function createRoutesResponse(
 
     const cancellations = await getCancellations(date, { all: true }, skipCache)
 
-    const groupedRoutes = groupBy(
-      routes,
-      ({ route_id, direction, name_fi }) => `${route_id}.${direction}.${name_fi}`
-    )
-    const filteredGroupedRows = {}
-    Object.keys(groupedRoutes).forEach((key) => {
-      filteredGroupedRows[key] = [groupedRoutes[key][0]]
+    const groupedRoutes = groupBy(routes, ({ route_id, name_fi }) => `${route_id}.${name_fi}`)
+
+    const filteredRoutesByDateChains = filterByDateChains<JoreRoute>(groupedRoutes, date)
+
+    const filteredRouteSet: FilteredRouteSet = {}
+    filteredRoutesByDateChains.forEach((route) => {
+      const routeKey = `${route.direction}.${route.route_id}`
+      const existingRoute = filteredRouteSet[routeKey]
+      if (!existingRoute) {
+        filteredRouteSet[routeKey] = route
+      }
     })
-    const filteredRoutes = filterByDateChains<JoreRoute>(filteredGroupedRows, date)
+
+    const filteredRoutes = Object.values(filteredRouteSet)
 
     return filteredRoutes.map((route) => {
       const routeCancellations = cancellations.filter(
