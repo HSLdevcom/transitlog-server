@@ -459,21 +459,19 @@ export async function createJourneyResponse(
 
   let passengerCounts: PassengerCount[] = []
 
-  if (requireVehicleAuthorization(user, vehicleId)) {
-    const passengerCountKey = `passengercount_${routeId}_${direction}_${departureDate}_${departureTime}`
-    const passengerCountResults = await cacheFetch(
-      passengerCountKey,
-      () => getPassengerCountData(routeId, direction, departureDate, departureTime),
-      24 * 60 * 60,
-      skipCache
-    )
-    if (passengerCountResults && passengerCountResults.length !== 0) {
-      passengerCounts = passengerCountResults
-    }
+  const passengerCountKey = `passengercount_${routeId}_${direction}_${departureDate}_${departureTime}`
+  const passengerCountResults = await cacheFetch(
+    passengerCountKey,
+    () => getPassengerCountData(routeId, direction, departureDate, departureTime),
+    24 * 60 * 60,
+    skipCache
+  )
+  if (passengerCountResults && passengerCountResults.length !== 0) {
+    passengerCounts = passengerCountResults
   }
   // Create APC event objects
   const passengerCountEvents: JourneyPassengerCountEvent[] = passengerCounts.map((event) =>
-    createPassengerCountEventObject(event)
+    createPassengerCountEventObject(event, requireVehicleAuthorization(user, vehicleId))
   )
   // At this point we have everything we need to return just the planned
   // part of this journey in case we got no events.

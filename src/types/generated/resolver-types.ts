@@ -450,6 +450,7 @@ export type JourneyPassengerCountEvent = {
   vehicleLoadRatio?: Maybe<Scalars['Float']>
   totalPassengersIn?: Maybe<Scalars['Int']>
   totalPassengersOut?: Maybe<Scalars['Int']>
+  vehicleLoadRatioText?: Maybe<Scalars['String']>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -764,7 +765,7 @@ export type Route = {
   alerts: Alert[]
   cancellations: Cancellation[]
   _matchScore?: Maybe<Scalars['Float']>
-  trunkRoute: Scalars['Boolean']
+  trunkRoute?: Maybe<Scalars['Boolean']>
 }
 
 export type RouteFilterInput = {
@@ -1489,6 +1490,7 @@ export type JourneyPassengerCountEventResolvers<
   vehicleLoadRatio?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
   totalPassengersIn?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   totalPassengersOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  vehicleLoadRatioText?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
@@ -1808,7 +1810,7 @@ export type RouteResolvers<
   alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
   cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
   _matchScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
-  trunkRoute?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  trunkRoute?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
 }
 
 export type RouteGeometryResolvers<

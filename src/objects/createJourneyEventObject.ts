@@ -345,11 +345,34 @@ export function createDriverEventObject(event: Vehicles): DriverEvent {
 }
 
 export function createPassengerCountEventObject(
-  event: PassengerCount
+  event: PassengerCount,
+  authorized: Boolean
 ): JourneyPassengerCountEvent {
   const ts = moment.tz(event.tst, TZ)
   const receivedTs = moment.tz(event.tst, TZ)
   const unix = ts.unix()
+
+  const vehicleLoadRatio = authorized ? event.vehicle_load_ratio : null
+  const vehicleLoad = authorized ? event.vehicle_load : null
+  const totalPassengersIn = authorized ? event.total_passengers_in : null
+  const totalPassengersOut = authorized ? event.total_passengers_out : null
+  let vehicleLoadRatioText = 'Tyhjä'
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.05) {
+    vehicleLoadRatioText = 'Paljon istumapaikkoja vapaana'
+  }
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.2) {
+    vehicleLoadRatioText = 'Vähän istumapaikkoja vapaana'
+  }
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.5) {
+    vehicleLoadRatioText = 'Ainoastaan seisomatilaa'
+  }
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.7) {
+    vehicleLoadRatioText = 'Vähän seisomatilaa'
+  }
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.9) {
+    vehicleLoadRatioText = 'Täynnä'
+  }
+
   return {
     id: `journey_apc_event_${event.start}_${event.unique_vehicle_id}_${unix}_${event.latitude}_${event.longitude}`,
     type: 'APC',
@@ -368,10 +391,11 @@ export function createPassengerCountEventObject(
     start: event.start,
     route: event.route,
     passengerCountQuality: event.passenger_count_quality,
-    vehicleLoad: event.vehicle_load,
-    vehicleLoadRatio: event.vehicle_load_ratio,
-    totalPassengersIn: event.total_passengers_in,
-    totalPassengersOut: event.total_passengers_out,
+    vehicleLoad,
+    vehicleLoadRatio,
+    totalPassengersIn,
+    totalPassengersOut,
+    vehicleLoadRatioText,
     _sort: unix,
   }
 }
