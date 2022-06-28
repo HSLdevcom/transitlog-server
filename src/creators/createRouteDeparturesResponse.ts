@@ -117,17 +117,15 @@ export async function createRouteDeparturesResponse(
     )
 
     let passengerCounts: PassengerCount[] = []
-    if (user) {
-      const passengerCountKey = `passengercount_${routeId}_${direction}_${date}`
-      const passengerCountResults = await cacheFetch(
-        passengerCountKey,
-        () => getPassengerCountData(routeId, direction, date),
-        24 * 60 * 60,
-        skipCache
-      )
-      if (passengerCountResults && passengerCountResults.length !== 0) {
-        passengerCounts = passengerCountResults
-      }
+    const passengerCountKey = `passengercount_${routeId}_${direction}_${date}`
+    const passengerCountResults = await cacheFetch(
+      passengerCountKey,
+      () => getPassengerCountData(routeId, direction, date),
+      24 * 60 * 60,
+      skipCache
+    )
+    if (passengerCountResults && passengerCountResults.length !== 0) {
+      passengerCounts = passengerCountResults
     }
 
     const routeDepartures = combineDeparturesAndStops(validDepartures, stops, date)

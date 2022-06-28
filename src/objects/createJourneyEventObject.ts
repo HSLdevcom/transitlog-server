@@ -356,21 +356,22 @@ export function createPassengerCountEventObject(
   const vehicleLoad = authorized ? event.vehicle_load : null
   const totalPassengersIn = authorized ? event.total_passengers_in : null
   const totalPassengersOut = authorized ? event.total_passengers_out : null
-  let vehicleLoadRatioText = 'Tyhjä'
+  let vehicleLoadRatioText = 'empty'
+
   if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.05) {
-    vehicleLoadRatioText = 'Paljon istumapaikkoja vapaana'
+    vehicleLoadRatioText = 'mostlyAvailableSeats'
   }
   if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.2) {
-    vehicleLoadRatioText = 'Vähän istumapaikkoja vapaana'
+    vehicleLoadRatioText = 'fewAvailableSeats'
   }
   if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.5) {
-    vehicleLoadRatioText = 'Ainoastaan seisomatilaa'
+    vehicleLoadRatioText = 'onlyStandingSeats'
   }
   if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.7) {
-    vehicleLoadRatioText = 'Vähän seisomatilaa'
+    vehicleLoadRatioText = 'fewStandingSeats'
   }
   if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.9) {
-    vehicleLoadRatioText = 'Täynnä'
+    vehicleLoadRatioText = 'full'
   }
 
   return {
