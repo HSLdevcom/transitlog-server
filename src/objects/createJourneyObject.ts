@@ -9,6 +9,7 @@ import {
   JourneyEvent,
   JourneyStopEvent,
   JourneyTlpEvent,
+  JourneyPassengerCountEvent,
   PlannedStopEvent,
   Route,
 } from '../types/generated/schema-types'
@@ -34,6 +35,7 @@ export function createJourneyObject(
     | PlannedStopEvent
     | JourneyCancellationEvent
     | JourneyTlpEvent
+    | JourneyPassengerCountEvent
   )[],
   journeyRoute?: Route | null,
   originDeparture: Departure | null = null,
@@ -71,7 +73,6 @@ export function createJourneyObject(
   const [operator = '0000', vehicleNumber = '00'] = vehicleId.split('/')
 
   const mode = validModes(journeyRoute?.mode, journey?.mode)
-
   return {
     id,
     journeyType: 'journey',

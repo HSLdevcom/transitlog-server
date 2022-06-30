@@ -43,6 +43,9 @@ export const resolvers: StringIndexed<any> = {
       ) {
         return 'JourneyStopEvent'
       }
+      if (obj.type && obj.type === 'APC') {
+        return 'JourneyPassengerCountEvent'
+      }
 
       return 'JourneyEvent'
     },

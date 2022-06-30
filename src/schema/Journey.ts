@@ -65,6 +65,33 @@ export const Journey = gql`
     _sort: Int
   }
 
+  type JourneyPassengerCountEvent {
+    id: ID!
+    type: String!
+    dir: Int
+    oper: Int
+    veh: Int
+    uniqueVehicleId: String
+    route_id: String
+    receivedAt: DateTime!
+    recordedAt: DateTime!
+    recordedAtUnix: Int!
+    recordedTime: Time!
+    route: String
+    stopId: String
+    start: String
+    stop: String
+    lat: Float
+    lng: Float
+    passengerCountQuality: String
+    vehicleLoad: Int
+    vehicleLoadRatio: Float
+    totalPassengersIn: Int
+    totalPassengersOut: Int
+    vehicleLoadRatioText: String
+    _sort: Int
+  }
+
   type JourneyStopEvent {
     id: ID!
     type: String!
@@ -165,6 +192,7 @@ export const Journey = gql`
     | JourneyCancellationEvent
     | PlannedStopEvent
     | JourneyTlpEvent
+    | JourneyPassengerCountEvent
 
   type VehiclePosition implements Position {
     id: ID!
@@ -214,6 +242,7 @@ export const Journey = gql`
     alerts: [Alert!]!
     cancellations: [Cancellation!]!
     isCancelled: Boolean!
+    apc: Boolean
   }
 
   type VehicleJourney {
