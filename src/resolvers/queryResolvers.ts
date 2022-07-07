@@ -167,7 +167,8 @@ const routeDepartures = async (
   { dataSources, user, skipCache }
 ) => {
   const exceptions = await dataSources.JoreAPI.getExceptions(date)
-
+  const getPassengerCount = () =>
+    dataSources.HFPAPI.getPassengerCounts(routeId, direction, date)
   const fetchAlerts = getAlerts.bind(null, dataSources.HFPAPI.getAlerts)
 
   const getDepartures = () =>
@@ -187,6 +188,7 @@ const routeDepartures = async (
 
   return createRouteDeparturesResponse(
     user,
+    getPassengerCount,
     getDepartures,
     getStops,
     getDepartureEvents,
@@ -295,6 +297,14 @@ const journey = async (
   const getUnsignedEvents = (vehicleId: string) =>
     dataSources.HFPAPI.getUnsignedEventsForVehicle(departureDate, vehicleId)
 
+  const getPassengerCountData = () =>
+    dataSources.HFPAPI.getPassengerCountByDeparture(
+      routeId,
+      direction,
+      departureDate,
+      departureTime
+    )
+
   const getJourneyEquipment = (vehicleId, operatorId) =>
     dataSources.JoreAPI.getEquipmentById(vehicleId, operatorId)
 
@@ -309,6 +319,7 @@ const journey = async (
 
   return createJourneyResponse(
     user,
+    getPassengerCountData,
     getRouteData,
     getJourneyEvents,
     getJourneyEquipment,

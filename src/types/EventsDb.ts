@@ -150,6 +150,27 @@ export type JourneyEvents = {
   tlpEvents: TlpEvents[]
 }
 
+export type PassengerCount = {
+  dir: Maybe<number>
+  oper: Maybe<number>
+  veh: Maybe<number>
+  unique_vehicle_id: Maybe<string>
+  route_id: Maybe<string>
+  tst: string
+  tsi: string
+  latitude: Maybe<number>
+  longitude: Maybe<number>
+  oday: Maybe<string>
+  start: Maybe<string>
+  stop: Maybe<string>
+  route: Maybe<string>
+  passenger_count_quality: Maybe<string>
+  vehicle_load: Maybe<number>
+  vehicle_load_ratio: Maybe<number>
+  total_passengers_in: Maybe<number>
+  total_passengers_out: Maybe<number>
+}
+
 export type EventsType =
   | JourneyStopEvent
   | JourneyEvent

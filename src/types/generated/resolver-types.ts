@@ -1,5 +1,4 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql'
-
 export type Maybe<T> = T | null
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } &
@@ -255,6 +254,7 @@ export type Departure = {
   observedArrivalTime?: Maybe<ObservedArrival>
   plannedDepartureTime: PlannedDeparture
   observedDepartureTime?: Maybe<ObservedDeparture>
+  apc?: Maybe<Scalars['Boolean']>
   _normalDayType?: Maybe<Scalars['String']>
 }
 
@@ -378,6 +378,7 @@ export type Journey = {
   alerts: Alert[]
   cancellations: Cancellation[]
   isCancelled: Scalars['Boolean']
+  apc?: Maybe<Scalars['Boolean']>
 }
 
 export type JourneyCancellationEvent = {
@@ -423,6 +424,35 @@ export type JourneyEventType =
   | JourneyCancellationEvent
   | PlannedStopEvent
   | JourneyTlpEvent
+  | JourneyPassengerCountEvent
+
+export type JourneyPassengerCountEvent = {
+  __typename?: 'JourneyPassengerCountEvent'
+  id: Scalars['ID']
+  type: Scalars['String']
+  dir?: Maybe<Scalars['Int']>
+  oper?: Maybe<Scalars['Int']>
+  veh?: Maybe<Scalars['Int']>
+  uniqueVehicleId?: Maybe<Scalars['String']>
+  route_id?: Maybe<Scalars['String']>
+  receivedAt: Scalars['DateTime']
+  recordedAt: Scalars['DateTime']
+  recordedAtUnix: Scalars['Int']
+  recordedTime: Scalars['Time']
+  route?: Maybe<Scalars['String']>
+  stopId?: Maybe<Scalars['String']>
+  start?: Maybe<Scalars['String']>
+  stop?: Maybe<Scalars['String']>
+  lat?: Maybe<Scalars['Float']>
+  lng?: Maybe<Scalars['Float']>
+  passengerCountQuality?: Maybe<Scalars['String']>
+  vehicleLoad?: Maybe<Scalars['Int']>
+  vehicleLoadRatio?: Maybe<Scalars['Float']>
+  totalPassengersIn?: Maybe<Scalars['Int']>
+  totalPassengersOut?: Maybe<Scalars['Int']>
+  vehicleLoadRatioText?: Maybe<Scalars['String']>
+  _sort?: Maybe<Scalars['Int']>
+}
 
 export type JourneyStopEvent = {
   __typename?: 'JourneyStopEvent'
@@ -735,6 +765,7 @@ export type Route = {
   alerts: Alert[]
   cancellations: Cancellation[]
   _matchScore?: Maybe<Scalars['Float']>
+  trunkRoute?: Maybe<Scalars['Boolean']>
 }
 
 export type RouteFilterInput = {
@@ -1041,6 +1072,7 @@ export type ResolversTypes = {
     | ResolversTypes['JourneyCancellationEvent']
     | ResolversTypes['PlannedStopEvent']
     | ResolversTypes['JourneyTlpEvent']
+    | ResolversTypes['JourneyPassengerCountEvent']
   JourneyEvent: ResolverTypeWrapper<JourneyEvent>
   JourneyCancellationEvent: ResolverTypeWrapper<JourneyCancellationEvent>
   PlannedStopEvent: ResolverTypeWrapper<PlannedStopEvent>
@@ -1049,6 +1081,7 @@ export type ResolversTypes = {
   TlpPriorityLevel: TlpPriorityLevel
   TlpReason: TlpReason
   TlpDecision: TlpDecision
+  JourneyPassengerCountEvent: ResolverTypeWrapper<JourneyPassengerCountEvent>
   VehicleJourney: ResolverTypeWrapper<VehicleJourney>
   DriverEvent: ResolverTypeWrapper<DriverEvent>
   PreciseBBox: ResolverTypeWrapper<Scalars['PreciseBBox']>
@@ -1107,9 +1140,7 @@ export type ResolversParentTypes = {
   ObservedArrival: ObservedArrival
   ObservedDeparture: ObservedDeparture
   ExceptionDay: ExceptionDay
-  Journey: Omit<Journey, 'events'> & {
-    events: ResolversParentTypes['JourneyEventType'][]
-  }
+  Journey: Omit<Journey, 'events'> & { events: ResolversParentTypes['JourneyEventType'][] }
   VehiclePosition: VehiclePosition
   JourneyEventType:
     | ResolversParentTypes['JourneyEvent']
@@ -1117,6 +1148,7 @@ export type ResolversParentTypes = {
     | ResolversParentTypes['JourneyCancellationEvent']
     | ResolversParentTypes['PlannedStopEvent']
     | ResolversParentTypes['JourneyTlpEvent']
+    | ResolversParentTypes['JourneyPassengerCountEvent']
   JourneyEvent: JourneyEvent
   JourneyCancellationEvent: JourneyCancellationEvent
   PlannedStopEvent: PlannedStopEvent
@@ -1125,6 +1157,7 @@ export type ResolversParentTypes = {
   TlpPriorityLevel: TlpPriorityLevel
   TlpReason: TlpReason
   TlpDecision: TlpDecision
+  JourneyPassengerCountEvent: JourneyPassengerCountEvent
   VehicleJourney: VehicleJourney
   DriverEvent: DriverEvent
   PreciseBBox: Scalars['PreciseBBox']
@@ -1241,6 +1274,7 @@ export type DepartureResolvers<
     ParentType,
     ContextType
   >
+  apc?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
   _normalDayType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
 }
 
@@ -1370,6 +1404,7 @@ export type JourneyResolvers<
   alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
   cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
   isCancelled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
+  apc?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
 }
 
 export type JourneyCancellationEventResolvers<
@@ -1422,10 +1457,41 @@ export type JourneyEventTypeResolvers<
     | 'JourneyStopEvent'
     | 'JourneyCancellationEvent'
     | 'PlannedStopEvent'
-    | 'JourneyTlpEvent',
+    | 'JourneyTlpEvent'
+    | 'JourneyPassengerCountEvent',
     ParentType,
     ContextType
   >
+}
+
+export type JourneyPassengerCountEventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['JourneyPassengerCountEvent'] = ResolversParentTypes['JourneyPassengerCountEvent']
+> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  dir?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  oper?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  veh?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  uniqueVehicleId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  route_id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  receivedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  recordedAtUnix?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  recordedTime?: Resolver<ResolversTypes['Time'], ParentType, ContextType>
+  route?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  stopId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  start?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  stop?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  passengerCountQuality?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  vehicleLoad?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  vehicleLoadRatio?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  totalPassengersIn?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  totalPassengersOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  vehicleLoadRatioText?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
 export type JourneyStopEventResolvers<
@@ -1744,6 +1810,7 @@ export type RouteResolvers<
   alerts?: Resolver<ResolversTypes['Alert'][], ParentType, ContextType>
   cancellations?: Resolver<ResolversTypes['Cancellation'][], ParentType, ContextType>
   _matchScore?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  trunkRoute?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
 }
 
 export type RouteGeometryResolvers<
@@ -1929,6 +1996,7 @@ export type Resolvers<ContextType = any> = {
   JourneyCancellationEvent?: JourneyCancellationEventResolvers<ContextType>
   JourneyEvent?: JourneyEventResolvers<ContextType>
   JourneyEventType?: JourneyEventTypeResolvers
+  JourneyPassengerCountEvent?: JourneyPassengerCountEventResolvers<ContextType>
   JourneyStopEvent?: JourneyStopEventResolvers<ContextType>
   JourneyTlpEvent?: JourneyTlpEventResolvers<ContextType>
   Mutation?: MutationResolvers<ContextType>

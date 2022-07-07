@@ -4,7 +4,13 @@ import { getDateFromDateTime, getNormalTime } from '../utils/time'
 import { Scalars } from '../types/generated/schema-types'
 import { Knex } from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
-import { DBAlert, DBCancellation, JourneyEvents, Vehicles } from '../types/EventsDb'
+import {
+  DBAlert,
+  DBCancellation,
+  JourneyEvents,
+  Vehicles,
+  PassengerCount,
+} from '../types/EventsDb'
 import { getKnex } from '../knex'
 import { isBefore } from 'date-fns'
 import { Moment } from 'moment'
@@ -633,6 +639,33 @@ ORDER BY tst DESC;
         { column: 'start_time', order: 'asc' },
       ])
 
+    return this.getBatched(query)
+  }
+  getPassengerCountByDeparture = async (
+    routeId,
+    direction,
+    departureDate,
+    departureTime
+  ): Promise<PassengerCount[]> => {
+    const query = this.db('passengercount')
+      .select('*')
+      .where('route', '=', routeId)
+      .where('dir', '=', direction)
+      .where('oday', '=', departureDate)
+      .where('start', '=', departureTime)
+    return this.getBatched(query)
+  }
+
+  getPassengerCounts = async (
+    routeId,
+    direction,
+    departureDate
+  ): Promise<PassengerCount[]> => {
+    const query = this.db('passengercount')
+      .select('*')
+      .where('route', '=', routeId)
+      .where('dir', '=', direction)
+      .where('oday', '=', departureDate)
     return this.getBatched(query)
   }
 }

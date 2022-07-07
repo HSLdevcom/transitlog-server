@@ -1,4 +1,4 @@
-import { compact, groupBy, orderBy } from 'lodash'
+import { compact, groupBy, orderBy, uniq, map } from 'lodash'
 import { JoreDepartureWithOrigin, JoreStopSegment } from '../types/Jore'
 import {
   Departure,
@@ -20,7 +20,7 @@ import { getDirection } from '../utils/getDirection'
 import { createPlannedDepartureObject } from '../objects/createDepartureObject'
 import { filterByExceptions } from '../utils/filterByExceptions'
 import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
-import { Vehicles } from '../types/EventsDb'
+import { Vehicles, PassengerCount } from '../types/EventsDb'
 import { extraDepartureType } from '../utils/extraDepartureType'
 
 // Combines departures and stops into PlannedDepartures.
@@ -65,6 +65,11 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
 
 export async function createRouteDeparturesResponse(
   user,
+  getPassengerCountData: (
+    routeId: string,
+    direction: string,
+    departureDate: string
+  ) => Promise<PassengerCount[]>,
   getDepartures: () => Promise<JoreDepartureWithOrigin[]>,
   getStops: () => Promise<JoreStopSegment[] | null>,
   getEvents: () => Promise<Vehicles[]>,
@@ -111,8 +116,26 @@ export async function createRouteDeparturesResponse(
       date
     )
 
+    let passengerCounts: PassengerCount[] = []
+    const passengerCountKey = `passengercount_${routeId}_${direction}_${date}`
+    const passengerCountResults = await cacheFetch(
+      passengerCountKey,
+      () => getPassengerCountData(routeId, direction, date),
+      24 * 60 * 60,
+      skipCache
+    )
+    if (passengerCountResults && passengerCountResults.length !== 0) {
+      passengerCounts = passengerCountResults
+    }
+
     const routeDepartures = combineDeparturesAndStops(validDepartures, stops, date)
-    return filterByExceptions(routeDepartures, exceptions)
+    const passengerCountStarts = uniq(map(passengerCounts, 'start'))
+    const departuresWithApcTag = routeDepartures.map((departure) => {
+      const journeyDepartureTime = departure.departureTime
+      departure.apc = passengerCountStarts.includes(journeyDepartureTime)
+      return departure
+    })
+    return filterByExceptions(departuresWithApcTag, exceptions)
   }
 
   // The departures fetcher uses the route and direction in the query, so we need to
