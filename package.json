@@ -63,7 +63,7 @@
     "graphql": "^14.1.1",
     "ioredis": "^4.16.0",
     "isomorphic-fetch": "^2.2.1",
-    "knex": "^0.95.6",
+    "knex": "^2.4.0",
     "knex-postgis": "^0.13.0",
     "lodash": "^4.17.11",
     "moment": "^2.24.0",
