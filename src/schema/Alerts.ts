@@ -50,6 +50,7 @@ export const Alerts = gql`
     MISPARKED_VEHICLE
     PUBLIC_EVENT
     HIDDEN
+    CHARGING_SERVICE
   }
 
   enum AlertImpact {
@@ -123,6 +124,8 @@ export const Alerts = gql`
     DOOR_MALFUNCTION
     UNKNOWN_CAUSE
     HIDDEN
+    OTHER_CHARGING_SERVICE
+    OPERATOR_CHARGING_SERVICE
   }
 
   enum CancellationType {
