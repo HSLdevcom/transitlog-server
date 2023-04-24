@@ -652,7 +652,7 @@ ORDER BY tst DESC;
       .where('route', '=', routeId)
       .where('dir', '=', direction)
       .where('oday', '=', departureDate)
-      .where('start', '=', departureTime)
+      .where('start', '=', getNormalTime(departureTime))
     return this.getBatched(query)
   }
 
