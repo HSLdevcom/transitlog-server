@@ -22,6 +22,7 @@ import { filterByExceptions } from '../utils/filterByExceptions'
 import { setCancellationsOnDeparture } from '../utils/setCancellationsAndAlerts'
 import { Vehicles, PassengerCount } from '../types/EventsDb'
 import { extraDepartureType } from '../utils/extraDepartureType'
+import { getNormalTime } from '../utils/time'
 
 // Combines departures and stops into PlannedDepartures.
 export const combineDeparturesAndStops = (departures, stops, date): Departure[] => {
@@ -132,7 +133,7 @@ export async function createRouteDeparturesResponse(
     const passengerCountStarts = uniq(map(passengerCounts, 'start'))
     const departuresWithApcTag = routeDepartures.map((departure) => {
       const journeyDepartureTime = departure.departureTime
-      departure.apc = passengerCountStarts.includes(journeyDepartureTime)
+      departure.apc = passengerCountStarts.includes(getNormalTime(journeyDepartureTime))
       return departure
     })
     return filterByExceptions(departuresWithApcTag, exceptions)
