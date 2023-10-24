@@ -7,6 +7,7 @@ import {
   JourneyEvent,
   JourneyStopEvent,
   JourneyTlpEvent,
+  JourneyPassengerCountEvent,
   PlannedArrival,
   PlannedDeparture,
   PlannedStopEvent,
@@ -17,7 +18,7 @@ import {
 import { TIME_FORMAT, TZ } from '../constants'
 import moment from 'moment-timezone'
 import { getDateFromDateTime, getJourneyEventTime } from '../utils/time'
-import { TlpEvents, TlpPriorityLevelDb, Vehicles } from '../types/EventsDb'
+import { TlpEvents, TlpPriorityLevelDb, Vehicles, PassengerCount } from '../types/EventsDb'
 import { createJourneyId } from '../utils/createJourneyId'
 import { get } from 'lodash'
 import { createDepartureId } from './createDepartureObject'
@@ -340,5 +341,62 @@ export function createDriverEventObject(event: Vehicles): DriverEvent {
     loc: event.loc,
     mode,
     odo: event.odo,
+  }
+}
+
+export function createPassengerCountEventObject(
+  event: PassengerCount,
+  authorized: Boolean
+): JourneyPassengerCountEvent {
+  const ts = moment.tz(event.tst, TZ)
+  const receivedTs = moment.tz(event.tst, TZ)
+  const unix = ts.unix()
+
+  const vehicleLoadRatio = authorized ? event.vehicle_load_ratio : null
+  const vehicleLoad = authorized ? event.vehicle_load : null
+  const totalPassengersIn = authorized ? event.total_passengers_in : null
+  const totalPassengersOut = authorized ? event.total_passengers_out : null
+  let vehicleLoadRatioText = 'empty'
+
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.05) {
+    vehicleLoadRatioText = 'mostlyAvailableSeats'
+  }
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.2) {
+    vehicleLoadRatioText = 'fewAvailableSeats'
+  }
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.5) {
+    vehicleLoadRatioText = 'onlyStandingSeats'
+  }
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.7) {
+    vehicleLoadRatioText = 'fewStandingSeats'
+  }
+  if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.9) {
+    vehicleLoadRatioText = 'full'
+  }
+
+  return {
+    id: `journey_apc_event_${event.start}_${event.unique_vehicle_id}_${unix}_${event.latitude}_${event.longitude}`,
+    type: 'APC',
+    dir: event.dir,
+    oper: event.oper,
+    veh: event.veh,
+    uniqueVehicleId: event.unique_vehicle_id,
+    route_id: event.route_id,
+    receivedAt: receivedTs.toISOString(true),
+    recordedAt: ts.toISOString(true),
+    recordedAtUnix: unix,
+    recordedTime: receivedTs.toISOString(true),
+    lat: event.latitude,
+    lng: event.longitude,
+    stop: event.stop,
+    start: event.start,
+    route: event.route,
+    passengerCountQuality: event.passenger_count_quality,
+    vehicleLoad,
+    vehicleLoadRatio,
+    totalPassengersIn,
+    totalPassengersOut,
+    vehicleLoadRatioText,
+    _sort: unix,
   }
 }

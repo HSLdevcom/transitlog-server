@@ -30,11 +30,11 @@ export function filterByDateGroups<T extends ValidityRange>(items: T[], date: st
   let orderedGroups = orderBy(
     validGroupEntries,
     ([, items]) => {
-      if (hasModifiedDate) {
-        return moment(items[0].date_modified).unix()
-      }
+      // if (hasModifiedDate) {
+      //   return moment(items[0].date_modified).unix()
+      // }
 
-      return moment(items[0].date_imported).unix()
+      return moment(items[0].date_begin).unix()
     },
     'desc'
   )
