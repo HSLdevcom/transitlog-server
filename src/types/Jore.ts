@@ -8,6 +8,7 @@ export enum Mode {
   Rail = 'RAIL',
   Subway = 'SUBWAY',
   Ferry = 'FERRY',
+  L_rail = 'L_RAIL',
 }
 
 /** A floating point number that requires more precision than IEEE 754 binary 64 */

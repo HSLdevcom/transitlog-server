@@ -16,6 +16,8 @@ export function getMode(code) {
       return 'RAIL'
     case '13':
       return 'RAIL'
+    case '40':
+      return 'L_RAIL'
     default:
       return 'BUS'
   }
