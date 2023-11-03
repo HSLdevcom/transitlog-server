@@ -647,12 +647,20 @@ ORDER BY tst DESC;
     departureDate,
     departureTime
   ): Promise<PassengerCount[]> => {
+    const dateTimeString = `${departureDate} ${departureTime}`
+    const format = 'YYYY-MM-DD HH:mm:ss'
+    const departureTimeUTC = moment.tz(dateTimeString, 'Europe/Helsinki').utc()
+
+    const departureTimeUTCStart = departureTimeUTC.clone().subtract(2, 'hours').format(format)
+    const departureTimeUTCEnd = departureTimeUTC.clone().add(2, 'hours').format(format)
+
     const query = this.db('passengercount')
       .select('*')
+      .where('tst', '>=', departureTimeUTCStart)
+      .where('tst', '<=', departureTimeUTCEnd)
+      .where('start', '=', departureTime)
       .where('route', '=', routeId)
       .where('dir', '=', direction)
-      .where('oday', '=', departureDate)
-      .where('start', '=', getNormalTime(departureTime))
     return this.getBatched(query)
   }
 
@@ -661,11 +669,19 @@ ORDER BY tst DESC;
     direction,
     departureDate
   ): Promise<PassengerCount[]> => {
+    const dateTimeString = `${departureDate}`
+    const format = 'YYYY-MM-DD HH:mm:ss'
+    const departureTimeUTC = moment.tz(dateTimeString, 'Europe/Helsinki')
+
+    const departureTimeStart = departureTimeUTC.clone().subtract(1, 'days').format(format)
+    const departureTimeEnd = departureTimeUTC.clone().add(1, 'days').format(format)
     const query = this.db('passengercount')
       .select('*')
+      .where('tst', '>=', departureTimeStart)
+      .where('tst', '<=', departureTimeEnd)
+      .where('oday', '=', departureDate)
       .where('route', '=', routeId)
       .where('dir', '=', direction)
-      .where('oday', '=', departureDate)
     return this.getBatched(query)
   }
 }
