@@ -7,9 +7,9 @@
   "scripts": {
     "docker:build": "docker build --cpuset-cpus 2 -t hsldevcom/transitlog-server .",
     "docker:run": "docker run --name transitlog-server -p 4000:4000 hsldevcom/transitlog-server",
-    "start": "TS_NODE_FILES=true NODE_ICU_DATA=\\\"node_modules/full-icu\\\" ts-node-dev --max-old-space-size=4096 --no-notify --respawn --inspect -r dotenv/config --files src/server.ts",
-    "start:build": "TS_NODE_FILES=true NODE_ICU_DATA=\"node_modules/full-icu\" ts-node-dev --no-notify --respawn --inspect -r dotenv/config --files dist/server.js",
-    "start:production": "NODE_ICU_DATA=\"node_modules/full-icu\" forever stopall && forever start -f --spinSleepTime 1000 -c \"node -r dotenv/config\" dist/server.js && sleep 10 && forever logs -f 0",
+    "start": "TS_NODE_FILES=true ts-node-dev --max-old-space-size=4096 --no-notify --respawn --inspect -r dotenv/config --files src/server.ts",
+    "start:build": "TS_NODE_FILES=true ts-node-dev --no-notify --respawn --inspect -r dotenv/config --files dist/server.js",
+    "start:production": "forever stopall && forever start -f --spinSleepTime 1000 -c \"node -r dotenv/config\" dist/server.js && sleep 10 && forever logs -f 0",
     "build": "tsc",
     "codegen": "graphql-codegen --config codegen.yml",
     "codestyle": "prettier \"src/**/*.{ts,js,json}\" --write",
@@ -33,17 +33,17 @@
   "author": "HSLdevcom",
   "license": "MIT",
   "dependencies": {
-    "@azure/storage-blob": "^12.1.1",
+    "@azure/storage-blob": "^12.6.0",
     "@slack/web-api": "^5.8.0",
     "apollo-datasource": "^0.3.1",
     "apollo-link": "^1.2.9",
     "apollo-link-context": "^1.0.15",
     "apollo-link-error": "^1.1.8",
     "apollo-link-http": "^1.5.12",
-    "apollo-server": "^2.4.8",
+    "apollo-server": "^2.25.2",
     "apollo-server-caching": "^0.3.1",
     "apollo-server-errors": "^2.2.1",
-    "apollo-server-express": "^2.4.8",
+    "apollo-server-express": "^2.25.2",
     "await-to-js": "^2.1.1",
     "body-parser": "^1.18.3",
     "boundingbox": "^1.2.0",
@@ -60,7 +60,8 @@
     "fs-extra": "^8.0.1",
     "full-icu": "^1.3.0",
     "fuse.js": "^3.4.4",
-    "graphql": "^14.1.1",
+    "graphql": "^15.5.1",
+    "graphql-upload": "^11.0.0",
     "ioredis": "^4.16.0",
     "isomorphic-fetch": "^2.2.1",
     "knex": "^0.95.6",
@@ -103,5 +104,9 @@
     "tslint": "^6.1.3",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.0.1"
+  },
+  "resolutions": {
+    "graphql-upload": "^11.0.0",
+    "fs-capacitor": "^6.2.0"
   }
 }
