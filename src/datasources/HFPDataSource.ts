@@ -1,6 +1,6 @@
 import moment from 'moment-timezone'
 import { TZ } from '../constants'
-import { getDateFromDateTime, getNormalTime } from '../utils/time'
+import { getDateFromDateTime, getNormalTime, isNextDay } from '../utils/time'
 import { Scalars } from '../types/generated/schema-types'
 import { Knex } from 'knex'
 import SQLDataSource from '../utils/SQLDataSource'
@@ -647,18 +647,23 @@ ORDER BY tst DESC;
     departureDate,
     departureTime
   ): Promise<PassengerCount[]> => {
-    const dateTimeString = `${departureDate} ${departureTime}`
+    const isNormalTime = !isNextDay(departureTime)
+    const departureTimeInNormalTime = getNormalTime(departureTime)
+    const dateTimeString = `${departureDate} ${departureTimeInNormalTime}`
     const format = 'YYYY-MM-DD HH:mm:ss'
     const departureTimeUTC = moment.tz(dateTimeString, 'Europe/Helsinki').utc()
-
-    const departureTimeUTCStart = departureTimeUTC.clone().subtract(2, 'hours').format(format)
-    const departureTimeUTCEnd = departureTimeUTC.clone().add(2, 'hours').format(format)
+    if (!isNormalTime) {
+      departureTimeUTC.add(1, 'day')
+    }
+    const departureTimeUTCStart = departureTimeUTC.clone().subtract(1, 'hours').format(format)
+    const departureTimeUTCEnd = departureTimeUTC.clone().add(1, 'hours').format(format)
 
     const query = this.db('passengercount')
       .select('*')
       .where('tst', '>=', departureTimeUTCStart)
       .where('tst', '<=', departureTimeUTCEnd)
-      .where('start', '=', departureTime)
+      .where('start', '=', departureTimeInNormalTime)
+      .where('oday', '=', departureDate)
       .where('route', '=', routeId)
       .where('dir', '=', direction)
     return this.getBatched(query)
@@ -672,7 +677,6 @@ ORDER BY tst DESC;
     const dateTimeString = `${departureDate}`
     const format = 'YYYY-MM-DD HH:mm:ss'
     const departureTimeUTC = moment.tz(dateTimeString, 'Europe/Helsinki')
-
     const departureTimeStart = departureTimeUTC.clone().subtract(1, 'days').format(format)
     const departureTimeEnd = departureTimeUTC.clone().add(1, 'days').format(format)
     const query = this.db('passengercount')
