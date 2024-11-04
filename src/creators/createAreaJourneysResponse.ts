@@ -54,14 +54,46 @@ export const createAreaJourneysResponse = async (
   }${speedFilter}`
   const journeys = await cacheFetch<Journey[]>(cacheKey, fetchJourneys, 24 * 60 * 60)
 
-  if (speedFilter && !requireUser(user, 'HSL')) {
+  if (!journeys || journeys.length === 0) {
     return []
   }
 
-  if (speedFilter && journeys) {
-    const updatedJourneys = journeys.map((journey) => {
-      const { vehiclePositions } = journey
+  if (speedFilter && !user) {
+    return []
+  }
 
+  let hslGroup: boolean = false
+  if (user) {
+    if (requireUser(user, 'HSL')) {
+      hslGroup = true
+    }
+  }
+
+  let operatorGroups: string[] = getUserGroups(user)
+    .map((group) => group.replace('op_', ''))
+    .filter((group) => !!group)
+
+  let authorizedSpeedJourneys = journeys
+  authorizedSpeedJourneys = authorizedSpeedJourneys.filter((journey) => {
+    if (hslGroup) {
+      return true
+    }
+
+    if (operatorGroups.length === 0) {
+      return false
+    }
+
+    if (journey.operatorId) {
+      const operator = journey.operatorId
+      return operatorGroups.includes(operator)
+    }
+
+    return false
+  })
+
+  if (speedFilter && authorizedSpeedJourneys) {
+    const updatedJourneys = authorizedSpeedJourneys.map((journey) => {
+      const { vehiclePositions } = journey
       if (vehiclePositions && vehiclePositions.length > 0) {
         let maxVelocityVehicleposition: VehiclePosition = vehiclePositions[0]
         vehiclePositions.forEach((vp) => {
@@ -72,7 +104,6 @@ export const createAreaJourneysResponse = async (
             maxVelocityVehicleposition = vp
           }
         })
-
         return {
           ...journey,
           vehiclePositions: [maxVelocityVehicleposition],
@@ -84,20 +115,12 @@ export const createAreaJourneysResponse = async (
     return updatedJourneys
   }
 
-  if (!journeys || journeys.length === 0) {
-    return []
-  }
-
   // HSL users are allowed to see all events
   if (requireUser(user, 'HSL')) {
     return journeys
   }
 
   let authorizedJourneys = journeys
-
-  const operatorGroups: string[] = getUserGroups(user)
-    .map((group) => group.replace('op_', ''))
-    .filter((group) => !!group)
 
   authorizedJourneys = authorizedJourneys.filter((journey) => {
     if (journey.journeyType === 'journey') {
