@@ -1,4 +1,9 @@
-import { AreaEventsFilterInput, Journey, Scalars } from '../types/generated/schema-types'
+import {
+  AreaEventsFilterInput,
+  Journey,
+  Scalars,
+  VehiclePosition,
+} from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { groupBy, map } from 'lodash'
@@ -17,7 +22,8 @@ export const createAreaJourneysResponse = async (
   date: string,
   filters: AreaEventsFilterInput,
   unsignedEvents: boolean = true,
-  user: AuthenticatedUser | null = null
+  user: AuthenticatedUser | null = null,
+  speedFilter: Scalars['String'] | null = null
 ): Promise<Journey[]> => {
   const fetchJourneys: CachedFetcher<Journey[]> = async () => {
     const areaEvents = await getAreaEvents()
@@ -45,9 +51,38 @@ export const createAreaJourneysResponse = async (
   // Cache for when a link containing an area query is shared.
   const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}_${
     !!user && unsignedEvents ? 'unsigned' : ''
-  }`
-
+  }${speedFilter}`
   const journeys = await cacheFetch<Journey[]>(cacheKey, fetchJourneys, 24 * 60 * 60)
+
+  if (speedFilter && !requireUser(user, 'HSL')) {
+    return []
+  }
+
+  if (speedFilter && journeys) {
+    const updatedJourneys = journeys.map((journey) => {
+      const { vehiclePositions } = journey
+
+      if (vehiclePositions && vehiclePositions.length > 0) {
+        let maxVelocityVehicleposition: VehiclePosition = vehiclePositions[0]
+        vehiclePositions.forEach((vp) => {
+          if (!maxVelocityVehicleposition.velocity) {
+            maxVelocityVehicleposition.velocity = 0
+          }
+          if (vp.velocity && vp.velocity > maxVelocityVehicleposition.velocity) {
+            maxVelocityVehicleposition = vp
+          }
+        })
+
+        return {
+          ...journey,
+          vehiclePositions: [maxVelocityVehicleposition],
+        }
+      } else {
+        return journey
+      }
+    })
+    return updatedJourneys
+  }
 
   if (!journeys || journeys.length === 0) {
     return []

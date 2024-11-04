@@ -407,6 +407,34 @@ const journeysByBbox = (
   )
 }
 
+const journeysByBboxAndRouteId = (
+  root,
+  { minTime, maxTime, bbox, date, filters, unsignedEvents = true, routeId, speedFilter },
+  { dataSources, user }
+) => {
+  const getAreaJourney = () =>
+    dataSources.HFPAPI.getAreaJourneysByRouteId(
+      minTime,
+      maxTime,
+      bbox,
+      date,
+      !!user && unsignedEvents,
+      routeId,
+      speedFilter
+    )
+  return createAreaJourneysResponse(
+    getAreaJourney,
+    minTime,
+    maxTime,
+    bbox,
+    date,
+    filters,
+    unsignedEvents,
+    user,
+    speedFilter
+  )
+}
+
 const exceptionDays = (root, { year }, { dataSources }) => {
   // The full resolver is in the Jore datasource because we need it for other queries too.
   return dataSources.JoreAPI.getExceptions(year)
@@ -459,6 +487,7 @@ export const queryResolvers: QueryResolvers = {
   unsignedVehicleEvents,
   journeys,
   journeysByBbox,
+  journeysByBboxAndRouteId,
   exceptionDays,
   alerts,
   cancellations,

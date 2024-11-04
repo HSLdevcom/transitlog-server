@@ -618,6 +618,7 @@ export type Query = {
   vehicleJourneys: Maybe<VehicleJourney>[]
   driverEvents: Maybe<DriverEvent>[]
   journeysByBbox: Maybe<Journey>[]
+  journeysByBboxAndRouteId: Maybe<Journey>[]
   unsignedVehicleEvents: Maybe<VehiclePosition>[]
   alerts: Alert[]
   cancellations: Cancellation[]
@@ -730,6 +731,17 @@ export type QueryJourneysByBboxArgs = {
   date: Scalars['Date']
   filters?: Maybe<AreaEventsFilterInput>
   unsignedEvents?: Maybe<Scalars['Boolean']>
+}
+
+export type QueryJourneysByBboxAndRouteIdArgs = {
+  minTime: Scalars['DateTime']
+  maxTime: Scalars['DateTime']
+  bbox: Scalars['PreciseBBox']
+  date: Scalars['Date']
+  routeId: Scalars['String']
+  filters?: Maybe<AreaEventsFilterInput>
+  unsignedEvents?: Maybe<Scalars['Boolean']>
+  speedFilter: Scalars['String']
 }
 
 export type QueryUnsignedVehicleEventsArgs = {
