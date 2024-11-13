@@ -1,4 +1,9 @@
-import { AreaEventsFilterInput, Journey, Scalars } from '../types/generated/schema-types'
+import {
+  AreaEventsFilterInput,
+  Journey,
+  Scalars,
+  VehiclePosition,
+} from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
 import { groupBy, map } from 'lodash'
@@ -17,7 +22,8 @@ export const createAreaJourneysResponse = async (
   date: string,
   filters: AreaEventsFilterInput,
   unsignedEvents: boolean = true,
-  user: AuthenticatedUser | null = null
+  user: AuthenticatedUser | null = null,
+  speedFilter: Scalars['String'] | null = null
 ): Promise<Journey[]> => {
   const fetchJourneys: CachedFetcher<Journey[]> = async () => {
     const areaEvents = await getAreaEvents()
@@ -45,12 +51,68 @@ export const createAreaJourneysResponse = async (
   // Cache for when a link containing an area query is shared.
   const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}_${
     !!user && unsignedEvents ? 'unsigned' : ''
-  }`
-
+  }${speedFilter}`
   const journeys = await cacheFetch<Journey[]>(cacheKey, fetchJourneys, 24 * 60 * 60)
 
   if (!journeys || journeys.length === 0) {
     return []
+  }
+
+  if (speedFilter && !user) {
+    return []
+  }
+
+  let hslGroup: boolean = false
+  if (user) {
+    if (requireUser(user, 'HSL')) {
+      hslGroup = true
+    }
+  }
+
+  let operatorGroups: string[] = getUserGroups(user)
+    .map((group) => group.replace('op_', ''))
+    .filter((group) => !!group)
+
+  let authorizedSpeedJourneys = journeys
+  authorizedSpeedJourneys = authorizedSpeedJourneys.filter((journey) => {
+    if (hslGroup) {
+      return true
+    }
+
+    if (operatorGroups.length === 0) {
+      return false
+    }
+
+    if (journey.operatorId) {
+      const operator = journey.operatorId
+      return operatorGroups.includes(operator)
+    }
+
+    return false
+  })
+
+  if (speedFilter && authorizedSpeedJourneys) {
+    const updatedJourneys = authorizedSpeedJourneys.map((journey) => {
+      const { vehiclePositions } = journey
+      if (vehiclePositions && vehiclePositions.length > 0) {
+        let maxVelocityVehicleposition: VehiclePosition = vehiclePositions[0]
+        vehiclePositions.forEach((vp) => {
+          if (!maxVelocityVehicleposition.velocity) {
+            maxVelocityVehicleposition.velocity = 0
+          }
+          if (vp.velocity && vp.velocity > maxVelocityVehicleposition.velocity) {
+            maxVelocityVehicleposition = vp
+          }
+        })
+        return {
+          ...journey,
+          vehiclePositions: [maxVelocityVehicleposition],
+        }
+      } else {
+        return journey
+      }
+    })
+    return updatedJourneys
   }
 
   // HSL users are allowed to see all events
@@ -59,10 +121,6 @@ export const createAreaJourneysResponse = async (
   }
 
   let authorizedJourneys = journeys
-
-  const operatorGroups: string[] = getUserGroups(user)
-    .map((group) => group.replace('op_', ''))
-    .filter((group) => !!group)
 
   authorizedJourneys = authorizedJourneys.filter((journey) => {
     if (journey.journeyType === 'journey') {

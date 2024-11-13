@@ -47,7 +47,8 @@ type RequestContext = {
   const server = new ApolloServer({
     schema: executableSchema,
     formatError: (err) => {
-      console.log(err)
+      const timestamp = new Date().toISOString()
+      console.log(`[${timestamp}] Error:`, err)
       return err
     },
     dataSources: () => ({
@@ -98,7 +99,11 @@ type RequestContext = {
   )
 
   app.use(checkAccessMiddleware)
-  server.applyMiddleware({ app, cors: { credentials: true, origin: ORIGIN } })
+  server.applyMiddleware({
+    app,
+    bodyParserConfig: false,
+    cors: { credentials: true, origin: ORIGIN },
+  })
 
   app.post('/login', (req, res) => {
     authEndpoints.authorize(req, res)

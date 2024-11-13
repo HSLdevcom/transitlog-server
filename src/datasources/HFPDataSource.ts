@@ -297,6 +297,55 @@ ORDER BY tst DESC;
     )
   }
 
+  async getAreaJourneysByRouteId(
+    minTime,
+    maxTime,
+    bbox,
+    date,
+    unsignedEvents: boolean = false,
+    routeId,
+    speedFilter
+  ): Promise<Vehicles[]> {
+    const { minLat, maxLat, minLng, maxLng } = bbox
+    const speedInMetersPerSecond = speedFilter / 3.6
+
+    const createQuery = (table) => {
+      return this.db.raw(
+        `
+SELECT ${vehicleFields.join(',')}
+FROM :table:
+WHERE tst >= :minTime
+  AND tst <= :maxTime
+  AND lat >= :minLat
+  AND lat < :maxLat
+  AND long >= :minLng
+  AND long < :maxLng
+  AND is_ongoing = true
+  AND route_id = :routeId
+  AND oday = :date
+  AND spd >= :speedInMetersPerSecond
+ORDER BY tst DESC;
+    `,
+        {
+          table,
+          date,
+          minTime: moment.tz(minTime, TZ).toISOString(true),
+          maxTime: moment.tz(maxTime, TZ).toISOString(true),
+          minLat,
+          maxLat,
+          minLng,
+          maxLng,
+          routeId,
+          speedInMetersPerSecond,
+        }
+      )
+    }
+
+    const queries = [this.getBatched(createQuery('vehicleposition'))]
+
+    return Promise.all(queries).then(([vp = []]) => orderBy([...(vp || [])], 'tsi', 'asc'))
+  }
+
   /*
    * Get the journeys for a vehicle. Only journey start time required. Shown in the sidebar
    * list of vehicle journeys when a vehicle is selected.
