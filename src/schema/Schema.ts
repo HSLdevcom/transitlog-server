@@ -88,6 +88,7 @@ export const Schema = gql`
       bbox: PreciseBBox!
       date: Date!
       routeId: String!
+      direction: String!
       speedFilter: String!
       filters: AreaEventsFilterInput
       unsignedEvents: Boolean

@@ -304,6 +304,7 @@ ORDER BY tst DESC;
     date,
     unsignedEvents: boolean = false,
     routeId,
+    direction,
     speedFilter
   ): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
@@ -324,6 +325,7 @@ WHERE tst >= :minTime
   AND route_id = :routeId
   AND oday = :date
   AND spd >= :speedInMetersPerSecond
+  AND dir = :direction
 ORDER BY tst DESC;
     `,
         {
@@ -336,6 +338,7 @@ ORDER BY tst DESC;
           minLng,
           maxLng,
           routeId,
+          direction,
           speedInMetersPerSecond,
         }
       )

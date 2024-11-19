@@ -409,7 +409,17 @@ const journeysByBbox = (
 
 const journeysByBboxAndRouteId = (
   root,
-  { minTime, maxTime, bbox, date, filters, unsignedEvents = true, routeId, speedFilter },
+  {
+    minTime,
+    maxTime,
+    bbox,
+    date,
+    filters,
+    unsignedEvents = true,
+    routeId,
+    direction,
+    speedFilter,
+  },
   { dataSources, user }
 ) => {
   const getAreaJourney = () =>
@@ -420,6 +430,7 @@ const journeysByBboxAndRouteId = (
       date,
       !!user && unsignedEvents,
       routeId,
+      direction,
       speedFilter
     )
   return createAreaJourneysResponse(
