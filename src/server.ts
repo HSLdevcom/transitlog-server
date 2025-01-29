@@ -1,5 +1,6 @@
 import moment from 'moment-timezone'
 import express from 'express'
+import rateLimit from 'express-rate-limit'
 import cors from 'cors'
 import { json } from 'body-parser'
 import { ADMIN_GROUP_NAME, COOKIE_SECRET, SECURE_COOKIE, TZ } from './constants'
@@ -18,6 +19,7 @@ import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
 import { adminController } from './admin/adminController'
 import { cleanup } from './utils/cleanup'
 import { getKnex } from './knex'
+
 // Set the default timezone for the app
 moment.tz.setDefault(TZ)
 
@@ -63,13 +65,18 @@ type RequestContext = {
 
   const app = express()
 
+  const limiter = rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 200,
+  })
+
   app.use(
     cors({
       credentials: true,
       origin: ORIGIN,
     })
   )
-
+  app.use(limiter)
   app.use(json({ limit: '50mb' }))
 
   app.engine('js', createEngine({ transformViews: false }))
