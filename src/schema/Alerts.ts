@@ -164,7 +164,7 @@ export const Alerts = gql`
   }
 
   type Cancellation {
-    id: Int!
+    id: ID!
     routeId: String!
     direction: Direction!
     departureDate: Date!

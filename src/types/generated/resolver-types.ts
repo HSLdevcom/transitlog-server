@@ -126,7 +126,7 @@ export type AreaEventsFilterInput = {
 
 export type Cancellation = {
   __typename?: 'Cancellation'
-  id: Scalars['Int']
+  id: Scalars['ID']
   routeId: Scalars['String']
   direction: Scalars['Direction']
   departureDate: Scalars['Date']
@@ -744,9 +744,9 @@ export type QueryJourneysByBboxAndRouteIdArgs = {
   date: Scalars['Date']
   routeId: Scalars['String']
   direction: Scalars['String']
+  speedFilter: Scalars['String']
   filters?: Maybe<AreaEventsFilterInput>
   unsignedEvents?: Maybe<Scalars['Boolean']>
-  speedFilter: Scalars['String']
 }
 
 export type QueryUnsignedVehicleEventsArgs = {
@@ -1216,7 +1216,7 @@ export type CancellationResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Cancellation'] = ResolversParentTypes['Cancellation']
 > = {
-  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
   departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
@@ -1793,7 +1793,7 @@ export type QueryResolvers<
     ContextType,
     RequireFields<
       QueryJourneysByBboxAndRouteIdArgs,
-      'minTime' | 'maxTime' | 'bbox' | 'date' | 'routeId' | 'speedFilter'
+      'minTime' | 'maxTime' | 'bbox' | 'date' | 'routeId' | 'direction' | 'speedFilter'
     >
   >
   unsignedVehicleEvents?: Resolver<

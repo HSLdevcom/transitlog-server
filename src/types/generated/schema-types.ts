@@ -122,7 +122,7 @@ export type AreaEventsFilterInput = {
 
 export type Cancellation = {
   __typename?: 'Cancellation'
-  id: Scalars['Int']
+  id: Scalars['ID']
   routeId: Scalars['String']
   direction: Scalars['Direction']
   departureDate: Scalars['Date']
@@ -740,9 +740,9 @@ export type QueryJourneysByBboxAndRouteIdArgs = {
   date: Scalars['Date']
   routeId: Scalars['String']
   direction: Scalars['String']
+  speedFilter: Scalars['String']
   filters?: Maybe<AreaEventsFilterInput>
   unsignedEvents?: Maybe<Scalars['Boolean']>
-  speedFilter: Scalars['String']
 }
 
 export type QueryUnsignedVehicleEventsArgs = {

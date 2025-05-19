@@ -15,7 +15,7 @@ export function createCancellation(cancellation: DBCancellation): Cancellation {
   const cancellationData: CancellationDataType | null = cancellation.data || null
 
   return {
-    id: cancellation.id,
+    id: cancellation.id.toString(),
     routeId: cancellation.route_id,
     direction: getDirection(cancellation.direction_id),
     departureDate: cancellation.start_date,
