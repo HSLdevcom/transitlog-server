@@ -1,5 +1,6 @@
 import { mapValues, orderBy } from 'lodash'
 import fs from 'fs-extra'
+import 'dotenv/config'
 
 const SECRETS_PATH = '/run/secrets/'
 
