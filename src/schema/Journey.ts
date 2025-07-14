@@ -89,6 +89,8 @@ export const Journey = gql`
     totalPassengersIn: Int
     totalPassengersOut: Int
     vehicleLoadRatioText: String
+    bikesIn: Int
+    bikesOut: Int
     _sort: Int
   }
 
