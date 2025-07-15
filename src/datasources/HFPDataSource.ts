@@ -309,7 +309,7 @@ ORDER BY tst DESC;
   ): Promise<Vehicles[]> {
     const { minLat, maxLat, minLng, maxLng } = bbox
     const speedInMetersPerSecond = speedFilter / 3.6
-
+    maxTime = maxTime.clone().add(4, 'hours')
     const createQuery = (table) => {
       return this.db.raw(
         `

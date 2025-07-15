@@ -31,7 +31,10 @@ export async function assignUserToGroups(userInfo: IUserInfo): Promise<IUserInfo
   )
 
   const sessionGroups = userInfo.groups
-  const emailDomainGroups = assignGroups.filter((dg) => userInfo.email.endsWith(dg.domain))
+  const emailDomain = userInfo.email.split('@')[1]?.toLowerCase()
+  const emailDomainGroups = assignGroups.filter(
+    (dg) => emailDomain === dg.domain.toLowerCase()
+  )
   const groupAssignments = uniq(flatten(emailDomainGroups.map(({ groups }) => groups)))
   const assignToGroups = difference(groupAssignments, sessionGroups)
 

@@ -356,6 +356,8 @@ export function createPassengerCountEventObject(
   const vehicleLoad = authorized ? event.vehicle_load : null
   const totalPassengersIn = authorized ? event.total_passengers_in : null
   const totalPassengersOut = authorized ? event.total_passengers_out : null
+  const bikesIn = authorized ? event.bikes_in : null
+  const bikesOut = authorized ? event.bikes_out : null
   let vehicleLoadRatioText = 'empty'
 
   if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.05) {
@@ -397,6 +399,8 @@ export function createPassengerCountEventObject(
     totalPassengersIn,
     totalPassengersOut,
     vehicleLoadRatioText,
+    bikesIn,
+    bikesOut,
     _sort: unix,
   }
 }

@@ -454,6 +454,8 @@ export type JourneyPassengerCountEvent = {
   totalPassengersIn?: Maybe<Scalars['Int']>
   totalPassengersOut?: Maybe<Scalars['Int']>
   vehicleLoadRatioText?: Maybe<Scalars['String']>
+  bikesIn?: Maybe<Scalars['Int']>
+  bikesOut?: Maybe<Scalars['Int']>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -1108,8 +1110,8 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>
   Feedback: ResolverTypeWrapper<Feedback>
   Upload: ResolverTypeWrapper<Scalars['Upload']>
-  TlpType: TlpType
   BBox: ResolverTypeWrapper<Scalars['BBox']>
+  TlpType: TlpType
 }
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1184,8 +1186,8 @@ export type ResolversParentTypes = {
   Mutation: {}
   Feedback: Feedback
   Upload: Scalars['Upload']
-  TlpType: TlpType
   BBox: Scalars['BBox']
+  TlpType: TlpType
 }
 
 export type AlertResolvers<
@@ -1507,6 +1509,8 @@ export type JourneyPassengerCountEventResolvers<
   totalPassengersIn?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   totalPassengersOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   vehicleLoadRatioText?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  bikesIn?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  bikesOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
