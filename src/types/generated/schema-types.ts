@@ -452,6 +452,12 @@ export type JourneyPassengerCountEvent = {
   vehicleLoadRatioText?: Maybe<Scalars['String']>
   bikesIn?: Maybe<Scalars['Int']>
   bikesOut?: Maybe<Scalars['Int']>
+  wheelchairsIn?: Maybe<Scalars['Int']>
+  wheelchairsOut?: Maybe<Scalars['Int']>
+  pramsIn?: Maybe<Scalars['Int']>
+  pramsOut?: Maybe<Scalars['Int']>
+  otherIn?: Maybe<Scalars['Int']>
+  otherOut?: Maybe<Scalars['Int']>
   _sort?: Maybe<Scalars['Int']>
 }
 

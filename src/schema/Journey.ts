@@ -91,6 +91,12 @@ export const Journey = gql`
     vehicleLoadRatioText: String
     bikesIn: Int
     bikesOut: Int
+    wheelchairsIn: Int
+    wheelchairsOut: Int
+    pramsIn: Int
+    pramsOut: Int
+    otherIn: Int
+    otherOut: Int
     _sort: Int
   }
 
