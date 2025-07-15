@@ -358,6 +358,13 @@ export function createPassengerCountEventObject(
   const totalPassengersOut = authorized ? event.total_passengers_out : null
   const bikesIn = authorized ? event.bikes_in : null
   const bikesOut = authorized ? event.bikes_out : null
+
+  const wheelchairsIn = authorized ? event.wheelchairs_in : null
+  const wheelchairsOut = authorized ? event.wheelchairs_out : null
+  const pramsIn = authorized ? event.prams_in : null
+  const pramsOut = authorized ? event.prams_out : null
+  const otherIn = authorized ? event.other_in : null
+  const otherOut = authorized ? event.other_out : null
   let vehicleLoadRatioText = 'empty'
 
   if (event.vehicle_load_ratio && event.vehicle_load_ratio >= 0.05) {
@@ -401,6 +408,12 @@ export function createPassengerCountEventObject(
     vehicleLoadRatioText,
     bikesIn,
     bikesOut,
+    wheelchairsIn,
+    wheelchairsOut,
+    pramsIn,
+    pramsOut,
+    otherIn,
+    otherOut,
     _sort: unix,
   }
 }
