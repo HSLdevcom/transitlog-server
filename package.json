@@ -15,7 +15,9 @@
     "codestyle": "prettier \"src/**/*.{ts,js,json}\" --write",
     "test": "node scripts/test.js",
     "test:ci": "CI=true node scripts/test.js",
-    "test:staged": "CI=true node scripts/test.js --bail --findRelatedTests"
+    "test:staged": "CI=true node scripts/test.js --bail --findRelatedTests",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
   },
   "lint-staged": {
     "*.{ts,js}": [
@@ -98,7 +100,7 @@
     "jest-resolve": "^24.5.0",
     "lint-staged": "^9.0.0",
     "nodemon": "^1.18.10",
-    "prettier": "^2.3.0",
+    "prettier": "^2.8.8",
     "ts-jest": "^24.1.0",
     "ts-node-dev": "^1.1.6",
     "tslint": "^6.1.3",
