@@ -1,3 +1,4 @@
+import validator from 'validator'
 import {
   IUserInfo,
   requestGroups,
@@ -10,6 +11,10 @@ import { compact, difference, flatten, get, groupBy, map, uniq } from 'lodash'
 
 export async function assignUserToGroups(userInfo: IUserInfo): Promise<IUserInfo> {
   if (!userInfo.email) {
+    return userInfo
+  }
+
+  if (!validator.isEmail(userInfo.email)) {
     return userInfo
   }
 
@@ -31,7 +36,8 @@ export async function assignUserToGroups(userInfo: IUserInfo): Promise<IUserInfo
   )
 
   const sessionGroups = userInfo.groups
-  const emailDomain = userInfo.email.split('@')[1]?.toLowerCase()
+  const parsedDomains = userInfo.email.split('@')
+  const emailDomain = parsedDomains[parsedDomains.length - 1]?.toLowerCase()
   const emailDomainGroups = assignGroups.filter(
     (dg) => emailDomain === dg.domain.toLowerCase()
   )
