@@ -6,6 +6,7 @@ import {
 } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
+import { ForbiddenError } from 'apollo-server-errors'
 import { groupBy, map } from 'lodash'
 import { createAreaJourneyObject } from '../objects/createAreaJourneyObject'
 import { createBBoxString } from '../utils/createBBoxString'
@@ -47,7 +48,9 @@ export const createAreaJourneysResponse = async (
       (events: Vehicles[]) => createAreaJourneyObject(events)
     )
   }
-
+  if (speedFilter && !user) {
+    throw new ForbiddenError('Authentication required. Please login.')
+  }
   // Cache for when a link containing an area query is shared.
   const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}_${
     !!user && unsignedEvents ? 'unsigned' : ''
@@ -55,10 +58,6 @@ export const createAreaJourneysResponse = async (
   const journeys = await cacheFetch<Journey[]>(cacheKey, fetchJourneys, 24 * 60 * 60)
 
   if (!journeys || journeys.length === 0) {
-    return []
-  }
-
-  if (speedFilter && !user) {
     return []
   }
 

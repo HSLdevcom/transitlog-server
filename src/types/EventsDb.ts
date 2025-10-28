@@ -169,6 +169,14 @@ export type PassengerCount = {
   vehicle_load_ratio: Maybe<number>
   total_passengers_in: Maybe<number>
   total_passengers_out: Maybe<number>
+  bikes_in: Maybe<number>
+  bikes_out: Maybe<number>
+  wheelchairs_in: Maybe<number>
+  wheelchairs_out: Maybe<number>
+  prams_in: Maybe<number>
+  prams_out: Maybe<number>
+  other_in: Maybe<number>
+  other_out: Maybe<number>
 }
 
 export type EventsType =
