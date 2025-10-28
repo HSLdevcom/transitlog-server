@@ -5,6 +5,7 @@ import {
   requestUserInfo,
   setGroup,
 } from './authService'
+
 import { getSettings } from '../datasources/transitlogServer'
 import { compact, difference, flatten, get, groupBy, map, uniq } from 'lodash'
 
