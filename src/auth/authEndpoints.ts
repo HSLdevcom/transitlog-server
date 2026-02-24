@@ -54,7 +54,8 @@ const authorize = async (req: express.Request, res: express.Response) => {
 
   if (req.session && accessToken) {
     const expiresIn = get(tokenResponse, 'expires_in', 0)
-    const refreshToken = get(tokenResponse, 'refresh_token', 0)
+    const refreshToken = get(tokenResponse, 'refresh_token') as string | undefined
+
     expiresAt = addSeconds(expiresAt, expiresIn).getTime() / 1000
 
     req.session.accessToken = accessToken

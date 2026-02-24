@@ -2,7 +2,6 @@ import moment from 'moment-timezone'
 import express from 'express'
 import rateLimit from 'express-rate-limit'
 import cors from 'cors'
-import { json } from 'body-parser'
 import { ADMIN_GROUP_NAME, COOKIE_SECRET, SECURE_COOKIE, TZ } from './constants'
 import { types } from 'pg'
 import schema from './schema'
@@ -77,7 +76,7 @@ type RequestContext = {
     })
   )
   app.use(limiter)
-  app.use(json({ limit: '50mb' }))
+  app.use(express.json({ limit: '50mb' }))
 
   app.engine('js', createEngine({ transformViews: false }))
   app.set('view engine', 'js')
