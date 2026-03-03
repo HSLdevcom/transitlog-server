@@ -497,7 +497,7 @@ export async function createJourneyResponse(
     otherEvents: events = [],
   } = journeyEvents
 
-  let journeyEquipment = null
+  let journeyEquipment: JoreEquipment | null = null
   const ascVehiclePositions = orderBy(vehiclePositions, 'tsi', 'asc')
 
   if (requireVehicleAuthorization(user, vehicleId) && ascVehiclePositions.length !== 0) {
