@@ -20,7 +20,8 @@
     "noUnusedLocals": false,
     "jsx": "react",
     "outDir": "dist",
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "skipLibCheck": true
   },
   "include": ["src/**/*"],
   "exclude": [
