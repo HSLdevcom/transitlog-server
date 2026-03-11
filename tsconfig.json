@@ -17,11 +17,12 @@
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": false,
     "jsx": "react",
-    "outDir": "dist"
+    "outDir": "dist",
+    "types": ["node", "jest"]
   },
+  "include": ["src/**/*"],
   "exclude": [
     "node_modules",
     "dist",

@@ -11,11 +11,9 @@ jobs:
     steps:
       - name: Checkout server
         uses: actions/checkout@v2
-        with:
-          repository: HSLdevcom/transitlog-server
-          ref: dev
+
       - name: Build Server and publish Docker image
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v4
         with:
           name: hsldevcom/transitlog-server
           username: ${{ secrets.TRANSITLOG_DOCKERHUB_USER }}
