@@ -66,7 +66,7 @@ type RequestContext = {
 
   const limiter = rateLimit({
     windowMs: 1 * 60 * 1000,
-    max: 200,
+    max: 1000,
   })
 
   app.use(
