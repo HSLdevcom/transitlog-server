@@ -10,6 +10,18 @@ on:
   merge_group:
 
 jobs:
+  debug-node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+      - name: Debug Node/npm
+        run: |
+          node -v
+          npm -v
   build-check-test-push:
     uses: HSLdevcom/transitdata-shared-workflows/.github/workflows/ci-cd-typescript.yml@1.0.5
     secrets: inherit

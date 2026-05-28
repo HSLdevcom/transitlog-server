@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-FROM node:22-slim AS build
+FROM hsldevcom/infodevops-docker-base-images:22-node-edge AS build
 WORKDIR /usr/app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -13,7 +13,7 @@ FROM build AS tester
 ENTRYPOINT ["npm", "run", "test:ci"]
 
 
-FROM node:22-slim AS production
+FROM hsldevcom/infodevops-docker-base-images:22-node-edge AS production
 WORKDIR /usr/app
 COPY --from=build /usr/app/dist ./dist
 COPY --from=build /usr/app/node_modules ./node_modules
