@@ -3,6 +3,7 @@ import {
   JoreDepartureWithOrigin,
   JoreEquipment,
   JoreExceptionDay,
+  JoreLine,
   JoreRoute,
   JoreRouteData,
   JoreRouteDepartureData,
@@ -89,6 +90,39 @@ export class JoreDataSource extends SQLDataSource {
                   AND route.direction = :direction;
       `,
       { routeId, direction: direction + '' }
+    )
+
+    return this.getBatched(query)
+  }
+
+  async getLine(lineId, date): Promise<JoreLine[]> {
+    const query = this.db.raw(
+      `SELECT line.line_id,
+                line.date_begin,
+                line.date_end,
+                line.date_imported,
+                line.line_id_parsed,
+                line.trunk_route
+         from jore.line line
+         WHERE line.line_id = :lineId
+           AND :date >= line.date_begin
+           AND :date <= line.date_end;`,
+      { lineId, date }
+    )
+
+    return this.getBatched(query)
+  }
+
+  async getLines(): Promise<JoreLine[]> {
+    const query = this.db.raw(
+      `SELECT line.line_id,
+                line.name_fi,
+                line.date_begin,
+                line.date_end,
+                line.date_imported,
+                line.line_id_parsed,
+                line.trunk_route
+         from jore.line line;`
     )
 
     return this.getBatched(query)

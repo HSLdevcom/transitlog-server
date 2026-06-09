@@ -55,6 +55,7 @@ const terminals = (root, { date }, { dataSources, skipCache }) => {
 
 const route = async (root, { routeId, direction, date }, { dataSources, user, skipCache }) => {
   const getRoute = () => dataSources.JoreAPI.getRoute(routeId, direction)
+  const getLine = () => dataSources.JoreAPI.getLine(routeId, date)
 
   const fetchCancellations = getCancellations.bind(
     null,
@@ -63,12 +64,20 @@ const route = async (root, { routeId, direction, date }, { dataSources, user, sk
     () => dataSources.JoreAPI.getDepartureOperators(date)
   )
 
-  return createRouteResponse(getRoute, fetchCancellations, date, routeId, direction, skipCache)
+  return createRouteResponse(
+    getRoute,
+    getLine,
+    fetchCancellations,
+    date,
+    routeId,
+    direction,
+    skipCache
+  )
 }
 
 const routes = async (root, { filter, date }, { dataSources, user, skipCache }) => {
   const getRoutes = () => dataSources.JoreAPI.getRoutes()
-
+  const getLines = () => dataSources.JoreAPI.getLines()
   const fetchCancellations = getCancellations.bind(
     null,
     user,
@@ -76,7 +85,15 @@ const routes = async (root, { filter, date }, { dataSources, user, skipCache }) 
     () => dataSources.JoreAPI.getDepartureOperators(date)
   )
 
-  return createRoutesResponse(user, getRoutes, fetchCancellations, date, filter, skipCache)
+  return createRoutesResponse(
+    user,
+    getRoutes,
+    getLines,
+    fetchCancellations,
+    date,
+    filter,
+    skipCache
+  )
 }
 
 const routeGeometry = (root, { date, routeId, direction }, { dataSources }) => {
