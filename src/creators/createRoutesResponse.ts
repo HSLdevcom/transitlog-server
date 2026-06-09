@@ -1,7 +1,7 @@
 import { groupBy } from 'lodash'
 import { filterByDateChains } from '../utils/filterByDateChains'
 import { createRouteObject } from '../objects/createRouteObject'
-import { JoreRoute } from '../types/Jore'
+import { JoreRoute, JoreLine } from '../types/Jore'
 import { Route, RouteFilterInput, Scalars } from '../types/generated/schema-types'
 import { cacheFetch } from '../cache'
 import { filterRoutes } from '../filters/filterRoutes'
@@ -16,6 +16,7 @@ interface FilteredRouteSet {
 
 export async function createRouteResponse(
   getRoute: () => Promise<JoreRoute[]>,
+  getLine: () => Promise<JoreLine[]>,
   getCancellations,
   date: string,
   routeId: string,
@@ -24,13 +25,27 @@ export async function createRouteResponse(
 ): Promise<Route | null> {
   const fetchAndValidate: CachedFetcher<JoreRoute> = async () => {
     const routes = await getRoute()
+    const lines = await getLine()
+    let validLine: JoreLine | null = null
+    if (lines) {
+      const validLines = filterByDateGroups<JoreLine>(lines, date)
+      if (validLines.length > 0) {
+        validLine = validLines[0]
+      }
+    }
 
     if (!routes) {
       return false
     }
 
     const validRoute = filterByDateGroups<JoreRoute>(routes, date)
-    return validRoute[0]
+    const selectedValidRoute = validRoute[0]
+
+    if (validLine && selectedValidRoute) {
+      const validLineTrunkroute = validLine.trunk_route
+      selectedValidRoute.trunk_route = validLineTrunkroute
+    }
+    return selectedValidRoute
   }
 
   const cacheKey = `route_${routeId}_${direction}_${date}`
@@ -60,6 +75,7 @@ export async function createRouteResponse(
 export async function createRoutesResponse(
   user,
   getRoutes: () => Promise<JoreRoute[]>,
+  getLines: () => Promise<JoreLine[]>,
   getCancellations,
   date: string,
   filter?: RouteFilterInput,
@@ -67,11 +83,24 @@ export async function createRoutesResponse(
 ): Promise<Route[]> {
   const fetchAndValidate: CachedFetcher<Route[]> = async () => {
     const routes = await getRoutes()
+    const lines = await getLines()
 
     if (!routes) {
       return false
     }
 
+    const groupedLines = groupBy(lines, ({ line_id, name_fi }) => `${line_id}.${name_fi}`)
+    const filteredLinesByDateChains = filterByDateChains<JoreLine>(groupedLines, date)
+    const linesById = new Map<string, JoreLine[]>()
+
+    for (const line of filteredLinesByDateChains) {
+      const existing = linesById.get(line.line_id)
+      if (existing) {
+        existing.push(line)
+      } else {
+        linesById.set(line.line_id, [line])
+      }
+    }
     const cancellations = await getCancellations(date, { all: true }, skipCache)
 
     const groupedRoutes = groupBy(routes, ({ route_id, name_fi }) => `${route_id}.${name_fi}`)
@@ -79,10 +108,19 @@ export async function createRoutesResponse(
     const filteredRoutesByDateChains = filterByDateChains<JoreRoute>(groupedRoutes, date)
 
     const filteredRouteSet: FilteredRouteSet = {}
+
     filteredRoutesByDateChains.forEach((route) => {
       const routeKey = `${route.direction}.${route.route_id}`
       const existingRoute = filteredRouteSet[routeKey]
+
       if (!existingRoute) {
+        const validLines = linesById.get(route.route_id)
+
+        if (validLines) {
+          const mostValidLine = filterByDateGroups<JoreLine>(validLines, date)[0]
+          route.trunk_route = mostValidLine.trunk_route
+        }
+
         filteredRouteSet[routeKey] = route
       }
     })
