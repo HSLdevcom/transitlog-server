@@ -1,6 +1,5 @@
-import { GraphQLScalarType, Kind } from 'graphql'
+import { GraphQLError, GraphQLScalarType, Kind } from 'graphql'
 import { StringOrNull } from '../../types/NullOr'
-import { UserInputError } from 'apollo-server'
 import { BBox } from '../../types/BBox'
 import { createBBoxString } from '../../utils/createBBoxString'
 import { getRoundedBbox } from '../../utils/getRoundedBbox'
@@ -23,13 +22,13 @@ function createBboxObject(value: unknown, round = true): BBox | null {
 
   // Validate the bbox parts
   if (!minLng || !maxLng || minLng > maxLng) {
-    throw new UserInputError(
+    throw new GraphQLError(
       'Validation failed: The BBox scalar type expects a string formatted like minLng,minLat,maxLng,maxLat. Lng props not found, or they were invalid.'
     )
   }
 
   if (!minLat || !maxLat || minLat > maxLat) {
-    throw new UserInputError(
+    throw new GraphQLError(
       'Validation failed: The BBox scalar type expects a string formatted like minLng,minLat,maxLng,maxLat. Lat props not found, or they were invalid.'
     )
   }

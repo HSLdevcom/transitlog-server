@@ -1,6 +1,5 @@
-import { GraphQLScalarType, Kind } from 'graphql'
+import { GraphQLError, GraphQLScalarType, Kind } from 'graphql'
 import { StringOrNull } from '../../types/NullOr'
-import { UserInputError } from 'apollo-server'
 import { createUniqueVehicleId } from '../../utils/createUniqueVehicleId'
 
 const parseAndFormat = (value: unknown): StringOrNull => {
@@ -11,7 +10,7 @@ const parseAndFormat = (value: unknown): StringOrNull => {
   const [operatorPart, vehiclePart] = value.split('/')
 
   if (!operatorPart || !vehiclePart) {
-    throw new UserInputError(
+    throw new GraphQLError(
       'The VehicleId scalar type expects a string formatted like [operatorId]/[vehicleId].'
     )
   }
