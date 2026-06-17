@@ -142,6 +142,21 @@ export interface JoreRoute {
   trunk_route?: Maybe<string>
 }
 
+export interface JoreLine {
+  line_id: string
+  name_fi?: Maybe<string>
+  name_se?: Maybe<string>
+  origin_fi?: Maybe<string>
+  origin_se?: Maybe<string>
+  destination_fi?: Maybe<string>
+  destination_se?: Maybe<string>
+  date_begin: string
+  date_end: string
+  date_imported?: string
+  line_id_parsed?: Maybe<string>
+  trunk_route?: Maybe<string>
+}
+
 export interface JoreNote {
   line_id: string
   note_id: number
