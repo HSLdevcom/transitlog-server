@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server'
+import gql from 'graphql-tag'
 
 /*
   Journey.id = routeId_direction_departureDate_departureTime

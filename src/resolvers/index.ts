@@ -5,7 +5,7 @@ import { TimeScalar } from './scalars/Time'
 import { DateTimeScalar } from './scalars/DateTime'
 import { VehicleIdScalar } from './scalars/VehicleId'
 import { BBoxScalar, PreciseBBoxScalar } from './scalars/BBox'
-import { DirectionScalar } from './scalars/Direction'
+import DirectionScalar from './scalars/Direction'
 import { StringIndexed } from '../types/StringIndexed'
 
 export const resolvers: StringIndexed<any> = {
