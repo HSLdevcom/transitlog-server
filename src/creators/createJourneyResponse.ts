@@ -523,14 +523,15 @@ export async function createJourneyResponse(
   for (const virtualStopEvent of virtualStopEvents) {
     const { event_type, stop } = virtualStopEvent
     const canUsePas = ['ARS', 'DEP', 'PDE'].includes(event_type)
+    const existingEventsForDedupe = [...patchedStopEvents, ...events]
 
-    const eventExists = patchedStopEvents.some((evt) => {
+    const eventExists = existingEventsForDedupe.some((evt) => {
       // Skip virtual departure events when a PAS event for the stop exists
       if (canUsePas && evt.event_type === 'PAS' && evt.stop === stop) {
         return true
       }
 
-      return evt.event_type + evt.stop === event_type + stop
+      return evt.event_type === event_type && String(evt.stop) === String(stop)
     })
 
     if (!eventExists) {
