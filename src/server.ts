@@ -119,7 +119,7 @@ type RequestContext = {
     cookie: {
       secure: SECURE_COOKIE,
       maxAge: 30 * 24 * 60 * 60 * 1000,
-      httpOnly: false,
+      httpOnly: true,
     },
   })
 
