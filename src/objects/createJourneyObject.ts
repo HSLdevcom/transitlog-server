@@ -87,7 +87,7 @@ export function createJourneyObject(
     ),
     departureDate,
     departureTime,
-    uniqueVehicleId: vehicleId,
+    uniqueVehicleId: vehicleId || null,
     operatorId: operator,
     vehicleId: vehicleNumber,
     headsign: !journey ? '' : journey.headsign,
