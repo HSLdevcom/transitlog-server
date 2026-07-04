@@ -93,7 +93,12 @@ type RequestContext = {
       cookie: {
         secure: SECURE_COOKIE,
         maxAge: 30 * 24 * 60 * 60 * 1000,
-        httpOnly: false,
+        httpOnly: true,
+        // Do not send the session cookie on cross-site requests. Combined with
+        // the strict CORS origin, this blocks browser-driven CSRF against the
+        // JSON API endpoints (/login, GraphQL) that cannot carry a CSRF token
+        // without changes in the SPA clients.
+        sameSite: 'lax',
       },
     })
   )

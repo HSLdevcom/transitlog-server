@@ -2,13 +2,14 @@ import React from 'react'
 import join from 'proper-url-join'
 import { get } from 'lodash'
 
-const GroupAssignment = ({ adminPath, settings }) => {
+const GroupAssignment = ({ adminPath, settings, csrfToken }) => {
   const assignedGroups = get(settings, 'domain_groups', [])
 
   return (
     <>
       <h3>Assign email domains to groups</h3>
       <form action={join(adminPath, 'set-groups')} method="post">
+        <input type="hidden" name="_csrf" value={csrfToken} />
         <fieldset>
           <legend>HSL ID group assignment</legend>
           <p>
