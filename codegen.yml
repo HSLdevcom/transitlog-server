@@ -2,6 +2,9 @@ overwrite: true
 schema:
   'src/schema/**/*.ts':
     noRequire: true
+hooks:
+  afterAllFileWrite:
+    - prettier --write
 generates:
   src/types/generated/schema-types.ts:
     plugins:

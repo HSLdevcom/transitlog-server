@@ -2,9 +2,7 @@ import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from '
 export type Maybe<T> = T | null
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } &
-  {
-    [P in K]-?: NonNullable<T[P]>
-  }
+  { [P in K]-?: NonNullable<T[P]> }
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string
@@ -1118,8 +1116,8 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>
   Feedback: ResolverTypeWrapper<Feedback>
   Upload: ResolverTypeWrapper<Scalars['Upload']>
-  BBox: ResolverTypeWrapper<Scalars['BBox']>
   TlpType: TlpType
+  BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1166,7 +1164,9 @@ export type ResolversParentTypes = {
   ObservedArrival: ObservedArrival
   ObservedDeparture: ObservedDeparture
   ExceptionDay: ExceptionDay
-  Journey: Omit<Journey, 'events'> & { events: ResolversParentTypes['JourneyEventType'][] }
+  Journey: Omit<Journey, 'events'> & {
+    events: ResolversParentTypes['JourneyEventType'][]
+  }
   VehiclePosition: VehiclePosition
   JourneyEventType:
     | ResolversParentTypes['JourneyEvent']
@@ -1194,8 +1194,8 @@ export type ResolversParentTypes = {
   Mutation: {}
   Feedback: Feedback
   Upload: Scalars['Upload']
-  BBox: Scalars['BBox']
   TlpType: TlpType
+  BBox: Scalars['BBox']
 }
 
 export type AlertResolvers<
