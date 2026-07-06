@@ -28,16 +28,16 @@ export function createAlert(alert: DBAlert, language: string = 'fi'): Alert {
     distribution = AlertDistribution.Stop
   }
 
-  const titles = get(alertData, 'titles', [])
-  const title = titles.find((title) => title.language === alertLanguage) || titles[0]
+  type LocalizedText = { language: string; text: string }
 
-  const descriptions = get(alertData, 'descriptions', [])
-  const description =
-    descriptions.find((description) => description.language === alertLanguage) ||
-    descriptions[0]
+  const titles = get(alertData, 'titles', [] as LocalizedText[])
+  const title = titles.find((t) => t.language === alertLanguage) || titles[0]
 
-  const urls = get(alertData, 'urls', [])
-  const url = urls.find((url) => url.language === alertLanguage) || urls[0]
+  const descriptions = get(alertData, 'descriptions', [] as LocalizedText[])
+  const description = descriptions.find((d) => d.language === alertLanguage) || descriptions[0]
+
+  const urls = get(alertData, 'urls', [] as LocalizedText[])
+  const url = urls.find((u) => u.language === alertLanguage) || urls[0]
 
   return {
     id: alert.id + alertLanguage,

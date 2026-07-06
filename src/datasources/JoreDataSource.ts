@@ -3,6 +3,7 @@ import {
   JoreDepartureWithOrigin,
   JoreEquipment,
   JoreExceptionDay,
+  JoreLine,
   JoreRoute,
   JoreRouteData,
   JoreRouteDepartureData,
@@ -53,6 +54,7 @@ export class JoreDataSource extends SQLDataSource {
                        route.date_begin,
                        route.date_end,
                        route.date_modified,
+                       route.date_imported,
                        route.route_length,
                        trunk_route,
                        jore.route_mode(route) as mode
@@ -78,6 +80,7 @@ export class JoreDataSource extends SQLDataSource {
                        route.date_begin,
                        route.date_end,
                        route.date_modified,
+                       route.date_imported,
                        route.route_length,
                        trunk_route,
                        jore.route_mode(route) as mode
@@ -87,6 +90,39 @@ export class JoreDataSource extends SQLDataSource {
                   AND route.direction = :direction;
       `,
       { routeId, direction: direction + '' }
+    )
+
+    return this.getBatched(query)
+  }
+
+  async getLine(lineId, date): Promise<JoreLine[]> {
+    const query = this.db.raw(
+      `SELECT line.line_id,
+                line.date_begin,
+                line.date_end,
+                line.date_imported,
+                line.line_id_parsed,
+                line.trunk_route
+         from jore.line line
+         WHERE line.line_id = :lineId
+           AND :date >= line.date_begin
+           AND :date <= line.date_end;`,
+      { lineId, date }
+    )
+
+    return this.getBatched(query)
+  }
+
+  async getLines(): Promise<JoreLine[]> {
+    const query = this.db.raw(
+      `SELECT line.line_id,
+                line.name_fi,
+                line.date_begin,
+                line.date_end,
+                line.date_imported,
+                line.line_id_parsed,
+                line.trunk_route
+         from jore.line line;`
     )
 
     return this.getBatched(query)
@@ -139,6 +175,7 @@ export class JoreDataSource extends SQLDataSource {
               route_segment.timing_stop_type,
               route_segment.stop_index,
               route_segment.date_modified,
+              route_segment.date_imported,
               jore.route_mode(route) as mode,
               stop.lat,
               stop.lon,
@@ -189,6 +226,7 @@ export class JoreDataSource extends SQLDataSource {
                  stop.name_fi,
                  stop.stop_radius,
                  route_segment.date_modified,
+                 route_segment.date_imported,
                  route_segment.route_id,
                  route_segment.direction,
                  route_segment.timing_stop_type,
@@ -327,6 +365,7 @@ export class JoreDataSource extends SQLDataSource {
        route_segment.date_begin,
        route_segment.date_end,
        route_segment.date_modified,
+       route_segment.date_imported,
        route_segment.duration,
        route_segment.stop_index,
        route_segment.distance_from_previous,
@@ -416,6 +455,7 @@ stop.terminal_id,
 route_segment.date_begin,
 route_segment.date_end,
 route_segment.date_modified,
+route_segment.date_imported,
 route_segment.destination_fi,
 route_segment.distance_from_previous,
 route_segment.distance_from_start,

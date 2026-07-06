@@ -1,11 +1,16 @@
 import moment from 'moment-timezone'
 import express from 'express'
+import type { RequestHandler } from 'express'
+import rateLimit from 'express-rate-limit'
 import cors from 'cors'
-import { json } from 'body-parser'
 import { ADMIN_GROUP_NAME, COOKIE_SECRET, SECURE_COOKIE, TZ } from './constants'
 import { types } from 'pg'
 import schema from './schema'
-import { ApolloServer, makeExecutableSchema } from 'apollo-server-express'
+
+import { ApolloServer } from '@apollo/server'
+import { expressMiddleware } from '@as-integrations/express4'
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 import { resolvers } from './resolvers/'
 import { JoreDataSource } from './datasources/JoreDataSource'
 import { HFPDataSource } from './datasources/HFPDataSource'
@@ -18,15 +23,36 @@ import { getUserFromReq, requireUserMiddleware } from './auth/requireUser'
 import { adminController } from './admin/adminController'
 import { cleanup } from './utils/cleanup'
 import { getKnex } from './knex'
+
 // Set the default timezone for the app
 moment.tz.setDefault(TZ)
 
 types.setTypeParser(1082, (val) => val)
 
-const session = require('express-session')
-const RedisSession = require('connect-redis')(session)
+import session from 'express-session'
+import connectRedis from 'connect-redis'
+
+const RedisStore = connectRedis(session)
+
+const apolloCache = new InMemoryLRUCache()
 
 const ORIGIN = process.env.REDIRECT_URI
+
+const createDataSources = () => {
+  const dataSources = {
+    JoreAPI: new JoreDataSource(),
+    HFPAPI: new HFPDataSource(),
+  }
+
+  Object.values(dataSources).forEach((dataSource) => {
+    dataSource.initialize({
+      context: {},
+      cache: apolloCache,
+    })
+  })
+
+  return dataSources
+}
 
 type User = {
   email: string
@@ -37,6 +63,10 @@ type User = {
 type RequestContext = {
   user: null | User
   skipCache: boolean
+  dataSources: {
+    JoreAPI: JoreDataSource
+    HFPAPI: HFPDataSource
+  }
 }
 ;(async () => {
   let executableSchema = makeExecutableSchema({
@@ -51,17 +81,14 @@ type RequestContext = {
       console.log(`[${timestamp}] Error:`, err)
       return err
     },
-    dataSources: () => ({
-      JoreAPI: new JoreDataSource(),
-      HFPAPI: new HFPDataSource(),
-    }),
-    context: ({ req }): RequestContext => {
-      const skipCache = req.header('x-skip-cache') === 'true'
-      return { user: getUserFromReq(req), skipCache }
-    },
   })
 
   const app = express()
+
+  const limiter = rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 1000,
+  })
 
   app.use(
     cors({
@@ -69,8 +96,8 @@ type RequestContext = {
       origin: ORIGIN,
     })
   )
-
-  app.use(json({ limit: '50mb' }))
+  app.use(limiter)
+  app.use(express.json({ limit: '50mb' }))
 
   app.engine('js', createEngine({ transformViews: false }))
   app.set('view engine', 'js')
@@ -80,35 +107,47 @@ type RequestContext = {
 
   app.set('trust proxy', 1) // Enable secure cookies
 
+  const sessionMiddleware: RequestHandler = session({
+    store: new RedisStore({
+      client: redisClient,
+    }),
+    secret: COOKIE_SECRET,
+    rolling: true,
+    resave: false,
+    saveUninitialized: true,
+    name: 'transitlog-session',
+    cookie: {
+      secure: SECURE_COOKIE,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: 'lax',
+    },
+  })
+
+  app.use('/', sessionMiddleware)
+
+  app.use(checkAccessMiddleware)
+  await server.start()
+
   app.use(
-    session({
-      store: new RedisSession({
-        client: redisClient,
-      }),
-      secret: COOKIE_SECRET,
-      rolling: true,
-      resave: false,
-      saveUninitialized: true,
-      name: 'transitlog-session',
-      cookie: {
-        secure: SECURE_COOKIE,
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-        // Do not send the session cookie on cross-site requests. Combined with
-        // the strict CORS origin, this blocks browser-driven CSRF against the
-        // JSON API endpoints (/login, GraphQL) that cannot carry a CSRF token
-        // without changes in the SPA clients.
-        sameSite: 'lax',
+    '/graphql',
+    cors({
+      credentials: true,
+      origin: ORIGIN,
+    }),
+    express.json({ limit: '50mb' }),
+    expressMiddleware(server, {
+      context: async ({ req }): Promise<RequestContext> => {
+        const skipCache = req.header('x-skip-cache') === 'true'
+
+        return {
+          user: getUserFromReq(req),
+          skipCache,
+          dataSources: createDataSources(),
+        }
       },
     })
   )
-
-  app.use(checkAccessMiddleware)
-  server.applyMiddleware({
-    app,
-    bodyParserConfig: false,
-    cors: { credentials: true, origin: ORIGIN },
-  })
 
   app.post('/login', (req, res) => {
     authEndpoints.authorize(req, res)
@@ -146,7 +185,7 @@ type RequestContext = {
   app.use(adminPath, requireUserMiddleware(ADMIN_GROUP_NAME), adminRouter)
 
   const expressServer = app.listen({ port: 4000 }, () =>
-    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+    console.log(`🚀 Server ready at http://localhost:4000/graphql`)
   )
 
   // Set a generous timeout. 1200 seconds is used in Azure and nginx.

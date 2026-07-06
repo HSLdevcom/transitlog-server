@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server'
+import gql from 'graphql-tag'
 
 /*
   Journey.id = routeId_direction_departureDate_departureTime
@@ -89,6 +89,14 @@ export const Journey = gql`
     totalPassengersIn: Int
     totalPassengersOut: Int
     vehicleLoadRatioText: String
+    bikesIn: Int
+    bikesOut: Int
+    wheelchairsIn: Int
+    wheelchairsOut: Int
+    pramsIn: Int
+    pramsOut: Int
+    otherIn: Int
+    otherOut: Int
     _sort: Int
   }
 

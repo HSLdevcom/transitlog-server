@@ -1,4 +1,4 @@
-FROM node:12-alpine
+FROM node:20-alpine
 
 RUN apk --no-cache add curl
 
@@ -9,9 +9,8 @@ RUN mkdir -p ${WORK}
 WORKDIR ${WORK}
 
 # Install app dependencies
-COPY yarn.lock ${WORK}
-COPY package.json ${WORK}
-RUN yarn
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 
 # Bundle app source
 COPY . ${WORK}

@@ -2,19 +2,44 @@ import { GraphQLScalarType, Kind } from 'graphql'
 import { NumberOrNull } from '../../types/NullOr'
 import { getDirection } from '../../utils/getDirection'
 
-export const DirectionScalar = new GraphQLScalarType({
+const parseDirection = (value: unknown): string | number | false | null | undefined => {
+  if (
+    typeof value !== 'string' &&
+    typeof value !== 'number' &&
+    value !== false &&
+    value !== null &&
+    value !== undefined
+  ) {
+    throw new TypeError(`Direction cannot represent value: ${String(value)}`)
+  }
+
+  return getDirection(value)
+}
+
+export default new GraphQLScalarType({
   name: 'Direction',
-  description: 'The direction of a route. An integer of either 1 or 2.',
-  parseValue(value): NumberOrNull {
-    return getDirection(value)
+
+  serialize(value: unknown) {
+    return parseDirection(value)
   },
-  serialize(value): NumberOrNull {
-    return getDirection(value)
+
+  parseValue(value: unknown) {
+    return parseDirection(value)
   },
-  parseLiteral(ast): NumberOrNull {
-    if (ast.kind === Kind.STRING || ast.kind === Kind.INT) {
+
+  parseLiteral(ast) {
+    if (ast.kind === Kind.STRING) {
       return getDirection(ast.value)
     }
+
+    if (ast.kind === Kind.INT) {
+      return getDirection(Number(ast.value))
+    }
+
+    if (ast.kind === Kind.BOOLEAN && ast.value === false) {
+      return getDirection(false)
+    }
+
     return null
   },
 })

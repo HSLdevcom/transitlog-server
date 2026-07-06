@@ -6,7 +6,7 @@ import {
   AZURE_FEEDBACK_BLOB_SAS,
   SLACK_TOKEN_FEEDBACK,
 } from './../constants'
-import { ApolloError } from 'apollo-server'
+import { GraphQLError } from 'graphql'
 
 const slack = new WebClient(SLACK_TOKEN_FEEDBACK)
 
@@ -66,7 +66,7 @@ export const mutationResolvers = {
 
       return { filename, mimetype, encoding }
     } else {
-      throw new ApolloError('Invalid image file type')
+      throw new GraphQLError('Invalid image file type')
     }
   },
 }

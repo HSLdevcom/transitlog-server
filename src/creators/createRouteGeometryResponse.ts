@@ -20,9 +20,10 @@ export async function createRouteGeometryResponse(
       return false
     }
 
-    const geometry = get(selectedRoute, 'geometry.coordinates', [])
+    type LonLat = [number, number]
 
-    // Convert to lat/lng points
+    const geometry = get(selectedRoute, 'geometry.coordinates', [] as LonLat[])
+
     const coordinates = geometry.map(([lon, lat]) => ({
       lat,
       lng: lon,

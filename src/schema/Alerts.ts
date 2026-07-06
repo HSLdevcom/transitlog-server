@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server'
+import gql from 'graphql-tag'
 
 export const Alerts = gql`
   enum AlertDistribution {
@@ -164,7 +164,7 @@ export const Alerts = gql`
   }
 
   type Cancellation {
-    id: Int!
+    id: ID!
     routeId: String!
     direction: Direction!
     departureDate: Date!

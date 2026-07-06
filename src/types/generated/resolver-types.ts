@@ -2,7 +2,9 @@ import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from '
 export type Maybe<T> = T | null
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } &
-  { [P in K]-?: NonNullable<T[P]> }
+  {
+    [P in K]-?: NonNullable<T[P]>
+  }
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string
@@ -126,7 +128,7 @@ export type AreaEventsFilterInput = {
 
 export type Cancellation = {
   __typename?: 'Cancellation'
-  id: Scalars['Int']
+  id: Scalars['ID']
   routeId: Scalars['String']
   direction: Scalars['Direction']
   departureDate: Scalars['Date']
@@ -454,6 +456,14 @@ export type JourneyPassengerCountEvent = {
   totalPassengersIn?: Maybe<Scalars['Int']>
   totalPassengersOut?: Maybe<Scalars['Int']>
   vehicleLoadRatioText?: Maybe<Scalars['String']>
+  bikesIn?: Maybe<Scalars['Int']>
+  bikesOut?: Maybe<Scalars['Int']>
+  wheelchairsIn?: Maybe<Scalars['Int']>
+  wheelchairsOut?: Maybe<Scalars['Int']>
+  pramsIn?: Maybe<Scalars['Int']>
+  pramsOut?: Maybe<Scalars['Int']>
+  otherIn?: Maybe<Scalars['Int']>
+  otherOut?: Maybe<Scalars['Int']>
   _sort?: Maybe<Scalars['Int']>
 }
 
@@ -744,9 +754,9 @@ export type QueryJourneysByBboxAndRouteIdArgs = {
   date: Scalars['Date']
   routeId: Scalars['String']
   direction: Scalars['String']
+  speedFilter: Scalars['String']
   filters?: Maybe<AreaEventsFilterInput>
   unsignedEvents?: Maybe<Scalars['Boolean']>
-  speedFilter: Scalars['String']
 }
 
 export type QueryUnsignedVehicleEventsArgs = {
@@ -1108,8 +1118,8 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>
   Feedback: ResolverTypeWrapper<Feedback>
   Upload: ResolverTypeWrapper<Scalars['Upload']>
-  TlpType: TlpType
   BBox: ResolverTypeWrapper<Scalars['BBox']>
+  TlpType: TlpType
 }
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1184,8 +1194,8 @@ export type ResolversParentTypes = {
   Mutation: {}
   Feedback: Feedback
   Upload: Scalars['Upload']
-  TlpType: TlpType
   BBox: Scalars['BBox']
+  TlpType: TlpType
 }
 
 export type AlertResolvers<
@@ -1216,7 +1226,7 @@ export type CancellationResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Cancellation'] = ResolversParentTypes['Cancellation']
 > = {
-  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   routeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   direction?: Resolver<ResolversTypes['Direction'], ParentType, ContextType>
   departureDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
@@ -1507,6 +1517,14 @@ export type JourneyPassengerCountEventResolvers<
   totalPassengersIn?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   totalPassengersOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   vehicleLoadRatioText?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  bikesIn?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  bikesOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  wheelchairsIn?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  wheelchairsOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  pramsIn?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  pramsOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  otherIn?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  otherOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   _sort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
 }
 
@@ -1793,7 +1811,7 @@ export type QueryResolvers<
     ContextType,
     RequireFields<
       QueryJourneysByBboxAndRouteIdArgs,
-      'minTime' | 'maxTime' | 'bbox' | 'date' | 'routeId' | 'speedFilter'
+      'minTime' | 'maxTime' | 'bbox' | 'date' | 'routeId' | 'direction' | 'speedFilter'
     >
   >
   unsignedVehicleEvents?: Resolver<
