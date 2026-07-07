@@ -2,13 +2,14 @@ import React from 'react'
 import join from 'proper-url-join'
 import { get } from 'lodash'
 
-const UIMessageForm = ({ settings, adminPath }) => {
+const UIMessageForm = ({ settings, adminPath, csrfToken }) => {
   const message = get(settings, 'ui_message') || { date: '', message: '' }
 
   return (
     <>
       <h3>Set UI message</h3>
       <form method="post" action={join(adminPath, 'set-ui-message')}>
+        <input type="hidden" name="_csrf" value={csrfToken} />
         <fieldset>
           <legend>UI message</legend>
           <p>Set a message that is shown in the UI.</p>

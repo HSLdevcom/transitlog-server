@@ -1117,8 +1117,8 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>
   Feedback: ResolverTypeWrapper<Feedback>
   Upload: ResolverTypeWrapper<Scalars['Upload']>
-  BBox: ResolverTypeWrapper<Scalars['BBox']>
   TlpType: TlpType
+  BBox: ResolverTypeWrapper<Scalars['BBox']>
 }
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1165,7 +1165,9 @@ export type ResolversParentTypes = {
   ObservedArrival: ObservedArrival
   ObservedDeparture: ObservedDeparture
   ExceptionDay: ExceptionDay
-  Journey: Omit<Journey, 'events'> & { events: ResolversParentTypes['JourneyEventType'][] }
+  Journey: Omit<Journey, 'events'> & {
+    events: ResolversParentTypes['JourneyEventType'][]
+  }
   VehiclePosition: VehiclePosition
   JourneyEventType:
     | ResolversParentTypes['JourneyEvent']
@@ -1193,8 +1195,8 @@ export type ResolversParentTypes = {
   Mutation: {}
   Feedback: Feedback
   Upload: Scalars['Upload']
-  BBox: Scalars['BBox']
   TlpType: TlpType
+  BBox: Scalars['BBox']
 }
 
 export type AlertResolvers<
