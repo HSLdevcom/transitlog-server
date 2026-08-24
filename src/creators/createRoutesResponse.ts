@@ -127,6 +127,26 @@ export async function createRoutesResponse(
 
     const filteredRoutes = Object.values(filteredRouteSet)
 
+    const routesByDirectionAndId = new Map<string, JoreRoute>()
+
+    filteredRoutes.forEach((route) => {
+      routesByDirectionAndId.set(`${route.direction}.${route.route_id}`, route)
+    })
+
+    filteredRoutes.forEach((route) => {
+      const [mainRouteId] = route.route_id.split(' ')
+
+      if (mainRouteId === route.route_id) {
+        return
+      }
+
+      const mainRoute = routesByDirectionAndId.get(`${route.direction}.${mainRouteId}`)
+
+      if (mainRoute?.trunk_route === '1') {
+        route.trunk_route = '1'
+      }
+    })
+
     return filteredRoutes.map((route) => {
       const routeCancellations = cancellations.filter(
         (cancellation) =>

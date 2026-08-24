@@ -515,23 +515,23 @@ export async function createJourneyResponse(
   // Create virtual ARS, DEP/PDE and DOO stop events from the vehicle positions.
   const virtualStopEvents = createVirtualStopEvents(ascVehiclePositions, authorizedDepartures)
 
+  const realDoorEvents = events.filter((evt) => ['DOO', 'DOC'].includes(evt.event_type))
+
   // Patch the stop events collection with virtual stop
   // events that we parsed from the ascVehiclePositions.
-  let patchedStopEvents = [...stopEvents]
-
+  let patchedStopEvents = [...stopEvents, ...realDoorEvents]
   // Patch stop events by using virtual events for all stops which have no real stop events.
   for (const virtualStopEvent of virtualStopEvents) {
     const { event_type, stop } = virtualStopEvent
     const canUsePas = ['ARS', 'DEP', 'PDE'].includes(event_type)
-    const existingEventsForDedupe = [...patchedStopEvents, ...events]
 
-    const eventExists = existingEventsForDedupe.some((evt) => {
+    const eventExists = patchedStopEvents.some((evt) => {
       // Skip virtual departure events when a PAS event for the stop exists
       if (canUsePas && evt.event_type === 'PAS' && evt.stop === stop) {
         return true
       }
 
-      return evt.event_type === event_type && String(evt.stop) === String(stop)
+      return evt.event_type + evt.stop === event_type + stop
     })
 
     if (!eventExists) {
@@ -622,7 +622,7 @@ export async function createJourneyResponse(
       let doorsOpened = !!eventItem.drst
 
       if (stopId !== 'unknown') {
-        doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO')
+        doorsOpened = eventsForStop.some((evt) => evt.event_type === 'DOO' || evt.drst)
       }
 
       let shouldCreateStopEventObject =

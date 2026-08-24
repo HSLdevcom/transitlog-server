@@ -2,13 +2,14 @@ import React from 'react'
 import join from 'proper-url-join'
 import { get } from 'lodash'
 
-const AutoDomainGroups = ({ adminPath, settings }) => {
+const AutoDomainGroups = ({ adminPath, settings, csrfToken }) => {
   const assignedGroups = get(settings, 'auto_domain_groups', [])
 
   return (
     <>
       <h3>Create groups for emails</h3>
       <form action={join(adminPath, 'set-auto-groups')} method="post">
+        <input type="hidden" name="_csrf" value={csrfToken} />
         <fieldset>
           <legend>HSL ID group creation</legend>
           <p>

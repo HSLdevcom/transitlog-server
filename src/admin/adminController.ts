@@ -1,4 +1,5 @@
 import express from 'express'
+import lusca from 'lusca'
 import {
   DomainGroup,
   getSettings,
@@ -19,9 +20,20 @@ export const adminController = async (adminPath) => {
   const prefixedAdminPath = join(PATH_PREFIX, adminPath)
   const adminRouter = express.Router()
 
+  // Protect the state-changing admin form submissions (rendered as HTML forms
+  // and posted as application/x-www-form-urlencoded) against CSRF. lusca.csrf
+  // stores a secret in the existing session and exposes the per-session token
+  // as `res.locals._csrf`, which must be echoed back via the hidden `_csrf`
+  // field embedded in each form.
+  adminRouter.use(lusca.csrf())
+
   adminRouter.get('/', async (req, res) => {
     const currentState = await getSettings()
-    res.render('Admin', { adminPath: prefixedAdminPath, settings: currentState })
+    res.render('Admin', {
+      adminPath: prefixedAdminPath,
+      settings: currentState,
+      csrfToken: res.locals._csrf,
+    })
   })
 
   function createDomainGroupsFromInput(input: string): DomainGroup[] {
