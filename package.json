@@ -128,7 +128,7 @@
     "path-to-regexp": "^0.1.13",
     "handlebars": "^4.7.9",
     "picomatch": "^4.0.4",
-    "shell-quote": "^1.9.0",
+    "shell-quote": "^1.11.0",
     "js-cookie": "^3.0.7",
     "js-yaml": "^3.15.0",
     "browserslist": "^4.28.7",
