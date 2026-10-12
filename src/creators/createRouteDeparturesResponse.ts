@@ -44,6 +44,7 @@ export const combineDeparturesAndStops = (departures, stops, date): Departure[] 
     departure.origin_departure = {
       hours: departure.hours,
       minutes: departure.minutes,
+      seconds: departure.seconds ?? 0,
       stop_id: departure.stop_id || '',
       departure_id: departure.departure_id || 0,
       is_next_day: departure.is_next_day || false,

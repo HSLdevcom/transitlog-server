@@ -166,6 +166,7 @@ interface JoreDepartureTime {
   is_next_day: boolean
   hours: number
   minutes: number
+  seconds?: number | null
   arrival_hours?: number
   arrival_minutes?: number
 }
@@ -177,15 +178,16 @@ function isJoreDeparture(departure): departure is JoreDepartureTime {
 
 // Return the departure time as a 24h+ time string
 export function getDepartureTime(departure: JoreDepartureTime, useArrival = false): string {
-  let { is_next_day, hours, minutes } = departure
+  let { is_next_day, hours, minutes, seconds = 0 } = departure
 
-  if (useArrival && departure.arrival_hours && departure.arrival_minutes) {
+  if (useArrival && departure.arrival_hours != null && departure.arrival_minutes != null) {
     hours = departure.arrival_hours
     minutes = departure.arrival_minutes
+    seconds = 0
   }
 
   const hour = is_next_day && hours < 24 ? hours + 24 : hours
-  return getTimeString(hour, minutes)
+  return getTimeString(hour, minutes, seconds ?? 0)
 }
 
 // Return the real time of the departure as a Date

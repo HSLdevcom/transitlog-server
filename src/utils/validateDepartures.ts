@@ -29,16 +29,12 @@ export function validateDepartures(departures: JoreDepartureWithOrigin[]) {
       }
 
       let prevDepartureId = prevDeparture.departure_id
-      let prevHours = prevDeparture.hours
-      let prevMinutes = prevDeparture.minutes
+      const previousTime =
+        prevDeparture.hours * 3600 + prevDeparture.minutes * 60 + (prevDeparture.seconds ?? 0)
+      const currentTime =
+        departure.hours * 3600 + departure.minutes * 60 + (departure.seconds ?? 0)
 
-      // Compare minutes if the hour is equal.
-      let compareMinutes = prevHours === departure.hours
-
-      if (
-        ((compareMinutes && prevMinutes < departure.minutes) || prevHours < departure.hours) &&
-        prevDepartureId < departure.departure_id
-      ) {
+      if (previousTime < currentTime && prevDepartureId < departure.departure_id) {
         consecutiveRouteDepartures.push(departure)
       }
     }

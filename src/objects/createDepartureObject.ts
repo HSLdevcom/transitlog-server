@@ -26,13 +26,15 @@ import { extraDepartureType } from '../utils/extraDepartureType'
 import { dayTypes, getDayTypeFromDate } from '../utils/dayTypes'
 
 function createJoreDepartureId(departure: JoreDeparture, date) {
+  const departureSeconds = departure.seconds ?? 0
+
   return `${departure.route_id}_${departure.direction}_${doubleDigit(
     departure.hours
   )}_${doubleDigit(departure.minutes)}_${departure.stop_id}_${
     departure.day_type
   }_${extraDepartureType(departure.extra_departure)}_${date}_${departure.date_begin}_${
     departure.date_end
-  }`
+  }${departureSeconds ? `_${doubleDigit(departureSeconds)}` : ''}`
 }
 
 export function createDepartureId(departure, date = '') {

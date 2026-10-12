@@ -402,6 +402,7 @@ WHERE route_segment.route_id = :routeId AND route_segment.direction = :direction
        departure.direction,
        departure.hours,
        departure.minutes,
+       departure.seconds,
        departure.day_type,
        departure.extra_departure,
        departure.is_next_day,
@@ -428,7 +429,8 @@ WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
   AND departure.date_end >= :date
 ORDER BY departure.departure_id ASC,
          departure.hours ASC,
-         departure.minutes ASC;`,
+         departure.minutes ASC,
+         COALESCE(departure.seconds, 0) ASC;`,
       { routeId, direction: direction + '', date }
     )
 
@@ -524,11 +526,12 @@ jore.route_mode(route) as mode
 
     const query = this.db.raw(
       `
-SELECT DISTINCT ON (operator_id, route_id, direction, hours, minutes) operator_id, route_id, direction, hours, minutes
+SELECT DISTINCT ON (operator_id, route_id, direction, hours, minutes, COALESCE(seconds, 0))
+       operator_id, route_id, direction, hours, minutes, COALESCE(seconds, 0) AS seconds
 FROM jore.departure
     WHERE day_type IN (${dayTypes.map((dayType) => `'${dayType}'`).join(',')})
       AND date_begin <= :date
-ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
+ORDER BY operator_id, route_id, direction, hours, minutes, COALESCE(seconds, 0), date_imported DESC;`,
       { date }
     )
 
@@ -541,6 +544,7 @@ ORDER BY operator_id, route_id, direction, hours, minutes, date_imported DESC;`,
     departure.stop_id,
     departure.hours,
     departure.minutes,
+    departure.seconds,
     departure.day_type,
     departure.extra_departure,
     departure.is_next_day,
@@ -583,7 +587,9 @@ LEFT JOIN LATERAL (
     AND inner_departure.date_end = departure.date_end
     AND inner_departure.departure_id = departure.departure_id
     AND inner_departure.day_type = departure.day_type
-  ORDER BY inner_departure.hours ASC, inner_departure.minutes ASC
+  ORDER BY inner_departure.hours ASC,
+           inner_departure.minutes ASC,
+           COALESCE(inner_departure.seconds, 0) ASC
   LIMIT 1
 ) origin_departure ON true
   `
@@ -602,6 +608,7 @@ LEFT JOIN LATERAL (
             origin_departure.stop_id as origin_stop_id,
             origin_departure.hours as origin_hours,
             origin_departure.minutes as origin_minutes,
+            origin_departure.seconds as origin_seconds,
             origin_departure.is_next_day as origin_is_next_day,
             origin_departure.is_next_day as origin_is_next_day,
             origin_departure.extra_departure as origin_extra_departure,
@@ -616,6 +623,7 @@ LEFT JOIN LATERAL (
         AND departure.date_end >= :date
       ORDER BY departure.hours ASC,
                departure.minutes ASC,
+               COALESCE(departure.seconds, 0) ASC,
                departure.route_id ASC,
                departure.direction ASC,
                departure.date_imported DESC;`,
@@ -658,7 +666,8 @@ WHERE departure.stop_id = :stopId
   AND departure.route_id = :routeId
   AND departure.direction = :direction
 ORDER BY departure.hours ASC,
-         departure.minutes ASC;`,
+         departure.minutes ASC,
+         COALESCE(departure.seconds, 0) ASC;`,
       { stopId, routeId, direction: direction + '' }
     )
 
@@ -698,6 +707,7 @@ SELECT ${this.departureFields},
       origin_departure.stop_id as origin_stop_id,
       origin_departure.hours as origin_hours,
       origin_departure.minutes as origin_minutes,
+      origin_departure.seconds as origin_seconds,
       origin_departure.is_next_day as origin_is_next_day,
       origin_departure.is_next_day as origin_is_next_day,
       origin_departure.extra_departure as origin_extra_departure,

@@ -7,6 +7,7 @@ export const createOriginDeparture = (
   return {
     hours: departure.origin_hours || 0,
     minutes: departure.origin_minutes || 0,
+    seconds: departure.origin_seconds ?? 0,
     stop_id: departure.origin_stop_id || '',
     departure_id: departure.origin_departure_id || 0,
     is_next_day: departure.origin_is_next_day || false,

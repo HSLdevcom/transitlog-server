@@ -286,10 +286,11 @@ export async function createDeparturesResponse(
         direction,
         origin_hours,
         origin_minutes,
+        origin_seconds,
       }) =>
-        `${route_id}_${direction}_${origin_stop_id}_${day_type}_${origin_hours}_${origin_minutes}_${extraDepartureType(
-          extra_departure
-        )}`
+        `${route_id}_${direction}_${origin_stop_id}_${day_type}_${origin_hours}_${origin_minutes}_${
+          origin_seconds ?? 0
+        }_${extraDepartureType(extra_departure)}`
     )
 
     const uniqueDepartures: JoreDepartureWithOrigin[] = Object.values(

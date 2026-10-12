@@ -24,6 +24,7 @@ export type Json = string
 export interface JoreDepartureOperator {
   hours: number
   minutes: number
+  seconds?: Maybe<number>
   operator_id: string
   route_id: string
   direction: string
@@ -32,6 +33,7 @@ export interface JoreDepartureOperator {
 export interface JoreOriginDeparture {
   hours: number
   minutes: number
+  seconds?: Maybe<number>
   stop_id: string
   departure_id: number
   is_next_day: boolean
@@ -52,6 +54,7 @@ export interface JoreDeparture {
   is_next_day: boolean
   hours: number
   minutes: number
+  seconds?: Maybe<number>
   is_accessible: boolean
   date_begin: string
   date_end: string
@@ -207,6 +210,7 @@ interface JoreOriginDepartureProps {
   origin_stop_id?: string
   origin_hours?: number
   origin_minutes?: number
+  origin_seconds?: Maybe<number>
   origin_departure_id?: number
   origin_is_next_day?: boolean
   origin_extra_departure?: string
