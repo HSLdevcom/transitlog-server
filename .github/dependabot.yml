@@ -1,64 +1,26 @@
----
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "daily"
+    cooldown:
+      semver-patch-days: 30
+      semver-minor-days: 60
+      semver-major-days: 90
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "daily"
-  - package-ecosystem: "npm"
+    cooldown:
+      semver-patch-days: 30
+      semver-minor-days: 60
+      semver-major-days: 90
+  - package-ecosystem: "github-actions"
     directory: "/"
-    open-pull-requests-limit: 20
     schedule:
-      interval: "weekly"
-    groups:
-      date-fns:
-        patterns:
-          - "date-fns"
-          - "date-fns-tz"
-      eslint-config-airbnb:
-        patterns:
-          - "eslint-config-airbnb-base"
-          - "eslint-config-airbnb-typescript"
-      eslint-plugin-import:
-        patterns:
-          - "eslint-import-resolver-typescript"
-          - "eslint-plugin-import"
-      jest:
-        patterns:
-          - "@types/jest"
-          - "eslint-plugin-jest"
-          - "jest"
-          - "ts-jest"
-      libsodium-wrappers:
-        patterns:
-          - "@types/libsodium-wrappers"
-          - "libsodium-wrappers"
-      pg:
-        patterns:
-          - "@types/pg"
-          - "postgres-migrations"
-          - "pg"
-          - "pg-promise"
-      prettier:
-        patterns:
-          - "eslint-config-prettier"
-          - "eslint-plugin-prettier"
-          - "prettier"
-      protobuf:
-        patterns:
-          - "protobufjs"
-          - "protobufjs-cli"
-      testcontainers:
-        patterns:
-          - "@testcontainers/*"
-          - "testcontainers"
-      tsconfig:
-        patterns:
-          - "@tsconfig/*"
-      typescript-eslint:
-        patterns:
-          - "@typescript-eslint/*"
+      interval: "daily"
+    cooldown:
+      semver-patch-days: 30
+      semver-minor-days: 60
+      semver-major-days: 90

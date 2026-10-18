@@ -5,12 +5,10 @@ FROM hsldevcom/infodevops-docker-base-images:22-node-edge AS build
 WORKDIR /usr/app
 COPY package.json package-lock.json ./
 RUN npm ci
-COPY . .
+COPY src ./src
+COPY tsconfig.json tsconfig.build.json ./
 RUN npm run build
-
-
-FROM build AS tester
-ENTRYPOINT ["npm", "run", "test:ci"]
+RUN npm prune --omit=dev
 
 
 FROM hsldevcom/infodevops-docker-base-images:22-node-edge AS production

@@ -1,11 +1,7 @@
 **
-.env
-
 !src/
+!src/**
 !package.json
 !package-lock.json
 !tsconfig.json
 !tsconfig.build.json
-!codegen.yml
-!scripts/
-!Dockerfile
