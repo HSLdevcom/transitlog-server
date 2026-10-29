@@ -14,7 +14,7 @@
     "codegen": "graphql-codegen --config codegen.yml",
     "codestyle": "prettier \"src/**/*.{ts,js,json}\" --write",
     "test": "node scripts/test.js",
-    "test:ci": "CI=true node scripts/test.js",
+    "test:ci": "CI=true node scripts/test.js --coverage",
     "test:staged": "CI=true node scripts/test.js --bail --findRelatedTests --passWithNoTests",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
