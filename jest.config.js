@@ -5,5 +5,5 @@ module.exports = {
     '<rootDir>/src/**/__tests__/**/*.(spec|test).ts',
     '<rootDir>/src/**/?(*.)(spec|test).ts',
   ],
-  collectCoverageFrom: ['src/**/*.{js,ts,tsx}', '!src/**/*.d.ts'],
+  collectCoverageFrom: ['src/**/*.{js,ts,tsx}', '!src/**/*.d.ts', '!src/views/**/*.js'],
 }

@@ -12,7 +12,7 @@ In the future, other HSL projects such as "Bultti" will need the same data for r
 
 ## Technologies
 
-The server is a Typescript app that runs on a recent version of Node (10+). It uses Apollo-Server to implement a GraphQL API and Redis for the cache backend. Familiarity with Node, Typescript and Apollo-Server (or GraphQL API's in general) is great to have before diving into the code.
+The server is a Typescript app that runs on Node.js 22 or later. It uses Apollo-Server to implement a GraphQL API and Redis for the cache backend. Familiarity with Node, Typescript and Apollo-Server (or GraphQL API's in general) is great to have before diving into the code.
 
 ## GraphQL API
 
@@ -42,7 +42,7 @@ In summary, the important bits of Transitlog-Server are the resolvers, the data 
 
 ## Run the server
 
-To run the app you need a recent version of Node. The app uses a Redis cache, so you need to either run one locally with Docker or connect to a Redis server. It also talks directly to the JORE History database, so you need that running locally or available for connection.
+To run the app you need Node.js 22 or later. The app uses a Redis cache, so you need to either run one locally with Docker or connect to a Redis server. It also talks directly to the JORE History database, so you need that running locally or available for connection.
 
 ### 1. Start the Redis cache
 
@@ -75,14 +75,14 @@ The rest can be as they are in the .env.production file or are optional for loca
 
 ### 4. Develop
 
-1. Run `yarn` to install dependencies
-2. Run `yarn start` to start the server in watch mode.
+1. Run `npm ci` to install dependencies
+2. Run `npm start` to start the server in watch mode.
 
-If you change the GraphQL schema, run `yarn run codegen` to update the types.
+If you change the GraphQL schema, run `npm run codegen` to update the types.
 
 ### 5. Production
 
-Run `yarn production` to start a Forever process that runs the server in production mode.
+Run `npm run build` to compile the server, then `npm run start:production` to start it in production mode.
 
 ### 6. Docker
 
@@ -95,16 +95,16 @@ docker build -t hsldevcom/transitlog-server .
 Then run it:
 
 ```bash
-docker run -p 0.0.0.0:4000:4000 --env REDIS_HOST=transitlog-redis --name transitlog-server hsldevcom/transitlog-server
+docker run -p 0.0.0.0:4000:4000 --env-file .env --name transitlog-server hsldevcom/transitlog-server
 ```
 
-The `.env.production` file will be used as the `.env` config automatically.
+The container does not include environment files; provide configuration with `--env-file` or environment variables.
 
 ## Deployment
 
 To deploy a new version of Transitlog Server to an environment, first build a Docker image and push it to the Docker Hub. Then run the pipeline in the deployment repo.
 
-If you are following the deployment branch procedure with Github actions as outlined in the Transitlog UI documentation, read on.
+Use `main` as the trunk branch and merge changes through pull requests. The CI/CD workflow in `.github/workflows/ci-cd.yml` delegates checks and image publishing to the HSL shared workflow on `main` and version tags. Environment deployments continue to be managed through the deployment repos listed above.
 
 ### Build production image
 
@@ -130,20 +130,12 @@ After you've built and pushed an image for an environment, run the pipeline in t
 
 - Prod: [https://gitlab.hsl.fi/transitlog/transitlog-app-prod-deploy](https://gitlab.hsl.fi/transitlog/transitlog-app-prod-deploy)
 
-### Merge into environment branches
-
-Once you are finished with an update, merge `master` into the `staging` and `staging` into the `production` branch as the update is tested and approved. This is important, as the Github Actions workflow (outlined in the Transitlog UI docs) also builds and pushes the server app based on code from these branches. If the staging and production branches are not updated, the server will potentially be downgraded as a result of using the Github actions workflow.
-
-### Github actions
-
-The server repo does not have Github actions workflows, but the actions workflows of the UI repo will pull, build and push a new Docker image based on the code in the `staging` and `production` branches. See the Transitlog UI repo for an outline of the Github Actions workflow.
-
 ## Useful commands
 
-#### `yarn start`
+#### `npm start`
 
 Starts the server in development mode with change watches.
 
-#### `yarn run codegen`
+#### `npm run codegen`
 
 Updates the Typescript types from the schema. ALWAYS RUN THIS after changing the schema!
