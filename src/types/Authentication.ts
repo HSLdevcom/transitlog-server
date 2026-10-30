@@ -1,4 +1,11 @@
-import { AuthenticationError } from 'apollo-server-errors'
+import { GraphQLError } from 'graphql'
+
+export class AuthenticationError extends GraphQLError {
+  constructor(message: string) {
+    super(message, { extensions: { code: 'UNAUTHENTICATED' } })
+    Object.defineProperty(this, 'name', { value: 'AuthenticationError' })
+  }
+}
 
 export type AuthenticatedValue<T> = AuthenticationError | T | null
 

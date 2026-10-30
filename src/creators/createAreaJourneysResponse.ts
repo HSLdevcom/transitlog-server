@@ -6,7 +6,7 @@ import {
 } from '../types/generated/schema-types'
 import { CachedFetcher } from '../types/CachedFetcher'
 import { cacheFetch } from '../cache'
-import { ForbiddenError } from 'apollo-server-errors'
+import { GraphQLError } from 'graphql'
 import { groupBy, map } from 'lodash'
 import { createAreaJourneyObject } from '../objects/createAreaJourneyObject'
 import { createBBoxString } from '../utils/createBBoxString'
@@ -49,7 +49,9 @@ export const createAreaJourneysResponse = async (
     )
   }
   if (speedFilter && !user) {
-    throw new ForbiddenError('Authentication required. Please login.')
+    throw new GraphQLError('Authentication required. Please login.', {
+      extensions: { code: 'FORBIDDEN' },
+    })
   }
   // Cache for when a link containing an area query is shared.
   const cacheKey = `area_journeys_${createBBoxString(bbox)}_${minTime}_${maxTime}_${date}_${
